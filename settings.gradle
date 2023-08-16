@@ -1,0 +1,5 @@
+rootProject.name = 'vitrivr-engine'
+
+include 'vitrivr-engine-core'
+include 'vitrivr-engine-index'
+include 'vitrivr-engine-query'
