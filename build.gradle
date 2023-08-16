@@ -1,0 +1,49 @@
+plugins {
+	id 'org.jetbrains.kotlin.jvm' version "$version_kotlin"
+    id 'java-library'
+    id 'idea'
+}
+
+allprojects {
+    /* Group name of our artifacts */
+    group = 'org.vitrivr'
+
+    apply plugin: 'kotlin'
+    apply plugin: 'java'
+    apply plugin: 'idea'
+
+    repositories {
+        mavenCentral()
+    }
+
+}
+
+subprojects {
+
+	sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_11
+	
+	kotlin {
+        jvmToolchain(17)
+    }
+
+    java {
+        toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+        withJavadocJar()
+        withSourcesJar()
+    }
+	
+	compileJava {
+        options.encoding = 'UTF-8'
+	}
+	
+	/* Common dependencies. */
+    dependencies {
+    
+		///// Kotlin
+        implementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: version_kotlin
+		implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: version_kotlinx_coroutines
+		
+	}
+
+}
