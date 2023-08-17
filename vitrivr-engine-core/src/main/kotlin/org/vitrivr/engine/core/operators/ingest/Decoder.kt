@@ -16,5 +16,5 @@ import org.vitrivr.engine.core.operators.Operator
  */
 interface Decoder: Operator.Nullary<Content> {
     /** The [Enumerator] processed by this [Decoder]. */
-    val source: Enumerator
+    val enumerator: Enumerator
 }
