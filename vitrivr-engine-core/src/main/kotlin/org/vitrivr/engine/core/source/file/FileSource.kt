@@ -1,5 +1,7 @@
-package org.vitrivr.engine.core.source
+package org.vitrivr.engine.core.source.file
 
+import org.vitrivr.engine.core.source.MediaType
+import org.vitrivr.engine.core.source.Source
 import java.io.InputStream
 import java.nio.file.Path
 
@@ -13,9 +15,12 @@ import java.nio.file.Path
 @JvmRecord
 data class FileSource(
     val path: Path,
-    override val type: MediaType,
+    val mimeType: MimeType,
     override val inputStream: InputStream,
     override val name: String = path.fileName.toString(),
     override val timestamp: Long = System.currentTimeMillis(),
     override val metadata: Map<String, Any> = emptyMap()
-): Source
+): Source {
+    override val type: MediaType
+        get() = this.mimeType.mediaType
+}

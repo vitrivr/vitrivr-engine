@@ -6,7 +6,7 @@ import org.vitrivr.engine.core.source.Source
 import org.vitrivr.engine.core.operators.Operator
 
 /**
- * An [Operator.Nullary] that converts a [Source] into a [Flow] of [Content] elements.
+ * An [Operator.Unary] that converts a [Flow] of [Source] into a [Flow] of [Content] elements.
  *
  * Implementations of this class act as data source for an content extraction and ingest pipeline.
  *
@@ -14,7 +14,6 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface Decoder: Operator.Nullary<Content> {
-    /** The [Enumerator] processed by this [Decoder]. */
-    val enumerator: Enumerator
+interface Decoder: Operator.Unary<Source,Content> {
+
 }

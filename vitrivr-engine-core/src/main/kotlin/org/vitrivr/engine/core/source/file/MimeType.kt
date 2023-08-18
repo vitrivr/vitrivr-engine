@@ -1,9 +1,17 @@
-package org.vitrivr.engine.core.source
+package org.vitrivr.engine.core.source.file
 
+import org.vitrivr.engine.core.source.MediaType
 import java.io.File
+import java.nio.file.Path
 
+/**
+ * A range of known [MimeType]s used for internal conversion.
+ *
+ * @author Luca Rossetto
+ * @author Ralph Gasser
+ * @version 1.0.0
+ */
 enum class MimeType(val fileExtension: String, val mimeType: String, val mediaType: MediaType) {
-
     //Video Mime Types
     AVI("avi", "video/avi", MediaType.VIDEO),
     M4V("m4v", "video/mp4", MediaType.VIDEO),
@@ -45,15 +53,14 @@ enum class MimeType(val fileExtension: String, val mimeType: String, val mediaTy
     OGG("ogg", "audio/ogg", MediaType.AUDIO),
     FLAC("flac", "audio/flac", MediaType.AUDIO),
 
-    //3D Mime types (self-defimed)
+    //3D Mime types (self-defined)
     STL("stl", "application/3d-stl", MediaType.MESH),
     OBJ("obj", "application/3d-obj", MediaType.MESH),
-    OFF("off", "application/3d-off", MediaType.MESH)
-
-    ;
+    OFF("off", "application/3d-off", MediaType.MESH);
 
     companion object {
         fun getMimeType(fileName: String): MimeType = MimeType.valueOf(fileName.substringAfterLast('.').uppercase())
-        fun getMimeType(file: File): MimeType? = MimeType.valueOf(file.extension.uppercase())
+        fun getMimeType(path: Path): MimeType = getMimeType(path.fileName.toString())
+        fun getMimeType(file: File): MimeType = MimeType.valueOf(file.extension.uppercase())
     }
 }
