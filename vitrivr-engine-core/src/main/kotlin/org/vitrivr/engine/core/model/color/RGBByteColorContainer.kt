@@ -14,4 +14,6 @@ data class RGBByteColorContainer(val red: UByte, val green: UByte, val blue: UBy
     fun toFloatContainer(): RGBFloatColorContainer =
         RGBFloatColorContainer(this.red.toFloat() / 255f, this.green.toFloat() / 255f, this.blue.toFloat() / 255f)
 
+    fun toRGBInt(): Int = this.blue.toInt() and 0xFF or ((this.green.toInt() and 0xFF) shl 8) or ((this.red.toInt() and 0xFF) shl 16)
+
 }
