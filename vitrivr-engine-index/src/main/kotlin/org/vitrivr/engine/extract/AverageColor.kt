@@ -14,6 +14,7 @@ import org.vitrivr.engine.core.operators.DescriberId
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.derive.impl.AverageImageContentDeriver
 import org.vitrivr.engine.core.operators.ingest.Extractor
+import org.vitrivr.engine.core.util.extension.getRGBArray
 import java.util.UUID
 
 class AverageColor(
@@ -25,32 +26,24 @@ class AverageColor(
     override fun toFlow(): Flow<IngestedRetrievable> = input.toFlow().map { retrievable: IngestedRetrievable ->
         if (retrievable.content.any { c -> c is ImageContent }) {
 
-
             val averageImage = retrievable.getDerivedContent(AverageImageContentDeriver.derivateName) as? ImageContent
 
             if (averageImage != null) {
-                val color = MutableRGBFloatColorContainer(0f, 0f, 0f)
+                val color = MutableRGBFloatColorContainer()
                 var counter = 0
-                averageImage.image.getRGB(
-                    0,
-                    0,
-                    averageImage.image.width,
-                    averageImage.image.height,
-                    null,
-                    0,
-                    averageImage.image.width
-                ).forEach { c ->
+                averageImage.image.getRGBArray().forEach { c ->
                     color += RGBByteColorContainer.fromRGB(c)
                     ++counter
                 }
                 val averageColor =
                     RGBFloatColorContainer(color.red / counter, color.green / counter, color.blue / counter)
+
                 val descriptor = object : VectorDescriptor<Float> {
-                    override val vector: List<Float> = listOf(averageColor.red, averageColor.green, averageColor.blue)
+                    override val vector: List<Float> = averageColor.toList()
                     override val id: DescriptorId = UUID.randomUUID()
                     override val retrievableId: RetrievableId = retrievable.id
                     override val describerId: DescriberId = this@AverageColor.id
-                    override val transient: Boolean = true
+                    override val transient: Boolean = false
                 }
                 retrievable.descriptors.add(descriptor)
 
@@ -60,11 +53,7 @@ class AverageColor(
 
                 //TODO attach information to retrievable
             }
-
-            retrievable
-
-        } else {
-            retrievable
         }
+        retrievable
     }
 }

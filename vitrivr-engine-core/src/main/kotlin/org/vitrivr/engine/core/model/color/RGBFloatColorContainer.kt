@@ -49,6 +49,8 @@ open class RGBFloatColorContainer(open val red: Float, open val green: Float, op
         (min(1f, max(0f, this.blue)) * 255f).roundToInt().toUByte()
     )
 
+    fun toList() = listOf(this.red, this.green, this.blue)
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is RGBFloatColorContainer) return false
