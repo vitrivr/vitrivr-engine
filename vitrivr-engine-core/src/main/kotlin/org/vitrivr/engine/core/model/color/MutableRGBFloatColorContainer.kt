@@ -7,6 +7,8 @@ import kotlin.math.sqrt
 data class MutableRGBFloatColorContainer(override var red: Float, override var green: Float, override var blue: Float) :
     RGBFloatColorContainer(red, green, blue) {
 
+    constructor() : this(0f, 0f, 0f)
+
     override operator fun plus(other: RGBFloatColorContainer): MutableRGBFloatColorContainer =
         MutableRGBFloatColorContainer(this.red + other.red, this.green + other.green, this.blue + other.blue)
 
@@ -17,6 +19,18 @@ data class MutableRGBFloatColorContainer(override var red: Float, override var g
             this.blue + (other.blue.toFloat() / 255f)
         )
 
+    operator fun plusAssign(other: RGBFloatColorContainer) {
+        this.red += other.red
+        this.green += other.green
+        this.blue += other.blue
+    }
+
+    operator fun plusAssign(other: RGBByteColorContainer) {
+        this.red += other.red.toFloat() / 255f
+        this.green += other.green.toFloat() / 255f
+        this.blue += other.blue.toFloat() / 255f
+    }
+
     override operator fun minus(other: RGBFloatColorContainer): MutableRGBFloatColorContainer =
         MutableRGBFloatColorContainer(this.red - other.red, this.green - other.green, this.blue - other.blue)
 
@@ -26,6 +40,22 @@ data class MutableRGBFloatColorContainer(override var red: Float, override var g
             this.green - (other.green.toFloat() / 255f),
             this.blue - (other.blue.toFloat() / 255f)
         )
+
+    operator fun times(value: Float) : MutableRGBFloatColorContainer = MutableRGBFloatColorContainer(this.red * value, this.green * value, this.blue * value)
+
+    operator fun timesAssign(value: Float) {
+        this.red *= value
+        this.green *= value
+        this.blue *= value
+    }
+
+    operator fun div(value: Float) : MutableRGBFloatColorContainer = MutableRGBFloatColorContainer(this.red / value, this.green / value, this.blue / value)
+
+    operator fun divAssign(value: Float) {
+        this.red /= value
+        this.green /= value
+        this.blue /= value
+    }
 
     /**
      * Clamps the values of each color channel to [0f, 1f]

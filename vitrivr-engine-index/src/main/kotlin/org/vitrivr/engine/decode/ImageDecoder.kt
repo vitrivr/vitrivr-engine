@@ -24,12 +24,7 @@ class ImageDecoder(override val input: Operator<Source>) : Decoder {
     override fun toFlow(): Flow<Content> = this.input.toFlow().filter { it.type == MediaType.IMAGE }.mapNotNull { source ->
         try {
             val image: BufferedImage = ImageIO.read(source.inputStream)
-            if (image != null) {
-                InMemoryImageContent(source, image)
-            } else {
-                //TODO log
-                null
-            }
+            InMemoryImageContent(source, image)
         } catch (ioException: IOException) {
             //TODO log
             null

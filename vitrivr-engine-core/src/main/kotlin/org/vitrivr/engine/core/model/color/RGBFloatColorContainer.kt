@@ -1,8 +1,6 @@
 package org.vitrivr.engine.core.model.color
 
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.sqrt
+import kotlin.math.*
 
 open class RGBFloatColorContainer(open val red: Float, open val green: Float, open val blue: Float) {
 
@@ -43,7 +41,13 @@ open class RGBFloatColorContainer(open val red: Float, open val green: Float, op
         }
     }
 
-    fun toMutable() : MutableRGBFloatColorContainer = MutableRGBFloatColorContainer(this.red, this.green, this.blue)
+    fun toMutable(): MutableRGBFloatColorContainer = MutableRGBFloatColorContainer(this.red, this.green, this.blue)
+
+    fun toByteContainer(): RGBByteColorContainer = RGBByteColorContainer(
+        (min(1f, max(0f, this.red)) * 255f).roundToInt().toUByte(),
+        (min(1f, max(0f, this.green)) * 255f).roundToInt().toUByte(),
+        (min(1f, max(0f, this.blue)) * 255f).roundToInt().toUByte()
+    )
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
