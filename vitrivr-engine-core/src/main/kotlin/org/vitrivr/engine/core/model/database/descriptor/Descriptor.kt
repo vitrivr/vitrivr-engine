@@ -27,9 +27,4 @@ interface Descriptor : Persistable {
 
     /** ID of the [Describer] that produced this [Descriptor]. */
     val describerId: DescriberId
-
-
-
-
-
 }
