@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import org.vitrivr.engine.core.model.content.Content
-import org.vitrivr.engine.core.model.content.InMemoryImageContent
+import org.vitrivr.engine.core.model.content.impl.InMemoryImageContent
 import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.source.MediaType

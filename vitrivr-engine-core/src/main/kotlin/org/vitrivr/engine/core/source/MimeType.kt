@@ -53,14 +53,7 @@ enum class MimeType(val fileExtension: String, val mimeType: String, val mediaTy
     ;
 
     companion object {
-        private val extensionMap = mutableMapOf<String, MimeType>()
-
-        fun getMimeType(fileName: String): MimeType? = extensionMap[fileName.substringAfterLast('.')]
-        fun getMimeType(file: File): MimeType? = extensionMap[file.extension]
+        fun getMimeType(fileName: String): MimeType = MimeType.valueOf(fileName.substringAfterLast('.').uppercase())
+        fun getMimeType(file: File): MimeType? = MimeType.valueOf(file.extension.uppercase())
     }
-
-    init {
-        MimeType.extensionMap[this.fileExtension] = this
-    }
-
 }
