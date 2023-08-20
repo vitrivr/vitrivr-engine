@@ -24,5 +24,4 @@ hs_err_pid*
 replay_pid*
 /.idea
 /.gradle
-/vitrivr-engine-core/build
-/vitrivr-engine-index/build
+build
