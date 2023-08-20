@@ -1,4 +1,4 @@
-package org.vitrivr.engine.segment
+package org.vitrivr.base.engine.segment
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharedFlow

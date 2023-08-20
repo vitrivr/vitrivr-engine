@@ -10,18 +10,32 @@ allprojects {
     /* Group name of our artifacts */
     group = 'org.vitrivr'
 
-    apply plugin: 'kotlin'
-    apply plugin: 'java'
-    apply plugin: 'idea'
-
-    repositories {
-        mavenCentral()
+    /* Repositories for build script. */
+    buildscript {
+        repositories {
+            mavenCentral()
+            maven {
+                url "https://oss.sonatype.org/content/repositories/snapshots/"
+            }
+        }
     }
 
+    /* Project repositories for build script. */
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+    }
 }
 
 subprojects {
+    /* Common plugins. */
+    apply plugin: 'java'
+    apply plugin: 'kotlin'
+    apply plugin: 'idea'
 
+    /* Java Version */
 	sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
 
@@ -47,11 +61,12 @@ subprojects {
 	
 	/* Common dependencies. */
     dependencies {
+        /* Caffeine */
+        implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: version_caffeine
     
-		///// Kotlin
+		/* Kotlin & Kotlinx */
         implementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: version_kotlin
+        implementation group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: version_kotlin
 		implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: version_kotlinx_coroutines
-		
-	}
-
+    }
 }

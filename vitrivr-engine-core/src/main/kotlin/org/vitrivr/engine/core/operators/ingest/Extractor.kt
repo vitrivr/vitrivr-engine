@@ -16,7 +16,7 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface Extractor: Operator.Unary<IngestedRetrievable, IngestedRetrievable>, Describer {
+interface Extractor<D: Descriptor>: Operator.Unary<IngestedRetrievable, IngestedRetrievable>, Describer<D> {
     /** Flag indicating, that this [Extractor] is persisting information. */
     val persisting: Boolean
 }

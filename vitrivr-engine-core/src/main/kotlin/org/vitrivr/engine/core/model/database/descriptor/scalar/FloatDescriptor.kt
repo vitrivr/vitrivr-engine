@@ -1,6 +1,5 @@
 package org.vitrivr.engine.core.model.database.descriptor.scalar
 
-import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
 import org.vitrivr.engine.core.operators.DescriberId
