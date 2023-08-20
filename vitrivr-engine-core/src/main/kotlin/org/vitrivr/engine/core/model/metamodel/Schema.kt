@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.metamodel
 
+
 /**
  * A [Schema] that defines a particular vitrivr instance's meta data model.
  *
@@ -7,4 +8,8 @@ package org.vitrivr.engine.core.model.metamodel
  * @version 1.0.0
  */
 @JvmRecord
-data class Schema(val name: String = "vitrivr", val fields: List<Field>)
+data class Schema(
+    val name: String = "vitrivr",
+    val connection: ConnectionConfig,
+    val fields: List<Field>
+)

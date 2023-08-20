@@ -26,6 +26,18 @@ class CottontailConnection(schema: Schema, val host: String, val port: Int): Abs
 
         /** The prefix for descriptor entities. */
         const val DESCRIPTOR_ENTITY_PREFIX = "descriptor"
+
+        /** Name of the host parameter. */
+        const val PARAMETER_NAME_HOST = "host"
+
+        /** Name of the host parameter. */
+        const val PARAMETER_DEFAULT_HOST = "127.0.0.1"
+
+        /** Name of the port parameter. */
+        const val PARAMETER_NAME_PORT = "port"
+
+        /** Name of the host parameter. */
+        const val PARAMETER_DEFAULT_PORT = 1865
     }
 
     /** The [Name.SchemaName] used by this [CottontailConnection]. */
@@ -41,6 +53,18 @@ class CottontailConnection(schema: Schema, val host: String, val port: Int): Abs
         /* Register all providers known to this CottontailConnection. */
         this.register(FloatVectorDescriptor::class, FloatVectorDescriptorProvider(this))
     }
+
+    /**
+     * Constructor used for reflective instantiation od [CottontailConnection].
+     *
+     * @param schema [Schema] this [CottontailConnection] is created for.
+     * @param parameters [Map] of parameters used for creation.
+     */
+    constructor(schema: Schema, parameters: Map<String,String> = emptyMap()): this(
+        schema,
+        parameters[PARAMETER_NAME_HOST] ?: PARAMETER_DEFAULT_HOST,
+        parameters[PARAMETER_NAME_PORT]?.toIntOrNull() ?: PARAMETER_DEFAULT_PORT
+    )
 
     /**
      * Generates and returns a [RetrievableInitializer] for this [CottontailConnection].
@@ -62,4 +86,11 @@ class CottontailConnection(schema: Schema, val host: String, val port: Int): Abs
      * @return [RetrievableReader]
      */
     override fun getRetrievableReader(): org.vitrivr.engine.core.database.retrievable.RetrievableReader = RetrievableReader(this)
+
+    /**
+     * Closes this [CottontailConnection]
+     */
+    override fun close() {
+        this.channel.shutdown()
+    }
 }

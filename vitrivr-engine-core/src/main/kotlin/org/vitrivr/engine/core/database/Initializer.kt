@@ -11,7 +11,6 @@ import org.vitrivr.engine.core.model.database.Persistable
  * @version 1.0.0
  */
 interface Initializer<out T : Persistable> {
-
     /**
      * Initializes the (persistent) data structures required by the [Persistable] of type [T].
      */

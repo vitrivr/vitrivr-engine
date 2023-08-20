@@ -33,11 +33,11 @@ abstract class AbstractConnection(final override val schema: Schema): Connection
     init {
         /* Initialize the schema. */
         for (field in this.schema.fields) {
-            val describer = field.describer as Describer<Descriptor>
-            val provider = this.registered[field.describer.descriptorClass] as? DescriptorProvider<Descriptor> ?: throw IllegalArgumentException("Unhandled describer $field for provided schema.")
-            this.readers[field.describer] = provider.newReader(describer) as DescriptorReader<*>
-            this.writers[field.describer] = provider.newWriter(describer) as DescriptorWriter<*>
-            this.initializers[field.describer] = provider.newInitializer(describer) as DescriptorInitializer<*>
+            val describer = field.newDescriber() as Describer<Descriptor>
+            val provider = this.registered[describer.descriptorClass] as? DescriptorProvider<Descriptor> ?: throw IllegalArgumentException("Unhandled describer $field for provided schema.")
+            this.readers[describer] = provider.newReader(describer) as DescriptorReader<*>
+            this.writers[describer] = provider.newWriter(describer) as DescriptorWriter<*>
+            this.initializers[describer] = provider.newInitializer(describer) as DescriptorInitializer<*>
         }
     }
 
