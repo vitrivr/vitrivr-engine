@@ -2,5 +2,5 @@ dependencies {
 
     api project(':vitrivr-engine-core')
 
-
+    api project(':vitrivr-engine-base')
 }

@@ -19,6 +19,7 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.util.extension.getRGBArray
 import java.util.UUID
 import kotlin.reflect.KClass
+import kotlin.reflect.KTypeParameter
 
 class AverageColor(
     override val instanceName: String,
@@ -31,6 +32,7 @@ class AverageColor(
 
     /** */
     override val typeName: String = "AverageColor"
+
 
     /**
      *

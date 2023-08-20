@@ -10,6 +10,7 @@ import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.Describer
+import java.io.Closeable
 import kotlin.reflect.KClass
 
 /**
@@ -18,7 +19,7 @@ import kotlin.reflect.KClass
  * @author Ralph Gasser
  * @version 1.0.0
  */
-sealed interface Connection {
+sealed interface Connection: Closeable {
     /** The [Schema] used with this [Connection]. */
     val schema: Schema
 
