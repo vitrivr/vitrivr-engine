@@ -9,6 +9,8 @@ import org.vitrivr.engine.core.model.database.retrievable.IngestedRetrievable
 import org.vitrivr.engine.core.operators.derive.ContentDeriver
 import org.vitrivr.engine.core.operators.derive.ContentDerivers
 import org.vitrivr.engine.core.operators.derive.DerivateName
+import org.vitrivr.engine.core.util.extension.getRGBArray
+import org.vitrivr.engine.core.util.extension.setRGBArray
 import java.awt.image.BufferedImage
 
 class AverageImageContentDeriver : ContentDeriver<DerivedImageContent?> {
@@ -39,15 +41,7 @@ class AverageImageContentDeriver : ContentDeriver<DerivedImageContent?> {
         val colors = List(firstImage.image.width * firstImage.image.height) { MutableRGBFloatColorContainer() }
 
         matchingImages.forEach { imageContent ->
-            imageContent.image.getRGB(
-                0,
-                0,
-                imageContent.image.width,
-                imageContent.image.height,
-                null,
-                0,
-                imageContent.image.width
-            ).forEachIndexed { index, color ->
+            imageContent.image.getRGBArray().forEachIndexed { index, color ->
                 colors[index] += RGBByteColorContainer.fromRGB(color)
             }
         }
@@ -59,9 +53,7 @@ class AverageImageContentDeriver : ContentDeriver<DerivedImageContent?> {
         }.toIntArray()
 
         val averageImage = BufferedImage(firstImage.image.width, firstImage.image.height, BufferedImage.TYPE_INT_RGB)
-        averageImage.setRGB(
-            0, 0, averageImage.width, averageImage.height, intColors, 0, averageImage.width
-        )
+        averageImage.setRGBArray(intColors)
 
         return InMemoryDerivedImageContent(source = firstImage.source, image = averageImage, name = derivateName)
     }
