@@ -1,4 +1,4 @@
-package org.vitrivr.engine.decode
+package org.vitrivr.base.engine.decode
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
