@@ -1,6 +1,8 @@
 package org.vitrivr.engine.core.model.metamodel
 
 import org.vitrivr.engine.core.database.Connection
+import org.vitrivr.engine.core.database.ConnectionProvider
+import java.util.ServiceLoader
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -20,6 +22,26 @@ object SchemaManager {
     /** A [ReentrantReadWriteLock] to mediate concurrent access to this class. */
     private val lock = ReentrantReadWriteLock()
 
+    /** A [Map] of all available [Analyser]s. */
+    private val analysers = HashMap<String,Analyser<*>>()
+
+    init {
+        for (a in ServiceLoader.load(Analyser::class.java)) {
+            if (this.analysers.containsKey(a.analyserName)) {
+                /* TODO: Log warning! */
+            }
+            this.analysers[a.analyserName] = a
+        }
+    }
+
+    /**
+     * Returns an [Analyser] for the provided analyser name.
+     *
+     * @param name [String]
+     * @return [Analyser] or null, if no [Analyser] exists for given name.
+     */
+    fun getAnalyserForName(name: String): Analyser<*> = (this.analysers[name]) ?: throw IllegalStateException("Failed to find analyser implementation for name '$name'.")
+
     /**
      * Opens a new [Connection] for the provided [Schema], using the provided [Map] of the connection parameters.
      *
@@ -32,19 +54,17 @@ object SchemaManager {
             this.connections[schema.name]?.close()
         }
 
+        /* Find connection provider for connection. */
+        val provider = ServiceLoader.load(ConnectionProvider::class.java).find {
+            it.databaseName == schema.connection.databaseName
+        } ?: throw IllegalArgumentException("Failed to find connection provider implementation for '${schema.connection.databaseName}'.")
+
         /* Create new connection using reflection. */
-        val type = schema.connection.connectionClass()
-        val constructor = type.constructors.find { constructor ->
-            constructor.parameters.size == 2 && constructor.parameters.any { it.name == "schema" } && constructor.parameters.any { it.name == "parameters" }
-        } ?: throw IllegalArgumentException("Failed to find valid constructor for connection of type $type.")
-        val instance = constructor.callBy(mapOf(
-            constructor.parameters.first { it.name == "schema" } to schema,
-            constructor.parameters.first { it.name == "parameters" } to parameters,
-        ))
+        val connection = provider.openConnection(schema, parameters)
 
         /* Cache and return connection. */
-        this.connections[schema.name] = instance
-        return instance
+        this.connections[schema.name] = connection
+        return connection
     }
 
     /**

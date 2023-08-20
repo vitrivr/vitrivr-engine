@@ -4,9 +4,10 @@ import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.base.database.cottontail.initializer.FloatVectorDescriptorInitializer
 import org.vitrivr.engine.base.database.cottontail.reader.FloatVectorDescriptorReader
 import org.vitrivr.engine.base.database.cottontail.writer.FloatVectorDescriptorWriter
+import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.operators.Describer
+import org.vitrivr.engine.core.model.metamodel.Field
 
 /**
  * A [DescriptorProvider] for [FloatVectorDescriptor].
@@ -14,8 +15,8 @@ import org.vitrivr.engine.core.operators.Describer
  * @author Ralph Gasser
  * @version 1.0.0
  */
-internal class FloatVectorDescriptorProvider(private val connection: CottontailConnection): DescriptorProvider<FloatVectorDescriptor> {
-    override fun newInitializer(describer: Describer<FloatVectorDescriptor>) = FloatVectorDescriptorInitializer(describer, this.connection)
-    override fun newReader(describer: Describer<FloatVectorDescriptor>) = FloatVectorDescriptorReader(describer, this.connection)
-    override fun newWriter(describer: Describer<FloatVectorDescriptor>) = FloatVectorDescriptorWriter(describer, this.connection)
+internal class FloatVectorDescriptorProvider: DescriptorProvider<FloatVectorDescriptor> {
+    override fun newInitializer(connection: Connection, field: Field<FloatVectorDescriptor>) = FloatVectorDescriptorInitializer(field, connection as CottontailConnection)
+    override fun newReader(connection: Connection, field: Field<FloatVectorDescriptor>) = FloatVectorDescriptorReader(field, connection as CottontailConnection)
+    override fun newWriter(connection: Connection, field: Field<FloatVectorDescriptor>) = FloatVectorDescriptorWriter(field, connection as CottontailConnection)
 }
