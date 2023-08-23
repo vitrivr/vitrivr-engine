@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.StatusException
 import org.vitrivr.cottontail.client.language.ddl.CreateEntity
+import org.vitrivr.cottontail.client.language.ddl.CreateSchema
 import org.vitrivr.cottontail.client.language.ddl.TruncateEntity
 import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.types.Types
@@ -30,10 +31,18 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
      * Initializes the entity that is used to store [Retrievable]s in Cottontail DB.
      */
     override fun initialize() {
-        val create = CreateEntity(this.entityName)
-            .column(Name.ColumnName("id"), Types.String, false, true, false)
+        /* Create schema. */
+        val createSchema = CreateSchema(this.entityName.schemaName).ifNotExists()
         try {
-            this.connection.client.create(create)
+            this.connection.client.create(createSchema)
+        } catch (e: StatusException) {
+            logger.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
+        }
+
+        /* Create entity. */
+        val creatEntity = CreateEntity(this.entityName).column(Name.ColumnName("id"), Types.String, false, true, false).ifNotExists()
+        try {
+            this.connection.client.create(creatEntity)
         } catch (e: StatusException) {
             logger.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
         }
