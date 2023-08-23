@@ -26,36 +26,37 @@ class AverageColorExtractor(
     override val persisting: Boolean = true,
 ) : Extractor<FloatVectorDescriptor> {
 
-    /** */
-
     /** The [AverageColorExtractor] implements the [AverageColor] analyser. */
     override val analyser: AverageColor = AverageColor()
 
     /** */
-    override fun toFlow(): Flow<IngestedRetrievable> = this.input.toFlow().map { retrievable: IngestedRetrievable ->
-        if (retrievable.content.any { c -> c is ImageContent }) {
-
-            val averageImage = retrievable.getDerivedContent(AverageImageContentDeriver.derivateName) as? ImageContent
-
-            if (averageImage != null) {
-                val color = MutableRGBFloatColorContainer()
-                var counter = 0
-                averageImage.image.getRGBArray().forEach { c ->
-                    color += RGBByteColorContainer.fromRGB(c)
-                    ++counter
-                }
-
-                val averageColor = RGBFloatColorContainer(color.red / counter, color.green / counter, color.blue / counter)
-                val descriptor = FloatVectorDescriptor(UUID.randomUUID(), retrievable.id, this.persisting, averageColor.toList())
-                retrievable.descriptors.add(descriptor)
-
-                if (this.persisting) {
-                    //TODO persist
-                }
-
-                //TODO attach information to retrievable
-            }
+    override fun toFlow(): Flow<IngestedRetrievable> {
+        val writer = if (this.persisting) {
+            this.field.getWriter()
+        } else {
+            null
         }
-        retrievable
+        return this.input.toFlow().map { retrievable: IngestedRetrievable ->
+            if (retrievable.content.any { c -> c is ImageContent }) {
+                val averageImage = retrievable.getDerivedContent(AverageImageContentDeriver.derivateName) as? ImageContent
+                if (averageImage != null) {
+                    val color = MutableRGBFloatColorContainer()
+                    var counter = 0
+                    averageImage.image.getRGBArray().forEach { c ->
+                        color += RGBByteColorContainer.fromRGB(c)
+                        ++counter
+                    }
+
+                    /* Generate descriptor. */
+                    val averageColor = RGBFloatColorContainer(color.red / counter, color.green / counter, color.blue / counter)
+                    val descriptor = FloatVectorDescriptor(UUID.randomUUID(), retrievable.id, this.persisting, averageColor.toList())
+
+                    /* Persist descriptor and attach it to retrievable. */
+                    writer?.add(descriptor)
+                    retrievable.descriptors.add(descriptor)
+                }
+            }
+            retrievable
+        }
     }
 }
