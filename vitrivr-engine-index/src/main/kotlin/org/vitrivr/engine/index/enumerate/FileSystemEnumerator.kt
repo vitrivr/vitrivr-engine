@@ -1,4 +1,4 @@
-package org.vitrivr.base.engine.enumerate
+package org.vitrivr.engine.index.enumerate
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
