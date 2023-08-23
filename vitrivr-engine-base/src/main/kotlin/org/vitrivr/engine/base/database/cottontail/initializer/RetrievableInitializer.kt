@@ -1,5 +1,7 @@
 package org.vitrivr.engine.base.database.cottontail.initializer
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.StatusException
 import org.vitrivr.cottontail.client.language.ddl.CreateEntity
 import org.vitrivr.cottontail.client.language.ddl.TruncateEntity
@@ -9,6 +11,9 @@ import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.RETRIEVABLE_ENTITY_NAME
 import org.vitrivr.engine.core.database.retrievable.RetrievableInitializer
 import org.vitrivr.engine.core.model.database.retrievable.Retrievable
+
+/** Defines [KLogger] of the class. */
+private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * A [RetrievableInitializer] implementation for Cottontail DB.
@@ -30,7 +35,7 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
         try {
             this.connection.client.create(create)
         } catch (e: StatusException) {
-
+            logger.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
         }
     }
 
@@ -42,7 +47,7 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
         try {
             this.connection.client.truncate(truncate)
         } catch (e: StatusException) {
-
+            logger.error(e) { "Failed to truncate entity ${this.entityName} due to exception." }
         }
     }
 }
