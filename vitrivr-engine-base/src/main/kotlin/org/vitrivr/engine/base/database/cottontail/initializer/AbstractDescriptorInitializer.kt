@@ -17,7 +17,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  */
 abstract class AbstractDescriptorInitializer<T: Descriptor>(final override val field: Schema.Field<T>, protected val connection: CottontailConnection): DescriptorInitializer<T> {
     /** The [Name.EntityName] used by this [FloatVectorDescriptor]. */
-    protected val entityName: Name.EntityName = Name.EntityName(field.schema().name, "${CottontailConnection.DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
+    protected val entityName: Name.EntityName = Name.EntityName(this.field.schema.name, "${CottontailConnection.DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
 
     /**
      * Truncates the entity backing this [AbstractDescriptorInitializer].

@@ -28,7 +28,7 @@ abstract class AbstractDescriptorReader<T: Descriptor>(final override val field:
     }
 
     /** The [Name.EntityName] used by this [FloatVectorDescriptor]. */
-    protected val entityName: Name.EntityName = Name.EntityName(field.schema().name, "${CottontailConnection.DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
+    protected val entityName: Name.EntityName = Name.EntityName(this.field.schema.name, "${CottontailConnection.DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
 
     /**
      * Returns a single [Descriptor]s of type [T] that has the provided [UUID].
