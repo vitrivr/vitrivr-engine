@@ -4,6 +4,7 @@ import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.retrievable.IngestedRetrievable
 import org.vitrivr.engine.core.model.database.retrievable.Retrievable
 import org.vitrivr.engine.core.model.metamodel.Analyser
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 
@@ -20,6 +21,9 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
 interface Extractor<T: Descriptor>: Operator.Unary<IngestedRetrievable, IngestedRetrievable> {
     /** The [Analyser] this [Retriever] implements. */
     val analyser: Analyser<T>
+
+    /** The [Schema.Field] populated by this [Extractor]. */
+    val field: Schema.Field<T>
 
     /** Flag indicating, that this [Extractor] is persisting information. */
     val persisting: Boolean

@@ -19,7 +19,7 @@ import org.vitrivr.engine.core.model.database.retrievable.Retrievable
 internal class RetrievableInitializer(private val connection: CottontailConnection): RetrievableInitializer {
 
     /** The [Name.EntityName] for this [RetrievableInitializer]. */
-    private val entityName: Name.EntityName = this.connection.schemaName.entity(RETRIEVABLE_ENTITY_NAME)
+    private val entityName: Name.EntityName = Name.EntityName(this.connection.schemaName, RETRIEVABLE_ENTITY_NAME)
 
     /**
      * Initializes the entity that is used to store [Retrievable]s in Cottontail DB.

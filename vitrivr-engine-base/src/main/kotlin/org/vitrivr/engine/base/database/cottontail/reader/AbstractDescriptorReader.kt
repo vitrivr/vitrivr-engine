@@ -12,7 +12,7 @@ import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.metamodel.Field
+import org.vitrivr.engine.core.model.metamodel.Schema
 import java.util.*
 
 /**
@@ -21,14 +21,14 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractDescriptorReader<T: Descriptor>(final override val field: Field<T>, protected val connection: CottontailConnection): DescriptorReader<T> {
+abstract class AbstractDescriptorReader<T: Descriptor>(final override val field: Schema.Field<T>, protected val connection: CottontailConnection): DescriptorReader<T> {
 
     companion object {
         const val ID_COLUMN_NAME = "id"
     }
 
     /** The [Name.EntityName] used by this [FloatVectorDescriptor]. */
-    protected val entityName: Name.EntityName = this.connection.schemaName.entity("${CottontailConnection.DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
+    protected val entityName: Name.EntityName = Name.EntityName(field.schema().name, "${CottontailConnection.DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
 
     /**
      * Returns a single [Descriptor]s of type [T] that has the provided [UUID].

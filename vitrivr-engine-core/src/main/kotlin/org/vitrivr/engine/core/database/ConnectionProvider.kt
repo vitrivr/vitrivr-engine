@@ -26,11 +26,11 @@ interface ConnectionProvider {
     /**
      * Opens a new [Connection] for the given [Schema].
      *
-     * @param schema [Schema] to open [Connection] for.
+     * @param schemaName The name of the schema.
      * @param parameters The optional parameters.
      * @return [Connection]
      */
-    fun openConnection(schema: Schema, parameters: Map<String,String> = emptyMap()): Connection
+    fun openConnection(schemaName: String, parameters: Map<String,String> = emptyMap()): Connection
 
     /**
      * Registers an [DescriptorProvider] for a particular [KClass] of [Descriptor] with this [ConnectionProvider].

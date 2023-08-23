@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.metamodel
 
+import org.vitrivr.engine.core.config.SchemaConfig
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import java.util.ServiceLoader
@@ -17,21 +18,16 @@ import kotlin.concurrent.write
  */
 object SchemaManager {
     /** An internal [HashMap] of all open [Connection]. */
-    private val connections = HashMap<String, Connection>()
+    private val schemas = HashMap<String, Schema>()
 
     /** A [ReentrantReadWriteLock] to mediate concurrent access to this class. */
     private val lock = ReentrantReadWriteLock()
 
-    /** A [Map] of all available [Analyser]s. */
-    private val analysers = HashMap<String,Analyser<*>>()
+    /** A [Map] of all available [Analyser]s. These are loaded upon initialization of the class. */
+    private val analysers: Map<String,Analyser<*>> = HashMap()
 
     init {
-        for (a in ServiceLoader.load(Analyser::class.java)) {
-            if (this.analysers.containsKey(a.analyserName)) {
-                /* TODO: Log warning! */
-            }
-            this.analysers[a.analyserName] = a
-        }
+        this.reload() /* Reload analysers. */
     }
 
     /**
@@ -40,31 +36,35 @@ object SchemaManager {
      * @param name [String]
      * @return [Analyser] or null, if no [Analyser] exists for given name.
      */
-    fun getAnalyserForName(name: String): Analyser<*> = (this.analysers[name]) ?: throw IllegalStateException("Failed to find analyser implementation for name '$name'.")
+    fun getAnalyserForName(name: String): Analyser<*> = this.analysers[name] ?: throw IllegalStateException("Failed to find analyser implementation for name '$name'.")
 
     /**
-     * Opens a new [Connection] for the provided [Schema], using the provided [Map] of the connection parameters.
+     * Opens a new [Schema] for the provided [SchemaConfig]. This includes the related database [Connection].
      *
-     * @param schema The [Schema] to open a [Connection] for.
-     * @param parameters A map of [Connection] parameters.
+     * @param config The [SchemaConfig] to open a [Schema] for.
      */
-    fun open(schema: Schema, parameters: Map<String,String> = emptyMap()): Connection = this.lock.write {
+    fun open(config: SchemaConfig): Schema = this.lock.write {
+
         /* Close existing connection. */
-        if (this.connections.containsKey(schema.name)) {
-            this.connections[schema.name]?.close()
+        if (this.schemas.containsKey(config.name)) {
+            this.schemas[config.name]?.close()
         }
 
         /* Find connection provider for connection. */
-        val provider = ServiceLoader.load(ConnectionProvider::class.java).find {
-            it.databaseName == schema.connection.databaseName
-        } ?: throw IllegalArgumentException("Failed to find connection provider implementation for '${schema.connection.databaseName}'.")
+        val connectionProvider = ServiceLoader.load(ConnectionProvider::class.java).find {
+            it.databaseName == config.connection.databaseName
+        } ?: throw IllegalArgumentException("Failed to find connection provider implementation for '${config.connection.databaseName}'.")
 
         /* Create new connection using reflection. */
-        val connection = provider.openConnection(schema, parameters)
+        val connection = connectionProvider.openConnection(config.name, config.connection.parameters)
+        val schema = Schema(config.name, connection)
+        config.fields.map {
+            schema.addField(it.fieldName, this.getAnalyserForName(it.analyserName), it.parameters)
+        }
 
         /* Cache and return connection. */
-        this.connections[schema.name] = connection
-        return connection
+        this.schemas[schema.name] = schema
+        return schema
     }
 
     /**
@@ -72,7 +72,7 @@ object SchemaManager {
      *
      * @return [List] of [Schema]
      */
-    fun listSchemas(): List<Schema> = this.lock.read { this.connections.values.map { it.schema } }
+    fun listSchemas(): List<Schema> = this.lock.read { this.schemas.values.map { it } }
 
     /**
      * Returns a [Connection] for the provided [schemaName].
@@ -80,28 +80,24 @@ object SchemaManager {
      * @param schemaName The name of the [Schema] to return.
      * @return [Schema] or null
      */
-    fun getSchema(schemaName: String): Schema? = this.lock.read { this.connections[schemaName]?.schema }
+    fun getSchema(schemaName: String): Schema? = this.lock.read { this.schemas[schemaName] }
 
     /**
-     * Returns a [Connection] for the provided [Schema].
-     *
-     * @param schema The [Schema] to return [Connection] for.
-     * @return [Connection] or null
+     * Reloads the available [Analyser] using a [ServiceLoader].
      */
-    fun getConnection(schema: Schema): Connection? = getConnection(schema.name)
-
-    /**
-     * Returns a [Connection] for the provided [schemaName].
-     *
-     * @param [schemaName] The name of the [Schema] to return [Connection] for.
-     * @return [Connection] or null
-     */
-    fun getConnection(schemaName: String): Connection? = this.lock.read {
-        this.connections[schemaName]
+    fun reload() {
+        (this.analysers as MutableMap<String,Analyser<*>>).clear()
+        for (a in ServiceLoader.load(Analyser::class.java)) {
+            if (this.analysers.containsKey(a.analyserName)) {
+                /* TODO: Log warning! */
+            }
+            (this.analysers as MutableMap<String,Analyser<*>>)[a.analyserName] = a
+        }
     }
 
+
     /**
-     * Closes a [Schema] with the provided [schemaName].
+     * Closes a [Schema].
      *
      * @param [schema] The name of the [Schema] to close.
      * @return True on success, false otherwise.
@@ -114,9 +110,9 @@ object SchemaManager {
      * @param [schemaName] The name of the [Schema] to close.
      */
     fun close(schemaName: String): Boolean = this.lock.write {
-        if (this.connections.containsKey(schemaName)) {
-            this.connections[schemaName]?.close()
-            this.connections.remove(schemaName)
+        if (this.schemas.containsKey(schemaName)) {
+            this.schemas[schemaName]?.close()
+            this.schemas.remove(schemaName)
             true
         } else {
             false

@@ -7,8 +7,7 @@ import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.types.Types
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.metamodel.Field
-import org.vitrivr.engine.core.model.metamodel.SchemaManager
+import org.vitrivr.engine.core.model.metamodel.Schema
 
 /**
  * A [AbstractDescriptorInitializer] implementation for [FloatVectorDescriptor]s.
@@ -16,12 +15,12 @@ import org.vitrivr.engine.core.model.metamodel.SchemaManager
  * @author Ralph Gasser
  * @version 1.0.0
  */
-internal class FloatVectorDescriptorInitializer(describer: Field<FloatVectorDescriptor>, connection: CottontailConnection): AbstractDescriptorInitializer<FloatVectorDescriptor>(describer, connection) {
+internal class FloatVectorDescriptorInitializer(field: Schema.Field<FloatVectorDescriptor>, connection: CottontailConnection): AbstractDescriptorInitializer<FloatVectorDescriptor>(field, connection) {
     /**
      * Initializes the Cottontail DB entity backing this [AbstractDescriptorInitializer].
      */
     override fun initialize() {
-        val example = SchemaManager.getAnalyserForName(this.field.analyserName).newDescriptor() as? FloatVectorDescriptor ?: throw IllegalStateException("Expected float vector descriptor but received something else. This is a programmer's error!")
+        val example = this.field.analyser.newDescriptor(this.field) as? FloatVectorDescriptor ?: throw IllegalStateException("Expected float vector descriptor but received something else. This is a programmer's error!")
         val create = CreateEntity(this.entityName)
             .column(Name.ColumnName("id"), Types.String, false, true, false)
             .column(Name.ColumnName("retrievableId"), Types.String, false, false, false)

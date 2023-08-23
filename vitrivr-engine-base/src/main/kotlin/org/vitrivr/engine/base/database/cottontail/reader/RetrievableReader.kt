@@ -16,7 +16,7 @@ import java.util.*
  */
 internal class RetrievableReader(private val connection: CottontailConnection): RetrievableReader {
     /** The [Name.EntityName] for this [RetrievableInitializer]. */
-    private val entityName: Name.EntityName = this.connection.schemaName.entity(CottontailConnection.RETRIEVABLE_ENTITY_NAME)
+    private val entityName: Name.EntityName = Name.EntityName(this.connection.schemaName, CottontailConnection.RETRIEVABLE_ENTITY_NAME)
 
     override fun get(id: UUID): Retrievable? {
        TODO("Not yet implemented")
