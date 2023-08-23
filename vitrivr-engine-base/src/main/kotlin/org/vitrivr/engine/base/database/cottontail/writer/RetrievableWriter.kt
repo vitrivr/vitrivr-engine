@@ -17,7 +17,7 @@ import org.vitrivr.engine.core.model.database.retrievable.Retrievable
 internal class RetrievableWriter(private val connection: CottontailConnection): RetrievableWriter {
 
     /** The [Name.EntityName]*/
-    private val entityName: Name.EntityName = this.connection.schemaName.entity(CottontailConnection.RETRIEVABLE_ENTITY_NAME)
+    private val entityName: Name.EntityName = Name.EntityName(this.connection.schemaName, CottontailConnection.RETRIEVABLE_ENTITY_NAME)
 
     /**
      * Adds a new [Retrievable] to the database using this [RetrievableWriter] instance.

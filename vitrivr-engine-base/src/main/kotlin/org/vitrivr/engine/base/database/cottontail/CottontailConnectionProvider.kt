@@ -48,13 +48,12 @@ class CottontailConnectionProvider: ConnectionProvider {
     /**
      * Opens a new [CottontailConnection] for the given [Schema].
      *
-     * @param schema [Schema] to open [Connection] for.
      * @param parameters The optional parameters.
      * @return [CottontailConnection]
      */
-    override fun openConnection(schema: Schema, parameters: Map<String, String>): Connection = CottontailConnection(
-        schema,
+    override fun openConnection(schemaName: String, parameters: Map<String, String>): Connection = CottontailConnection(
         this,
+        schemaName,
         parameters[PARAMETER_NAME_HOST] ?: PARAMETER_DEFAULT_HOST,
         parameters[PARAMETER_NAME_PORT]?.toIntOrNull() ?: PARAMETER_DEFAULT_PORT
     )

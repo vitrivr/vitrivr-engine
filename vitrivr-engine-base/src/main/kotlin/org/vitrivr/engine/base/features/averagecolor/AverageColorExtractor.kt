@@ -8,6 +8,7 @@ import org.vitrivr.engine.core.model.color.RGBFloatColorContainer
 import org.vitrivr.engine.core.model.content.ImageContent
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.database.retrievable.IngestedRetrievable
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.derive.impl.AverageImageContentDeriver
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -20,6 +21,7 @@ import java.util.*
  * @version 1.0.0
  */
 class AverageColorExtractor(
+    override val field: Schema.Field<FloatVectorDescriptor>,
     override val input: Operator<IngestedRetrievable>,
     override val persisting: Boolean = true,
 ) : Extractor<FloatVectorDescriptor> {
@@ -30,7 +32,7 @@ class AverageColorExtractor(
     override val analyser: AverageColor = AverageColor()
 
     /** */
-    override fun toFlow(): Flow<IngestedRetrievable> = input.toFlow().map { retrievable: IngestedRetrievable ->
+    override fun toFlow(): Flow<IngestedRetrievable> = this.input.toFlow().map { retrievable: IngestedRetrievable ->
         if (retrievable.content.any { c -> c is ImageContent }) {
 
             val averageImage = retrievable.getDerivedContent(AverageImageContentDeriver.derivateName) as? ImageContent

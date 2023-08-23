@@ -16,7 +16,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class CottontailConnection(schema: Schema, provider: CottontailConnectionProvider, val host: String, val port: Int): AbstractConnection(schema, provider) {
+class CottontailConnection(provider: CottontailConnectionProvider, schemaName: String, val host: String, val port: Int): AbstractConnection(schemaName, provider) {
 
     companion object {
         /** The name of the retrievable entity. */
@@ -25,9 +25,6 @@ class CottontailConnection(schema: Schema, provider: CottontailConnectionProvide
         /** The prefix for descriptor entities. */
         const val DESCRIPTOR_ENTITY_PREFIX = "descriptor"
     }
-
-    /** The [Name.SchemaName] used by this [CottontailConnection]. */
-    internal val schemaName = Name.SchemaName(schema.name)
 
     /** The [ManagedChannel] instance used by this [CottontailConnection]. */
     internal val channel = ManagedChannelBuilder.forAddress(this.host, this.port).usePlaintext().build()

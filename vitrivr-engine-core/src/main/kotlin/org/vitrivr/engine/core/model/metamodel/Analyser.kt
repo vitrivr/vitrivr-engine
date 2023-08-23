@@ -33,30 +33,33 @@ interface Analyser<T: Descriptor> {
      *
      * This is a required operation.
      *
+     * @param field The [Schema.Field] to create a [Descriptor] for.
      * @return A [Descriptor] specimen of type [T].
      */
-    fun newDescriptor(): T
+    fun newDescriptor(field: Schema.Field<T>): T
 
     /**
      * Generates and returns a new [Extractor] instance for this [Analyser].
      *
      * Some [Analyser]s may not come with their own [Extractor], in which case the implementation of this method should throw an [UnsupportedOperationException]
      *
+     * @param field The [Schema.Field] to create an [Extractor] for.
      * @param input The [Operator] that acts as input to the new [Extractor]
      * @param persisting True, if the results of the [Extractor] should be persisted.
      *
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    fun newExtractor(input: Operator<IngestedRetrievable>, persisting: Boolean = true): Extractor<T>
+    fun newExtractor(field: Schema.Field<T>, input: Operator<IngestedRetrievable>, persisting: Boolean = true): Extractor<T>
 
     /**
      * Generates and returns a new [Retriever] instance for this [Analyser].
      *
      * Some [Analyser]s may not come with their own [Retriever], in which case the implementation of this method should throw an [UnsupportedOperationException]
      *
+     * @param field The [Schema.Field] to create an [Extractor] for.
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    fun newRetriever(): Retriever<T>
+    fun newRetriever(field: Schema.Field<T>): Retriever<T>
 }

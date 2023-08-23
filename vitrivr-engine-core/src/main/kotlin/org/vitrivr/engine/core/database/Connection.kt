@@ -8,7 +8,6 @@ import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.metamodel.Field
 import java.io.Closeable
 
 /**
@@ -18,8 +17,9 @@ import java.io.Closeable
  * @version 1.0.0
  */
 sealed interface Connection: Closeable {
-    /** The [Schema] used with this [Connection]. */
-    val schema: Schema
+
+    /** The name of the [Schema] managed by this [Connection]. */
+    val schemaName: String
 
     /**
      * Initializes the database layer with the [Schema] used by this [Connection].
@@ -63,7 +63,7 @@ sealed interface Connection: Closeable {
      * It remains up to the implementation, whether the [DescriptorInitializer] returned by this method is
      * re-used or re-created every time the method is being called.
      */
-    fun <T: Descriptor> getDescriptorInitializer(field: Field<T>): DescriptorInitializer<T>
+    fun <T: Descriptor> getDescriptorInitializer(field: Schema.Field<T>): DescriptorInitializer<T>
 
     /**
      * Returns a [DescriptorWriter].
@@ -73,7 +73,7 @@ sealed interface Connection: Closeable {
      * It remains up to the implementation, whether the [DescriptorWriter] returned by this method is
      * re-used or re-created every time the method is being called.
      */
-    fun <T: Descriptor> getDescriptorWriter(field: Field<T>): DescriptorWriter<T>
+    fun <T: Descriptor> getDescriptorWriter(field: Schema.Field<T>): DescriptorWriter<T>
 
     /**
      * Returns a [DescriptorReader].
@@ -83,5 +83,5 @@ sealed interface Connection: Closeable {
      * It remains up to the implementation, whether the [DescriptorReader] returned by this method is
      * re-used or re-created every time the method is being called.
      */
-    fun <T: Descriptor> getDescriptorReader(field: Field<T>): DescriptorReader<T>
+    fun <T: Descriptor> getDescriptorReader(field: Schema.Field<T>): DescriptorReader<T>
 }

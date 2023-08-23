@@ -5,7 +5,7 @@ import org.vitrivr.engine.core.model.database.Persistable
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.metamodel.Analyser
-import org.vitrivr.engine.core.model.metamodel.Field
+import org.vitrivr.engine.core.model.metamodel.Schema
 
 /**
  * A [DescriptorReader] is an extension of a [Reader], that allows the execution of [Descriptor] specific [Query] objects.
@@ -19,7 +19,7 @@ import org.vitrivr.engine.core.model.metamodel.Field
 interface DescriptorReader<T : Descriptor> : Reader<T> {
 
     /** The [Analyser] this [DescriptorReader] belongs to. */
-    val field: Field<T>
+    val field: Schema.Field<T>
 
     /**
      * Returns a [Sequence] of all [Descriptor]s accessible by this [DescriptorReader] that match the given [Query].
