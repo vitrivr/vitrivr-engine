@@ -11,7 +11,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface DescriptorWriter<T : Descriptor> : Writer<Descriptor> {
+interface DescriptorWriter<T : Descriptor> : Writer<T> {
     /** The [Schema.Field] this [DescriptorWriter] belongs to. */
     val field: Schema.Field<T>
 }

@@ -1,6 +1,8 @@
 package org.vitrivr.engine.base.database.cottontail.initializer
 
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.StatusException
 import org.vitrivr.cottontail.client.language.ddl.CreateEntity
 import org.vitrivr.cottontail.core.database.Name
@@ -8,6 +10,8 @@ import org.vitrivr.cottontail.core.types.Types
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+
+private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * A [AbstractDescriptorInitializer] implementation for [FloatVectorDescriptor]s.
@@ -29,7 +33,7 @@ internal class FloatVectorDescriptorInitializer(field: Schema.Field<FloatVectorD
         try {
             this.connection.client.create(create)
         } catch (e: StatusException) {
-            /* TODO: Log. */
+            logger.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
         }
     }
 }
