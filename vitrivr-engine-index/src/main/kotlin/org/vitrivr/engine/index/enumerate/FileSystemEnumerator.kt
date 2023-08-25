@@ -25,12 +25,12 @@ import kotlin.io.path.isRegularFile
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class FileSystemEnumerator(private val path: Path, private val depth: Int = Int.MAX_VALUE, private val mediaTypes: EnumEntries<MediaType> = MediaType.entries) : Enumerator {
+class FileSystemEnumerator(private val path: Path, private val depth: Int = Int.MAX_VALUE, private val mediaTypes: Collection<MediaType> = MediaType.allValid) : Enumerator {
     override fun toFlow(): Flow<Source> = flow {
         val stream = Files.walk(this@FileSystemEnumerator.path, this@FileSystemEnumerator.depth, FileVisitOption.FOLLOW_LINKS).filter { it.isRegularFile() }
         for (element in stream) {
             try {
-                val type = MimeType.getMimeType(element)
+                val type = MimeType.getMimeType(element) ?: continue
                 if (type.mediaType in this@FileSystemEnumerator.mediaTypes) {
                     emit(FileSource(element, type, Files.newInputStream(element, StandardOpenOption.READ)))
                 }
