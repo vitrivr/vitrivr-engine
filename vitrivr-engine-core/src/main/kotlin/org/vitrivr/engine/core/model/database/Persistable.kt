@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.database
 
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
 /**

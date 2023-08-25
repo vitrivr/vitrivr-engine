@@ -52,8 +52,8 @@ class AverageColorExtractor(
                     val descriptor = FloatVectorDescriptor(UUID.randomUUID(), retrievable.id, this.persisting, averageColor.toList())
 
                     /* Persist descriptor and attach it to retrievable. */
-                    writer?.add(descriptor)
                     retrievable.descriptors.add(descriptor)
+                    writer?.add(descriptor)
                 }
             }
             retrievable

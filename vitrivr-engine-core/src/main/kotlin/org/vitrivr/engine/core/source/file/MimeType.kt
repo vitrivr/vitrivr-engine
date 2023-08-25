@@ -3,6 +3,7 @@ package org.vitrivr.engine.core.source.file
 import org.vitrivr.engine.core.source.MediaType
 import java.io.File
 import java.nio.file.Path
+import kotlin.enums.EnumEntries
 
 /**
  * A range of known [MimeType]s used for internal conversion.
@@ -56,11 +57,29 @@ enum class MimeType(val fileExtension: String, val mimeType: String, val mediaTy
     //3D Mime types (self-defined)
     STL("stl", "application/3d-stl", MediaType.MESH),
     OBJ("obj", "application/3d-obj", MediaType.MESH),
-    OFF("off", "application/3d-off", MediaType.MESH);
+    OFF("off", "application/3d-off", MediaType.MESH),
+
+
+
+
+    //Unknown type
+    UNKNOWN("", "", MediaType.NONE)
+    ;
 
     companion object {
-        fun getMimeType(fileName: String): MimeType = MimeType.valueOf(fileName.substringAfterLast('.').uppercase())
-        fun getMimeType(path: Path): MimeType = getMimeType(path.fileName.toString())
-        fun getMimeType(file: File): MimeType = MimeType.valueOf(file.extension.uppercase())
+        fun getMimeType(fileName: String): MimeType? = try {
+            MimeType.valueOf(fileName.substringAfterLast('.').uppercase())
+        } catch (e: Exception) {
+            null
+        }
+
+        fun getMimeType(path: Path): MimeType? = getMimeType(path.fileName.toString())
+        fun getMimeType(file: File): MimeType? = try {
+            MimeType.valueOf(file.extension.uppercase())
+        } catch (e: Exception) {
+            null
+        }
+
+        val allValid = MimeType.values().filter { it != UNKNOWN }.toSet()
     }
 }
