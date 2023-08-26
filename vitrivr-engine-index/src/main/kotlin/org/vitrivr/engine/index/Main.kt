@@ -1,14 +1,12 @@
 package org.vitrivr.engine.index
 
-import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
 import org.vitrivr.engine.core.config.ConnectionConfig
 import org.vitrivr.engine.core.config.FieldConfig
 import org.vitrivr.engine.core.config.SchemaConfig
 import org.vitrivr.engine.core.model.content.impl.InMemoryImageContent
-import org.vitrivr.engine.core.model.database.retrievable.IngestedRetrievable
 import org.vitrivr.engine.core.model.metamodel.*
-import org.vitrivr.engine.core.operators.ingest.Segmenter
+import org.vitrivr.engine.core.util.extension.terminateFlows
 import org.vitrivr.engine.index.decode.ImageDecoder
 import org.vitrivr.engine.index.enumerate.FileSystemEnumerator
 import org.vitrivr.engine.index.pipeline.ExtractorLayout
@@ -45,11 +43,19 @@ fun pipelineTest() {
         val decoder = ImageDecoder(enumerator)
         val segmenter = PassThroughSegmenter(decoder, this)
 
-        val layout = ExtractorLayout(schema, listOf(listOf("averagecolor1"), listOf("averagecolor2")))
+        val layout = ExtractorLayout(
+            schema,
+            listOf(
+                listOf(ExtractorLayout.ExtractorOption("averagecolor1")),
+                listOf(ExtractorLayout.ExtractorOption("averagecolor2"))
+            )
+        )
 
         val pipeline = Pipeline(segmenter, layout)
 
-        pipeline.run()
+        pipeline.run { list, counter ->
+            println("-$counter->>${list.map { r -> (r.content.first() as InMemoryImageContent).source.name }}")
+        }
 
 
     }
@@ -81,7 +87,7 @@ fun playground() {
         val extractor1 = schema.getField(0).getExtractor(segmenter)
         val extractor2 = schema.getField(1).getExtractor(segmenter)
 
-        terminateFlows(segmenter, extractor1.toFlow(), extractor2.toFlow()){ it, counter ->
+        segmenter.terminateFlows(extractor1.toFlow(), extractor2.toFlow()) { it, counter ->
             println("${!segmenter.inputExhausted} || ${segmenter.emitted} > $counter")
             println("->>${it.map { r -> (r.content.first() as InMemoryImageContent).source.name }}")
         }
@@ -89,15 +95,3 @@ fun playground() {
     }
 }
 
-suspend fun <T> terminateFlows(segmenter: Segmenter, vararg flows: Flow<T>, transform: (List<T>, Int) -> Unit) {
-    var counter = 0
-
-    flows.map { flow ->
-        flow.map { listOf(it) }
-    }.reduceRight { f1, f2 -> f1.combine(f2) { l1, l2 -> l1 + l2 } }.takeWhile {
-        ++counter
-        !segmenter.inputExhausted || segmenter.emitted > counter
-    }.collect {
-        transform(it, counter)
-    }
-}
