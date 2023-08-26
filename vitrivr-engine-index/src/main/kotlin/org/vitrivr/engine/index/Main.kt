@@ -1,6 +1,8 @@
 package org.vitrivr.engine.index
 
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.runBlocking
 import org.vitrivr.engine.core.config.ConnectionConfig
 import org.vitrivr.engine.core.config.FieldConfig
@@ -39,13 +41,23 @@ fun playground() {
 
     /* Create pipeline and process it. */
     runBlocking {
-        val enumerator = FileSystemEnumerator(Paths.get("C:\\Users\\Lucaro\\Pictures"))
+        val enumerator = FileSystemEnumerator(Paths.get("C:\\Users\\Lucaro\\Pictures"), depth = 1)
         val decoder = ImageDecoder(enumerator)
         val segmenter = PassThroughSegmenter(decoder, this)
-        val extractor1 = schema.fields[0].getExtractor(segmenter)
-        val extractor2 = schema.fields[1].getExtractor(extractor1)
-        extractor2.toFlow().collect {
-            println(it)
+        val extractor1 = schema.getField(0).getExtractor(segmenter)
+        val extractor2 = schema.getField(1).getExtractor(segmenter)
+
+        val flows = arrayOf(extractor1.toFlow(), extractor2.toFlow())
+
+        val out = merge(*flows)
+
+        var counter = 0
+
+        out.takeWhile { ++counter
+            !segmenter.done || (segmenter.counter * flows.size) > counter
+        }.collect {
+            println("${!segmenter.done} || (${segmenter.counter} * ${flows.size}) > $counter")
+            println("->>$it")
         }
     }
 }
