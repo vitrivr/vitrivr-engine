@@ -1,13 +1,14 @@
 package org.vitrivr.engine.index
 
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
 import org.vitrivr.engine.core.config.ConnectionConfig
 import org.vitrivr.engine.core.config.FieldConfig
 import org.vitrivr.engine.core.config.SchemaConfig
+import org.vitrivr.engine.core.model.content.impl.InMemoryImageContent
+import org.vitrivr.engine.core.model.database.retrievable.IngestedRetrievable
 import org.vitrivr.engine.core.model.metamodel.*
+import org.vitrivr.engine.core.operators.ingest.Segmenter
 import org.vitrivr.engine.index.decode.ImageDecoder
 import org.vitrivr.engine.index.enumerate.FileSystemEnumerator
 import org.vitrivr.engine.index.segment.PassThroughSegmenter
@@ -31,8 +32,8 @@ fun playground() {
         "vitrivr",
         ConnectionConfig("String", mapOf("host" to "127.0.0.1", "port" to "1865")),
         listOf(
-            FieldConfig("averagecolor1", "AverageColor", ),
-            FieldConfig("averagecolor2","AverageColor", )
+            FieldConfig("averagecolor1", "AverageColor"),
+            FieldConfig("averagecolor2", "AverageColor")
         )
     )
 
@@ -47,17 +48,21 @@ fun playground() {
         val extractor1 = schema.getField(0).getExtractor(segmenter)
         val extractor2 = schema.getField(1).getExtractor(segmenter)
 
-        val flows = arrayOf(extractor1.toFlow(), extractor2.toFlow())
+        terminateFlows(segmenter, extractor1.toFlow(), extractor2.toFlow())
 
-        val out = merge(*flows)
+    }
+}
 
-        var counter = 0
+suspend fun terminateFlows(segmenter: Segmenter, vararg flows: Flow<IngestedRetrievable>) {
+    var counter = 0
 
-        out.takeWhile { ++counter
-            !segmenter.done || (segmenter.counter * flows.size) > counter
-        }.collect {
-            println("${!segmenter.done} || (${segmenter.counter} * ${flows.size}) > $counter")
-            println("->>$it")
-        }
+    flows.map { flow ->
+        flow.map { listOf(it) }
+    }.reduceRight { f1, f2 -> f1.combine(f2) { l1, l2 -> l1 + l2 } }.takeWhile {
+        ++counter
+        !segmenter.inputExhausted || segmenter.emitted > counter
+    }.collect {
+        println("${!segmenter.inputExhausted} || ${segmenter.emitted} > $counter")
+        println("->>${it.map { r -> (r.content.first() as InMemoryImageContent).source.name }}")
     }
 }
