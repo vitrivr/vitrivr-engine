@@ -16,4 +16,16 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface Segmenter: Operator.Unary<Content, IngestedRetrievable>, BroadcastingOperator<IngestedRetrievable>
+interface Segmenter: Operator.Unary<Content, IngestedRetrievable>, BroadcastingOperator<IngestedRetrievable> {
+
+    /**
+     * The number of [IngestedRetrievable]s this [Segmenter] has already emitted
+     */
+    val emitted: Int
+
+    /**
+     * Indicates if the [Segmenter] has exhausted its input
+     */
+    val inputExhausted: Boolean
+
+}
