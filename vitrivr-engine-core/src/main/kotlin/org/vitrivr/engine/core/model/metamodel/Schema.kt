@@ -1,7 +1,6 @@
 package org.vitrivr.engine.core.model.metamodel
 
 import org.vitrivr.engine.core.database.Connection
-import org.vitrivr.engine.core.database.Reader
 import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
@@ -9,7 +8,6 @@ import org.vitrivr.engine.core.model.database.retrievable.IngestedRetrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import java.io.Closeable
-import java.util.LinkedList
 
 
 /**
@@ -21,7 +19,7 @@ import java.util.LinkedList
 class Schema(val name: String = "vitrivr", val connection: Connection): Closeable {
 
     /** The [List] of [Field]s contained in this [Schema]. */
-    val fields: List<Field<*>> = LinkedList()
+    private val fields: MutableList<Field<*>> = mutableListOf()
 
     /**
      * Adds a new [Field] to this [Schema].
@@ -29,8 +27,12 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
      * @param name The name of the new [Field]. Must be unique.
      */
     fun addField(fieldName: String, analyser: Analyser<*>, parameters: Map<String,String> = emptyMap()) {
-        (this.fields as LinkedList<Field<*>>).add(Field(fieldName, analyser, parameters))
+        this.fields.add(Field(fieldName, analyser, parameters))
     }
+
+    fun getField(index: Int) = this.fields[index]
+
+    fun getField(fieldName: String) = this.fields.firstOrNull { it.fieldName == fieldName }
 
     /**
      * Initializes this [Schema] using the provided database [Connection].
