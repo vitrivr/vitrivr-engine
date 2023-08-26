@@ -11,6 +11,8 @@ import org.vitrivr.engine.core.model.metamodel.*
 import org.vitrivr.engine.core.operators.ingest.Segmenter
 import org.vitrivr.engine.index.decode.ImageDecoder
 import org.vitrivr.engine.index.enumerate.FileSystemEnumerator
+import org.vitrivr.engine.index.pipeline.ExtractorLayout
+import org.vitrivr.engine.index.pipeline.Pipeline
 import org.vitrivr.engine.index.segment.PassThroughSegmenter
 import java.nio.file.Paths
 
@@ -19,9 +21,40 @@ import java.nio.file.Paths
  */
 fun main() {
     /* TODO. */
-    playground()
+    //playground()
+    pipelineTest()
 }
 
+fun pipelineTest() {
+
+    val schemaConfig = SchemaConfig(
+        "vitrivr",
+        ConnectionConfig("String", mapOf()),
+        listOf(
+            FieldConfig("averagecolor1", "AverageColor"),
+            FieldConfig("averagecolor2", "AverageColor")
+        )
+    )
+
+    val schema = SchemaManager.open(schemaConfig)
+    schema.initialize()
+
+    /* Create pipeline and process it. */
+    runBlocking {
+        val enumerator = FileSystemEnumerator(Paths.get("C:\\Users\\Lucaro\\Pictures"), depth = 1)
+        val decoder = ImageDecoder(enumerator)
+        val segmenter = PassThroughSegmenter(decoder, this)
+
+        val layout = ExtractorLayout(schema, listOf(listOf("averagecolor1"), listOf("averagecolor2")))
+
+        val pipeline = Pipeline(segmenter, layout)
+
+        pipeline.run()
+
+
+    }
+
+}
 
 /**
  *
@@ -48,12 +81,15 @@ fun playground() {
         val extractor1 = schema.getField(0).getExtractor(segmenter)
         val extractor2 = schema.getField(1).getExtractor(segmenter)
 
-        terminateFlows(segmenter, extractor1.toFlow(), extractor2.toFlow())
+        terminateFlows(segmenter, extractor1.toFlow(), extractor2.toFlow()){ it, counter ->
+            println("${!segmenter.inputExhausted} || ${segmenter.emitted} > $counter")
+            println("->>${it.map { r -> (r.content.first() as InMemoryImageContent).source.name }}")
+        }
 
     }
 }
 
-suspend fun terminateFlows(segmenter: Segmenter, vararg flows: Flow<IngestedRetrievable>) {
+suspend fun <T> terminateFlows(segmenter: Segmenter, vararg flows: Flow<T>, transform: (List<T>, Int) -> Unit) {
     var counter = 0
 
     flows.map { flow ->
@@ -62,7 +98,6 @@ suspend fun terminateFlows(segmenter: Segmenter, vararg flows: Flow<IngestedRetr
         ++counter
         !segmenter.inputExhausted || segmenter.emitted > counter
     }.collect {
-        println("${!segmenter.inputExhausted} || ${segmenter.emitted} > $counter")
-        println("->>${it.map { r -> (r.content.first() as InMemoryImageContent).source.name }}")
+        transform(it, counter)
     }
 }
