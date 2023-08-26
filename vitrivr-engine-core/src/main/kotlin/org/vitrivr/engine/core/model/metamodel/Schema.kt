@@ -9,6 +9,7 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import java.io.Closeable
 
+typealias FieldName = String
 
 /**
  * A [Schema] that defines a particular vitrivr instance's meta data model.
@@ -55,7 +56,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
      *
      * A [Field] always has a unique name and is backed by an existing [Analyser].
      */
-    inner class Field<T: Descriptor>(val fieldName: String, val analyser: Analyser<T>, val parameters: Map<String,String> = emptyMap()) {
+    inner class Field<T: Descriptor>(val fieldName: FieldName, val analyser: Analyser<T>, val parameters: Map<String,String> = emptyMap()) {
 
         /** Pointer to the [Schema] this [Field] belongs to.*/
         val schema: Schema

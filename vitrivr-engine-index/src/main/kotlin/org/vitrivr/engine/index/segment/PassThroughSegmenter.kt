@@ -19,6 +19,7 @@ class PassThroughSegmenter(override val input: Operator<Content>, private val sc
     init {
         val flow = this.input.toFlow().map {
             ++emitted
+            //TODO persist
             IngestedRetrievable.Default(
                 transient = false,
                 content = mutableListOf(it)
@@ -26,7 +27,6 @@ class PassThroughSegmenter(override val input: Operator<Content>, private val sc
         }
 
         sharedFlow = flow.onCompletion {
-            println("DECODER DONE!")
             this@PassThroughSegmenter.inputExhausted = true
         }.shareIn(scope, SharingStarted.Lazily)
     }
