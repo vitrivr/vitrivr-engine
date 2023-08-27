@@ -37,11 +37,12 @@ fun pipelineTest() {
     val schema = SchemaManager.open(schemaConfig)
     schema.initialize()
 
+
     /* Create pipeline and process it. */
     runBlocking {
-        val enumerator = FileSystemEnumerator(Paths.get("C:\\Users\\Lucaro\\Pictures"), depth = 1)
+        val enumerator = FileSystemEnumerator(Paths.get("C:\\Users\\Lucaro\\Pictures\\test"), depth = 1)
         val decoder = ImageDecoder(enumerator)
-        val segmenter = PassThroughSegmenter(decoder, this)
+        val segmenter = PassThroughSegmenter(decoder, this, schema.connection.getRetrievableWriter())
 
         val layout = ExtractorLayout(
             schema,
@@ -83,7 +84,7 @@ fun playground() {
     runBlocking {
         val enumerator = FileSystemEnumerator(Paths.get("C:\\Users\\Lucaro\\Pictures"), depth = 1)
         val decoder = ImageDecoder(enumerator)
-        val segmenter = PassThroughSegmenter(decoder, this)
+        val segmenter = PassThroughSegmenter(decoder, this, schema.connection.getRetrievableWriter())
         val extractor1 = schema.getField(0).getExtractor(segmenter)
         val extractor2 = schema.getField(1).getExtractor(segmenter)
 

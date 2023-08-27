@@ -15,6 +15,6 @@ suspend fun <T> Segmenter.terminateFlows(vararg flows: Flow<T>, transform: (List
         ++counter
         !this.inputExhausted || this.emitted > counter
     }.collect {
-        transform(it, counter)
+        transform(it, counter - 1)
     }
 }
