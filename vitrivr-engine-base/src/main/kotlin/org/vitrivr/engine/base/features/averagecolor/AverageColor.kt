@@ -19,7 +19,5 @@ class AverageColor: Analyser<FloatVectorDescriptor> {
     override val descriptorClass: KClass<FloatVectorDescriptor> = FloatVectorDescriptor::class
     override fun newDescriptor(field: Schema.Field<FloatVectorDescriptor>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), true, listOf(0.0f, 0.0f, 0.0f))
     override fun newExtractor(field: Schema.Field<FloatVectorDescriptor>, input: Operator<IngestedRetrievable>, persisting: Boolean) = AverageColorExtractor(field, input, persisting)
-    override fun newRetriever(field: Schema.Field<FloatVectorDescriptor>): Retriever<FloatVectorDescriptor> {
-        TODO("Not yet implemented")
-    }
+    override fun newRetriever(field: Schema.Field<FloatVectorDescriptor>): Retriever<FloatVectorDescriptor> = AverageColorRetriever(field)
 }

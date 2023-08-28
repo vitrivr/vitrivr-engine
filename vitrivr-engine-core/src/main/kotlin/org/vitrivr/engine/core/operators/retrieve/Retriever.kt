@@ -3,6 +3,7 @@ package org.vitrivr.engine.core.operators.retrieve
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.retrievable.ScoredRetrievable
 import org.vitrivr.engine.core.model.metamodel.Analyser
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.Operator
 
 /**
@@ -15,4 +16,7 @@ import org.vitrivr.engine.core.operators.Operator
 interface Retriever<T: Descriptor>: Operator.Nullary<ScoredRetrievable> {
     /** The [Analyser] this [Retriever] implements. */
     val describer: Analyser<T>
+
+    /** The [Schema.Field] queried by this [Retriever]. */
+    val field: Schema.Field<T>
 }
