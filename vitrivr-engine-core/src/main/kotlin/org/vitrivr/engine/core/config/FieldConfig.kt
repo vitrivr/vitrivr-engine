@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.config
 
+import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.metamodel.Schema
 
 /**
@@ -11,4 +12,5 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  * @version 1.0.0
  */
 @JvmRecord
+@Serializable
 data class FieldConfig(val fieldName: String, val analyserName: String, val parameters: Map<String,String> = emptyMap())
