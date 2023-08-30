@@ -4,6 +4,8 @@ import kotlinx.coroutines.runBlocking
 import org.vitrivr.engine.core.config.ConnectionConfig
 import org.vitrivr.engine.core.config.FieldConfig
 import org.vitrivr.engine.core.config.SchemaConfig
+import org.vitrivr.engine.core.config.VitrivrConfig
+import org.vitrivr.engine.core.config.VitrivrConfig.Companion.DEFAULT_SCHEMA_PATH
 import org.vitrivr.engine.core.model.content.impl.InMemoryImageContent
 import org.vitrivr.engine.core.model.metamodel.*
 import org.vitrivr.engine.core.util.extension.terminateFlows
@@ -13,17 +15,30 @@ import org.vitrivr.engine.index.pipeline.ExtractorLayout
 import org.vitrivr.engine.index.pipeline.Pipeline
 import org.vitrivr.engine.index.segment.PassThroughSegmenter
 import java.nio.file.Paths
+import kotlin.system.exitProcess
 
 /**
- *
+ * Entry point for vitrivr engine index.
  */
-fun main() {
+fun main(args: Array<String>) {
+    /* Load system configuration. */
+    val config = VitrivrConfig.read(Paths.get(args.getOrElse(0) { DEFAULT_SCHEMA_PATH })) ?: exitProcess(1)
+
+    /* Open all schemas. */
+    for (schema in config.schemas) {
+        SchemaManager.open(schema)
+    }
+
     /* TODO. */
     //playground()
     pipelineTest()
 }
 
 fun pipelineTest() {
+
+
+
+
 
     val schemaConfig = SchemaConfig(
         "vitrivr",
