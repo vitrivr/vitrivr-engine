@@ -6,11 +6,11 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 /**
  * A serializable configuration object to configure [Field] within a [Schema].
  *
- * @see [Field]
+ * @see [Schema.Field]
  *
  * @author Ralph Gasser
  * @version 1.0.0
  */
 @JvmRecord
 @Serializable
-data class FieldConfig(val fieldName: String, val analyserName: String, val parameters: Map<String,String> = emptyMap())
+data class FieldConfig(val name: String, val analyser: String, val parameters: Map<String,String> = emptyMap())
