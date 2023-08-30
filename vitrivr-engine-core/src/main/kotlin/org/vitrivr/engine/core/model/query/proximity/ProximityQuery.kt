@@ -15,9 +15,9 @@ import org.vitrivr.engine.core.model.query.basics.SortOrder
  * @version 1.0.0
  */
 @JvmRecord
-data class ProximityQuery<T>(
+data class ProximityQuery<T: VectorDescriptor<*>>(
     /** The [VectorDescriptor] being used; specifies both the query field and the comparison value. */
-    override val descriptor: VectorDescriptor<T>,
+    override val descriptor: T,
 
     /** The number of results that should be returned by this [ProximityQuery]. */
     val k: Int = 1000,
@@ -27,4 +27,4 @@ data class ProximityQuery<T>(
 
     /** The [Distance] used for the comparison. */
     val distance: Distance = Distance.EUCLIDEAN
-) : Query<VectorDescriptor<T>>
+) : Query<T>
