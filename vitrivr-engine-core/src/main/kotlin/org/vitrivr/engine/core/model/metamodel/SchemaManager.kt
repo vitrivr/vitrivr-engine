@@ -52,14 +52,14 @@ object SchemaManager {
 
         /* Find connection provider for connection. */
         val connectionProvider = ServiceLoader.load(ConnectionProvider::class.java).find {
-            it.databaseName == config.connection.databaseName
-        } ?: throw IllegalArgumentException("Failed to find connection provider implementation for '${config.connection.databaseName}'.")
+            it.databaseName == config.connection.database
+        } ?: throw IllegalArgumentException("Failed to find connection provider implementation for '${config.connection.database}'.")
 
         /* Create new connection using reflection. */
         val connection = connectionProvider.openConnection(config.name, config.connection.parameters)
         val schema = Schema(config.name, connection)
         config.fields.map {
-            schema.addField(it.fieldName, this.getAnalyserForName(it.analyserName), it.parameters)
+            schema.addField(it.name, this.getAnalyserForName(it.analyser), it.parameters)
         }
 
         /* Cache and return connection. */
@@ -91,7 +91,7 @@ object SchemaManager {
             if (this.analysers.containsKey(a.analyserName)) {
                 /* TODO: Log warning! */
             }
-            (this.analysers as MutableMap<String,Analyser<*>>)[a.analyserName] = a
+            this.analysers[a.analyserName] = a
         }
     }
 
