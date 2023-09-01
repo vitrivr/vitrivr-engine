@@ -28,6 +28,13 @@ class ExecutionServer {
     fun extract(extractors: List<Extractor<*>>) = runBlocking {
         val scope = CoroutineScope(this@ExecutionServer.dispatcher)
         val jobs = extractors.map { e -> scope.launch { e.toFlow(scope).takeWhile { it != AbstractSegmenter.TerminalIngestedRetrievable }.collect() } }
-        jobs.size
+        jobs.forEach { it.join() }
+    }
+
+    /**
+     * Shuts down the [ExecutorService] used by this [ExecutionServer]
+     */
+    fun shutdown() {
+        this.executor.shutdown()
     }
 }
