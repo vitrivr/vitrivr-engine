@@ -1,5 +1,6 @@
 package org.vitrivr.engine.base.features.averagecolor
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.vitrivr.engine.core.model.color.MutableRGBFloatColorContainer
@@ -30,13 +31,13 @@ class AverageColorExtractor(
     override val analyser: AverageColor = AverageColor()
 
     /** */
-    override fun toFlow(): Flow<IngestedRetrievable> {
+    override fun toFlow(scope: CoroutineScope): Flow<IngestedRetrievable> {
         val writer = if (this.persisting) {
             this.field.getWriter()
         } else {
             null
         }
-        return this.input.toFlow().map { retrievable: IngestedRetrievable ->
+        return this.input.toFlow(scope).map { retrievable: IngestedRetrievable ->
             if (retrievable.content.any { c -> c is ImageContent }) {
                 val averageImage = retrievable.getDerivedContent(AverageImageContentDeriver.derivateName) as? ImageContent
                 if (averageImage != null) {
@@ -52,7 +53,7 @@ class AverageColorExtractor(
                     val descriptor = FloatVectorDescriptor(UUID.randomUUID(), retrievable.id, this.persisting, averageColor.toList())
 
                     /* Persist descriptor and attach it to retrievable. */
-                    retrievable.descriptors.add(descriptor)
+                    retrievable.addDescriptor(descriptor)
                     writer?.add(descriptor)
                 }
             }

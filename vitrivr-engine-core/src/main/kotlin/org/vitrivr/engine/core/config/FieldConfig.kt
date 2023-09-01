@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.metamodel.Schema
 
 /**
- * A serializable configuration object to configure [Field] within a [Schema].
+ * A serializable configuration object to configure [Schema.Field] within a [Schema].
  *
  * @see [Schema.Field]
  *

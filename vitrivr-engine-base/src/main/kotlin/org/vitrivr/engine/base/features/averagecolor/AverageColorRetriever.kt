@@ -1,11 +1,11 @@
 package org.vitrivr.engine.base.features.averagecolor
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.database.retrievable.ScoredRetrievable
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
@@ -16,13 +16,13 @@ class AverageColorRetriever(
 
     override val describer: AverageColor = AverageColor()
 
-    override fun toFlow(): Flow<ScoredRetrievable> {
+    override fun toFlow(scope: CoroutineScope): Flow<ScoredRetrievable> {
 
         val reader = field.getReader()
 
         val queryVector = FloatVectorDescriptor(vector = listOf(), retrievableId = UUID.randomUUID()) //FIXME how to get the query information inside here?
 
-        val query = ProximityQuery(queryVector) as Query<FloatVectorDescriptor> //FIXME type system confusion?
+        val query = ProximityQuery(queryVector) //FIXME type system confusion?
 
         return flow{
             reader.getAll(query).forEach {

@@ -1,5 +1,6 @@
 package org.vitrivr.engine.index.enumerate
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -14,8 +15,6 @@ import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
-import kotlin.enums.EnumEntries
-import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
 
 /**
@@ -26,7 +25,7 @@ import kotlin.io.path.isRegularFile
  * @version 1.0.0
  */
 class FileSystemEnumerator(private val path: Path, private val depth: Int = Int.MAX_VALUE, private val mediaTypes: Collection<MediaType> = MediaType.allValid) : Enumerator {
-    override fun toFlow(): Flow<Source> = flow {
+    override fun toFlow(scope: CoroutineScope): Flow<Source> = flow {
         val stream = Files.walk(this@FileSystemEnumerator.path, this@FileSystemEnumerator.depth, FileVisitOption.FOLLOW_LINKS).filter { it.isRegularFile() }
         for (element in stream) {
             try {
