@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.operators
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -13,9 +14,10 @@ sealed interface Operator<O> {
     /**
      * Converts this [Operator] to a [Flow] of type [O].
      *
+     * @param scope The [CoroutineScope] to execute the [Flow] in.
      * @return Type [O]
      */
-    fun toFlow(): Flow<O>
+    fun toFlow(scope: CoroutineScope): Flow<O>
 
     /**
      * A nullary operator (usually a source).

@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.operators
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharedFlow
 
 /**
@@ -13,7 +14,8 @@ interface BroadcastingOperator<O>: Operator<O> {
      *
      * The [SharedFlow] allows for broadcasting to downstream [Operator]s.
      *
+     * @param scope The [CoroutineScope] used for execution.
      * @return Type [O]
      */
-    override fun toFlow(): SharedFlow<O>
+    override fun toFlow(scope: CoroutineScope): SharedFlow<O>
 }
