@@ -93,5 +93,8 @@ interface IngestedRetrievable: Retrievable {
             ContentDerivers[name]?.derive(this)
         }
         override fun getDerivedContent(name: DerivateName): DerivedContent? = derivedContentCache[name]
+        override fun toString(): String {
+            return "IngestedRetrievable.Default(id=$id, transient=$transient, partOf=$partOf, parts=$parts, content=$content, descriptors=$descriptors)"
+        }
     }
 }
