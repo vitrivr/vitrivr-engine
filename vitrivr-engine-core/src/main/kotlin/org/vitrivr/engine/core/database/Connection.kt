@@ -7,6 +7,7 @@ import org.vitrivr.engine.core.database.retrievable.RetrievableInitializer
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
+import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import java.io.Closeable
 
@@ -58,30 +59,30 @@ sealed interface Connection: Closeable {
     /**
      * Returns a [DescriptorInitializer].
      *
-     * @param field The [Field] to return the [DescriptorInitializer] for.
+     * @param field The [Schema.Field] to return the [DescriptorInitializer] for.
      *
      * It remains up to the implementation, whether the [DescriptorInitializer] returned by this method is
      * re-used or re-created every time the method is being called.
      */
-    fun <T: Descriptor> getDescriptorInitializer(field: Schema.Field<T>): DescriptorInitializer<T>
+    fun <D: Descriptor> getDescriptorInitializer(field: Schema.Field<*,D>): DescriptorInitializer<D>
 
     /**
      * Returns a [DescriptorWriter].
      *
-     * @param field The [Field] to return the [DescriptorWriter] for.
+     * @param field The [Schema.Field] to return the [DescriptorWriter] for.
      *
      * It remains up to the implementation, whether the [DescriptorWriter] returned by this method is
      * re-used or re-created every time the method is being called.
      */
-    fun <T: Descriptor> getDescriptorWriter(field: Schema.Field<T>): DescriptorWriter<T>
+    fun <D: Descriptor> getDescriptorWriter(field: Schema.Field<*,D>): DescriptorWriter<D>
 
     /**
      * Returns a [DescriptorReader].
      *
-     * @param field The [Field] to return the [DescriptorReader] for.
+     * @param field The [Schema.Field] to return the [DescriptorReader] for.
      *
      * It remains up to the implementation, whether the [DescriptorReader] returned by this method is
      * re-used or re-created every time the method is being called.
      */
-    fun <T: Descriptor> getDescriptorReader(field: Schema.Field<T>): DescriptorReader<T>
+    fun <D: Descriptor> getDescriptorReader(field: Schema.Field<*,D>): DescriptorReader<D>
 }

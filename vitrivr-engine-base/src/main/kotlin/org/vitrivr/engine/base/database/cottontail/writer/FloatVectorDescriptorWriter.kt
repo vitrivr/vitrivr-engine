@@ -8,6 +8,7 @@ import org.vitrivr.cottontail.client.language.dml.Insert
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
+import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 
 private val logger: KLogger = KotlinLogging.logger {}
@@ -18,7 +19,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class FloatVectorDescriptorWriter(field: Schema.Field<FloatVectorDescriptor>, connection: CottontailConnection): AbstractDescriptorWriter<FloatVectorDescriptor>(field, connection) {
+class FloatVectorDescriptorWriter(field: Schema.Field<*,FloatVectorDescriptor>, connection: CottontailConnection): AbstractDescriptorWriter<FloatVectorDescriptor>(field, connection) {
     override fun add(item: FloatVectorDescriptor): Boolean {
         val insert = Insert(this.entityName).any("id" to item.id, "retrievableId" to item.retrievableId, "vector" to item.vector)
         return try {

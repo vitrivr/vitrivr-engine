@@ -21,5 +21,5 @@ interface Descriptor : Persistable {
     override val id: DescriptorId
 
     /** The [RetrievableId] of the [Retrievable] that is being described by this [Descriptor]. */
-    val retrievableId: RetrievableId
+    val retrievableId: RetrievableId?
 }

@@ -3,43 +3,28 @@ package org.vitrivr.engine.base.features.averagecolor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import org.vitrivr.engine.core.model.content.ImageContent
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.database.retrievable.ScoredRetrievable
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.operators.retrieve.Retriever
-import java.util.*
 
-class AverageColorRetriever(
-    override val field: Schema.Field<FloatVectorDescriptor>
-) : Retriever<FloatVectorDescriptor> {
-
-    override val describer: AverageColor = AverageColor()
-
+/**
+ * [Retriever] implementation for the [AverageColor] analyser.
+ *
+ * @see [AverageColor]
+ *
+ * @author Luca Rossetto
+ * @version 1.0.0
+ */
+class AverageColorRetriever(override val field: Schema.Field<ImageContent,FloatVectorDescriptor>, val queryVector: FloatVectorDescriptor) : Retriever<ImageContent,FloatVectorDescriptor> {
     override fun toFlow(scope: CoroutineScope): Flow<ScoredRetrievable> {
-
-        val reader = field.getReader()
-
-        val queryVector = FloatVectorDescriptor(vector = listOf(), retrievableId = UUID.randomUUID()) //FIXME how to get the query information inside here?
-
-        val query = ProximityQuery(queryVector) //FIXME type system confusion?
-
+        val reader = this.field.getReader()
+        val query = ProximityQuery(this.queryVector) //FIXME type system confusion?
         return flow{
-            reader.getAll(query).forEach {
-
-                val scored = ScoredRetrievable.Default(
-                    id = it.retrievableId,
-                    transient = false,
-                    parts = mutableSetOf(),
-                    partOf = mutableSetOf(),
-                    score = score(queryVector, it)
-                )
-
-                emit(scored)
-
-            }
+            reader.getAll(query).forEach { emit(it) }
         }
-
     }
 
     companion object {

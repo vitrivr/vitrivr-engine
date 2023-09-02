@@ -25,7 +25,7 @@ class ExecutionServer {
      *
      * @param extractors The [List] of [Extractor]s to execute.
      */
-    fun extract(extractors: List<Extractor<*>>) = runBlocking {
+    fun extract(extractors: List<Extractor<*,*>>) = runBlocking {
         val scope = CoroutineScope(this@ExecutionServer.dispatcher)
         val jobs = extractors.map { e -> scope.launch { e.toFlow(scope).takeWhile { it != AbstractSegmenter.TerminalIngestedRetrievable }.collect() } }
         jobs.size
