@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.operators.ingest
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel.Factory.RENDEZVOUS
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.*
 import org.vitrivr.engine.core.model.content.Content
@@ -61,7 +62,7 @@ abstract class AbstractSegmenter(override val input: Operator<Content>): Segment
                     send(TerminalIngestedRetrievable)
                 }
                 this@AbstractSegmenter.segment(input, this)
-            }.buffer(capacity = 1, onBufferOverflow = BufferOverflow.SUSPEND).shareIn(scope, SharingStarted.Lazily, 0)
+            }.buffer(capacity = RENDEZVOUS, onBufferOverflow = BufferOverflow.SUSPEND).shareIn(CoroutineScope(scope.coroutineContext), SharingStarted.Lazily, 0)
             return this.sharedFlow!!
         } finally {
             this.lock.unlock(stamp)
