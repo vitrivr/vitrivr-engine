@@ -1,3 +1,7 @@
+plugins {
+    id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
+}
+
 dependencies {
 
     api project(':vitrivr-engine-core')
