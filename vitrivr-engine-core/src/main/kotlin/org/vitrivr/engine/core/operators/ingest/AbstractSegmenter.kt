@@ -1,6 +1,7 @@
 package org.vitrivr.engine.core.operators.ingest
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.*
 import org.vitrivr.engine.core.model.content.Content
@@ -11,6 +12,7 @@ import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.derive.DerivateName
 import java.util.*
+import java.util.concurrent.locks.StampedLock
 
 /**
  * An abstract [Segmenter] implementation.
@@ -25,12 +27,13 @@ abstract class AbstractSegmenter(override val input: Operator<Content>): Segment
     /** The [SharedFlow] returned by this [AbstractSegmenter]'s [toFlow] method. Is created lazily. */
     private var sharedFlow: SharedFlow<IngestedRetrievable>? = null
 
+    private val lock = StampedLock()
 
     /**
      * A special [IngestedRetrievable] that can be used to signal the termination of an ingest pipeline.
      */
     object TerminalIngestedRetrievable: IngestedRetrievable {
-        override val id: RetrievableId = UUID.randomUUID()
+        override val id: RetrievableId = UUID(0L, 0L)
         override val partOf: Set<Retrievable> = emptySet()
         override val parts: Set<Retrievable> = emptySet()
         override val transient: Boolean = true
@@ -50,16 +53,19 @@ abstract class AbstractSegmenter(override val input: Operator<Content>): Segment
      * @return A [SharedFlow]
      */
     final override fun toFlow(scope: CoroutineScope): SharedFlow<IngestedRetrievable> {
-        var existing = this.sharedFlow
-        if (existing != null) return existing
-        existing = channelFlow {
-            val input = this@AbstractSegmenter.input.toFlow(scope).onCompletion {
-                send(TerminalIngestedRetrievable)
-            }
-            this@AbstractSegmenter.segment(input, this)
-        }.shareIn(scope, SharingStarted.Lazily, 0)
-        this.sharedFlow = existing
-        return existing
+        val stamp = this.lock.writeLock()
+        try {
+            if (this.sharedFlow != null) return this.sharedFlow!!
+            this.sharedFlow = channelFlow {
+                val input = this@AbstractSegmenter.input.toFlow(scope).onCompletion {
+                    send(TerminalIngestedRetrievable)
+                }
+                this@AbstractSegmenter.segment(input, this)
+            }.buffer(capacity = 1, onBufferOverflow = BufferOverflow.SUSPEND).shareIn(scope, SharingStarted.Lazily, 0)
+            return this.sharedFlow!!
+        } finally {
+            this.lock.unlock(stamp)
+        }
     }
 
     /**
