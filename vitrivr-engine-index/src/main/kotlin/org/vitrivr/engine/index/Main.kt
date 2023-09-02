@@ -58,6 +58,10 @@ fun playground(server: ExecutionServer) {
 
     server.extract(listOf(extractor1, extractor2))
 
+    println("done")
+
+    server.shutdown()
+
 
 }
 
