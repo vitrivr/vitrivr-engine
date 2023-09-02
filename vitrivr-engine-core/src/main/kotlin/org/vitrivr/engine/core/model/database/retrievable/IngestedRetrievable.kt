@@ -3,7 +3,7 @@ package org.vitrivr.engine.core.model.database.retrievable
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.LoadingCache
 import org.vitrivr.engine.core.model.content.Content
-import org.vitrivr.engine.core.model.content.derived.DerivedContent
+import org.vitrivr.engine.core.model.content.DerivedContent
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.operators.derive.ContentDerivers
 import org.vitrivr.engine.core.operators.derive.DerivateName

@@ -2,9 +2,8 @@ package org.vitrivr.engine.core.operators.derive.impl
 
 import org.vitrivr.engine.core.model.color.MutableRGBFloatColorContainer
 import org.vitrivr.engine.core.model.color.RGBByteColorContainer
-import org.vitrivr.engine.core.model.content.ImageContent
-import org.vitrivr.engine.core.model.content.derived.DerivedImageContent
-import org.vitrivr.engine.core.model.content.derived.impl.InMemoryDerivedImageContent
+import org.vitrivr.engine.core.model.content.impl.InMemoryDerivedImageContent
+import org.vitrivr.engine.core.model.content.impl.InMemoryImageContent
 import org.vitrivr.engine.core.model.database.retrievable.IngestedRetrievable
 import org.vitrivr.engine.core.operators.derive.ContentDeriver
 import org.vitrivr.engine.core.operators.derive.ContentDerivers
@@ -13,7 +12,7 @@ import org.vitrivr.engine.core.util.extension.getRGBArray
 import org.vitrivr.engine.core.util.extension.setRGBArray
 import java.awt.image.BufferedImage
 
-class AverageImageContentDeriver : ContentDeriver<DerivedImageContent?> {
+class AverageImageContentDeriver : ContentDeriver<InMemoryDerivedImageContent?> {
 
     companion object {
         val derivateName: DerivateName = "AverageImage"
@@ -25,9 +24,9 @@ class AverageImageContentDeriver : ContentDeriver<DerivedImageContent?> {
         ContentDerivers.register(this)
     }
 
-    override fun derive(retrievable: IngestedRetrievable): DerivedImageContent? {
+    override fun derive(retrievable: IngestedRetrievable): InMemoryDerivedImageContent? {
 
-        val images = retrievable.content.filterIsInstance<ImageContent>()
+        val images = retrievable.content.filterIsInstance<InMemoryImageContent>()
 
         if (images.isEmpty()) {
             return null
@@ -55,7 +54,7 @@ class AverageImageContentDeriver : ContentDeriver<DerivedImageContent?> {
         val averageImage = BufferedImage(firstImage.image.width, firstImage.image.height, BufferedImage.TYPE_INT_RGB)
         averageImage.setRGBArray(intColors)
 
-        return InMemoryDerivedImageContent(source = firstImage.source, image = averageImage, name = derivateName)
+        return InMemoryDerivedImageContent(original = firstImage, image = averageImage, name = derivateName)
     }
 
 

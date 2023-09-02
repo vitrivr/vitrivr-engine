@@ -3,7 +3,7 @@ package org.vitrivr.engine.core.model.content
 import java.awt.image.BufferedImage
 
 /**
- * A visual [Content] element.
+ * A visual (image) [Content] element.
  *
  * @author Ralph Gasser
  * @author Luca Rossetto
