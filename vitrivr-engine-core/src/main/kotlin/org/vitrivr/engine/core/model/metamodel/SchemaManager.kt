@@ -3,6 +3,8 @@ package org.vitrivr.engine.core.model.metamodel
 import org.vitrivr.engine.core.config.SchemaConfig
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
+import org.vitrivr.engine.core.model.content.Content
+import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import java.util.ServiceLoader
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -24,7 +26,7 @@ object SchemaManager {
     private val lock = ReentrantReadWriteLock()
 
     /** A [Map] of all available [Analyser]s. These are loaded upon initialization of the class. */
-    private val analysers: Map<String,Analyser<*>> = HashMap()
+    private val analysers: Map<String,Analyser<*,*>> = HashMap()
 
     init {
         this.reload() /* Reload analysers. */
@@ -36,13 +38,14 @@ object SchemaManager {
      * @param name [String]
      * @return [Analyser] or null, if no [Analyser] exists for given name.
      */
-    fun getAnalyserForName(name: String): Analyser<*> = this.analysers[name] ?: throw IllegalStateException("Failed to find analyser implementation for name '$name'.")
+    fun getAnalyserForName(name: String): Analyser<*,*> = this.analysers[name] ?: throw IllegalStateException("Failed to find analyser implementation for name '$name'.")
 
     /**
      * Opens a new [Schema] for the provided [SchemaConfig]. This includes the related database [Connection].
      *
      * @param config The [SchemaConfig] to open a [Schema] for.
      */
+    @Suppress("UNCHECKED_CAST")
     fun open(config: SchemaConfig): Schema = this.lock.write {
 
         /* Close existing connection. */
@@ -59,7 +62,7 @@ object SchemaManager {
         val connection = connectionProvider.openConnection(config.name, config.connection.parameters)
         val schema = Schema(config.name, connection)
         config.fields.map {
-            schema.addField(it.name, this.getAnalyserForName(it.analyser), it.parameters)
+            schema.addField(it.name, this.getAnalyserForName(it.analyser) as Analyser<Content, Descriptor>, it.parameters)
         }
 
         /* Cache and return connection. */
@@ -86,7 +89,7 @@ object SchemaManager {
      * Reloads the available [Analyser] using a [ServiceLoader].
      */
     fun reload() {
-        (this.analysers as MutableMap<String,Analyser<*>>).clear()
+        (this.analysers as MutableMap<String,Analyser<*,*>>).clear()
         for (a in ServiceLoader.load(Analyser::class.java)) {
             if (this.analysers.containsKey(a.analyserName)) {
                 /* TODO: Log warning! */

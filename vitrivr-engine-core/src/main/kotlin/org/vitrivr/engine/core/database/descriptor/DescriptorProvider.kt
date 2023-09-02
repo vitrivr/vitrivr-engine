@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.database.descriptor
 
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
+import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 
 /**
@@ -10,7 +11,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface DescriptorProvider<T : Descriptor> {
+interface DescriptorProvider<D : Descriptor> {
     /**
      * Returns a [DescriptorInitializer].
      *
@@ -18,7 +19,7 @@ interface DescriptorProvider<T : Descriptor> {
      * @param field The [Schema.Field] to return a new [DescriptorInitializer] for.
      * @return New [DescriptorInitializer] instance.
      */
-    fun newInitializer(connection: Connection, field: Schema.Field<T>): DescriptorInitializer<T>
+    fun newInitializer(connection: Connection, field: Schema.Field<*,D>): DescriptorInitializer<D>
 
     /**
      * Returns a [DescriptorReader].
@@ -27,7 +28,7 @@ interface DescriptorProvider<T : Descriptor> {
      * @param field The [Schema.Field] to return a new [DescriptorReader] for.
      * @return New [DescriptorReader] instance.
      */
-    fun newReader(connection: Connection, field: Schema.Field<T>): DescriptorReader<T>
+    fun newReader(connection: Connection, field: Schema.Field<*,D>): DescriptorReader<D>
 
     /**
      * Returns a [DescriptorWriter].
@@ -36,5 +37,5 @@ interface DescriptorProvider<T : Descriptor> {
      * @param field The [Schema.Field] to return a new [DescriptorReader] for.
      * @return New [DescriptorWriter] instance.
      */
-    fun newWriter(connection: Connection, field: Schema.Field<T>): DescriptorWriter<T>
+    fun newWriter(connection: Connection, field: Schema.Field<*,D>): DescriptorWriter<D>
 }

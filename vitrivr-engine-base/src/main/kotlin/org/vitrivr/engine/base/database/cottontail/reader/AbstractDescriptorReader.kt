@@ -12,6 +12,7 @@ import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
+import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import java.util.*
 
@@ -21,7 +22,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractDescriptorReader<T: Descriptor>(final override val field: Schema.Field<T>, protected val connection: CottontailConnection): DescriptorReader<T> {
+abstract class AbstractDescriptorReader<D: Descriptor>(final override val field: Schema.Field<*,D>, protected val connection: CottontailConnection): DescriptorReader<D> {
 
     companion object {
         const val ID_COLUMN_NAME = "id"
@@ -31,11 +32,11 @@ abstract class AbstractDescriptorReader<T: Descriptor>(final override val field:
     protected val entityName: Name.EntityName = Name.EntityName(this.field.schema.name, "${CottontailConnection.DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
 
     /**
-     * Returns a single [Descriptor]s of type [T] that has the provided [UUID].
+     * Returns a single [Descriptor]s of type [D] that has the provided [UUID].
      *
      * @return [Sequence] of all [Descriptor]s.
      */
-    override fun get(id: UUID): T? {
+    override fun get(id: UUID): D? {
         val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
             .where(Compare(Column(this.entityName.column(ID_COLUMN_NAME)), Compare.Operator.EQUAL, Literal(id.toString())))
         return try {
@@ -54,11 +55,11 @@ abstract class AbstractDescriptorReader<T: Descriptor>(final override val field:
     }
 
     /**
-     * Returns all [Descriptor]s of type [T] as a [Sequence].
+     * Returns all [Descriptor]s of type [D] as a [Sequence].
      *
      * @return [Sequence] of all [Descriptor]s.
      */
-    override fun getAll(): Sequence<T> {
+    override fun getAll(): Sequence<D> {
         val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
         return try {
             val result = this.connection.client.query(query)
@@ -70,11 +71,11 @@ abstract class AbstractDescriptorReader<T: Descriptor>(final override val field:
     }
 
     /**
-     * Returns all [Descriptor]s of type [T] that are contained in the provided [Iterable] of UUIDs as a [Sequence].
+     * Returns all [Descriptor]s of type [D] that are contained in the provided [Iterable] of UUIDs as a [Sequence].
      *
      * @return [Sequence] of all [Descriptor]s.
      */
-    override fun getAll(ids: Iterable<UUID>): Sequence<T> {
+    override fun getAll(ids: Iterable<UUID>): Sequence<D> {
         val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
             .where(Compare(Column(this.entityName.column(ID_COLUMN_NAME)), Compare.Operator.IN, List(ids.map { StringValue(it.toString()) }.toTypedArray())))
         return try {
@@ -109,10 +110,10 @@ abstract class AbstractDescriptorReader<T: Descriptor>(final override val field:
     }
 
     /**
-     * Converts a [Tuple] to a [Descriptor] of type [T].
+     * Converts a [Tuple] to a [Descriptor] of type [D].
      *
      * @param tuple The [Tuple] to convert.
-     * @return [Descriptor] of type [T]
+     * @return [Descriptor] of type [D]
      */
-    protected abstract fun tupleToDescriptor(tuple: Tuple): T
+    protected abstract fun tupleToDescriptor(tuple: Tuple): D
 }

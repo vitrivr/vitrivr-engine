@@ -13,49 +13,32 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.derive.impl.AverageImageContentDeriver
 import org.vitrivr.engine.core.operators.ingest.Extractor
+import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.core.util.extension.getRGBArray
 import java.util.*
 
 /**
+ * [Extractor] implementation for the [AverageColor] analyser.
  *
- * @author Ralph Gasser
+ * @see [AverageColor]
+ *
+ * @author Luca Rossetto
  * @version 1.0.0
  */
 class AverageColorExtractor(
-    override val field: Schema.Field<FloatVectorDescriptor>,
+    override val field: Schema.Field<ImageContent,FloatVectorDescriptor>,
     override val input: Operator<IngestedRetrievable>,
     override val persisting: Boolean = true,
-) : Extractor<FloatVectorDescriptor> {
-
-    /** The [AverageColorExtractor] implements the [AverageColor] analyser. */
-    override val analyser: AverageColor = AverageColor()
-
-    /** */
+) : Extractor<ImageContent,FloatVectorDescriptor> {
     override fun toFlow(scope: CoroutineScope): Flow<IngestedRetrievable> {
-        val writer = if (this.persisting) {
-            this.field.getWriter()
-        } else {
-            null
-        }
+        val writer = if (this.persisting) { this.field.getWriter() } else { null }
         return this.input.toFlow(scope).map { retrievable: IngestedRetrievable ->
-            if (retrievable.content.any { c -> c is ImageContent }) {
-                val averageImage = retrievable.getDerivedContent(AverageImageContentDeriver.derivateName) as? ImageContent
-                if (averageImage != null) {
-                    val color = MutableRGBFloatColorContainer()
-                    var counter = 0
-                    averageImage.image.getRGBArray().forEach { c ->
-                        color += RGBByteColorContainer.fromRGB(c)
-                        ++counter
-                    }
-
-                    /* Generate descriptor. */
-                    val averageColor = RGBFloatColorContainer(color.red / counter, color.green / counter, color.blue / counter)
-                    val descriptor = FloatVectorDescriptor(UUID.randomUUID(), retrievable.id, this.persisting, averageColor.toList())
-
-                    /* Persist descriptor and attach it to retrievable. */
-                    retrievable.addDescriptor(descriptor)
-                    writer?.add(descriptor)
-                }
+            val content = retrievable.content.filterIsInstance<ImageContent>()
+            val descriptors = this.field.analyser.analyse(*content.toTypedArray())
+            for (d in descriptors) {
+                val copy = d.copy(retrievableId = retrievable.id)
+                retrievable.addDescriptor(copy)
+                writer?.add(copy)
             }
             retrievable
         }
