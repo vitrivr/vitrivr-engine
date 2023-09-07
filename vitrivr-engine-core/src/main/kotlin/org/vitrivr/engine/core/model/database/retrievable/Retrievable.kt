@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.database.retrievable
 
+import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.database.Persistable
 import java.util.UUID
 

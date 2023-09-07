@@ -4,4 +4,8 @@ plugins {
 
 dependencies {
 
+    /** Javalin */
+    implementation group: 'io.javalin', name: 'javalin', version: version_javalin
+    implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: version_jackson_kotlin
+
 }
