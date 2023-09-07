@@ -1,11 +1,10 @@
-package org.vitrivr.engine.index.database.string
+package org.vitrivr.engine.base.database.string
 
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
 import org.vitrivr.engine.core.model.database.Persistable
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.index.database.string.writer.StringWriter
 import java.io.OutputStream
 import kotlin.reflect.KClass
 

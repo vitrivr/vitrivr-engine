@@ -5,7 +5,7 @@ import io.javalin.apibuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.path
 import org.vitrivr.engine.core.api.rest.handler.*
 
-fun Javalin.addHandlers(vararg handlers: RestHandler) {
+fun Javalin.addHandlers(vararg handlers: RestHandler): Javalin =
     this.routes {
         path("api") {
             handlers.groupBy { it.apiVersion }.forEach { apiGroup ->
@@ -35,4 +35,3 @@ fun Javalin.addHandlers(vararg handlers: RestHandler) {
             }
         }
     }
-}

@@ -1,1 +1,2 @@
 org.vitrivr.engine.base.database.cottontail.CottontailConnectionProvider
+org.vitrivr.engine.base.database.string.StringConnectionProvider

@@ -1,4 +1,4 @@
-package org.vitrivr.engine.index.database.string.writer
+package org.vitrivr.engine.base.database.string.writer
 
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.database.Persistable
