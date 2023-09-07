@@ -40,7 +40,7 @@ class RetrievalRuntime {
                             vector = inputDescription.data
                         )
 
-                        field.getRetriever(descriptor)
+                        field.getRetriever(descriptor) //FIXME cast exception?
                     } else {
                         val cachedContent = contentCache[operationDescription.input]
                         val content = if (cachedContent != null) {

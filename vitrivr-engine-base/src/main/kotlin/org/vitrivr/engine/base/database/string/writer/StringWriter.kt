@@ -1,8 +1,7 @@
-package org.vitrivr.engine.index.database.string.writer
+package org.vitrivr.engine.base.database.string.writer
 
 import org.vitrivr.engine.core.database.Writer
 import org.vitrivr.engine.core.model.database.Persistable
-import java.io.DataOutputStream
 import java.io.IOException
 import java.io.OutputStream
 import java.io.PrintWriter

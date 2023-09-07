@@ -1,11 +1,11 @@
-package org.vitrivr.engine.index.database.string
+package org.vitrivr.engine.base.database.string
 
 import org.vitrivr.engine.core.database.AbstractConnection
 import org.vitrivr.engine.core.database.retrievable.RetrievableInitializer
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.database.Persistable
-import org.vitrivr.engine.index.database.string.writer.StringRetrievableWriter
+import org.vitrivr.engine.base.database.string.writer.StringRetrievableWriter
 
 import org.vitrivr.engine.index.database.util.initializer.NoRetrievableInitializer
 
