@@ -2,6 +2,7 @@ package org.vitrivr.engine.query
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.internal.readJson
+import org.intellij.lang.annotations.Language
 import org.vitrivr.engine.core.config.ConnectionConfig
 import org.vitrivr.engine.core.config.FieldConfig
 import org.vitrivr.engine.core.config.SchemaConfig
@@ -24,6 +25,7 @@ fun main(args: Array<String>) {
 
 fun informationNeed() {
 
+    @Language("JSON")
     val inputString = """
         {
             "inputs": {
