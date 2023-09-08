@@ -3,6 +3,7 @@ package org.vitrivr.engine.core.model.metamodel
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.retrievable.IngestedRetrievable
+import org.vitrivr.engine.core.model.util.DescriptorList
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
@@ -47,7 +48,7 @@ interface Analyser<C: Content, D: Descriptor> {
      * @param content The [Content] to analyse. Provide multiple [Content] elements, if this [Analyser] operates on a batch of [Content] elements.
      * @return Resulting [Descriptor] s.
      */
-    fun analyse(vararg content: C): List<D>
+    fun analyse(content: Collection<C>): DescriptorList<D>
 
     /**
      * Generates and returns a new [Extractor] instance for this [Analyser].
@@ -74,7 +75,7 @@ interface Analyser<C: Content, D: Descriptor> {
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    fun newRetriever(field: Schema.Field<C,D>, vararg descriptor: D): Retriever<C,D>
+    fun newRetriever(field: Schema.Field<C,D>, descriptors: DescriptorList<D>): Retriever<C,D>
 
     /**
      * Generates and returns a new [Retriever] instance for this [Analyser].
@@ -87,5 +88,5 @@ interface Analyser<C: Content, D: Descriptor> {
      *
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    fun newRetriever(field: Schema.Field<C,D>, vararg content: C): Retriever<C,D>
+    fun newRetriever(field: Schema.Field<C,D>, content: Collection<C>): Retriever<C,D>
 }

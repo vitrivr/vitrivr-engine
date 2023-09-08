@@ -1,8 +1,7 @@
 package org.vitrivr.engine.base
 
-import io.javalin.Javalin
-import org.vitrivr.engine.core.api.rest.javalin.KotlinxJsonMapper
 import org.vitrivr.engine.core.api.rest.javalin.addHandlers
+import org.vitrivr.engine.core.api.rest.javalin.javalinDefaultSetup
 import org.vitrivr.engine.core.config.ConnectionConfig
 import org.vitrivr.engine.core.config.FieldConfig
 import org.vitrivr.engine.core.config.SchemaConfig
@@ -27,14 +26,9 @@ object Main {
 
         val runtime = RetrievalRuntime()
 
-        val javalin = Javalin.create{
-          it.jsonMapper(KotlinxJsonMapper)
-        }.addHandlers(
+        val javalin = javalinDefaultSetup().addHandlers(
             QueryPostHandler(schema, runtime)
-        ).exception(Exception::class.java) { e, ctx ->
-            ctx.status(500)
-            ctx.json(e)
-        }.start(8080)
+        ).start(8080)
 
 
         do {

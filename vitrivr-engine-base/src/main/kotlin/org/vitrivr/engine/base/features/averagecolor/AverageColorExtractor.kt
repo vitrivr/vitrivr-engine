@@ -28,7 +28,7 @@ class AverageColorExtractor(
         val writer = if (this.persisting) { this.field.getWriter() } else { null }
         return this.input.toFlow(scope).map { retrievable: IngestedRetrievable ->
             val content = retrievable.content.filterIsInstance<ImageContent>()
-            val descriptors = this.field.analyser.analyse(*content.toTypedArray())
+            val descriptors = this.field.analyser.analyse(content)
             for (d in descriptors) {
                 val copy = d.copy(retrievableId = retrievable.id)
                 retrievable.addDescriptor(copy)
