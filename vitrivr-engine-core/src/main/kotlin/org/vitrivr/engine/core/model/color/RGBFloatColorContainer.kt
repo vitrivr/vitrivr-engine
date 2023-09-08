@@ -4,6 +4,8 @@ import kotlin.math.*
 
 open class RGBFloatColorContainer(open val red: Float, open val green: Float, open val blue: Float) {
 
+    constructor(floats: List<Float>) : this(floats[0], floats[1], floats[2])
+
     open operator fun plus(other: RGBFloatColorContainer): RGBFloatColorContainer =
         RGBFloatColorContainer(this.red + other.red, this.green + other.green, this.blue + other.blue)
 
