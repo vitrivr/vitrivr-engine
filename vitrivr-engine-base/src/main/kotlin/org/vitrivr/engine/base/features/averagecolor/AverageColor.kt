@@ -69,6 +69,6 @@ class AverageColor: Analyser<ImageContent,FloatVectorDescriptor> {
 
         /* Generate descriptor. */
         val averageColor = RGBFloatColorContainer(color.red / rgb.size, color.green / rgb.size, color.blue / rgb.size)
-        FloatVectorDescriptor(UUID.randomUUID(), null, false, averageColor.toList())
+        FloatVectorDescriptor(UUID.randomUUID(), null, true, averageColor.toList())
     }.toDescriptorList()
 }
