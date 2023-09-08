@@ -6,6 +6,7 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.retrievable.IngestedRetrievable
+import org.vitrivr.engine.core.model.util.DescriptorList
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.ingest.Segmenter
@@ -85,7 +86,9 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
          * @param descriptors The [Descriptor](s) that should be used with the [Retriever].
          * @return [Retriever] instance.
          */
-        fun getRetriever(vararg descriptors: D): Retriever<C,D> = this.analyser.newRetriever(this, *descriptors)
+        fun getRetriever(descriptors: DescriptorList<D>): Retriever<C,D> = this.analyser.newRetriever(this, descriptors)
+
+        fun getRetriever(descriptor: D): Retriever<C,D> = this.analyser.newRetriever(this, DescriptorList(descriptor))
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field].
@@ -93,7 +96,9 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
          * @param content The [Content] element(s) that should be used with the [Retriever].
          * @return [Retriever] instance.
          */
-        fun getRetriever(vararg content: C): Retriever<C,D> = this.analyser.newRetriever(this, *content)
+        fun getRetriever(content: Collection<C>): Retriever<C,D> = this.analyser.newRetriever(this, content)
+
+        fun getRetriever(content: C): Retriever<C,D> = this.analyser.newRetriever(this, listOf(content))
 
         /**
          * Convenience method to generate and return a [DescriptorReader] for this [Field].

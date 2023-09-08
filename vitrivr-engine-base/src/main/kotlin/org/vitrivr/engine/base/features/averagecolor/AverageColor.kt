@@ -8,6 +8,8 @@ import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescr
 import org.vitrivr.engine.core.model.database.retrievable.IngestedRetrievable
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.util.DescriptorList
+import org.vitrivr.engine.core.model.util.toDescriptorList
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.util.extension.getRGBArray
 import java.util.*
@@ -41,17 +43,17 @@ class AverageColor: Analyser<ImageContent,FloatVectorDescriptor> {
     /**
      *
      */
-    override fun newRetriever(field: Schema.Field<ImageContent,FloatVectorDescriptor>, vararg content: ImageContent): AverageColorRetriever {
+    override fun newRetriever(field: Schema.Field<ImageContent,FloatVectorDescriptor>, content: Collection<ImageContent>): AverageColorRetriever {
         require(field.analyser == this) { }
-        return newRetriever(field, *this.analyse(*content).toTypedArray())
+        return newRetriever(field, this.analyse(content))
     }
 
     /**
      *
      */
-    override fun newRetriever(field: Schema.Field<ImageContent,FloatVectorDescriptor>, vararg descriptor: FloatVectorDescriptor): AverageColorRetriever {
+    override fun newRetriever(field: Schema.Field<ImageContent,FloatVectorDescriptor>, descriptors: DescriptorList<FloatVectorDescriptor>): AverageColorRetriever {
         require(field.analyser == this) { }
-        return AverageColorRetriever(field, descriptor.first())
+        return AverageColorRetriever(field, descriptors.first())
     }
 
     /**
@@ -60,7 +62,7 @@ class AverageColor: Analyser<ImageContent,FloatVectorDescriptor> {
      * @param content The [List] of [ImageContent] elements.
      * @return [List] of [FloatVectorDescriptor]s.
      */
-    override fun analyse(vararg content: ImageContent): List<FloatVectorDescriptor> = content.map {
+    override fun analyse(content: Collection<ImageContent>): DescriptorList<FloatVectorDescriptor> = content.map {
         val color = MutableRGBFloatColorContainer()
         val rgb =  it.image.getRGBArray()
         rgb.forEach { c -> color += RGBByteColorContainer.fromRGB(c) }
@@ -68,5 +70,5 @@ class AverageColor: Analyser<ImageContent,FloatVectorDescriptor> {
         /* Generate descriptor. */
         val averageColor = RGBFloatColorContainer(color.red / rgb.size, color.green / rgb.size, color.blue / rgb.size)
         FloatVectorDescriptor(UUID.randomUUID(), null, false, averageColor.toList())
-    }
+    }.toDescriptorList()
 }
