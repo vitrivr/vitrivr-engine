@@ -35,6 +35,7 @@ abstract class AbstractSegmenter(override val input: Operator<Content>): Segment
      */
     object TerminalIngestedRetrievable: IngestedRetrievable {
         override val id: RetrievableId = UUID(0L, 0L)
+        override val type: String? = null
         override val partOf: Set<Retrievable> = emptySet()
         override val parts: Set<Retrievable> = emptySet()
         override val transient: Boolean = true

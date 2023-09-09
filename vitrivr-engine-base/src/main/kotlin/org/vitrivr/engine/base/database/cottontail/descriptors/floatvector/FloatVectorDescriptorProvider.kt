@@ -1,13 +1,9 @@
-package org.vitrivr.engine.base.database.cottontail.provider
+package org.vitrivr.engine.base.database.cottontail.descriptors.floatvector
 
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
-import org.vitrivr.engine.base.database.cottontail.initializer.FloatVectorDescriptorInitializer
-import org.vitrivr.engine.base.database.cottontail.reader.FloatVectorDescriptorReader
-import org.vitrivr.engine.base.database.cottontail.writer.FloatVectorDescriptorWriter
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 
 /**
