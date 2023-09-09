@@ -10,6 +10,7 @@ import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.types.Types
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.RETRIEVABLE_ENTITY_NAME
+import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.RETRIEVABLE_ID_COLUMN_NAME
 import org.vitrivr.engine.core.database.retrievable.RetrievableInitializer
 import org.vitrivr.engine.core.model.database.retrievable.Retrievable
 
@@ -40,9 +41,13 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
         }
 
         /* Create entity. */
-        val creatEntity = CreateEntity(this.entityName).column(Name.ColumnName("id"), Types.String, false, true, false).ifNotExists()
+        val createEntity = CreateEntity(this.entityName)
+            .column(Name.ColumnName(RETRIEVABLE_ID_COLUMN_NAME), Types.String, nullable = false, primaryKey = true, autoIncrement = false)
+            .column(Name.ColumnName("type"), Types.String, nullable = true, primaryKey = false, autoIncrement = false)
+            .ifNotExists()
+
         try {
-            this.connection.client.create(creatEntity)
+            this.connection.client.create(createEntity)
         } catch (e: StatusException) {
             logger.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
         }

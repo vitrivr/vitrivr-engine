@@ -1,6 +1,5 @@
 package org.vitrivr.engine.core.model.database.retrievable
 
-import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.database.Persistable
 import java.util.UUID
 
@@ -18,6 +17,9 @@ sealed interface Retrievable : Persistable {
 
     /** The [RetrievableId] held by this [Retrievable]. */
     override val id: RetrievableId
+
+    /** The type of this [Retrievable]. This is basically a string that can help to keep apart different types of retrievables. */
+    val type: String?
 
     /** [Set] of [Retrievable]s, this [Retrievable] is a part of. May be empty! */
     val partOf : Set<Retrievable>

@@ -3,12 +3,10 @@ package org.vitrivr.engine.base.database.cottontail
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import org.vitrivr.cottontail.client.SimpleClient
-import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.engine.base.database.cottontail.initializer.RetrievableInitializer
 import org.vitrivr.engine.base.database.cottontail.reader.RetrievableReader
 import org.vitrivr.engine.base.database.cottontail.writer.RetrievableWriter
 import org.vitrivr.engine.core.database.*
-import org.vitrivr.engine.core.model.metamodel.Schema
 
 /**
  * A [AbstractConnection] to connect to a Cottontail DB instance.
@@ -22,8 +20,17 @@ class CottontailConnection(provider: CottontailConnectionProvider, schemaName: S
         /** The name of the retrievable entity. */
         const val RETRIEVABLE_ENTITY_NAME = "retrievable"
 
+        /** The column name of a retrievable ID. */
+        const val RETRIEVABLE_ID_COLUMN_NAME = "retrievableId"
+
+        /** The column name of a retrievable ID. */
+        const val RETRIEVABLE_TYPE_COLUMN_NAME = "type"
+
         /** The prefix for descriptor entities. */
         const val DESCRIPTOR_ENTITY_PREFIX = "descriptor"
+
+        /** The column name of a descriptor ID. */
+        const val DESCRIPTOR_ID_COLUMN_NAME = "descriptorId"
     }
 
     /** The [ManagedChannel] instance used by this [CottontailConnection]. */

@@ -1,6 +1,6 @@
 package org.vitrivr.engine.base.database.cottontail
 
-import org.vitrivr.engine.base.database.cottontail.provider.FloatVectorDescriptorProvider
+import org.vitrivr.engine.base.database.cottontail.descriptors.floatvector.FloatVectorDescriptorProvider
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.database.descriptor.DescriptorProvider

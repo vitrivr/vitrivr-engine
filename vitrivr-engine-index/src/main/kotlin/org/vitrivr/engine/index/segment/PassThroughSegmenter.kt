@@ -23,7 +23,7 @@ class PassThroughSegmenter(input: Operator<Content>, private val retrievableWrit
      * @param downstream The [ProducerScope] to hand [IngestedRetrievable] to the downstream pipeline.
      */
     override suspend fun segment(upstream: Flow<Content>, downstream: ProducerScope<IngestedRetrievable>) = upstream.collect {
-        val retrievable = IngestedRetrievable.Default(transient = false, content = mutableListOf(it))
+        val retrievable = IngestedRetrievable.Default(transient = false, type = "segment", content = mutableListOf(it))
         this.retrievableWriter.add(retrievable)
         downstream.send(retrievable)
     }

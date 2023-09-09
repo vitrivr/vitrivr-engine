@@ -45,6 +45,7 @@ interface IngestedRetrievable: Retrievable {
      */
     class Default(
         override val id: UUID = UUID.randomUUID(),
+        override val type: String,
         override val transient: Boolean,
         partOf: Set<Retrievable> = emptySet(),
         parts: Set<Retrievable> = emptySet(),
