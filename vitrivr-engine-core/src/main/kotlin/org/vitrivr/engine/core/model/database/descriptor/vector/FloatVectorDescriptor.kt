@@ -14,6 +14,6 @@ import java.util.*
 data class FloatVectorDescriptor(
     override val id: UUID = UUID.randomUUID(),
     override val retrievableId: RetrievableId? = null,
-    override val transient: Boolean = false,
-    override val vector: List<Float>
+    override val vector: List<Float>,
+    override val transient: Boolean = false
 ) : VectorDescriptor<Float>

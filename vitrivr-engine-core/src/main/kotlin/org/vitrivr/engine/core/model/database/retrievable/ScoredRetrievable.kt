@@ -20,9 +20,11 @@ interface ScoredRetrievable : Retrievable {
     @JvmRecord
     data class Default(
         override val id: UUID,
+        override val type: String?,
         override val transient: Boolean,
         override val partOf: Set<Retrievable>,
         override val parts: Set<Retrievable>,
-        override val score: Float
+        override val score: Float,
+        val attributes: Map<String,Any>
     ): ScoredRetrievable
 }

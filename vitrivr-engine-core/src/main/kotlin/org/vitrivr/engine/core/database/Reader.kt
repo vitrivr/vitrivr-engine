@@ -1,6 +1,7 @@
 package org.vitrivr.engine.core.database
 
 import org.vitrivr.engine.core.model.database.Persistable
+import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
 import java.util.UUID
 
 /**
@@ -16,16 +17,18 @@ interface Reader<out T : Persistable> {
     /**
      * Returns a  [Persistable] of type [T] that corresponds to the provided [UUID].
      *
+     * @param id The [RetrievableId] to return.
      * @return [Sequence] of [Persistable] of type [T]
      */
-    operator fun get(id: UUID): T?
+    operator fun get(id: RetrievableId): T?
 
     /**
      * Returns a [Sequence] of all [Persistable] accessible by this [Reader] whose [UUID] is contained in the provided [Iterable].
      *
+     * @param ids A [Iterable] of [RetrievableId]s to return.
      * @return [Sequence] of [Persistable] of type [T]
      */
-    fun getAll(ids: Iterable<UUID>): Sequence<T>
+    fun getAll(ids: Iterable<RetrievableId>): Sequence<T>
 
     /**
      * Returns a [Sequence] of all [Persistable] accessible by this [Reader].

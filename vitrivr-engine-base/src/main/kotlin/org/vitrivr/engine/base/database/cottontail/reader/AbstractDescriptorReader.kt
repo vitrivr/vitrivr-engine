@@ -9,10 +9,10 @@ import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.tuple.Tuple
 import org.vitrivr.cottontail.core.values.StringValue
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
+import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.DESCRIPTOR_ID_COLUMN_NAME
 import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import java.util.*
 
@@ -24,10 +24,6 @@ import java.util.*
  */
 abstract class AbstractDescriptorReader<D: Descriptor>(final override val field: Schema.Field<*,D>, protected val connection: CottontailConnection): DescriptorReader<D> {
 
-    companion object {
-        const val ID_COLUMN_NAME = "id"
-    }
-
     /** The [Name.EntityName] used by this [FloatVectorDescriptor]. */
     protected val entityName: Name.EntityName = Name.EntityName(this.field.schema.name, "${CottontailConnection.DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
 
@@ -38,7 +34,7 @@ abstract class AbstractDescriptorReader<D: Descriptor>(final override val field:
      */
     override fun get(id: UUID): D? {
         val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
-            .where(Compare(Column(this.entityName.column(ID_COLUMN_NAME)), Compare.Operator.EQUAL, Literal(id.toString())))
+            .where(Compare(Column(this.entityName.column(DESCRIPTOR_ID_COLUMN_NAME)), Compare.Operator.EQUAL, Literal(id.toString())))
         return try {
             val result = this.connection.client.query(query)
             val ret = if (result.hasNext()) {
@@ -77,7 +73,7 @@ abstract class AbstractDescriptorReader<D: Descriptor>(final override val field:
      */
     override fun getAll(ids: Iterable<UUID>): Sequence<D> {
         val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
-            .where(Compare(Column(this.entityName.column(ID_COLUMN_NAME)), Compare.Operator.IN, List(ids.map { StringValue(it.toString()) }.toTypedArray())))
+            .where(Compare(Column(this.entityName.column(DESCRIPTOR_ID_COLUMN_NAME)), Compare.Operator.IN, List(ids.map { StringValue(it.toString()) }.toTypedArray())))
         return try {
             val result = this.connection.client.query(query)
             result.asSequence().map { this.tupleToDescriptor(it) }

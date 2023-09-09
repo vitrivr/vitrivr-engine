@@ -68,7 +68,7 @@ class FixedDurationSegmenter(
                 false
             }
         }
-        val retrievable = IngestedRetrievable.Default(transient = false, content = nextSegmentContent)
+        val retrievable = IngestedRetrievable.Default(transient = false, content = nextSegmentContent, type = "segment")
         this.retrievableWriter?.add(retrievable)
         downstream.send(retrievable)
         this.lastStartTime = nextStartTime
