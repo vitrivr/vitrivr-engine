@@ -8,40 +8,17 @@ import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.operators.derive.ContentDerivers
 import org.vitrivr.engine.core.operators.derive.DerivateName
 import java.util.*
-import kotlin.collections.HashSet
 
 /**
- * A [Retrievable] used in the data ingest pipeline.
+ * A default [Retrievable] used in the data ingest pipeline.
  *
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface IngestedRetrievable: Retrievable {
-
-    /** List of [Content] elements that make-up this [IngestedRetrievable]. */
-    val content: List<Content>
-
-    /** List of [Descriptor] elements that have been extracted for this [IngestedRetrievable]. */
-    val descriptors: List<Descriptor>
+interface Ingested : Retrievable {
 
     /**
-     * Adds a [Content] to this [IngestedRetrievable].
      *
-     * @param content The [Content] element to add.
-     */
-    fun addContent(content: Content)
-
-    /**
-     * Adds a [Descriptor] to this [IngestedRetrievable].
-     *
-     * @param descriptor The [Descriptor] element to add.
-     */
-    fun addDescriptor(descriptor: Descriptor)
-
-    fun getDerivedContent(name: DerivateName) : DerivedContent?
-
-    /**
-     * A [Default] implementation of an [IngestedRetrievable].
      */
     class Default(
         override val id: UUID = UUID.randomUUID(),
@@ -51,18 +28,18 @@ interface IngestedRetrievable: Retrievable {
         parts: Set<Retrievable> = emptySet(),
         content: List<Content> = emptyList(),
         descriptors: List<Descriptor> = emptyList()
-    ): IngestedRetrievable {
+    ) : Ingested, RetrievableWithDescriptor.Mutable, RetrievableWithContent.Mutable, RetrievableWithRelationship {
 
-        /** Set of [Retrievable]s this [IngestedRetrievable] is part of. */
+        /** Set of [Retrievable]s this [Ingested] is part of. */
         override val partOf: Set<Retrievable> = Collections.synchronizedSet(HashSet())
 
-        /** Set of [Retrievable]s that are part of this [IngestedRetrievable]. */
+        /** Set of [Retrievable]s that are part of this [Ingested]. */
         override val parts: Set<Retrievable> = Collections.synchronizedSet(HashSet())
 
-        /** List of [Content] elements associated with this [IngestedRetrievable.Default]. */
+        /** List of [Content] elements associated with this [Ingested]. */
         override val content: List<Content> = Collections.synchronizedList(LinkedList())
 
-        /** List of [Descriptor]s with this [IngestedRetrievable.Default]. */
+        /** List of [Descriptor]s with this [Ingested]. */
         override val descriptors: List<Descriptor> = Collections.synchronizedList(LinkedList())
 
         init {
@@ -73,7 +50,7 @@ interface IngestedRetrievable: Retrievable {
         }
 
         /**
-         * Adds a [Content] to this [IngestedRetrievable.Default].
+         * Adds a [Content] to this [Ingested.Default].
          *
          * @param content The [Content] element to add.
          */
@@ -82,7 +59,7 @@ interface IngestedRetrievable: Retrievable {
         }
 
         /**
-         * Adds a [Descriptor] to this [IngestedRetrievable.Default].
+         * Adds a [Descriptor] to this [Ingested.Default].
          *
          * @param descriptor The [Descriptor] element to add.
          */
@@ -93,9 +70,11 @@ interface IngestedRetrievable: Retrievable {
         private val derivedContentCache: LoadingCache<DerivateName, DerivedContent> = Caffeine.newBuilder().build { name ->
             ContentDerivers[name]?.derive(this)
         }
-        override fun getDerivedContent(name: DerivateName): DerivedContent? = derivedContentCache[name]
+
+        fun getDerivedContent(name: DerivateName): DerivedContent? = derivedContentCache[name]
         override fun toString(): String {
             return "IngestedRetrievable.Default(id=$id, transient=$transient, partOf=$partOf, parts=$parts, content=$content, descriptors=$descriptors)"
         }
+
     }
 }

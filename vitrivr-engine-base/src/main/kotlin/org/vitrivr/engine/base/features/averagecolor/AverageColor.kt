@@ -5,7 +5,7 @@ import org.vitrivr.engine.core.model.color.RGBByteColorContainer
 import org.vitrivr.engine.core.model.color.RGBFloatColorContainer
 import org.vitrivr.engine.core.model.content.ImageContent
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.database.retrievable.IngestedRetrievable
+import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.util.DescriptorList
@@ -35,7 +35,7 @@ class AverageColor: Analyser<ImageContent,FloatVectorDescriptor> {
     /**
      *
      */
-    override fun newExtractor(field: Schema.Field<ImageContent,FloatVectorDescriptor>, input: Operator<IngestedRetrievable>, persisting: Boolean): AverageColorExtractor {
+    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Ingested>, persisting: Boolean): AverageColorExtractor {
         require(field.analyser == this) { "" }
         return AverageColorExtractor(field, input, persisting)
     }

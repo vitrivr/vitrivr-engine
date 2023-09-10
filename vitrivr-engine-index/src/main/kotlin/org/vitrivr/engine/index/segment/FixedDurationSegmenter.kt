@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.SourcedContent
-import org.vitrivr.engine.core.model.database.retrievable.IngestedRetrievable
+import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.AbstractSegmenter
 import java.time.Duration
@@ -32,7 +32,7 @@ class FixedDurationSegmenter(
     private var lastStartTime = 0L
 
 
-    override suspend fun segment(upstream: Flow<Content>, downstream: ProducerScope<IngestedRetrievable>) {
+    override suspend fun segment(upstream: Flow<Content>, downstream: ProducerScope<Ingested>) {
 
         upstream.collect { content ->
             val stamp = this.lock.writeLock()
@@ -51,13 +51,13 @@ class FixedDurationSegmenter(
         }
     }
 
-    override suspend fun finish(downstream: ProducerScope<IngestedRetrievable>) {
+    override suspend fun finish(downstream: ProducerScope<Ingested>) {
         while (cache.isNotEmpty()) {
             sendFromCache(downstream)
         }
     }
 
-    private suspend fun sendFromCache(downstream: ProducerScope<IngestedRetrievable>) {
+    private suspend fun sendFromCache(downstream: ProducerScope<Ingested>) {
         val nextStartTime = lastStartTime + lengthNanos
         val nextSegmentContent = mutableListOf<Content>()
         cache.removeIf {
@@ -68,7 +68,7 @@ class FixedDurationSegmenter(
                 false
             }
         }
-        val retrievable = IngestedRetrievable.Default(transient = false, content = nextSegmentContent, type = "segment")
+        val retrievable = Ingested.Default(transient = false, content = nextSegmentContent, type = "segment")
         this.retrievableWriter?.add(retrievable)
         downstream.send(retrievable)
         this.lastStartTime = nextStartTime

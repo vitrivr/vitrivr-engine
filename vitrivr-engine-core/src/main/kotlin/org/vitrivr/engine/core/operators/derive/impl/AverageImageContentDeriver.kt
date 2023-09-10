@@ -4,7 +4,8 @@ import org.vitrivr.engine.core.model.color.MutableRGBFloatColorContainer
 import org.vitrivr.engine.core.model.color.RGBByteColorContainer
 import org.vitrivr.engine.core.model.content.impl.InMemoryDerivedImageContent
 import org.vitrivr.engine.core.model.content.impl.InMemoryImageContent
-import org.vitrivr.engine.core.model.database.retrievable.IngestedRetrievable
+import org.vitrivr.engine.core.model.database.retrievable.Ingested
+import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithContent
 import org.vitrivr.engine.core.operators.derive.ContentDeriver
 import org.vitrivr.engine.core.operators.derive.ContentDerivers
 import org.vitrivr.engine.core.operators.derive.DerivateName
@@ -24,7 +25,9 @@ class AverageImageContentDeriver : ContentDeriver<InMemoryDerivedImageContent?> 
         ContentDerivers.register(this)
     }
 
-    override fun derive(retrievable: IngestedRetrievable): InMemoryDerivedImageContent? {
+    override fun derive(retrievable: Ingested): InMemoryDerivedImageContent? {
+
+        require(retrievable is RetrievableWithContent) { "Can only derive content from a retrievable that has content." }
 
         val images = retrievable.content.filterIsInstance<InMemoryImageContent>()
 

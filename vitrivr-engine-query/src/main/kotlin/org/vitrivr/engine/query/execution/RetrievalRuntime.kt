@@ -1,11 +1,10 @@
 package org.vitrivr.engine.query.execution
 
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.database.retrievable.ScoredRetrievable
+import org.vitrivr.engine.core.model.database.retrievable.Retrieved
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
@@ -16,9 +15,9 @@ import org.vitrivr.engine.query.model.api.operator.RetrieverDescription
 
 class RetrievalRuntime {
 
-    fun query(schema: Schema, informationNeed: InformationNeedDescription): List<ScoredRetrievable> {
+    fun query(schema: Schema, informationNeed: InformationNeedDescription): List<Retrieved> {
 
-        val operators = mutableMapOf<String, Operator<ScoredRetrievable>>()
+        val operators = mutableMapOf<String, Operator<Retrieved>>()
         val contentCache = mutableMapOf<String, Content>()
 
         informationNeed.operations.forEach { (operationName, operationDescription) ->
@@ -26,8 +25,7 @@ class RetrievalRuntime {
                 OperatorType.RETRIEVER -> {
                     operationDescription as RetrieverDescription
 
-                    val field = schema.getField(operationName)
-                        ?: throw IllegalArgumentException("Retriever '$operationName' not defined in schema")
+                    val field = schema[operationName] ?: throw IllegalArgumentException("Retriever '$operationName' not defined in schema")
 
                     val inputDescription = informationNeed.inputs[operationDescription.input]
                         ?: throw IllegalArgumentException("Input '${operationDescription.input}' for operation '$operationName' not found")
@@ -70,8 +68,6 @@ class RetrievalRuntime {
         return runBlocking {
             outputOperator.toFlow(this).toList()
         }
-
-
     }
 
 }

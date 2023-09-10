@@ -6,7 +6,7 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
-import org.vitrivr.engine.core.model.database.retrievable.IngestedRetrievable
+import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.model.util.DescriptorList
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -85,7 +85,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
          * @param input The input [Operator] for the [Extractor].
          * @return [Extractor] instance.
          */
-        fun getExtractor(input: Operator<IngestedRetrievable>): Extractor<C, D> = this.analyser.newExtractor(this, input)
+        fun getExtractor(input: Operator<Ingested>): Extractor<C, D> = this.analyser.newExtractor(this, input)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field].

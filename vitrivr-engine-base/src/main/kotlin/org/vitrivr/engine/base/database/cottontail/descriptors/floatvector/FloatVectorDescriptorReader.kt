@@ -9,7 +9,8 @@ import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companio
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.RETRIEVABLE_ID_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.reader.AbstractDescriptorReader
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.database.retrievable.ScoredRetrievable
+import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithScore
+import org.vitrivr.engine.core.model.database.retrievable.Retrieved
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
@@ -23,11 +24,11 @@ import java.util.*
  */
 internal class FloatVectorDescriptorReader(field: Schema.Field<*,FloatVectorDescriptor>, connection: CottontailConnection): AbstractDescriptorReader<FloatVectorDescriptor>(field, connection) {
     /**
-     * Executes the provided [Query] and returns a [Sequence] of [ScoredRetrievable]s that match it.
+     * Executes the provided [Query] and returns a [Sequence] of [RetrievableWithScore]s that match it.
      *
      * @param query The [Query] to execute.
      */
-    override fun getAll(query: Query<FloatVectorDescriptor>): Sequence<ScoredRetrievable> = when(query) {
+    override fun getAll(query: Query<FloatVectorDescriptor>): Sequence<Retrieved> = when (query) {
         is ProximityQuery<FloatVectorDescriptor> -> {
             val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
                 .select(RETRIEVABLE_ID_COLUMN_NAME)
@@ -36,8 +37,8 @@ internal class FloatVectorDescriptorReader(field: Schema.Field<*,FloatVectorDesc
                 .limit(query.k.toLong())
             this.connection.client.query(cottontailQuery).asSequence().mapNotNull {
                 val retrievableId = it.asString(RETRIEVABLE_ID_COLUMN_NAME) ?: return@mapNotNull null
-                val score = it.asFloat(DISTANCE_COLUMN_NAME) ?: return@mapNotNull null
-                ScoredRetrievable.Default(UUID.fromString(retrievableId), null, false, emptySet(), emptySet(), score, emptyMap()) /* TODO: Use UUID type once supported. */
+                val distance = it.asFloat(DISTANCE_COLUMN_NAME) ?: return@mapNotNull null
+                Retrieved.WithDistance(UUID.fromString(retrievableId), null, distance, false) /* TODO: Use UUID type once supported. */
             }
         }
         else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by FloatVectorDescriptorReader.")

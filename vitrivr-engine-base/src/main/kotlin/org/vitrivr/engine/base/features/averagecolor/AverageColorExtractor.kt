@@ -7,11 +7,12 @@ import org.vitrivr.engine.core.model.color.MutableRGBFloatColorContainer
 import org.vitrivr.engine.core.model.color.RGBFloatColorContainer
 import org.vitrivr.engine.core.model.content.ImageContent
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.database.retrievable.IngestedRetrievable
+import org.vitrivr.engine.core.model.database.retrievable.Ingested
+import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithContent
+import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
-import java.util.*
 
 /**
  * [Extractor] implementation for the [AverageColor] analyser.
@@ -23,38 +24,41 @@ import java.util.*
  */
 class AverageColorExtractor(
     override val field: Schema.Field<ImageContent, FloatVectorDescriptor>,
-    override val input: Operator<IngestedRetrievable>,
+    override val input: Operator<Ingested>,
     override val persisting: Boolean = true,
 ) : Extractor<ImageContent, FloatVectorDescriptor> {
-    override fun toFlow(scope: CoroutineScope): Flow<IngestedRetrievable> {
+    override fun toFlow(scope: CoroutineScope): Flow<Ingested> {
         val writer = if (this.persisting) {
             this.field.getWriter()
         } else {
             null
         }
-        return this.input.toFlow(scope).map { retrievable: IngestedRetrievable ->
-            val content = retrievable.content.filterIsInstance<ImageContent>()
-            val descriptors = this.field.analyser.analyse(content)
+        return this.input.toFlow(scope).map { retrievable: Ingested ->
+            if (retrievable is RetrievableWithContent) {
+                val content = retrievable.content.filterIsInstance<ImageContent>()
+                val descriptors = this.field.analyser.analyse(content)
 
-            val color = MutableRGBFloatColorContainer()
+                val color = MutableRGBFloatColorContainer()
 
-            descriptors.forEach {
-                color += RGBFloatColorContainer(it.vector)
-            }
+                descriptors.forEach {
+                    color += RGBFloatColorContainer(it.vector)
+                }
 
-            val descriptor = FloatVectorDescriptor(
-                retrievableId = retrievable.id,
-                transient = !persisting,
-                vector = listOf(
-                    color.red / descriptors.size,
-                    color.green / descriptors.size,
-                    color.blue / descriptors.size
+                val descriptor = FloatVectorDescriptor(
+                    retrievableId = retrievable.id,
+                    transient = !persisting,
+                    vector = listOf(
+                        color.red / descriptors.size,
+                        color.green / descriptors.size,
+                        color.blue / descriptors.size
+                    )
                 )
-            )
 
-            retrievable.addDescriptor(descriptor)
-            writer?.add(descriptor)
-
+                if (retrievable is RetrievableWithDescriptor.Mutable) {
+                    retrievable.addDescriptor(descriptor)
+                }
+                writer?.add(descriptor)
+            }
             retrievable
         }
     }
