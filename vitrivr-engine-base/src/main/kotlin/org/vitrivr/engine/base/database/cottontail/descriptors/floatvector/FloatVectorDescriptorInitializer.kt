@@ -39,4 +39,6 @@ internal class FloatVectorDescriptorInitializer(field: Schema.Field<*, FloatVect
             logger.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
         }
     }
+
+
 }

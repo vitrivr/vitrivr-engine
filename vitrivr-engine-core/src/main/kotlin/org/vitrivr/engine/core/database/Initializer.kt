@@ -17,6 +17,13 @@ interface Initializer<out T : Persistable> {
     fun initialize()
 
     /**
+     * Returns true if the structures created by this [Initializer] have already been created and setup.
+     *
+     * @return True, if initialization is required, false otherwise.
+     */
+    fun isInitialized(): Boolean
+
+    /**
      * Truncates the (persistent) data structures required by the [Persistable] of type [T].
      */
     fun truncate()

@@ -5,7 +5,9 @@ import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.jakewharton.picnic.table
+import org.vitrivr.engine.core.database.Initializer
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
+import kotlin.math.roundToInt
 
 /**
  *
@@ -23,7 +25,8 @@ class SchemaCommand: NoOpCliktCommand(
     init {
         subcommands(
             List(),
-            About()
+            About(),
+            Initialize()
         )
     }
 
@@ -39,15 +42,30 @@ class SchemaCommand: NoOpCliktCommand(
                         cell("Name")
                         cell("Fields")
                         cell("Connection")
+                        cell("Initialized (%)")
                     }
                 }
                 body {
                     val schemas = SchemaManager.listSchemas()
                     for (schema in schemas) {
+                        var total = 1.0f
+                        var initialized = if (schema.connection.getRetrievableInitializer().isInitialized()) {
+                            1.0f
+                        } else {
+                            0.0f
+                        }
+                        for (field in schema.fields()) {
+                            total += 1.0f
+                            if (field.getInitializer().isInitialized()) {
+                                initialized += 1.0f
+                            }
+                        }
+
                         row {
                             cell(schema.name)
                             cell(schema.fields().size)
                             cell(schema.connection.description())
+                            cell("${(initialized / total).roundToInt()}%")
                         }
                     }
                 }
@@ -62,7 +80,7 @@ class SchemaCommand: NoOpCliktCommand(
     class About: CliktCommand(name = "about", help = "Lists all fields that are registered with the specified vitrivr schema.") {
 
         /** The schema name affected by this [About]. */
-        protected val schemaName: String by argument(name = "schema", help = "The schema name targeted by the command.")
+        private val schemaName: String by argument(name = "schema", help = "The schema name targeted by the command.")
 
         /**
          * Executes the command.
@@ -79,6 +97,7 @@ class SchemaCommand: NoOpCliktCommand(
                             cell("Content Class")
                             cell("Descriptor Class")
                             cell("Connection")
+                            cell("Initialized")
                         }
                     }
                     body {
@@ -86,14 +105,45 @@ class SchemaCommand: NoOpCliktCommand(
                             row {
                                 cell(field.fieldName)
                                 cell(field.analyser.analyserName)
-                                cell(field.analyser.contentClass.qualifiedName)
-                                cell(field.analyser.descriptorClass.qualifiedName)
+                                cell(field.analyser.contentClass.simpleName)
+                                cell(field.analyser.descriptorClass.simpleName)
                                 cell(schema.connection.description())
+                                cell(field.getInitializer().isInitialized())
                             }
                         }
                     }
                 }
                 println(table)
+            }
+        }
+    }
+
+    /**
+     *
+     */
+    class Initialize : CliktCommand(name = "init", help = "Initializes the schema using the database connection") {
+        /** The schema name affected by this [About]. */
+        private val schemaName: String by argument(name = "schema", help = "The schema name targeted by the command.")
+
+        override fun run() {
+            val schema = SchemaManager.getSchema(this.schemaName)
+            var initialized = 0
+            if (schema != null) {
+                var initializer: Initializer<*> = schema.connection.getRetrievableInitializer()
+                if (!initializer.isInitialized()) {
+                    initializer.initialize()
+                    initialized += 1
+                }
+                for (field in schema.fields()) {
+                    initializer = field.getInitializer()
+                    if (!initializer.isInitialized()) {
+                        initializer.initialize()
+                        initialized += 1
+                    }
+                }
+                println("Successfully initialized schema '${schemaName}'; created $initialized entities.")
+            } else {
+                println("Failed to initialize schema '${schemaName}', because it does not seem to exist.")
             }
         }
     }

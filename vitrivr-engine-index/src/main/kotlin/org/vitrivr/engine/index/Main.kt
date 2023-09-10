@@ -6,7 +6,7 @@ import org.vitrivr.engine.core.config.FieldConfig
 import org.vitrivr.engine.core.config.SchemaConfig
 import org.vitrivr.engine.core.config.VitrivrConfig
 import org.vitrivr.engine.core.config.VitrivrConfig.Companion.DEFAULT_SCHEMA_PATH
-import org.vitrivr.engine.core.model.metamodel.*
+import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.index.decode.ImageDecoder
 import org.vitrivr.engine.index.enumerate.FileSystemEnumerator
 import org.vitrivr.engine.index.execution.ExecutionServer
@@ -49,7 +49,7 @@ fun playground(server: ExecutionServer) {
     )
 
     val schema = SchemaManager.open(schemaConfig)
-    schema.initialize()
+    //schema.initialize()
 
     /* Create pipeline and process it. */
     val enumerator = FileSystemEnumerator(Paths.get("/Users/rgasser/Downloads/dres/collection"), depth = 1)
@@ -63,7 +63,5 @@ fun playground(server: ExecutionServer) {
     println("done")
 
     server.shutdown()
-
-
 }
 

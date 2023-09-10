@@ -1,6 +1,7 @@
 package org.vitrivr.engine.core.model.metamodel
 
 import org.vitrivr.engine.core.database.Connection
+import org.vitrivr.engine.core.database.descriptor.DescriptorInitializer
 import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.content.Content
@@ -59,17 +60,6 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
     operator fun get(name: String) = this.fields.firstOrNull { it.fieldName == name }
 
     /**
-     * Initializes this [Schema] using the provided database [Connection].
-     */
-    fun initialize() {
-        this.connection.getRetrievableInitializer().initialize()
-        for (field in fields) {
-            val initializer = this.connection.getDescriptorInitializer(field as Field<*,Descriptor>)
-            initializer.initialize()
-        }
-    }
-
-    /**
      * Closes this [Schema] and the associated database [Connection].
      */
     override fun close() = this.connection.close()
@@ -95,7 +85,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
          * @param input The input [Operator] for the [Extractor].
          * @return [Extractor] instance.
          */
-        fun getExtractor(input: Operator<IngestedRetrievable>): Extractor<C,D> = this.analyser.newExtractor(this, input)
+        fun getExtractor(input: Operator<IngestedRetrievable>): Extractor<C, D> = this.analyser.newExtractor(this, input)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field].
@@ -103,9 +93,12 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
          * @param descriptors The [Descriptor](s) that should be used with the [Retriever].
          * @return [Retriever] instance.
          */
-        fun getRetriever(descriptors: DescriptorList<D>): Retriever<C,D> = this.analyser.newRetriever(this, descriptors)
+        fun getRetriever(descriptors: DescriptorList<D>): Retriever<C, D> = this.analyser.newRetriever(this, descriptors)
 
-        fun getRetriever(descriptor: D): Retriever<C,D> = this.analyser.newRetriever(this, DescriptorList(descriptor))
+        /**
+         *
+         */
+        fun getRetriever(descriptor: D): Retriever<C, D> = this.analyser.newRetriever(this, DescriptorList(descriptor))
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field].
@@ -113,16 +106,26 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
          * @param content The [Content] element(s) that should be used with the [Retriever].
          * @return [Retriever] instance.
          */
-        fun getRetriever(content: Collection<C>): Retriever<C,D> = this.analyser.newRetriever(this, content)
+        fun getRetriever(content: Collection<C>): Retriever<C, D> = this.analyser.newRetriever(this, content)
 
-        fun getRetriever(content: C): Retriever<C,D> = this.analyser.newRetriever(this, listOf(content))
+        /**
+         *
+         */
+        fun getRetriever(content: C): Retriever<C, D> = this.analyser.newRetriever(this, listOf(content))
+
+        /**
+         * Returns the [DescriptorInitializer] for this [Schema.Field].
+         *
+         * @return [DescriptorInitializer]
+         */
+        fun getInitializer(): DescriptorInitializer<D> = this.connection.getDescriptorInitializer(this)
 
         /**
          * Convenience method to generate and return a [DescriptorReader] for this [Field].
          *
          * @return [DescriptorReader]
          */
-        fun getReader(): DescriptorReader<D> = this@Schema.connection.getDescriptorReader(this as Field<*,D>)
+        fun getReader(): DescriptorReader<D> = this@Schema.connection.getDescriptorReader(this as Field<*, D>)
 
         /**
          * Convenience method to generate and return a [DescriptorWriter] for this [Field].
