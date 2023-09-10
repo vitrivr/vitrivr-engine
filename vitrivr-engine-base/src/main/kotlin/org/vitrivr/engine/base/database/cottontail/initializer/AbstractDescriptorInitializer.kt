@@ -1,13 +1,13 @@
 package org.vitrivr.engine.base.database.cottontail.initializer
 
-import io.grpc.StatusException
+import io.grpc.StatusRuntimeException
+import org.vitrivr.cottontail.client.language.ddl.ListEntities
 import org.vitrivr.cottontail.client.language.ddl.TruncateEntity
 import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.core.database.descriptor.DescriptorInitializer
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 
 /**
@@ -21,13 +21,26 @@ abstract class AbstractDescriptorInitializer<D: Descriptor>(final override val f
     protected val entityName: Name.EntityName = Name.EntityName(this.field.schema.name, "${CottontailConnection.DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
 
     /**
+     * Checks if the schema for this [AbstractDescriptorInitializer] has been properly initialized.
+     *
+     * @return True if entity has been initialized, false otherwise.
+     */
+    override fun isInitialized(): Boolean = try {
+        this.connection.client.list(ListEntities(this.entityName.schemaName)).asSequence().any {
+            Name.EntityName.parse(it.asString(0)!!) == this.entityName
+        }
+    } catch (e: StatusRuntimeException) {
+        false
+    }
+
+    /**
      * Truncates the entity backing this [AbstractDescriptorInitializer].
      */
     override fun truncate() {
         val truncate = TruncateEntity(this.entityName)
         try {
             this.connection.client.truncate(truncate)
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             /* TODO: Log. */
         }
     }

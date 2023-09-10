@@ -2,9 +2,10 @@ package org.vitrivr.engine.base.database.cottontail.initializer
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.grpc.StatusException
+import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.ddl.CreateEntity
 import org.vitrivr.cottontail.client.language.ddl.CreateSchema
+import org.vitrivr.cottontail.client.language.ddl.ListEntities
 import org.vitrivr.cottontail.client.language.ddl.TruncateEntity
 import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.types.Types
@@ -36,7 +37,7 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
         val createSchema = CreateSchema(this.entityName.schemaName).ifNotExists()
         try {
             this.connection.client.create(createSchema)
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
         }
 
@@ -48,9 +49,22 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
 
         try {
             this.connection.client.create(createEntity)
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
         }
+    }
+
+    /**
+     * Checks if the schema for this [AbstractDescriptorInitializer] has been properly initialized.
+     *
+     * @return True if entity has been initialized, false otherwise.
+     */
+    override fun isInitialized(): Boolean = try {
+        this.connection.client.list(ListEntities(this.entityName.schemaName)).asSequence().any {
+            Name.EntityName.parse(it.asString(0)!!) == this.entityName
+        }
+    } catch (e: StatusRuntimeException) {
+        false
     }
 
     /**
@@ -60,7 +74,7 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
         val truncate = TruncateEntity(this.entityName)
         try {
             this.connection.client.truncate(truncate)
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to truncate entity ${this.entityName} due to exception." }
         }
     }
