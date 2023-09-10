@@ -9,9 +9,9 @@ import org.vitrivr.engine.core.model.database.retrievable.IngestedRetrievable
 import org.vitrivr.engine.core.model.util.DescriptorList
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
-import org.vitrivr.engine.core.operators.ingest.Segmenter
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.io.Closeable
+import java.util.*
 
 typealias FieldName = String
 
@@ -35,11 +35,28 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
         this.fields.add(Field(fieldName, analyser, parameters))
     }
 
+    /**
+     * Lists the [Schema.Field] contained in this [Schema].
+     *
+     * @return Unmodifiable list of [Schema.Field].
+     */
+    fun fields(): List<Schema.Field<Content,Descriptor>> = Collections.unmodifiableList(this.fields)
 
+    /**
+     * Returns the field at the provided [index].
+     *
+     * @param index The index to return the [Schema.Field] for.
+     * @return [Schema.Field]
+     */
+    operator fun get(index: Int) = this.fields[index]
 
-    fun getField(index: Int) = this.fields[index]
-
-    fun getField(fieldName: String) = this.fields.firstOrNull { it.fieldName == fieldName }
+    /**
+     * Returns the field for the provided name.
+     *
+     * @param name The name of the [Schema.Field] to return.
+     * @return [Schema.Field] or null, if no such [Schema.Field] exists.
+     */
+    operator fun get(name: String) = this.fields.firstOrNull { it.fieldName == name }
 
     /**
      * Initializes this [Schema] using the provided database [Connection].

@@ -55,8 +55,8 @@ fun playground(server: ExecutionServer) {
     val enumerator = FileSystemEnumerator(Paths.get("/Users/rgasser/Downloads/dres/collection"), depth = 1)
     val decoder = ImageDecoder(enumerator)
     val segmenter = PassThroughSegmenter(decoder, schema.connection.getRetrievableWriter())
-    val extractor1 = schema.getField(0).getExtractor(segmenter)
-    val extractor2 = schema.getField(1).getExtractor(segmenter)
+    val extractor1 = schema[0].getExtractor(segmenter)
+    val extractor2 = schema[1].getExtractor(segmenter)
 
     server.extract(listOf(extractor1, extractor2))
 

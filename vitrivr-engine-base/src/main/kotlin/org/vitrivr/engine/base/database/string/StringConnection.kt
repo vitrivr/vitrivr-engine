@@ -19,6 +19,11 @@ class StringConnection(internal val provider: StringConnectionProvider, schemaNa
         TODO("Not yet implemented")
     }
 
+    /**
+     *
+     */
+    override fun description(): String = ""
+
     override fun close() {
         this.provider.targetStream.flush()
         this.provider.targetStream.close()

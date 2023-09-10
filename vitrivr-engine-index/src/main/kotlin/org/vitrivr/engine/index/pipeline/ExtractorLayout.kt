@@ -10,7 +10,7 @@ data class ExtractorLayout(val schema: Schema, val layout: List<List<ExtractorOp
         assert(flat.isNotEmpty()) {"Layout cannot be empty"}
         assert(flat.size == flat.toSet().size) {"FieldNames must be unique"}
         flat.forEach {
-            if (schema.getField(it) == null) {
+            if (schema[it] == null) {
                 throw AssertionError("FieldName '$it' not found")
             }
         }
