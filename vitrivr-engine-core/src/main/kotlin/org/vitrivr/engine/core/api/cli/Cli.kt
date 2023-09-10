@@ -132,7 +132,10 @@ class Cli {
      */
     inner class MainCommand : NoOpCliktCommand(name = "vitrivr", help = "The base command for all CLI commands.") {
         init {
-            subcommands(StopCommand())
+            subcommands(
+                SchemaCommand(),
+                StopCommand()
+            )
         }
     }
 

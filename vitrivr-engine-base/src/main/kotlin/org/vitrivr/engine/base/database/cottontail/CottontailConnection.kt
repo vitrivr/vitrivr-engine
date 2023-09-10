@@ -61,6 +61,13 @@ class CottontailConnection(provider: CottontailConnectionProvider, schemaName: S
     override fun getRetrievableReader(): org.vitrivr.engine.core.database.retrievable.RetrievableReader = RetrievableReader(this)
 
     /**
+     * Returns the human-readable description of this [CottontailConnection].
+     *
+     * @return Description
+     */
+    override fun description(): String = "cottontaildb://${this.host}:${this.port}"
+
+    /**
      * Closes this [CottontailConnection]
      */
     override fun close() {

@@ -85,4 +85,11 @@ sealed interface Connection: Closeable {
      * re-used or re-created every time the method is being called.
      */
     fun <D: Descriptor> getDescriptorReader(field: Schema.Field<*,D>): DescriptorReader<D>
+
+    /**
+     * Returns a human-readable descriptor of this [Connection].
+     *
+     * @return Human-readable description of this [Connection].
+     */
+    fun description(): String
 }
