@@ -71,10 +71,18 @@ abstract class AbstractSegmenter(override val input: Operator<Content>): Segment
     }
 
     /**
-     * Methods that implements segmentation.
+     * Method that implements segmentation.
      *
      * @param upstream The upstream [Flow] of [Content] that are being segmented.
      * @param downstream The [ProducerScope] to hand [IngestedRetrievable] to the downstream pipeline.
      */
     abstract suspend fun segment(upstream: Flow<Content>, downstream: ProducerScope<IngestedRetrievable>)
+
+    /**
+     * Method called to signify to the segmenter that the source is exhausted and no more content will be available.
+     * Can be used to emit final segments.
+     *
+     * @param downstream The [ProducerScope] to hand [IngestedRetrievable] to the downstream pipeline.
+     */
+    abstract suspend fun finish(downstream: ProducerScope<IngestedRetrievable>)
 }
