@@ -1,0 +1,41 @@
+package org.vitrivr.engine.core.model.database.retrievable
+
+import org.vitrivr.engine.core.model.content.Content
+
+/**
+ * A [Retrievable] that has [Content] elements attached to it. Typically used during ingesting and indexing.
+ *
+ * @author Ralph Gasser
+ * @version 1.0.0
+ */
+interface RetrievableWithContent : Retrievable {
+    /** List of [Content] elements that make-up this [Ingested]. */
+    val content: List<Content>
+
+    /**
+     * Returns the number of [Content] elements for this [RetrievableWithContent].
+     *
+     * @return Number of [Content] elements for this [RetrievableWithContent].
+     */
+    fun contentSize(): Int = this.content.size
+
+    /**
+     * Gets the content at the provided [index].
+     *
+     * @param index The index of the [Content] to return.
+     * @return [Content]
+     */
+    fun getContent(index: Int): Content = this.content[index]
+
+    /**
+     * A [Mutable] version of the [RetrievableWithContent].
+     */
+    interface Mutable : RetrievableWithContent {
+        /**
+         * Adds a [Content] to this [RetrievableWithContent].
+         *
+         * @param content The [Content] element to add.
+         */
+        fun addContent(content: Content)
+    }
+}

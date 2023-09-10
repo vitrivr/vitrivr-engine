@@ -4,7 +4,6 @@ import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
 import org.vitrivr.engine.core.api.rest.ErrorStatusException
 import org.vitrivr.engine.core.api.rest.handler.PostRestHandler
-import org.vitrivr.engine.core.model.database.retrievable.ScoredRetrievable
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.query.execution.RetrievalRuntime
 import org.vitrivr.engine.query.model.api.InformationNeedDescription

@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.vitrivr.engine.core.model.content.ImageContent
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.database.retrievable.ScoredRetrievable
+import org.vitrivr.engine.core.model.database.retrievable.Retrieved
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.operators.retrieve.Retriever
@@ -19,10 +19,10 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
  * @version 1.0.0
  */
 class AverageColorRetriever(override val field: Schema.Field<ImageContent,FloatVectorDescriptor>, val queryVector: FloatVectorDescriptor) : Retriever<ImageContent,FloatVectorDescriptor> {
-    override fun toFlow(scope: CoroutineScope): Flow<ScoredRetrievable> {
+    override fun toFlow(scope: CoroutineScope): Flow<Retrieved> {
         val reader = this.field.getReader()
         val query = ProximityQuery(this.queryVector) //FIXME type system confusion?
-        return flow{
+        return flow {
             reader.getAll(query).forEach { emit(it) }
         }
     }

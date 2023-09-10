@@ -13,7 +13,7 @@ import org.vitrivr.engine.core.database.retrievable.RetrievableInitializer
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.model.database.retrievable.Retrievable
 import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
-import org.vitrivr.engine.core.model.database.retrievable.ScoredRetrievable
+import org.vitrivr.engine.core.model.database.retrievable.Retrieved
 import java.util.*
 
 /**
@@ -45,7 +45,7 @@ internal class RetrievableReader(private val connection: CottontailConnection): 
         return this.connection.client.query(query).asSequence().map { tuple ->
             val retrievableId = UUID.fromString(tuple.asString(RETRIEVABLE_ID_COLUMN_NAME) ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'."))
             val type = tuple.asString(RETRIEVABLE_TYPE_COLUMN_NAME)
-            ScoredRetrievable.Default(retrievableId, type, false, emptySet(), emptySet(), 0.0f, emptyMap()) /* TODO: Use UUID type once supported. */
+            Retrieved.Default(retrievableId, type, false) /* TODO: Use UUID type once supported. */
         }
     }
 
@@ -59,7 +59,7 @@ internal class RetrievableReader(private val connection: CottontailConnection): 
         return this.connection.client.query(query).asSequence().map { tuple ->
             val retrievableId = UUID.fromString(tuple.asString(RETRIEVABLE_ID_COLUMN_NAME) ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'."))
             val type = tuple.asString(RETRIEVABLE_TYPE_COLUMN_NAME)
-            ScoredRetrievable.Default(retrievableId, type, false, emptySet(), emptySet(), 0.0f, emptyMap()) /* TODO: Use UUID type once supported. */
+            Retrieved.Default(retrievableId, type, false) /* TODO: Use UUID type once supported. */
         }
     }
 
