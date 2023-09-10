@@ -1,5 +1,6 @@
 package org.vitrivr.engine.index
 
+import org.vitrivr.engine.core.api.cli.Cli
 import org.vitrivr.engine.core.config.ConnectionConfig
 import org.vitrivr.engine.core.config.FieldConfig
 import org.vitrivr.engine.core.config.SchemaConfig
@@ -28,8 +29,9 @@ fun main(args: Array<String>) {
     /* The execution server used by vitrivr-engine index. */
     val server = ExecutionServer()
 
-    /* TODO. */
-    playground(server)
+    /* Start the CLI. */
+    val cli = Cli()
+    cli.start()
 }
 
 /**
