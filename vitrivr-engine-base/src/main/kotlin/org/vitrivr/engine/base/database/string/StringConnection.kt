@@ -6,8 +6,8 @@ import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.database.Persistable
 import org.vitrivr.engine.base.database.string.writer.StringRetrievableWriter
+import org.vitrivr.engine.core.database.retrievable.NoRetrievableInitializer
 
-import org.vitrivr.engine.index.database.util.initializer.NoRetrievableInitializer
 
 class StringConnection(internal val provider: StringConnectionProvider, schemaName: String, internal val stringify: (Persistable) -> String) : AbstractConnection(schemaName, provider) {
 

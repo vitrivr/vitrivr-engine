@@ -7,7 +7,7 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.base.database.string.writer.StringDescriptorWriter
-import org.vitrivr.engine.index.database.util.initializer.NoDescriptorInitializer
+import org.vitrivr.engine.core.database.descriptor.NoDescriptorInitializer
 
 class StringWriterProvider<D: Descriptor> : DescriptorProvider<D> {
 

@@ -3,11 +3,15 @@ package org.vitrivr.engine.query
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.internal.readJson
 import org.intellij.lang.annotations.Language
+import org.vitrivr.engine.core.api.cli.Cli
+import org.vitrivr.engine.core.api.rest.javalin.addHandlers
+import org.vitrivr.engine.core.api.rest.javalin.javalinDefaultSetup
 import org.vitrivr.engine.core.config.ConnectionConfig
 import org.vitrivr.engine.core.config.FieldConfig
 import org.vitrivr.engine.core.config.SchemaConfig
 import org.vitrivr.engine.core.config.VitrivrConfig
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
+import org.vitrivr.engine.query.api.handler.QueryPostHandler
 import org.vitrivr.engine.query.execution.RetrievalRuntime
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
 import java.nio.file.Paths
@@ -17,9 +21,34 @@ import kotlin.system.exitProcess
  * Entry point for vitrivr engine query.
  */
 fun main(args: Array<String>) {
+    /* Load system configuration. */
+    val config = VitrivrConfig.read(Paths.get(args.getOrElse(0) { VitrivrConfig.DEFAULT_SCHEMA_PATH })) ?: exitProcess(1)
 
-    informationNeed()
+    /* Open all schemas. */
+    for (schema in config.schemas) {
+        SchemaManager.open(schema)
+    }
 
+    /* Start retrieval runtime. */
+    val runtime = RetrievalRuntime()
+
+    /* Prepare Javalin server. */
+    val javalin = javalinDefaultSetup()
+
+    /* Add API endpoints. */
+    for (schema in SchemaManager.listSchemas()) {
+        javalin.addHandlers(QueryPostHandler(schema, runtime))
+    }
+
+    /* Start Javalin server. */
+    javalin.start()
+
+    /* Start the CLI. */
+    val cli = Cli()
+    cli.start() /* This method blocks. */
+
+    /* End Javalin. */
+    javalin.stop()
 }
 
 
