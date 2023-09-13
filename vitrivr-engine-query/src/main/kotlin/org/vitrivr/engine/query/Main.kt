@@ -83,7 +83,6 @@ fun informationNeed() {
     println(description)
 
     val schema = SchemaManager.open(schemaConfig)
-    schema.initialize()
 
     val runtime = RetrievalRuntime()
 

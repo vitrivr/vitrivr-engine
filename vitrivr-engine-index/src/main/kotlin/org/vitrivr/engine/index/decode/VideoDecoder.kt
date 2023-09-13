@@ -10,12 +10,11 @@ import kotlinx.coroutines.flow.filter
 import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.Frame
 import org.bytedeco.javacv.Java2DFrameConverter
+import org.vitrivr.engine.core.content.ContentFactory
 import org.vitrivr.engine.core.model.content.AudioContent
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.ImageContent
 import org.vitrivr.engine.core.model.content.SourcedContent
-import org.vitrivr.engine.core.model.content.impl.InMemoryAudioContent
-import org.vitrivr.engine.core.model.content.impl.InMemoryImageContent
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.source.MediaType
@@ -33,7 +32,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class VideoDecoder(override val input: Operator<Source>, private val video: Boolean = true, private val audio: Boolean = true) : Decoder {
+class VideoDecoder(override val input: Operator<Source>, private val contentFactory: ContentFactory, private val video: Boolean = true, private val audio: Boolean = true) : Decoder {
 
     /** The [Java2DFrameConverter] used by this [VideoDecoder] instance. */
     private val converter: Java2DFrameConverter by lazy { Java2DFrameConverter() }
@@ -82,7 +81,7 @@ class VideoDecoder(override val input: Operator<Source>, private val video: Bool
      * @param source The [ProducerScope]'s to send [VideoFrameContent] to.
      */
     private suspend fun emitImageContent(frame: Frame, source: Source, channel: ProducerScope<Content<*>>) {
-        val image = InMemoryImageContent(this.converter.convert(frame)) /* TODO: Obtain cached version through factory. */
+        val image = this.contentFactory.newImageContent(this.converter.convert(frame))
         val timestampNs: Long = frame.timestamp * 1000 // Convert microseconds to nanoseconds
         channel.send(VideoFrameContent(image, source, timestampNs))
     }
@@ -101,7 +100,7 @@ class VideoDecoder(override val input: Operator<Source>, private val video: Bool
                 else -> { ShortBuffer.allocate(0)/* TODO: Cover other cases. */ }
             }
             val timestampNs: Long = frame.timestamp * 1000 // Convert microseconds to nanoseconds
-            val audio = InMemoryAudioContent(c, frame.sampleRate, normalizedSamples) /* TODO: Obtain cached version through factory. */
+            val audio = contentFactory.newAudioContent(c, frame.sampleRate, normalizedSamples)
             channel.send(AudioFrameContent(audio, source, timestampNs))
         }
     }

@@ -18,7 +18,7 @@ class RetrievalRuntime {
     fun query(schema: Schema, informationNeed: InformationNeedDescription): List<Retrieved> {
 
         val operators = mutableMapOf<String, Operator<Retrieved>>()
-        val contentCache = mutableMapOf<String, Content>()
+        val contentCache = mutableMapOf<String, Content<*>>()
 
         informationNeed.operations.forEach { (operationName, operationDescription) ->
             when (operationDescription.type) {

@@ -4,11 +4,10 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
-import org.vitrivr.engine.core.model.content.AudioContent
+import org.vitrivr.engine.core.content.ContentFactory
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.ImageContent
 import org.vitrivr.engine.core.model.content.SourcedContent
-import org.vitrivr.engine.core.model.content.impl.InMemoryImageContent
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.source.MediaType
@@ -26,7 +25,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @author Luca Rossetto
  * @version 1.0.0
  */
-class ImageDecoder(override val input: Operator<Source>) : Decoder {
+class ImageDecoder(override val input: Operator<Source>, private val contentFactory: ContentFactory) : Decoder {
 
     /**
      * Converts this [ImageDecoder] to a [Flow] of [Content] elements.
@@ -40,7 +39,7 @@ class ImageDecoder(override val input: Operator<Source>) : Decoder {
         it.type == MediaType.IMAGE
     }.mapNotNull { source ->
         try {
-            val image = InMemoryImageContent(ImageIO.read(source.inputStream)) /* TODO: Derive using factory. */
+            val image = this.contentFactory.newImageContent(ImageIO.read(source.inputStream))
             ImageContentWithSource(image, source)
         } catch (e: IOException) {
             logger.error(e) { "Failed to decode image from $source due to an IO exception." }

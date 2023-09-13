@@ -10,7 +10,7 @@ import java.awt.image.BufferedImage
 sealed class InputData {
     abstract val type: InputType
 
-    abstract fun toContent() : Content
+    abstract fun toContent() : Content<*>
 
 }
 
@@ -28,7 +28,7 @@ data class TextInputData(val data: String) : InputData() {
 data class VectorInputData(val data: List<Float>) : InputData(){
     override val type = InputType.VECTOR
 
-    override fun toContent(): Content {
+    override fun toContent(): Content<*> {
         throw UnsupportedOperationException("Cannot derive content from VectorInputData")
     }
 
