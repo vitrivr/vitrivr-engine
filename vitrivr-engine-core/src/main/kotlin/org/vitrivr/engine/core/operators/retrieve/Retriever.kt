@@ -14,7 +14,7 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface Retriever<C : Content, D : Descriptor> : Operator.Nullary<Retrieved> {
+interface Retriever<C: Content<*>, D: Descriptor> : Operator.Nullary<Retrieved> {
     /** The [Schema.Field] queried by this [Retriever]. */
     val field: Schema.Field<C, D>
 }

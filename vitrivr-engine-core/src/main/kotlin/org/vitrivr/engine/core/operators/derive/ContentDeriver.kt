@@ -5,7 +5,7 @@ import org.vitrivr.engine.core.model.database.retrievable.Ingested
 
 typealias DerivateName = String
 
-interface ContentDeriver<out T : DerivedContent?> {
+interface ContentDeriver<out T : DerivedContent<*>?> {
 
     val derivateName: DerivateName
 

@@ -18,7 +18,7 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface Extractor<C : Content, D : Descriptor> : Operator.Unary<Ingested, Ingested> {
+interface Extractor<C : Content<*>, D : Descriptor> : Operator.Unary<Ingested, Ingested> {
     /** The [Schema.Field] populated by this [Extractor]. */
     val field: Schema.Field<C, D>
 

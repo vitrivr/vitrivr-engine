@@ -14,7 +14,7 @@ import org.vitrivr.engine.core.operators.ingest.AbstractSegmenter
  * @author Luca Rossetto
  * @version 1.0.0
  */
-class PassThroughSegmenter(input: Operator<Content>, private val retrievableWriter: RetrievableWriter?) : AbstractSegmenter(input) {
+class PassThroughSegmenter(input: Operator<Content<*>>, private val retrievableWriter: RetrievableWriter?) : AbstractSegmenter(input) {
 
     /**
      * Segments by creating a [Ingested] for every incoming [Content] element, attaching that [Content] element to the [Ingested].
@@ -22,7 +22,7 @@ class PassThroughSegmenter(input: Operator<Content>, private val retrievableWrit
      * @param upstream The upstream [Flow] of [Content] that is being segmented.
      * @param downstream The [ProducerScope] to hand [Ingested] to the downstream pipeline.
      */
-    override suspend fun segment(upstream: Flow<Content>, downstream: ProducerScope<Ingested>) = upstream.collect {
+    override suspend fun segment(upstream: Flow<Content<*>>, downstream: ProducerScope<Ingested>) = upstream.collect {
         val retrievable = Ingested.Default(transient = false, type = "segment", content = mutableListOf(it))
         this.retrievableWriter?.add(retrievable)
         downstream.send(retrievable)

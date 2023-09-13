@@ -9,7 +9,4 @@ import java.awt.image.BufferedImage
  * @author Luca Rossetto
  * @version 1.0.0
  */
-interface ImageContent: Content {
-    /** The [BufferedImage] associated with this [ImageContent]. */
-    val image: BufferedImage
-}
+interface ImageContent: Content<BufferedImage>

@@ -7,4 +7,11 @@ package org.vitrivr.engine.core.model.content
  * @author Ralph Gasser
  * @version 1.0.0
  */
-sealed interface Content
+sealed interface Content<T> {
+    /**
+     * Accesses the content held by  this [Content].
+     *
+     * @return [Content]
+     */
+    fun getContent(): T
+}

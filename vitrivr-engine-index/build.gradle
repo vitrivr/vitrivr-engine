@@ -2,6 +2,9 @@ dependencies {
     api project(':vitrivr-engine-core')
     api project(':vitrivr-engine-base')
 
+    /** */
+    implementation group: 'org.bytedeco', name: 'javacv-platform', version: '1.5.9'
+
     /** Clikt & JLine */
     implementation group: 'com.github.ajalt.clikt', name: 'clikt', version: version_clikt
     implementation group: 'org.jline', name: 'jline', version: version_jline
