@@ -11,5 +11,5 @@ import org.vitrivr.engine.core.operators.derive.DerivateName
  */
 interface DerivedContent<T> : Content<T> {
     /** The name of the derivative. */
-    val name: DerivateName
+    val deriverName: DerivateName
 }
