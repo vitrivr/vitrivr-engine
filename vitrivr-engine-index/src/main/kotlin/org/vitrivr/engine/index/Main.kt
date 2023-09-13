@@ -6,6 +6,7 @@ import org.vitrivr.engine.core.config.FieldConfig
 import org.vitrivr.engine.core.config.SchemaConfig
 import org.vitrivr.engine.core.config.VitrivrConfig
 import org.vitrivr.engine.core.config.VitrivrConfig.Companion.DEFAULT_SCHEMA_PATH
+import org.vitrivr.engine.core.content.impl.InMemoryContentFactory
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.index.decode.ImageDecoder
 import org.vitrivr.engine.index.enumerate.FileSystemEnumerator
@@ -53,7 +54,7 @@ fun playground(server: ExecutionServer) {
 
     /* Create pipeline and process it. */
     val enumerator = FileSystemEnumerator(Paths.get("/Users/rgasser/Downloads/dres/collection"), depth = 1)
-    val decoder = ImageDecoder(enumerator)
+    val decoder = ImageDecoder(enumerator, InMemoryContentFactory())
     val segmenter = PassThroughSegmenter(decoder, schema.connection.getRetrievableWriter())
     val extractor1 = schema[0].getExtractor(segmenter)
     val extractor2 = schema[1].getExtractor(segmenter)
