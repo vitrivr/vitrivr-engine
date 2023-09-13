@@ -42,6 +42,11 @@ interface Ingested : Retrievable {
         /** List of [Descriptor]s with this [Ingested]. */
         override val descriptors: List<Descriptor> = Collections.synchronizedList(LinkedList())
 
+        /** */
+        private val derivedContentCache: LoadingCache<DerivateName, DerivedContent> = Caffeine.newBuilder().build { name ->
+            ContentDerivers[name]?.derive(this)
+        }
+
         init {
             (this.partOf as MutableSet).addAll(partOf)
             (this.parts as MutableSet).addAll(parts)
@@ -67,11 +72,14 @@ interface Ingested : Retrievable {
             (this.descriptors as MutableList).add(descriptor)
         }
 
-        private val derivedContentCache: LoadingCache<DerivateName, DerivedContent> = Caffeine.newBuilder().build { name ->
-            ContentDerivers[name]?.derive(this)
-        }
+        /**
+         * Generates and returns a [Content] derivative from the [Content] contained in this [RetrievableWithContent].
+         *
+         * @param name The [DerivateName] to use for the  [Content] derivative.
+         * @return [DerivedContent] or null, if content could be derived.
+         */
+        override fun deriveContent(name: DerivateName): DerivedContent = this.derivedContentCache[name]
 
-        fun getDerivedContent(name: DerivateName): DerivedContent? = derivedContentCache[name]
         override fun toString(): String {
             return "IngestedRetrievable.Default(id=$id, transient=$transient, partOf=$partOf, parts=$parts, content=$content, descriptors=$descriptors)"
         }
