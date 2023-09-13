@@ -1,6 +1,8 @@
 package org.vitrivr.engine.core.model.database.retrievable
 
 import org.vitrivr.engine.core.model.content.Content
+import org.vitrivr.engine.core.model.content.DerivedContent
+import org.vitrivr.engine.core.operators.derive.DerivateName
 
 /**
  * A [Retrievable] that has [Content] elements attached to it. Typically used during ingesting and indexing.
@@ -26,6 +28,14 @@ interface RetrievableWithContent : Retrievable {
      * @return [Content]
      */
     fun getContent(index: Int): Content = this.content[index]
+
+    /**
+     * Generates and returns a [Content] derivative from the [Content] contained in this [RetrievableWithContent].
+     *
+     * @param name The [DerivateName] to use for the  [Content] derivative.
+     * @return [DerivedContent] or null, if content could be derived.
+     */
+    fun deriveContent(name: DerivateName): DerivedContent?
 
     /**
      * A [Mutable] version of the [RetrievableWithContent].
