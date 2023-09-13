@@ -19,7 +19,7 @@ import kotlin.reflect.KClass
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface Analyser<C: Content, D: Descriptor> {
+interface Analyser<C: Content<*>, D: Descriptor> {
     /**
      * The type name of this [Analyser] instance. Is connected to the type of description derived by this [Analyser] (implementation).
      *

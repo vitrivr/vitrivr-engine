@@ -16,7 +16,7 @@ import java.util.concurrent.locks.StampedLock
  * Discards all non [SourcedContent.Temporal] content.
  */
 class FixedDurationSegmenter(
-    input: Operator<Content>,
+    input: Operator<Content<*>>,
     private val retrievableWriter: RetrievableWriter?,
     /** The target duration of the segments to be created */
     length: Duration,
@@ -28,11 +28,11 @@ class FixedDurationSegmenter(
     private val lock = StampedLock()
     private val lengthNanos = length.toNanos()
     private val lookAheadNanos = lookAheadTime.toNanos()
-    private val cache = ArrayList<SourcedContent.Temporal>()
+    private val cache = ArrayList<SourcedContent.Temporal<*>>()
     private var lastStartTime = 0L
 
 
-    override suspend fun segment(upstream: Flow<Content>, downstream: ProducerScope<Ingested>) {
+    override suspend fun segment(upstream: Flow<Content<*>>, downstream: ProducerScope<Ingested>) {
 
         upstream.collect { content ->
             val stamp = this.lock.writeLock()
@@ -59,7 +59,7 @@ class FixedDurationSegmenter(
 
     private suspend fun sendFromCache(downstream: ProducerScope<Ingested>) {
         val nextStartTime = lastStartTime + lengthNanos
-        val nextSegmentContent = mutableListOf<Content>()
+        val nextSegmentContent = mutableListOf<Content<*>>()
         cache.removeIf {
             if (it.timepointNs < nextStartTime) {
                 nextSegmentContent.add(it)

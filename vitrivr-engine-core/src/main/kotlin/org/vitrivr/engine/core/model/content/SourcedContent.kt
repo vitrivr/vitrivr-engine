@@ -8,7 +8,7 @@ import org.vitrivr.engine.core.source.Source
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface SourcedContent: Content {
+interface SourcedContent<T>: Content<T> {
 
     /** The [Source] the [Content] is */
     val source: Source
@@ -16,7 +16,7 @@ interface SourcedContent: Content {
     /**
      * A [SourcedContent] that has a temporal location within the [Source].
      */
-    interface Temporal: SourcedContent {
+    interface Temporal<T>: SourcedContent<T> {
         /** The timepoint of the temporal location in nanoseconds. */
         val timepointNs: Long
     }
@@ -24,7 +24,7 @@ interface SourcedContent: Content {
     /**
      * A [SourcedContent] that has a spatial location within the [Source].
      */
-    sealed interface Spatial: SourcedContent {
+    sealed interface Spatial<T>: SourcedContent<T> {
 
         /**
          * A [SourcedContent.Spatial] that is tied to a particular point.

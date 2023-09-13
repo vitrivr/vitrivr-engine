@@ -12,7 +12,7 @@ import org.vitrivr.engine.core.operators.derive.DerivateName
  */
 interface RetrievableWithContent : Retrievable {
     /** List of [Content] elements that make-up this [Ingested]. */
-    val content: List<Content>
+    val content: List<Content<*>>
 
     /**
      * Returns the number of [Content] elements for this [RetrievableWithContent].
@@ -27,7 +27,7 @@ interface RetrievableWithContent : Retrievable {
      * @param index The index of the [Content] to return.
      * @return [Content]
      */
-    fun getContent(index: Int): Content = this.content[index]
+    fun getContent(index: Int): Content<*> = this.content[index]
 
     /**
      * Generates and returns a [Content] derivative from the [Content] contained in this [RetrievableWithContent].
@@ -35,7 +35,7 @@ interface RetrievableWithContent : Retrievable {
      * @param name The [DerivateName] to use for the  [Content] derivative.
      * @return [DerivedContent] or null, if content could be derived.
      */
-    fun deriveContent(name: DerivateName): DerivedContent?
+    fun deriveContent(name: DerivateName): DerivedContent<*>?
 
     /**
      * A [Mutable] version of the [RetrievableWithContent].
@@ -46,6 +46,6 @@ interface RetrievableWithContent : Retrievable {
          *
          * @param content The [Content] element to add.
          */
-        fun addContent(content: Content)
+        fun addContent(content: Content<*>)
     }
 }

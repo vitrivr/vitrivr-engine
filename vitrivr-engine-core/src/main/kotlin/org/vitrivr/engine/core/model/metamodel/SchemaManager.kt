@@ -62,7 +62,7 @@ object SchemaManager {
         val connection = connectionProvider.openConnection(config.name, config.connection.parameters)
         val schema = Schema(config.name, connection)
         config.fields.map {
-            schema.addField(it.name, this.getAnalyserForName(it.analyser) as Analyser<Content, Descriptor>, it.parameters)
+            schema.addField(it.name, this.getAnalyserForName(it.analyser) as Analyser<Content<*>, Descriptor>, it.parameters)
         }
 
         /* Cache and return connection. */

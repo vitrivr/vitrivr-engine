@@ -8,7 +8,6 @@ package org.vitrivr.engine.core.model.content
  * @author Luca Rossetto
  * @version 1.0.0
  */
-interface TextContent: Content {
-    /** The text encoded in this [TextContent]. */
-    val text: String
+interface TextContent: Content<String> {
+
 }

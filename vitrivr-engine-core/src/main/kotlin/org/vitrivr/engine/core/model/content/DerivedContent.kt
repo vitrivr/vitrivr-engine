@@ -9,10 +9,7 @@ import org.vitrivr.engine.core.operators.derive.DerivateName
  * @author Luca Rossetto
  * @version 1.0.0
  */
-interface DerivedContent : Content {
-    /** The name of the derivate. */
+interface DerivedContent<T> : Content<T> {
+    /** The name of the derivative. */
     val name: DerivateName
-
-    /** The [Content] element this [DerivedContent] was derived from. */
-    val original: Content
 }

@@ -26,7 +26,7 @@ interface Ingested : Retrievable {
         override val transient: Boolean,
         partOf: Set<Retrievable> = emptySet(),
         parts: Set<Retrievable> = emptySet(),
-        content: List<Content> = emptyList(),
+        content: List<Content<*>> = emptyList(),
         descriptors: List<Descriptor> = emptyList()
     ) : Ingested, RetrievableWithDescriptor.Mutable, RetrievableWithContent.Mutable, RetrievableWithRelationship {
 
@@ -37,13 +37,13 @@ interface Ingested : Retrievable {
         override val parts: Set<Retrievable> = Collections.synchronizedSet(HashSet())
 
         /** List of [Content] elements associated with this [Ingested]. */
-        override val content: List<Content> = Collections.synchronizedList(LinkedList())
+        override val content: List<Content<*>> = Collections.synchronizedList(LinkedList())
 
         /** List of [Descriptor]s with this [Ingested]. */
         override val descriptors: List<Descriptor> = Collections.synchronizedList(LinkedList())
 
         /** */
-        private val derivedContentCache: LoadingCache<DerivateName, DerivedContent> = Caffeine.newBuilder().build { name ->
+        private val derivedContentCache: LoadingCache<DerivateName, DerivedContent<*>> = Caffeine.newBuilder().build { name ->
             ContentDerivers[name]?.derive(this)
         }
 
@@ -59,7 +59,7 @@ interface Ingested : Retrievable {
          *
          * @param content The [Content] element to add.
          */
-        override fun addContent(content: Content) {
+        override fun addContent(content: Content<*>) {
             (this.content as MutableList).add(content)
         }
 
@@ -78,7 +78,7 @@ interface Ingested : Retrievable {
          * @param name The [DerivateName] to use for the  [Content] derivative.
          * @return [DerivedContent] or null, if content could be derived.
          */
-        override fun deriveContent(name: DerivateName): DerivedContent = this.derivedContentCache[name]
+        override fun deriveContent(name: DerivateName): DerivedContent<*> = this.derivedContentCache[name]
 
         override fun toString(): String {
             return "IngestedRetrievable.Default(id=$id, transient=$transient, partOf=$partOf, parts=$parts, content=$content, descriptors=$descriptors)"

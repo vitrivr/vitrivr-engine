@@ -64,7 +64,7 @@ class AverageColor: Analyser<ImageContent,FloatVectorDescriptor> {
      */
     override fun analyse(content: Collection<ImageContent>): DescriptorList<FloatVectorDescriptor> = content.map {
         val color = MutableRGBFloatColorContainer()
-        val rgb =  it.image.getRGBArray()
+        val rgb =  it.getContent().getRGBArray()
         rgb.forEach { c -> color += RGBByteColorContainer.fromRGB(c) }
 
         /* Generate descriptor. */

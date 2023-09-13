@@ -13,4 +13,4 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface Transformer: Operator.Unary<Content,Content>
+interface Transformer: Operator.Unary<Content<*>,Content<*>>

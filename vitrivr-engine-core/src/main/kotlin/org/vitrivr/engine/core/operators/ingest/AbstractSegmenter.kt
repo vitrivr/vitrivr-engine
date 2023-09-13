@@ -20,7 +20,7 @@ import java.util.concurrent.locks.StampedLock
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractSegmenter(override val input: Operator<Content>): Segmenter {
+abstract class AbstractSegmenter(override val input: Operator<Content<*>>): Segmenter {
 
     /** The [SharedFlow] returned by this [AbstractSegmenter]'s [toFlow] method. Is created lazily. */
     private var sharedFlow: SharedFlow<Ingested>? = null
@@ -66,7 +66,7 @@ abstract class AbstractSegmenter(override val input: Operator<Content>): Segment
      * @param upstream The upstream [Flow] of [Content] that are being segmented.
      * @param downstream The [ProducerScope] to hand [Ingested] to the downstream pipeline.
      */
-    abstract suspend fun segment(upstream: Flow<Content>, downstream: ProducerScope<Ingested>)
+    abstract suspend fun segment(upstream: Flow<Content<*>>, downstream: ProducerScope<Ingested>)
 
     /**
      * Method called to signify to the segmenter that the source is exhausted and no more content will be available.

@@ -19,4 +19,4 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface Segmenter : Operator.Unary<Content, Ingested>, BroadcastingOperator<Ingested>
+interface Segmenter : Operator.Unary<Content<*>, Ingested>, BroadcastingOperator<Ingested>

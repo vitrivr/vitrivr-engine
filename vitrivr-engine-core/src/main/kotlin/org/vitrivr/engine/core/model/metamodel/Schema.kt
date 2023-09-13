@@ -25,14 +25,14 @@ typealias FieldName = String
 class Schema(val name: String = "vitrivr", val connection: Connection): Closeable {
 
     /** The [List] of [Field]s contained in this [Schema]. */
-    private val fields: MutableList<Schema.Field<Content,Descriptor>> = mutableListOf()
+    private val fields: MutableList<Schema.Field<Content<*>,Descriptor>> = mutableListOf()
 
     /**
      * Adds a new [Field] to this [Schema].
      *
      * @param fieldName The name of the new [Field]. Must be unique.
      */
-    fun addField(fieldName: String, analyser: Analyser<Content,Descriptor>, parameters: Map<String,String> = emptyMap()) {
+    fun addField(fieldName: String, analyser: Analyser<Content<*>,Descriptor>, parameters: Map<String,String> = emptyMap()) {
         this.fields.add(Field(fieldName, analyser, parameters))
     }
 
@@ -41,7 +41,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
      *
      * @return Unmodifiable list of [Schema.Field].
      */
-    fun fields(): List<Schema.Field<Content,Descriptor>> = Collections.unmodifiableList(this.fields)
+    fun fields(): List<Schema.Field<Content<*>,Descriptor>> = Collections.unmodifiableList(this.fields)
 
     /**
      * Returns the field at the provided [index].
@@ -69,7 +69,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
      *
      * A [Field] always has a unique name and is backed by an existing [Analyser].
      */
-    inner class Field<C: Content, D: Descriptor>(val fieldName: FieldName, val analyser: Analyser<C,D>, val parameters: Map<String,String> = emptyMap()) {
+    inner class Field<C: Content<*>, D: Descriptor>(val fieldName: FieldName, val analyser: Analyser<C,D>, val parameters: Map<String,String> = emptyMap()) {
 
         /** Pointer to the [Schema] this [Field] belongs to.*/
         val schema: Schema
