@@ -8,7 +8,6 @@ import org.vitrivr.engine.core.model.content.impl.DerivedImageContent
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithContent
 import org.vitrivr.engine.core.operators.derive.ContentDeriver
-import org.vitrivr.engine.core.operators.derive.ContentDerivers
 import org.vitrivr.engine.core.operators.derive.DerivateName
 import org.vitrivr.engine.core.util.extension.getRGBArray
 import org.vitrivr.engine.core.util.extension.setRGBArray
@@ -21,10 +20,6 @@ class AverageImageContentDeriver : ContentDeriver<DerivedImageContent?> {
     }
 
     override val derivateName: DerivateName = AverageImageContentDeriver.derivateName
-
-    init {
-        ContentDerivers.register(this)
-    }
 
     override fun derive(retrievable: Ingested, contentFactory: ContentFactory): DerivedImageContent? {
 
