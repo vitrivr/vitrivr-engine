@@ -23,27 +23,45 @@ interface SourcedContent: ContentDecorator {
     }
 
     /**
-     * A [SourcedContent] that has a spatial location within the [Source].
+     * A [SourcedContent] that has a spatial (point) location within the [Source].
      */
-    sealed interface Point2D: SourcedContent {
-        /** A position in X direction within the [Source]. */
-        val posX: Int
+    interface Point2D: SourcedContent {
+        /** Position in X direction within the [Source]. */
+        val x: Int
 
-        /** A position in Y direction within the [Source]. */
-        val posY: Int
+        /** Position in Y direction within the [Source]. */
+        val y: Int
     }
 
     /**
-     * A [SourcedContent] that has a spatial location within the [Source].
+     * A [SourcedContent] that has a spatial (area) location within the [Source].
      */
-    sealed interface Point3D: SourcedContent {
-        /** A position in X direction within the [Source]. */
-        val posX: Int
+    interface Rectangle2D: SourcedContent {
+        /** Position of the top-left point in X direction within the [Source]. */
+        val leftX: Int
 
-        /** A position in Y direction within the [Source]. */
-        val posY: Int
+        /** Position of the top-left point in Y  direction within the [Source]. */
+        val leftY: Int
 
-        /** A position in Z direction within the [Source].*/
-        val posZ: Int
+        /** Width of the rectangle in pixels [Source]. */
+        val width: Int
+
+        /** Height of the rectangle in pixels [Source]. */
+        val height: Int
+    }
+
+    /**
+     * A [SourcedContent] that has a spatial location within the [Source]
+     * (e.g., for 3D meshes).
+     */
+    interface Point3D: SourcedContent {
+        /** Center position in X direction within the [Source]. */
+        val centerX: Int
+
+        /** Center position in Y direction within the [Source]. */
+        val centerY: Int
+
+        /** Center position in Z direction within the [Source].*/
+        val centerZ: Int
     }
 }
