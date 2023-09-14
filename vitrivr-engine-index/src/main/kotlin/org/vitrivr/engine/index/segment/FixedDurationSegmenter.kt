@@ -8,6 +8,7 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.AbstractSegmenter
+import org.vitrivr.engine.core.source.Source
 import java.time.Duration
 import java.util.concurrent.locks.StampedLock
 
@@ -29,17 +30,22 @@ class FixedDurationSegmenter(
     private val lengthNanos = length.toNanos()
     private val lookAheadNanos = lookAheadTime.toNanos()
     private val cache = ArrayList<ContentElement<*>>()
-    private var lastStartTime = 0L
+    private var lastStartTime: Long = 0
+    private var lastSource: Source? = null
 
 
     override suspend fun segment(upstream: Flow<ContentElement<*>>, downstream: ProducerScope<Ingested>) {
 
         upstream.collect { content ->
             val stamp = this.lock.writeLock()
-            val nextStartTime = lastStartTime + lengthNanos
-            val cutOffTime = nextStartTime + lookAheadNanos
             try {
                 if (content is SourcedContent.Temporal) {
+                    if (content.source != lastSource) {
+                        finish(downstream)
+                        lastSource = content.source
+                        lastStartTime = 0
+                    }
+                    val cutOffTime = lastStartTime + lengthNanos + lookAheadNanos
                     cache.add(content)
                     if (content.timepointNs >= cutOffTime) {
                         sendFromCache(downstream)
