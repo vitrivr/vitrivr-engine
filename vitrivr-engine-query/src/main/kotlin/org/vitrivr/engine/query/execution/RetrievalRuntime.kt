@@ -3,6 +3,7 @@ package org.vitrivr.engine.query.execution
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.vitrivr.engine.core.model.content.Content
+import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.database.retrievable.Retrieved
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -18,7 +19,7 @@ class RetrievalRuntime {
     fun query(schema: Schema, informationNeed: InformationNeedDescription): List<Retrieved> {
 
         val operators = mutableMapOf<String, Operator<Retrieved>>()
-        val contentCache = mutableMapOf<String, Content<*>>()
+        val contentCache = mutableMapOf<String, ContentElement<*>>()
 
         informationNeed.operations.forEach { (operationName, operationDescription) ->
             when (operationDescription.type) {
