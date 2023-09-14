@@ -3,8 +3,8 @@ package org.vitrivr.engine.index.segment
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
-import org.vitrivr.engine.core.model.content.Content
-import org.vitrivr.engine.core.model.content.SourcedContent
+import org.vitrivr.engine.core.model.content.decorators.SourcedContent
+import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.AbstractSegmenter
@@ -16,7 +16,7 @@ import java.util.concurrent.locks.StampedLock
  * Discards all non [SourcedContent.Temporal] content.
  */
 class FixedDurationSegmenter(
-    input: Operator<Content<*>>,
+    input: Operator<ContentElement<*>>,
     private val retrievableWriter: RetrievableWriter?,
     /** The target duration of the segments to be created */
     length: Duration,
@@ -28,11 +28,11 @@ class FixedDurationSegmenter(
     private val lock = StampedLock()
     private val lengthNanos = length.toNanos()
     private val lookAheadNanos = lookAheadTime.toNanos()
-    private val cache = ArrayList<SourcedContent.Temporal<*>>()
+    private val cache = ArrayList<ContentElement<*>>()
     private var lastStartTime = 0L
 
 
-    override suspend fun segment(upstream: Flow<Content<*>>, downstream: ProducerScope<Ingested>) {
+    override suspend fun segment(upstream: Flow<ContentElement<*>>, downstream: ProducerScope<Ingested>) {
 
         upstream.collect { content ->
             val stamp = this.lock.writeLock()
@@ -59,8 +59,9 @@ class FixedDurationSegmenter(
 
     private suspend fun sendFromCache(downstream: ProducerScope<Ingested>) {
         val nextStartTime = lastStartTime + lengthNanos
-        val nextSegmentContent = mutableListOf<Content<*>>()
+        val nextSegmentContent = mutableListOf<ContentElement<*>>()
         cache.removeIf {
+            require(it is SourcedContent.Temporal) { "Cache contains non.temporal content. This is a programmer's error!" }
             if (it.timepointNs < nextStartTime) {
                 nextSegmentContent.add(it)
                 true

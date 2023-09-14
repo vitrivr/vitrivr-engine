@@ -2,15 +2,16 @@ package org.vitrivr.engine.query.model.api.input
 
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.content.Content
-import org.vitrivr.engine.core.model.content.ImageContent
-import org.vitrivr.engine.core.model.content.TextContent
+import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.content.element.ImageContent
+import org.vitrivr.engine.core.model.content.element.TextContent
 import java.awt.image.BufferedImage
 
 @Serializable(with = InputDataSerializer::class)
 sealed class InputData {
     abstract val type: InputType
 
-    abstract fun toContent() : Content<*>
+    abstract fun toContent() : ContentElement<*>
 
 }
 
@@ -28,7 +29,7 @@ data class TextInputData(val data: String) : InputData() {
 data class VectorInputData(val data: List<Float>) : InputData(){
     override val type = InputType.VECTOR
 
-    override fun toContent(): Content<*> {
+    override fun toContent(): ContentElement<*> {
         throw UnsupportedOperationException("Cannot derive content from VectorInputData")
     }
 

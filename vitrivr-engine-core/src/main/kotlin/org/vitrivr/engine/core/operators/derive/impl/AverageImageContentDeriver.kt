@@ -3,7 +3,7 @@ package org.vitrivr.engine.core.operators.derive.impl
 import org.vitrivr.engine.core.content.ContentFactory
 import org.vitrivr.engine.core.model.color.MutableRGBFloatColorContainer
 import org.vitrivr.engine.core.model.color.RGBByteColorContainer
-import org.vitrivr.engine.core.model.content.ImageContent
+import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.impl.DerivedImageContent
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithContent

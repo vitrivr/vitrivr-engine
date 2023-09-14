@@ -1,5 +1,6 @@
-package org.vitrivr.engine.core.model.content
+package org.vitrivr.engine.core.model.content.decorators
 
+import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.operators.derive.DerivateName
 
 
@@ -9,7 +10,7 @@ import org.vitrivr.engine.core.operators.derive.DerivateName
  * @author Luca Rossetto
  * @version 1.0.0
  */
-interface DerivedContent<T> : Content<T> {
+interface DerivedContent : ContentDecorator {
     /** The name of the derivative. */
     val deriverName: DerivateName
 }

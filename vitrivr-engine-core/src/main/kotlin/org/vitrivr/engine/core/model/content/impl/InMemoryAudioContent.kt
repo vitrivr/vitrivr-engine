@@ -1,6 +1,6 @@
 package org.vitrivr.engine.core.model.content.impl
 
-import org.vitrivr.engine.core.model.content.AudioContent
+import org.vitrivr.engine.core.model.content.element.AudioContent
 import java.nio.ShortBuffer
 
 /**
@@ -12,6 +12,7 @@ import java.nio.ShortBuffer
  * @version 1.0.0
  */
 @JvmRecord
-internal data class InMemoryAudioContent(override val channel: Int, override val samplingRate: Int, private val audio: ShortBuffer): AudioContent {
+internal data class InMemoryAudioContent(override val channel: Int, override val samplingRate: Int, private val audio: ShortBuffer):
+    AudioContent {
     override fun getContent(): ShortBuffer = this.audio
 }

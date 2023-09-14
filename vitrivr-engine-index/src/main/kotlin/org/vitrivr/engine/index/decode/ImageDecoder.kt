@@ -6,13 +6,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 import org.vitrivr.engine.core.content.ContentFactory
 import org.vitrivr.engine.core.model.content.Content
-import org.vitrivr.engine.core.model.content.ImageContent
-import org.vitrivr.engine.core.model.content.SourcedContent
+import org.vitrivr.engine.core.model.content.element.ImageContent
+import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Source
-import java.awt.image.BufferedImage
 import java.io.IOException
 import javax.imageio.ImageIO
 
@@ -53,5 +52,5 @@ class ImageDecoder(override val input: Operator<Source>, private val contentFact
      * @see ImageContent
      * @see SourcedContent.Temporal
      */
-    class ImageContentWithSource(image: ImageContent, override val source: Source): ImageContent by image, SourcedContent<BufferedImage>
+    class ImageContentWithSource(image: ImageContent, override val source: Source): ImageContent by image, SourcedContent
 }
