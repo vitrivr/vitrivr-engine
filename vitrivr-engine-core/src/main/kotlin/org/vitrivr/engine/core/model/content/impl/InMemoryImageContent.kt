@@ -1,6 +1,6 @@
 package org.vitrivr.engine.core.model.content.impl
 
-import org.vitrivr.engine.core.model.content.ImageContent
+import org.vitrivr.engine.core.model.content.element.ImageContent
 import java.awt.image.BufferedImage
 
 /**

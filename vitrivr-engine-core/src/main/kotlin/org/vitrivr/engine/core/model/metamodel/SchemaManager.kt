@@ -3,7 +3,7 @@ package org.vitrivr.engine.core.model.metamodel
 import org.vitrivr.engine.core.config.SchemaConfig
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
-import org.vitrivr.engine.core.model.content.Content
+import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import java.util.ServiceLoader
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -62,7 +62,7 @@ object SchemaManager {
         val connection = connectionProvider.openConnection(config.name, config.connection.parameters)
         val schema = Schema(config.name, connection)
         config.fields.map {
-            schema.addField(it.name, this.getAnalyserForName(it.analyser) as Analyser<Content<*>, Descriptor>, it.parameters)
+            schema.addField(it.name, this.getAnalyserForName(it.analyser) as Analyser<ContentElement<*>, Descriptor>, it.parameters)
         }
 
         /* Cache and return connection. */

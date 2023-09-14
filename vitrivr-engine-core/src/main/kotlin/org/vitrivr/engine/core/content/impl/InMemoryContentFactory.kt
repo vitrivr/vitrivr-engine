@@ -1,9 +1,9 @@
 package org.vitrivr.engine.core.content.impl
 
 import org.vitrivr.engine.core.content.ContentFactory
-import org.vitrivr.engine.core.model.content.AudioContent
-import org.vitrivr.engine.core.model.content.ImageContent
-import org.vitrivr.engine.core.model.content.TextContent
+import org.vitrivr.engine.core.model.content.element.AudioContent
+import org.vitrivr.engine.core.model.content.element.ImageContent
+import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.content.impl.InMemoryAudioContent
 import org.vitrivr.engine.core.model.content.impl.InMemoryImageContent
 import org.vitrivr.engine.core.model.content.impl.InMemoryTextContent

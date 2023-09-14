@@ -2,8 +2,10 @@ package org.vitrivr.engine.core.model.database.retrievable
 
 import org.vitrivr.engine.core.content.ContentFactory
 import org.vitrivr.engine.core.model.content.Content
-import org.vitrivr.engine.core.model.content.DerivedContent
+import org.vitrivr.engine.core.model.content.decorators.DerivedContent
+import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
+import org.vitrivr.engine.core.operators.derive.ContentDeriver
 import org.vitrivr.engine.core.operators.derive.ContentDerivers
 import org.vitrivr.engine.core.operators.derive.DerivateName
 import java.util.*
@@ -26,7 +28,7 @@ interface Ingested : Retrievable {
         override val transient: Boolean,
         partOf: Set<Retrievable> = emptySet(),
         parts: Set<Retrievable> = emptySet(),
-        content: List<Content<*>> = emptyList(),
+        content: List<ContentElement<*>> = emptyList(),
         descriptors: List<Descriptor> = emptyList()
     ) : Ingested, RetrievableWithDescriptor.Mutable, RetrievableWithContent.Mutable, RetrievableWithRelationship {
 
@@ -37,7 +39,7 @@ interface Ingested : Retrievable {
         override val parts: Set<Retrievable> = Collections.synchronizedSet(HashSet())
 
         /** List of [Content] elements associated with this [Ingested]. */
-        override val content: List<Content<*>> = Collections.synchronizedList(ArrayList())
+        override val content: List<ContentElement<*>> = Collections.synchronizedList(ArrayList())
 
         /** List of [Descriptor]s with this [Ingested]. */
         override val descriptors: List<Descriptor> = Collections.synchronizedList(ArrayList())
@@ -54,7 +56,7 @@ interface Ingested : Retrievable {
          *
          * @param content The [Content] element to add.
          */
-        override fun addContent(content: Content<*>) {
+        override fun addContent(content: ContentElement<*>) {
             if (this.content.contains(content)) {
                 return
             }
@@ -79,19 +81,19 @@ interface Ingested : Retrievable {
          * If a [DerivedContent] by this deriver already exists in the list of content, it is returned.
          * If a new [DerivedContent] is successfully generated, it is added to the content list.
          */
-        override fun deriveContent(name: DerivateName, contentFactory: ContentFactory): DerivedContent<*>? {
+        override fun deriveContent(name: DerivateName, contentFactory: ContentFactory): DerivedContent? {
 
-            val deriver = ContentDerivers[name] ?: return null
+            val deriver: ContentDeriver<*> = ContentDerivers[name] ?: return null
 
-            val existing = this.content.find { it is DerivedContent<*> && it.deriverName == deriver.derivateName }
+            val existing = this.content.find { it is DerivedContent && it.deriverName == deriver.derivateName }
 
             if (existing != null) {
-                return existing as DerivedContent<*>
+                return existing as DerivedContent
             }
 
             val derived = deriver.derive(this, contentFactory)
 
-            if (derived != null) {
+            if (derived != null && derived is ContentElement<*>) {
                 addContent(derived)
             }
 
