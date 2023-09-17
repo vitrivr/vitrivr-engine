@@ -1,7 +1,6 @@
 package org.vitrivr.engine.query
 
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.internal.readJson
 import org.intellij.lang.annotations.Language
 import org.vitrivr.engine.core.api.cli.Cli
 import org.vitrivr.engine.core.api.rest.javalin.addHandlers
@@ -37,7 +36,7 @@ fun main(args: Array<String>) {
 
     /* Add API endpoints. */
     for (schema in SchemaManager.listSchemas()) {
-        javalin.addHandlers(QueryPostHandler(schema, runtime))
+        javalin.addHandlers(QueryPostHandler(runtime))
     }
 
     /* Start Javalin server. */
