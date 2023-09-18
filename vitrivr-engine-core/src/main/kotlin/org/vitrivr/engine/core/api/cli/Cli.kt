@@ -67,7 +67,7 @@ class Cli {
                 System.err.println("Could not read from terminal.")
                 break
             } catch (e: UserInterruptException) {
-                System.err.println("Vitrivr engine was interrupted by the user (Ctrl-C).")
+                System.err.println("vitrivr engine was interrupted by the user (Ctrl-C).")
                 break
             }
 
