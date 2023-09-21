@@ -14,10 +14,10 @@ import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
  * @version 1.0.0
  */
 @JvmRecord
-data class BooleanQuery<T>(
+data class BooleanQuery<T : ScalarDescriptor<*>>(
     /** The [ScalarDescriptor] being used; specifies both the query field and the comparison value. */
-    override val descriptor: ScalarDescriptor<T>,
+    override val descriptor: T,
 
     /** The [ComparisonOperator] to employ. */
     val comparison: ComparisonOperator = ComparisonOperator.EQ
-): Query<ScalarDescriptor<T>>
+) : Query<T>
