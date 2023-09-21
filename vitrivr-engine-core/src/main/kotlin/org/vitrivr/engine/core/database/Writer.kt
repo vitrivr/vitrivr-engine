@@ -56,8 +56,21 @@ interface Writer<in T : Persistable> {
      * - If [Persistable] with given [UUID] does not exist, delete fails and false is returned
      * - Any violated constraints lead to a failure of the update operation.
      *
-     * @param item [Persistable] of type [T] to update.
+     * @param item [Persistable] of type [T] to delete.
      * @return True on success, false otherwise.
      */
     fun delete(item: T): Boolean
+
+    /**
+     * Deletes (and typically persists) a list of pre-existing [Persistable] of type [T] through this [Writer].
+     *
+     * The following semantic is expected:
+     * - If [Persistable] with given [UUID] exists, delete is executed and true is returned.
+     * - If [Persistable] with given [UUID] does not exist, delete fails and false is returned
+     * - Any violated constraints lead to a failure of the update operation.
+     *
+     * @param items  [Iterable] of [Persistable] of type [T] to delete.
+     * @return True on success, false otherwise.
+     */
+    fun deleteAll(items: Iterable<T>): Boolean
 }

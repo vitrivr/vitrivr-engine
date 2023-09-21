@@ -6,10 +6,10 @@ import org.vitrivr.cottontail.core.tuple.Tuple
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.DESCRIPTOR_ID_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.RETRIEVABLE_ID_COLUMN_NAME
+import org.vitrivr.engine.base.database.cottontail.descriptors.AbstractDescriptorReader
 import org.vitrivr.engine.base.database.cottontail.descriptors.DESCRIPTOR_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.descriptors.DISTANCE_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.descriptors.toValue
-import org.vitrivr.engine.base.database.cottontail.reader.AbstractDescriptorReader
 import org.vitrivr.engine.core.model.database.descriptor.vector.*
 import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithScore
 import org.vitrivr.engine.core.model.database.retrievable.Retrieved

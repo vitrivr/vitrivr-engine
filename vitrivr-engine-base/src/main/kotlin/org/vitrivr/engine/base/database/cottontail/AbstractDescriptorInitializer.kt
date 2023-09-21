@@ -1,10 +1,9 @@
-package org.vitrivr.engine.base.database.cottontail.initializer
+package org.vitrivr.engine.base.database.cottontail
 
 import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.ddl.ListEntities
 import org.vitrivr.cottontail.client.language.ddl.TruncateEntity
 import org.vitrivr.cottontail.core.database.Name
-import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.core.database.descriptor.DescriptorInitializer
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
