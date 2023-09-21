@@ -3,10 +3,10 @@ package org.vitrivr.engine.base.database.cottontail
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import org.vitrivr.cottontail.client.SimpleClient
-import org.vitrivr.engine.base.database.cottontail.initializer.RetrievableInitializer
-import org.vitrivr.engine.base.database.cottontail.reader.RetrievableReader
-import org.vitrivr.engine.base.database.cottontail.writer.RetrievableWriter
-import org.vitrivr.engine.core.database.*
+import org.vitrivr.engine.base.database.cottontail.retrievable.RetrievableInitializer
+import org.vitrivr.engine.base.database.cottontail.retrievable.RetrievableReader
+import org.vitrivr.engine.base.database.cottontail.retrievable.RetrievableWriter
+import org.vitrivr.engine.core.database.AbstractConnection
 
 /**
  * A [AbstractConnection] to connect to a Cottontail DB instance.

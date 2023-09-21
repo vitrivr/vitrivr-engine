@@ -1,4 +1,4 @@
-package org.vitrivr.engine.base.database.cottontail.reader
+package org.vitrivr.engine.base.database.cottontail.retrievable
 
 import org.vitrivr.cottontail.client.language.basics.expression.Column
 import org.vitrivr.cottontail.client.language.basics.expression.List

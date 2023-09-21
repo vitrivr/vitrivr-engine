@@ -3,20 +3,16 @@ package org.vitrivr.engine.base.database.cottontail.descriptors.scalar
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.StatusException
-import org.vitrivr.cottontail.client.language.basics.expression.Column
-import org.vitrivr.cottontail.client.language.basics.expression.Literal
-import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.client.language.dml.BatchInsert
-import org.vitrivr.cottontail.client.language.dml.Delete
 import org.vitrivr.cottontail.client.language.dml.Insert
 import org.vitrivr.cottontail.core.values.StringValue
+import org.vitrivr.engine.base.database.cottontail.AbstractDescriptorWriter
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.DESCRIPTOR_ID_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.RETRIEVABLE_ID_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.descriptors.DESCRIPTOR_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.descriptors.floatvector.VectorDescriptorWriter
 import org.vitrivr.engine.base.database.cottontail.descriptors.toValue
-import org.vitrivr.engine.base.database.cottontail.writer.AbstractDescriptorWriter
 import org.vitrivr.engine.core.model.database.descriptor.scalar.ScalarDescriptor
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.database.descriptor.vector.VectorDescriptor
@@ -86,30 +82,5 @@ class ScalarDescriptorWriter(field: Schema.Field<*, ScalarDescriptor<*>>, connec
      */
     override fun update(item: ScalarDescriptor<*>): Boolean {
         TODO("Not yet implemented")
-    }
-
-    /**
-     * Deletes (writes) a [ScalarDescriptor] using this [ScalarDescriptorWriter].
-     *
-     * @param item A [ScalarDescriptor]s to delete.
-     * @return True on success, false otherwise.
-     */
-    override fun delete(item: ScalarDescriptor<*>): Boolean {
-        val delete = Delete(this.entityName).where(
-            Compare(
-                Column(this.entityName.column(DESCRIPTOR_ID_COLUMN_NAME)),
-                Compare.Operator.EQUAL,
-                Literal(item.id.toString())
-            )
-        )
-
-        /* Delete values. */
-        return try {
-            this.connection.client.delete(delete)
-            true
-        } catch (e: StatusException) {
-            logger.error(e) { "Failed to delete scalar descriptor due to exception." }
-            false
-        }
     }
 }
