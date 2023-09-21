@@ -1,12 +1,14 @@
 package org.vitrivr.engine.base.database.cottontail
 
-import org.vitrivr.engine.base.database.cottontail.descriptors.floatvector.FloatVectorDescriptorProvider
+import org.vitrivr.engine.base.database.cottontail.descriptors.scalar.ScalarDescriptorProvider
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
+import org.vitrivr.engine.core.model.database.descriptor.scalar.*
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import java.util.*
 import kotlin.reflect.KClass
 
 /**
@@ -37,13 +39,18 @@ class CottontailConnectionProvider: ConnectionProvider {
     /** The version of the [CottontailConnectionProvider]. */
     override val version: String = "1.0.0"
 
-    /** */
-    private val registered = HashMap<KClass<Descriptor>, DescriptorProvider<*>>()
+    /** List of registered [LinkedList]*/
+    private val registered = mutableMapOf<KClass<*>, DescriptorProvider<*>>(
+        FloatVectorDescriptor::class to org.vitrivr.engine.base.database.cottontail.descriptors.floatvector.VectorDescriptorProvider,
 
-    init {
-        /* Register all providers known to this CottontailConnection. */
-        this.register(FloatVectorDescriptor::class, FloatVectorDescriptorProvider())
-    }
+        /* Scalar descriptors. */
+        BooleanDescriptor::class to ScalarDescriptorProvider,
+        IntDescriptor::class to ScalarDescriptorProvider,
+        LongDescriptor::class to ScalarDescriptorProvider,
+        FloatDescriptor::class to ScalarDescriptorProvider,
+        DoubleDescriptor::class to ScalarDescriptorProvider,
+        StringDescriptor::class to ScalarDescriptorProvider
+    )
 
     /**
      * Opens a new [CottontailConnection] for the given [Schema].
@@ -66,9 +73,7 @@ class CottontailConnectionProvider: ConnectionProvider {
      * @param descriptorClass The [KClass] of the [Descriptor] to register [DescriptorProvider] for.
      * @param provider The [DescriptorProvider] to register.
      */
-    @Suppress("UNCHECKED_CAST")
     override fun <T : Descriptor> register(descriptorClass: KClass<T>, provider: DescriptorProvider<T>) {
-        require(!this.registered.containsKey(descriptorClass as KClass<Descriptor>)) { "Descriptor of class $descriptorClass cannot be registered twice."}
         this.registered[descriptorClass] = provider
     }
 
@@ -79,5 +84,5 @@ class CottontailConnectionProvider: ConnectionProvider {
      * @return The registered [DescriptorProvider] .
      */
     @Suppress("UNCHECKED_CAST")
-    override fun <T : Descriptor> obtain(descriptorClass: KClass<T>): DescriptorProvider<T>? = this.registered[descriptorClass as KClass<Descriptor>] as DescriptorProvider<T>?
+    override fun <T : Descriptor> obtain(descriptorClass: KClass<T>): DescriptorProvider<T>? = this.registered[descriptorClass] as DescriptorProvider<T>
 }
