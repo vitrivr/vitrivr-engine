@@ -10,7 +10,10 @@ import org.vitrivr.cottontail.client.language.ddl.TruncateEntity
 import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.types.Types
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
+import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.RETRIEVABLE_ID_COLUMN_NAME
+import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.RETRIEVABLE_TYPE_COLUMN_NAME
 import org.vitrivr.engine.core.database.retrievable.RetrievableInitializer
+import org.vitrivr.engine.core.model.database.retrievable.Retrievable
 
 /** Defines [KLogger] of the class. */
 private val logger: KLogger = KotlinLogging.logger {}
@@ -40,8 +43,8 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
 
         /* Create entity. */
         val createEntity = CreateEntity(this.entityName)
-            .column(Name.ColumnName(CottontailConnection.RETRIEVABLE_ID_COLUMN_NAME), Types.String, nullable = false, primaryKey = true, autoIncrement = false)
-            .column(Name.ColumnName("type"), Types.String, nullable = true, primaryKey = false, autoIncrement = false)
+            .column(Name.ColumnName(RETRIEVABLE_ID_COLUMN_NAME), Types.String, nullable = false, primaryKey = true, autoIncrement = false)
+            .column(Name.ColumnName(RETRIEVABLE_TYPE_COLUMN_NAME), Types.String, nullable = true, primaryKey = false, autoIncrement = false)
             .ifNotExists()
 
         try {
@@ -52,7 +55,7 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
     }
 
     /**
-     * Checks if the schema for this [AbstractDescriptorInitializer] has been properly initialized.
+     * Checks if the schema for this [RetrievableInitializer] has been properly initialized.
      *
      * @return True if entity has been initialized, false otherwise.
      */

@@ -14,7 +14,7 @@ import org.vitrivr.engine.core.database.AbstractConnection
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class CottontailConnection(provider: CottontailConnectionProvider, schemaName: String, val host: String, val port: Int): AbstractConnection(schemaName, provider) {
+class CottontailConnection(provider: CottontailConnectionProvider, schemaName: String, private val host: String, private val port: Int) : AbstractConnection(schemaName, provider) {
 
     companion object {
         /** The name of the retrievable entity. */
@@ -34,7 +34,7 @@ class CottontailConnection(provider: CottontailConnectionProvider, schemaName: S
     }
 
     /** The [ManagedChannel] instance used by this [CottontailConnection]. */
-    internal val channel = ManagedChannelBuilder.forAddress(this.host, this.port).usePlaintext().build()
+    private val channel = ManagedChannelBuilder.forAddress(this.host, this.port).usePlaintext().build()
 
     /** The [SimpleClient] instance used by this [CottontailConnection]. */
     internal val client = SimpleClient(this.channel)
