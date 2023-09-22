@@ -1,4 +1,4 @@
-package org.vitrivr.engine.base.database.cottontail.descriptors.floatvector
+package org.vitrivr.engine.base.database.cottontail.descriptors.vector
 
 import org.vitrivr.cottontail.client.language.basics.Direction
 import org.vitrivr.cottontail.client.language.basics.Distances

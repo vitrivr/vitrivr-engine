@@ -21,7 +21,7 @@ import org.vitrivr.engine.core.model.query.bool.BooleanQuery
 import java.util.*
 
 /**
- * An [AbstractDescriptorReader] for [StringDescriptor]s.
+ * An [AbstractDescriptorReader] for [ScalarDescriptor]s.
  *
  * @author Ralph Gasser
  * @version 1.0.0

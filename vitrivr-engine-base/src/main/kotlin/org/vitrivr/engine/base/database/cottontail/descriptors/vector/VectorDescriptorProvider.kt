@@ -1,4 +1,4 @@
-package org.vitrivr.engine.base.database.cottontail.descriptors.floatvector
+package org.vitrivr.engine.base.database.cottontail.descriptors.vector
 
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.core.database.Connection
