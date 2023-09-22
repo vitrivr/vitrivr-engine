@@ -11,6 +11,7 @@ import org.vitrivr.engine.core.model.query.bool.BooleanQuery
 /** The column name used to describe a feature.*/
 const val DESCRIPTOR_COLUMN_NAME = "descriptor"
 
+
 /** The column name used to describe a distance.*/
 const val DISTANCE_COLUMN_NAME = "distance"
 

@@ -1,12 +1,14 @@
 package org.vitrivr.engine.base.database.cottontail
 
+import org.vitrivr.engine.base.database.cottontail.descriptors.label.LabelDescriptorProvider
 import org.vitrivr.engine.base.database.cottontail.descriptors.scalar.ScalarDescriptorProvider
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.descriptor.scalar.*
-import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
+import org.vitrivr.engine.core.model.database.descriptor.struct.LabelDescriptor
+import org.vitrivr.engine.core.model.database.descriptor.vector.*
 import org.vitrivr.engine.core.model.metamodel.Schema
 import java.util.*
 import kotlin.reflect.KClass
@@ -41,15 +43,23 @@ class CottontailConnectionProvider: ConnectionProvider {
 
     /** List of registered [LinkedList]*/
     private val registered = mutableMapOf<KClass<*>, DescriptorProvider<*>>(
-        FloatVectorDescriptor::class to org.vitrivr.engine.base.database.cottontail.descriptors.floatvector.VectorDescriptorProvider,
-
         /* Scalar descriptors. */
         BooleanDescriptor::class to ScalarDescriptorProvider,
         IntDescriptor::class to ScalarDescriptorProvider,
         LongDescriptor::class to ScalarDescriptorProvider,
         FloatDescriptor::class to ScalarDescriptorProvider,
         DoubleDescriptor::class to ScalarDescriptorProvider,
-        StringDescriptor::class to ScalarDescriptorProvider
+        StringDescriptor::class to ScalarDescriptorProvider,
+
+        /* Vector descriptors. */
+        BooleanVectorDescriptor::class to org.vitrivr.engine.base.database.cottontail.descriptors.vector.VectorDescriptorProvider,
+        IntVectorDescriptor::class to org.vitrivr.engine.base.database.cottontail.descriptors.vector.VectorDescriptorProvider,
+        LongVectorDescriptor::class to org.vitrivr.engine.base.database.cottontail.descriptors.vector.VectorDescriptorProvider,
+        FloatVectorDescriptor::class to org.vitrivr.engine.base.database.cottontail.descriptors.vector.VectorDescriptorProvider,
+        DoubleVectorDescriptor::class to org.vitrivr.engine.base.database.cottontail.descriptors.vector.VectorDescriptorProvider,
+
+        /* Label descriptor. */
+        LabelDescriptor::class to LabelDescriptorProvider
     )
 
     /**
@@ -84,5 +94,5 @@ class CottontailConnectionProvider: ConnectionProvider {
      * @return The registered [DescriptorProvider] .
      */
     @Suppress("UNCHECKED_CAST")
-    override fun <T : Descriptor> obtain(descriptorClass: KClass<T>): DescriptorProvider<T>? = this.registered[descriptorClass] as DescriptorProvider<T>
+    override fun <T : Descriptor> obtain(descriptorClass: KClass<T>): DescriptorProvider<T> = this.registered[descriptorClass] as DescriptorProvider<T>
 }

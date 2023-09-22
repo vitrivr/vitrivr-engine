@@ -12,7 +12,7 @@ import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
 data class LabelDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId,
-    override val transient: Boolean = false,
     val label: String,
-    val confidence: Float
+    val confidence: Float,
+    override val transient: Boolean = false
 ) : StructDescriptor

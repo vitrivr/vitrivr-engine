@@ -1,4 +1,4 @@
-package org.vitrivr.engine.base.database.cottontail
+package org.vitrivr.engine.base.database.cottontail.descriptors
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -9,9 +9,9 @@ import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.client.language.dml.Delete
 import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.values.StringValue
+import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
-import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 
 private val logger: KLogger = KotlinLogging.logger {}
@@ -23,7 +23,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @version 1.0.0
  */
 abstract class AbstractDescriptorWriter<D : Descriptor>(final override val field: Schema.Field<*, D>, protected val connection: CottontailConnection) : DescriptorWriter<D> {
-    /** The [Name.EntityName] used by this [FloatVectorDescriptor]. */
+    /** The [Name.EntityName] used by this [Descriptor]. */
     protected val entityName: Name.EntityName = Name.EntityName(this.field.schema.name, "${CottontailConnection.DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
 
     /**

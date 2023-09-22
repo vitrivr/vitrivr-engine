@@ -1,12 +1,12 @@
-package org.vitrivr.engine.base.database.cottontail
+package org.vitrivr.engine.base.database.cottontail.descriptors
 
 import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.ddl.ListEntities
 import org.vitrivr.cottontail.client.language.ddl.TruncateEntity
 import org.vitrivr.cottontail.core.database.Name
+import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.core.database.descriptor.DescriptorInitializer
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
-import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 
 /**
@@ -15,8 +15,8 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractDescriptorInitializer<D: Descriptor>(final override val field: Schema.Field<*,D>, protected val connection: CottontailConnection): DescriptorInitializer<D> {
-    /** The [Name.EntityName] used by this [FloatVectorDescriptor]. */
+abstract class AbstractDescriptorInitializer<D : Descriptor>(final override val field: Schema.Field<*, D>, protected val connection: CottontailConnection) : DescriptorInitializer<D> {
+    /** The [Name.EntityName] used by this [Descriptor]. */
     protected val entityName: Name.EntityName = Name.EntityName(this.field.schema.name, "${CottontailConnection.DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
 
     /**
