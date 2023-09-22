@@ -12,7 +12,7 @@ import java.nio.file.Path
  * @author Ralph Gasser
  * @version 1.0.0
  */
-@JvmRecord
+
 data class FileSource(
     val path: Path,
     val mimeType: MimeType,

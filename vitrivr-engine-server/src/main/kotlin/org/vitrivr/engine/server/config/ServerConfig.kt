@@ -1,10 +1,11 @@
-package org.vitrivr.engine.core.config
+package org.vitrivr.engine.server.config
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
+import org.vitrivr.engine.core.config.SchemaConfig
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
@@ -12,16 +13,12 @@ import java.nio.file.StandardOpenOption
 /** [KLogger] instance. */
 private val logger: KLogger = KotlinLogging.logger {}
 
-/**
- * A serializable configuration object to configure vitrivr engine.
- *
- * @author Ralph Gasser
- * @version 1.0.0
- */
-@JvmRecord
 @Serializable
-data class VitrivrConfig(
-    /** List of [SchemaConfig] managed by this [VitrivrConfig]. */
+data class ServerConfig(
+    /** The configuration of the RESTful API. */
+    val api: ApiConfig = ApiConfig(),
+
+    /** List of [SchemaConfig] managed by this [ServerConfig]. */
     val schemas: List<SchemaConfig>
 ) {
     companion object {
@@ -29,14 +26,14 @@ data class VitrivrConfig(
         const val DEFAULT_SCHEMA_PATH = "./config.json"
 
         /**
-         * Tries to read a [VitrivrConfig] from a file specified by the given [Path].
+         * Tries to read a [ServerConfig] from a file specified by the given [Path].
          *
-         * @param path The [Path] to read [VitrivrConfig] from.
-         * @return [VitrivrConfig] or null, if an error occurred.
+         * @param path The [Path] to read [ServerConfig] from.
+         * @return [ServerConfig] or null, if an error occurred.
          */
-        fun read(path: Path): VitrivrConfig? = try {
+        fun read(path: Path): ServerConfig? = try {
             Files.newInputStream(path, StandardOpenOption.READ).use {
-                Json.decodeFromStream<VitrivrConfig>(it)
+                Json.decodeFromStream<ServerConfig>(it)
             }
         } catch (e: Throwable) {
             logger.error(e) { "Failed to read configuration from $path due to an exception." }

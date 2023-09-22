@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.api.rest.javalin
+package org.vitrivr.engine.server.api.rest
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper

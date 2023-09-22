@@ -9,7 +9,7 @@ import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
  * @author Ralph Gasser
  * @version 1.0.0
  */
-@JvmRecord
+
 data class LongDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId,

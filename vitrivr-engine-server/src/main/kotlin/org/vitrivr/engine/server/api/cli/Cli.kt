@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.api.cli
+package org.vitrivr.engine.server.api.cli
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
@@ -7,6 +7,8 @@ import org.jline.reader.EndOfFileException
 import org.jline.reader.LineReaderBuilder
 import org.jline.reader.UserInterruptException
 import org.jline.terminal.TerminalBuilder
+import org.vitrivr.engine.core.model.metamodel.SchemaManager
+import org.vitrivr.engine.server.api.cli.commands.ListSchemaCommand
 import java.io.IOException
 import java.util.regex.Pattern
 
@@ -16,7 +18,7 @@ import java.util.regex.Pattern
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class Cli {
+class Cli(private val manager: SchemaManager) {
 
     companion object {
         /** The default prompt. */
@@ -133,7 +135,7 @@ class Cli {
     inner class MainCommand : NoOpCliktCommand(name = "vitrivr", help = "The base command for all CLI commands.") {
         init {
             subcommands(
-                SchemaCommand(),
+                ListSchemaCommand(this@Cli.manager),
                 StopCommand()
             )
         }

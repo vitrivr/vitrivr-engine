@@ -11,7 +11,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-@JvmRecord
+
 data class FloatVectorDescriptor(
     override val id: UUID = UUID.randomUUID(),
     override val retrievableId: RetrievableId? = null,

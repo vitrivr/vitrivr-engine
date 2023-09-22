@@ -11,7 +11,7 @@ import java.awt.image.BufferedImage
  * @author Luca Rossetto.
  * @version 1.0.0
  */
-@JvmRecord
+
 internal data class InMemoryImageContent(private val image: BufferedImage): ImageContent {
     override fun getContent(): BufferedImage = this.image
 }

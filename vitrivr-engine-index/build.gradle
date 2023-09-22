@@ -1,8 +1,6 @@
 dependencies {
     api project(':vitrivr-engine-core')
-    api project(':vitrivr-engine-base')
 
-    /** */
+    /** Java CV (used for video decoding). */
     implementation group: 'org.bytedeco', name: 'javacv-platform', version: '1.5.9'
-
 }

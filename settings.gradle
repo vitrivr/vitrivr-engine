@@ -4,4 +4,5 @@ include 'vitrivr-engine-core'
 include 'vitrivr-engine-index'
 include 'vitrivr-engine-query'
 include 'vitrivr-engine-base'
+include 'vitrivr-engine-server'
 
