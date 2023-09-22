@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.api.rest
+package org.vitrivr.engine.server.api.rest.model
 
 import kotlinx.serialization.Serializable
 

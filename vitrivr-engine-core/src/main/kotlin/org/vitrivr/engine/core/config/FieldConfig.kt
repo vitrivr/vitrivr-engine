@@ -11,6 +11,6 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  * @author Ralph Gasser
  * @version 1.0.0
  */
-@JvmRecord
+
 @Serializable
 data class FieldConfig(val name: String, val analyser: String, val parameters: Map<String,String> = emptyMap())

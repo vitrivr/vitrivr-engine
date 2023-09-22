@@ -14,7 +14,7 @@ import org.vitrivr.engine.core.model.query.basics.SortOrder
  * @author Ralph Gasser
  * @version 1.0.0
  */
-@JvmRecord
+
 data class ProximityQuery<T: VectorDescriptor<*>>(
     /** The [VectorDescriptor] being used; specifies both the query field and the comparison value. */
     override val descriptor: T,
