@@ -16,6 +16,7 @@ import java.lang.ref.SoftReference
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.util.concurrent.atomic.AtomicInteger
@@ -33,9 +34,12 @@ class FileCachedContentFactory(private val basePath: Path) : ContentFactory {
     private val counter = AtomicInteger(0)
 
     init {
+
+        Files.createDirectories(basePath)
+
         thread(name = "FileCachedContentFactory cleaner thread", isDaemon = true, start = true) {
 
-            while (true) {
+            while (true) { //FIXME cleanup mechanism appears not to be working
                 try {
                     val reference = referenceQueue.remove()
                     reference.get()?.cleanup()
@@ -101,7 +105,9 @@ class FileCachedContentFactory(private val basePath: Path) : ContentFactory {
         }
 
         override fun getContent(): BufferedImage {
-            val colors = backing.buffer.asIntBuffer().array()
+            val buf = backing.buffer.asIntBuffer()
+            val colors = IntArray(buf.remaining())
+            buf.get(colors)
             val image = BufferedImage(width, height, type)
             image.setRGBArray(colors)
             return image
@@ -140,7 +146,15 @@ class FileCachedContentFactory(private val basePath: Path) : ContentFactory {
         private val backing: FileBackedByteBuffer =
             FileBackedByteBuffer(text.encodeToByteArray(), basePath.resolve(counter.getAndIncrement().toString()))
 
-        override fun getContent(): String = String(backing.buffer.array())
+        override fun getContent(): String {
+
+            val buf = backing.buffer
+            val arr = ByteArray(buf.remaining())
+            buf.get(arr)
+
+            return String(arr)
+
+        }
 
     }
 
