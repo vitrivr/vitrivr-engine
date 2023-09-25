@@ -1,0 +1,44 @@
+{
+      "schema": "vitrivr",
+      "enumerator": {
+        "name": "DummyEnumerator", "type": "Enumerator", "parameters": {"path": "c://"},
+        "decoder": {
+          "name": "DummyDecoder", "type": "Decoder", "parameters": {"name": "0", "name2": "0"},
+          "transformer": {
+            "name": "DummyTransformer", "type": "Transformer",  "parameters": {},
+            "segmenters": [
+              {
+                "name": "DummySegmenter", "type": "Segmenter", "parameters": {"name": "A"},
+                "extractors": [
+                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "A"},
+                    "extractors": [
+                      {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "A1"},
+                        "extractors": [
+                          {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "A11"}}
+                        ]
+                      }
+                    ]
+                  },
+                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "B"}},
+                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "C"}}
+                ]
+              },
+              {
+                "name": "DummySegmenter", "type": "Segmenter", "parameters": {"name": "b"},
+                "extractors": [
+                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "B"}},
+                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "C"}}
+                ]
+              },
+              {
+                "name": "DummySegmenter", "type": "Segmenter", "parameters": {"name": "c"},
+                "extractors": [
+                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "A"}},
+                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "C"}}
+                ]
+              }
+            ]
+          }
+        }
+      }
+}

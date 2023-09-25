@@ -4,8 +4,14 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.jakewharton.picnic.table
+import org.vitrivr.engine.core.config.pipelineConfig.PipelineConfig
 import org.vitrivr.engine.core.database.Initializer
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.operators.ingest.Extractor
+import org.vitrivr.engine.index.execution.ExecutionServer
+import org.vitrivr.engine.server.config.ServerConfig
+import java.nio.file.Paths
+import kotlin.system.exitProcess
 
 /**
  *
@@ -24,7 +30,8 @@ class SchemaCommand(private val schema: Schema) : NoOpCliktCommand(
     init {
         this.subcommands(
             About(),
-            Initialize()
+            Initialize(),
+            Extract()
         )
     }
 
@@ -86,6 +93,21 @@ class SchemaCommand(private val schema: Schema) : NoOpCliktCommand(
                 }
             }
             println("Successfully initialized schema '${schema.name}'; created $initialized entities.")
+        }
+    }
+
+    inner class Extract : CliktCommand(name = "extract", help = "Extracts data from a source and stores it in the schema.") {
+        override fun run() {
+            val executionServer = ExecutionServer();
+
+            val schema = this@SchemaCommand.schema;
+            val pipeline = PipelineConfig.read(Paths.get(PipelineConfig.DEFAULT_PIPELINE_PATH)) ?: exitProcess(1)
+            assert(schema.name.equals(pipeline.schema, ignoreCase = true)) { "Pipeline schema '${pipeline.schema}' does not match schema '${schema.name}'." }
+            println("Successfully initialized schema '${schema.name}' and pipeline '${pipeline.schema}'.")
+
+
+            executionServer.execute()
+            executionServer.shutdown()
         }
     }
 }
