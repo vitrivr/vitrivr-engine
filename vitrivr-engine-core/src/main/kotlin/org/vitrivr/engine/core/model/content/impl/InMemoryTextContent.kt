@@ -11,6 +11,6 @@ import org.vitrivr.engine.core.model.content.element.TextContent
  */
 @Serializable
 
-internal data class InMemoryTextContent(private val text: String) : TextContent {
+data class InMemoryTextContent(private val text: String) : TextContent {
     override fun getContent(): String = this.text
 }
