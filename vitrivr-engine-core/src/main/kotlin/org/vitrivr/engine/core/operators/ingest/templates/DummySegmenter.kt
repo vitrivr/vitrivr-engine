@@ -22,10 +22,10 @@ private val logger: KLogger = KotlinLogging.logger {}
 /**
  *
  *
- * @author Luca Rossetto
+ * @author
  * @version 1.0.0
  */
-class PassThroughSegmenter(input: Operator<ContentElement<*>>, private val retrievableWriter: RetrievableWriter?) : AbstractSegmenter(input) {
+class DummySegmenter(input: Operator<ContentElement<*>>) : AbstractSegmenter(input) {
 
     /**
      * Segments by creating a [Ingested] for every incoming [Content] element, attaching that [Content] element to the [Ingested].
@@ -35,7 +35,6 @@ class PassThroughSegmenter(input: Operator<ContentElement<*>>, private val retri
      */
     override suspend fun segment(upstream: Flow<ContentElement<*>>, downstream: ProducerScope<Ingested>) = upstream.collect {
         val retrievable = Ingested.Default(transient = false, type = "segment", content = mutableListOf(it))
-        this.retrievableWriter?.add(retrievable)
         downstream.send(retrievable)
         logger.info { "Performed PassThrough Segmenter with options" }
     }
