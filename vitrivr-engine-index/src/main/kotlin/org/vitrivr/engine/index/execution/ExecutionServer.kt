@@ -3,6 +3,7 @@ package org.vitrivr.engine.index.execution
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.takeWhile
+import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.AbstractSegmenter
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import java.util.concurrent.ExecutorService
@@ -20,6 +21,8 @@ class ExecutionServer {
     /** The [CoroutineDispatcher] used for execution. */
     private val dispatcher: CoroutineDispatcher = this.executor.asCoroutineDispatcher()
 
+    private val operators: List<Operator<*>> = listOf()
+
     /**
      * Executes an extraction job using a [List] of [Extractor]s.
      *
@@ -30,6 +33,17 @@ class ExecutionServer {
         val jobs = extractors.map { e -> scope.launch { e.toFlow(scope).takeWhile { it != AbstractSegmenter.TerminalIngestedRetrievable }.collect() } }
         jobs.forEach { it.join() }
     }
+
+    fun addOperator(operator: Operator<*>){
+        this.operators.plus(operator)
+    }
+
+    fun execute(){
+        for (operator in this.operators){
+            operator.toFlow(CoroutineScope(this.dispatcher))
+        }
+    }
+
 
     /**
      * Shuts down the [ExecutorService] used by this [ExecutionServer]
