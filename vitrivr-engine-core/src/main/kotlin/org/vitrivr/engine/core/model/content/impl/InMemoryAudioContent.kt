@@ -12,7 +12,7 @@ import java.nio.ShortBuffer
  * @version 1.0.0
  */
 
-internal data class InMemoryAudioContent(override val channel: Int, override val samplingRate: Int, private val audio: ShortBuffer):
+data class InMemoryAudioContent(override val channel: Int, override val samplingRate: Int, private val audio: ShortBuffer):
     AudioContent {
     override fun getContent(): ShortBuffer = this.audio
 }
