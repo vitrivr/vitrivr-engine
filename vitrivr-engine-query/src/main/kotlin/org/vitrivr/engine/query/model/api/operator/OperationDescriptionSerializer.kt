@@ -12,8 +12,8 @@ object OperationDescriptionSerializer: JsonContentPolymorphicSerializer<Operator
 
         return when(OperatorType.valueOf(typeName)) {
             OperatorType.RETRIEVER -> RetrieverDescription.serializer()
-            OperatorType.TRANSFORMER -> TODO()
-            OperatorType.AGGREGATOR -> TODO()
+            OperatorType.TRANSFORMER -> TransformerDescription.serializer()
+            OperatorType.AGGREGATOR -> AggregatorDescription.serializer()
         }
     }
 }
