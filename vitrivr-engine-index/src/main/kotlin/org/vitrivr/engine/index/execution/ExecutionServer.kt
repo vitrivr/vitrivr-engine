@@ -21,7 +21,7 @@ class ExecutionServer {
     /** The [CoroutineDispatcher] used for execution. */
     private val dispatcher: CoroutineDispatcher = this.executor.asCoroutineDispatcher()
 
-    private val operators: List<Operator<*>> = listOf()
+    private val operators: MutableList<Operator<*>> = mutableListOf()
 
     /**
      * Executes an extraction job using a [List] of [Extractor]s.
@@ -35,13 +35,13 @@ class ExecutionServer {
     }
 
     fun addOperator(operator: Operator<*>){
-        this.operators.plus(operator)
+        this.operators.add(operator)
     }
 
-    fun execute(){
-        for (operator in this.operators){
-            operator.toFlow(CoroutineScope(this.dispatcher))
-        }
+    fun execute() = runBlocking {
+        val scope = CoroutineScope(this@ExecutionServer.dispatcher)
+        val jobs = this@ExecutionServer.operators.map { e -> scope.launch { e.toFlow(scope).takeWhile { it != AbstractSegmenter.TerminalIngestedRetrievable }.collect() } }
+        jobs.forEach { it.join() }
     }
 
 
