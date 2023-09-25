@@ -40,6 +40,6 @@ data class ImageInputData(val data: String) : InputData() {
     override val type = InputType.VECTOR
     override fun toContent(): ImageContent = InMemoryImageContent(image)
 
-    val image: BufferedImage by lazy { BufferedImage(data) }
+    private val image: BufferedImage by lazy { BufferedImage(data) }
 
 }
