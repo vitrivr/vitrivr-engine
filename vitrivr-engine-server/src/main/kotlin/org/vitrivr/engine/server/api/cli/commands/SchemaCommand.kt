@@ -4,14 +4,19 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.jakewharton.picnic.table
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.config.pipelineConfig.PipelineConfig
 import org.vitrivr.engine.core.database.Initializer
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.ingest.Extractor
+import org.vitrivr.engine.core.operators.ingest.templates.*
 import org.vitrivr.engine.index.execution.ExecutionServer
 import org.vitrivr.engine.server.config.ServerConfig
 import java.nio.file.Paths
 import kotlin.system.exitProcess
+
+private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  *
@@ -103,8 +108,26 @@ class SchemaCommand(private val schema: Schema) : NoOpCliktCommand(
             val schema = this@SchemaCommand.schema;
             val pipeline = PipelineConfig.read(Paths.get(PipelineConfig.DEFAULT_PIPELINE_PATH)) ?: exitProcess(1)
             assert(schema.name.equals(pipeline.schema, ignoreCase = true)) { "Pipeline schema '${pipeline.schema}' does not match schema '${schema.name}'." }
-            println("Successfully initialized schema '${schema.name}' and pipeline '${pipeline.schema}'.")
+            logger.trace { "Successfully initialized schema '${schema.name}' and pipeline '${pipeline.schema}'."}
 
+            val enumerator = DummyEnumerator()
+            val decoder = DummyDecoder(enumerator)
+            val transformer = DummyTransformer(decoder)
+            val segmenter = DummySegmenter(transformer)
+            val extractor = DummyExtractor(segmenter)
+
+
+            logger.trace { "Trace" }
+            logger.debug { "Debug" }
+            logger.info { "Info" }
+            logger.warn { "Warn" }
+            logger.error { "Error"  }
+
+            executionServer.addOperator(enumerator)
+            executionServer.addOperator(decoder)
+            executionServer.addOperator(transformer)
+            executionServer.addOperator(segmenter)
+            executionServer.addOperator(extractor)
 
             executionServer.execute()
             executionServer.shutdown()
