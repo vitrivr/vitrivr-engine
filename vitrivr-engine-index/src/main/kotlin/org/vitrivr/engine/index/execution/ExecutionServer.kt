@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.takeWhile
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.AbstractSegmenter
 import org.vitrivr.engine.core.operators.ingest.Extractor
+import org.vitrivr.engine.index.pipeline.PipelineBuilder
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -36,6 +37,10 @@ class ExecutionServer {
 
     fun addOperator(operator: Operator<*>){
         this.operators.add(operator)
+    }
+
+    fun addOperatorPipeline(operatorPipeline: PipelineBuilder){
+
     }
 
     fun execute() = runBlocking {

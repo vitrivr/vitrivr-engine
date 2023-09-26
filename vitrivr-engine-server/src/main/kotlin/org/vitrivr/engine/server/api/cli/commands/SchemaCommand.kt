@@ -12,6 +12,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.ingest.templates.*
 import org.vitrivr.engine.index.execution.ExecutionServer
+import org.vitrivr.engine.index.pipeline.PipelineBuilder
 import org.vitrivr.engine.server.config.ServerConfig
 import java.nio.file.Paths
 import kotlin.system.exitProcess
@@ -116,19 +117,23 @@ class SchemaCommand(private val schema: Schema) : NoOpCliktCommand(
             val segmenter = DummySegmenter(transformer)
             val extractor = DummyExtractor(segmenter)
 
-
+            // Logging Test TODO: Remove
             logger.trace { "Trace" }
             logger.debug { "Debug" }
             logger.info { "Info" }
             logger.warn { "Warn" }
-            logger.error { "Error"  }
+            logger.error { "Error" }
 
+            // Operators test TODO: Remove
             executionServer.addOperator(enumerator)
             executionServer.addOperator(decoder)
             executionServer.addOperator(transformer)
             executionServer.addOperator(segmenter)
             executionServer.addOperator(extractor)
 
+            val pipelineBuilder = PipelineBuilder(schema, pipeline)
+
+            executionServer.addOperatorPipeline(pipelineBuilder)
             executionServer.execute()
             executionServer.shutdown()
         }
