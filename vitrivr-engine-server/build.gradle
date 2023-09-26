@@ -1,0 +1,27 @@
+plugins {
+    id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
+}
+
+dependencies {
+    api project(':vitrivr-engine-index')
+    api project(':vitrivr-engine-query')
+    api project(':vitrivr-engine-base') /* TODO: This dependency is not necessary and only here to facilitate easy testing. */
+
+    /** Clikt & JLine */
+    implementation group: 'com.github.ajalt.clikt', name: 'clikt', version: version_clikt
+    implementation group: 'org.jline', name: 'jline', version: version_jline
+    implementation group: 'org.jline', name: 'jline-terminal-jna', version: version_jline
+    implementation group: 'com.jakewharton.picnic', name: 'picnic', version: version_picnic
+
+    /** Javalin */
+    implementation group: 'io.javalin', name: 'javalin', version: version_javalin
+    implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: version_javalin
+    implementation group: 'io.javalin.community.openapi', name: 'javalin-swagger-plugin', version: version_javalin
+    implementation group: 'io.javalin.community.ssl', name: 'ssl-plugin', version: version_javalin
+
+    /** Jackson (for serialization). */
+    implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: version_jackson_kotlin
+
+    /* Kapt. */
+    kapt("io.javalin.community.openapi:openapi-annotation-processor:$version_javalin")
+}

@@ -3,9 +3,9 @@ package org.vitrivr.engine.core.model.metamodel
 import org.vitrivr.engine.core.config.SchemaConfig
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
-import org.vitrivr.engine.core.model.content.Content
+import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
-import java.util.ServiceLoader
+import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -18,7 +18,7 @@ import kotlin.concurrent.write
  * @author Ralph Gasser
  * @version 1.0.0
  */
-object SchemaManager {
+class SchemaManager {
     /** An internal [HashMap] of all open [Connection]. */
     private val schemas = HashMap<String, Schema>()
 
@@ -26,29 +26,26 @@ object SchemaManager {
     private val lock = ReentrantReadWriteLock()
 
     /** A [Map] of all available [Analyser]s. These are loaded upon initialization of the class. */
-    private val analysers: Map<String,Analyser<*,*>> = HashMap()
+    private val analysers: Map<String, Analyser<*, *>> = HashMap()
 
     init {
-        this.reload() /* Reload analysers. */
+        /* Reload analysers. */
+        (this.analysers as MutableMap<String, Analyser<*, *>>).clear()
+        for (a in ServiceLoader.load(Analyser::class.java)) {
+            if (this.analysers.containsKey(a.analyserName)) {
+                /* TODO: Log warning! */
+            }
+            this.analysers[a.analyserName] = a
+        }
     }
 
     /**
-     * Returns an [Analyser] for the provided analyser name.
+     * Loads the [SchemaConfig] with this [SchemaManager].
      *
-     * @param name [String]
-     * @return [Analyser] or null, if no [Analyser] exists for given name.
+     * @param config The [SchemaConfig] to load.
      */
-    fun getAnalyserForName(name: String): Analyser<*,*> = this.analysers[name] ?: throw IllegalStateException("Failed to find analyser implementation for name '$name'.")
-
-    /**
-     * Opens a new [Schema] for the provided [SchemaConfig]. This includes the related database [Connection].
-     *
-     * @param config The [SchemaConfig] to open a [Schema] for.
-     */
-    @Suppress("UNCHECKED_CAST")
-    fun open(config: SchemaConfig): Schema = this.lock.write {
-
-        /* Close existing connection. */
+    fun load(config: SchemaConfig) {
+        /* Close existing connection (if exists). */
         if (this.schemas.containsKey(config.name)) {
             this.schemas[config.name]?.close()
         }
@@ -62,13 +59,22 @@ object SchemaManager {
         val connection = connectionProvider.openConnection(config.name, config.connection.parameters)
         val schema = Schema(config.name, connection)
         config.fields.map {
-            schema.addField(it.name, this.getAnalyserForName(it.analyser) as Analyser<Content, Descriptor>, it.parameters)
+            @Suppress("UNCHECKED_CAST")
+            schema.addField(it.name, this.getAnalyserForName(it.analyser) as Analyser<ContentElement<*>, Descriptor>, it.parameters)
         }
 
         /* Cache and return connection. */
         this.schemas[schema.name] = schema
-        return schema
     }
+
+
+    /**
+     * Returns an [Analyser] for the provided analyser name.
+     *
+     * @param name [String]
+     * @return [Analyser] or null, if no [Analyser] exists for given name.
+     */
+    fun getAnalyserForName(name: String): Analyser<*, *> = this.analysers[name] ?: throw IllegalStateException("Failed to find analyser implementation for name '$name'.")
 
     /**
      * Lists all [Schema] managed by this [SchemaManager].
@@ -84,20 +90,6 @@ object SchemaManager {
      * @return [Schema] or null
      */
     fun getSchema(schemaName: String): Schema? = this.lock.read { this.schemas[schemaName] }
-
-    /**
-     * Reloads the available [Analyser] using a [ServiceLoader].
-     */
-    fun reload() {
-        (this.analysers as MutableMap<String,Analyser<*,*>>).clear()
-        for (a in ServiceLoader.load(Analyser::class.java)) {
-            if (this.analysers.containsKey(a.analyserName)) {
-                /* TODO: Log warning! */
-            }
-            this.analysers[a.analyserName] = a
-        }
-    }
-
 
     /**
      * Closes a [Schema].

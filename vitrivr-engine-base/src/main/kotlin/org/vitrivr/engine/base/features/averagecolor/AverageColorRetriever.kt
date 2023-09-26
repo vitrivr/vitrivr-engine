@@ -3,7 +3,7 @@ package org.vitrivr.engine.base.features.averagecolor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.vitrivr.engine.core.model.content.ImageContent
+import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.database.retrievable.Retrieved
 import org.vitrivr.engine.core.model.metamodel.Schema

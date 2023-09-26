@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.operators.ingest
 
 import kotlinx.coroutines.flow.Flow
 import org.vitrivr.engine.core.model.content.Content
+import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.operators.Operator
 
 /**
@@ -13,4 +14,4 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface Transformer: Operator.Unary<Content,Content>
+interface Transformer: Operator.Unary<ContentElement<*>,ContentElement<*>>

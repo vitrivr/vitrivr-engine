@@ -3,13 +3,5 @@ plugins {
 }
 
 dependencies {
-    /** Clikt & JLine */
-    api group: 'com.github.ajalt.clikt', name: 'clikt', version: version_clikt
-    api group: 'org.jline', name: 'jline', version: version_jline
-    api group: 'org.jline', name: 'jline-terminal-jna', version: version_jline
-    api group: 'com.jakewharton.picnic', name: 'picnic', version: version_picnic
 
-    /** Javalin */
-    api group: 'io.javalin', name: 'javalin', version: version_javalin
-    implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: version_jackson_kotlin
 }

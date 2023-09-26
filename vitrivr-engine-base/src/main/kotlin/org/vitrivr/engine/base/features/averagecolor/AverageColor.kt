@@ -3,7 +3,7 @@ package org.vitrivr.engine.base.features.averagecolor
 import org.vitrivr.engine.core.model.color.MutableRGBFloatColorContainer
 import org.vitrivr.engine.core.model.color.RGBByteColorContainer
 import org.vitrivr.engine.core.model.color.RGBFloatColorContainer
-import org.vitrivr.engine.core.model.content.ImageContent
+import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.model.metamodel.Analyser
@@ -64,7 +64,7 @@ class AverageColor: Analyser<ImageContent,FloatVectorDescriptor> {
      */
     override fun analyse(content: Collection<ImageContent>): DescriptorList<FloatVectorDescriptor> = content.map {
         val color = MutableRGBFloatColorContainer()
-        val rgb =  it.image.getRGBArray()
+        val rgb =  it.getContent().getRGBArray()
         rgb.forEach { c -> color += RGBByteColorContainer.fromRGB(c) }
 
         /* Generate descriptor. */

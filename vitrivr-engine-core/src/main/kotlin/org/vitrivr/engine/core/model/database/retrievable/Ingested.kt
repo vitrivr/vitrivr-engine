@@ -1,13 +1,15 @@
 package org.vitrivr.engine.core.model.database.retrievable
 
-import com.github.benmanes.caffeine.cache.Caffeine
-import com.github.benmanes.caffeine.cache.LoadingCache
+import org.vitrivr.engine.core.content.ContentFactory
 import org.vitrivr.engine.core.model.content.Content
-import org.vitrivr.engine.core.model.content.DerivedContent
+import org.vitrivr.engine.core.model.content.decorators.DerivedContent
+import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
+import org.vitrivr.engine.core.operators.derive.ContentDeriver
 import org.vitrivr.engine.core.operators.derive.ContentDerivers
 import org.vitrivr.engine.core.operators.derive.DerivateName
 import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * A default [Retrievable] used in the data ingest pipeline.
@@ -26,7 +28,7 @@ interface Ingested : Retrievable {
         override val transient: Boolean,
         partOf: Set<Retrievable> = emptySet(),
         parts: Set<Retrievable> = emptySet(),
-        content: List<Content> = emptyList(),
+        content: List<ContentElement<*>> = emptyList(),
         descriptors: List<Descriptor> = emptyList()
     ) : Ingested, RetrievableWithDescriptor.Mutable, RetrievableWithContent.Mutable, RetrievableWithRelationship {
 
@@ -37,10 +39,10 @@ interface Ingested : Retrievable {
         override val parts: Set<Retrievable> = Collections.synchronizedSet(HashSet())
 
         /** List of [Content] elements associated with this [Ingested]. */
-        override val content: List<Content> = Collections.synchronizedList(LinkedList())
+        override val content: List<ContentElement<*>> = Collections.synchronizedList(ArrayList())
 
         /** List of [Descriptor]s with this [Ingested]. */
-        override val descriptors: List<Descriptor> = Collections.synchronizedList(LinkedList())
+        override val descriptors: List<Descriptor> = Collections.synchronizedList(ArrayList())
 
         init {
             (this.partOf as MutableSet).addAll(partOf)
@@ -54,7 +56,10 @@ interface Ingested : Retrievable {
          *
          * @param content The [Content] element to add.
          */
-        override fun addContent(content: Content) {
+        override fun addContent(content: ContentElement<*>) {
+            if (this.content.contains(content)) {
+                return
+            }
             (this.content as MutableList).add(content)
         }
 
@@ -64,14 +69,38 @@ interface Ingested : Retrievable {
          * @param descriptor The [Descriptor] element to add.
          */
         override fun addDescriptor(descriptor: Descriptor) {
+            if (this.descriptors.contains(descriptor)) {
+                return
+            }
             (this.descriptors as MutableList).add(descriptor)
         }
 
-        private val derivedContentCache: LoadingCache<DerivateName, DerivedContent> = Caffeine.newBuilder().build { name ->
-            ContentDerivers[name]?.derive(this)
+
+        /**
+         * Returns a new or existing derived content using [ContentDeriver] with specified name.
+         * If a [DerivedContent] by this deriver already exists in the list of content, it is returned.
+         * If a new [DerivedContent] is successfully generated, it is added to the content list.
+         */
+        override fun deriveContent(name: DerivateName, contentFactory: ContentFactory): DerivedContent? {
+
+            val deriver: ContentDeriver<*> = ContentDerivers[name] ?: return null
+
+            val existing = this.content.find { it is DerivedContent && it.deriverName == deriver.derivateName }
+
+            if (existing != null) {
+                return existing as DerivedContent
+            }
+
+            val derived = deriver.derive(this, contentFactory)
+
+            if (derived != null && derived is ContentElement<*>) {
+                addContent(derived)
+            }
+
+            return derived
+
         }
 
-        fun getDerivedContent(name: DerivateName): DerivedContent? = derivedContentCache[name]
         override fun toString(): String {
             return "IngestedRetrievable.Default(id=$id, transient=$transient, partOf=$partOf, parts=$parts, content=$content, descriptors=$descriptors)"
         }

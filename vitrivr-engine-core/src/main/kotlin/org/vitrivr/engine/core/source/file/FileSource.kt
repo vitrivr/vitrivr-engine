@@ -12,7 +12,7 @@ import java.nio.file.Path
  * @author Ralph Gasser
  * @version 1.0.0
  */
-@JvmRecord
+
 data class FileSource(
     val path: Path,
     val mimeType: MimeType,
@@ -23,4 +23,9 @@ data class FileSource(
 ): Source {
     override val type: MediaType
         get() = this.mimeType.mediaType
+
+    /**
+     * String representation of this [FileSource].
+     */
+    override fun toString() = "FileSource(name = $name, mime = $mimeType, type = $type, path = $path)"
 }

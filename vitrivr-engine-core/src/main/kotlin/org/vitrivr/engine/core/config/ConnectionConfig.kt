@@ -11,6 +11,6 @@ import org.vitrivr.engine.core.database.Connection
  * @author Ralph Gasser
  * @version 1.0.0
  */
-@JvmRecord
+
 @Serializable
 data class ConnectionConfig(val database: String, val parameters: Map<String,String> = emptyMap())

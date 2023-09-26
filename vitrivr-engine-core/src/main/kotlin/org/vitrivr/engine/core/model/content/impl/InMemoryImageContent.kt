@@ -1,8 +1,6 @@
 package org.vitrivr.engine.core.model.content.impl
 
-import org.vitrivr.engine.core.model.content.SourcedContent
-import org.vitrivr.engine.core.model.content.ImageContent
-import org.vitrivr.engine.core.source.Source
+import org.vitrivr.engine.core.model.content.element.ImageContent
 import java.awt.image.BufferedImage
 
 /**
@@ -13,5 +11,7 @@ import java.awt.image.BufferedImage
  * @author Luca Rossetto.
  * @version 1.0.0
  */
-@JvmRecord
-data class InMemoryImageContent(override val source: Source, override val image: BufferedImage) : ImageContent, SourcedContent
+
+data class InMemoryImageContent(private val image: BufferedImage): ImageContent {
+    override fun getContent(): BufferedImage = this.image
+}
