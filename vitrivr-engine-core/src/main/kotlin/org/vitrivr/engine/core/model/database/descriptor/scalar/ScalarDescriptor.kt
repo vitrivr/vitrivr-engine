@@ -8,6 +8,6 @@ import org.vitrivr.engine.core.model.database.descriptor.Descriptor
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface ScalarDescriptor<T> : Descriptor {
+sealed interface ScalarDescriptor<T> : Descriptor {
     val value: T
 }

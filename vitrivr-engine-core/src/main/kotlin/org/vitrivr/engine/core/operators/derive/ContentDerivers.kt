@@ -13,10 +13,6 @@ object ContentDerivers {
         }
     }
 
-    fun register(deriver: ContentDeriver<*>) {
-        registry[deriver.derivateName] = deriver
-    }
-
     operator fun get(derivateName: DerivateName): ContentDeriver<*>? = registry[derivateName]
 
 }

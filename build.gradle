@@ -43,15 +43,15 @@ subprojects {
 
     /* Common plugins. */
     apply plugin: 'java'
-    apply plugin: 'kotlin'
     apply plugin: 'idea'
-
+    apply plugin: 'kotlin'
+    apply plugin: 'kotlin-kapt'
 
     /* Java Version */
-	sourceCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
 
-    tasks.withType(KotlinCompile).all {
+    tasks.withType(KotlinCompile).configureEach {
         kotlinOptions {
             jvmTarget = "17"
         }
@@ -82,7 +82,6 @@ subprojects {
         implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: version_log4j2
         implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: version_log4j2
         implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j2-impl', version: version_log4j2
-
 
         /* Kotlin & Kotlinx */
         implementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: version_kotlin

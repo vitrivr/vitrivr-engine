@@ -1,6 +1,6 @@
 package org.vitrivr.engine.core.operators.ingest
 
-import org.vitrivr.engine.core.model.content.Content
+import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.model.database.retrievable.Retrievable
@@ -18,7 +18,7 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface Extractor<C : Content, D : Descriptor> : Operator.Unary<Ingested, Ingested> {
+interface Extractor<C : ContentElement<*>, D : Descriptor> : Operator.Unary<Ingested, Ingested> {
     /** The [Schema.Field] populated by this [Extractor]. */
     val field: Schema.Field<C, D>
 

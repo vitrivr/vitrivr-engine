@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.vitrivr.engine.core.model.color.MutableRGBFloatColorContainer
 import org.vitrivr.engine.core.model.color.RGBFloatColorContainer
-import org.vitrivr.engine.core.model.content.ImageContent
+import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithContent

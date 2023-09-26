@@ -9,7 +9,7 @@ import org.vitrivr.engine.core.model.database.descriptor.Descriptor
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface VectorDescriptor<T> : Descriptor {
+sealed interface VectorDescriptor<T> : Descriptor {
     /** The size of this [VectorDescriptor]. */
     val dimensionality: Int
         get() = this.vector.size

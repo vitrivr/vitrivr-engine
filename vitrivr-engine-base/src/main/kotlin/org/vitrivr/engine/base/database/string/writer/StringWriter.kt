@@ -41,4 +41,8 @@ open class StringWriter<T : Persistable>(outputStream: OutputStream, private val
     override fun delete(item: T): Boolean {
         throw UnsupportedOperationException("StringWriter is append only")
     }
+
+    override fun deleteAll(items: Iterable<T>): Boolean {
+        throw UnsupportedOperationException("StringWriter is append only")
+    }
 }

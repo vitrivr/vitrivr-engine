@@ -53,6 +53,10 @@ open class RGBFloatColorContainer(open val red: Float, open val green: Float, op
 
     fun toList() = listOf(this.red, this.green, this.blue)
 
+    fun distanceTo(other: RGBFloatColorContainer): Float = sqrt(
+        (this.red - other.red) * (this.red - other.red) + (this.green - other.green) * (this.green - other.green) + (this.blue - other.blue) * (this.blue - other.blue)
+    )
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is RGBFloatColorContainer) return false

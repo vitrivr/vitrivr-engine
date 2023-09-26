@@ -1,13 +1,11 @@
 package org.vitrivr.engine.core.database
 
 import org.vitrivr.engine.core.database.descriptor.DescriptorInitializer
-import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
 import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
-import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
-import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.metamodel.Analyser
+import org.vitrivr.engine.core.model.metamodel.Schema
 
 /**
  * An abstract implementation of the [Connection] interface.
@@ -19,13 +17,13 @@ import org.vitrivr.engine.core.model.metamodel.Analyser
 abstract class AbstractConnection(override val schemaName: String, private val provider: ConnectionProvider): Connection {
 
     /** An internal [Map] of registered [Reader], [Writer] and [Initializer] instances. */
-    private val readers: Map<Schema.Field<*,Descriptor>,DescriptorReader<Descriptor>> = HashMap()
+    private val readers: Map<Schema.Field<*, Descriptor>, DescriptorReader<*>> = HashMap()
 
     /** An internal [Map] of registered [Reader], [Writer] and [Initializer] instances. */
-    private val writers: Map<Schema.Field<*,Descriptor>,DescriptorWriter<Descriptor>> = HashMap()
+    private val writers: Map<Schema.Field<*, Descriptor>, DescriptorWriter<*>> = HashMap()
 
     /** */
-    private val initializers: Map<Schema.Field<*,Descriptor>,DescriptorInitializer<Descriptor>> = HashMap()
+    private val initializers: Map<Schema.Field<*, Descriptor>, DescriptorInitializer<*>> = HashMap()
 
     /**
      * Initializes the database layer with the [Schema] used by this [Connection].

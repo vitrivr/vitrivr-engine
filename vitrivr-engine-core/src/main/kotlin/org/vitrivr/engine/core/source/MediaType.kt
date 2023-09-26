@@ -1,7 +1,5 @@
 package org.vitrivr.engine.core.source
 
-import kotlin.enums.EnumEntries
-
 /**
  * An enumeration of the supported [MediaType]s.
  *
@@ -22,9 +20,7 @@ enum class MediaType {
     MESH,
 
     /** Not a valid media type*/
-    NONE
-
-    ;
+    NONE;
 
     companion object {
         val allValid = entries.filter { it != NONE }.toSet()
