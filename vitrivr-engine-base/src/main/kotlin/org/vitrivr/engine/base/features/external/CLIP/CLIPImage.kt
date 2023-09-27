@@ -1,22 +1,13 @@
 package org.vitrivr.engine.base.features.external.CLIP
 
-import org.vitrivr.engine.base.features.averagecolor.AverageColor
-import org.vitrivr.engine.base.features.averagecolor.AverageColorExtractor
 import org.vitrivr.engine.base.features.external.ExternalImageFeature
-import org.vitrivr.engine.core.model.color.MutableRGBFloatColorContainer
-import org.vitrivr.engine.core.model.color.RGBByteColorContainer
-import org.vitrivr.engine.core.model.color.RGBFloatColorContainer
-import org.vitrivr.engine.core.model.content.ImageContent
-import org.vitrivr.engine.core.model.content.SourcedContent
+import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.util.DescriptorList
 import org.vitrivr.engine.core.model.util.toDescriptorList
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.Extractor
-import org.vitrivr.engine.core.operators.retrieve.Retriever
-import org.vitrivr.engine.core.util.extension.getRGBArray
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -48,7 +39,7 @@ class CLIPImage(
         //TODO request to get feature vector
         val path = "placeholder.jpg"
         val out = File(path)
-        ImageIO.write(it.image, "jpg", out)
+        ImageIO.write(it.getContent(), "jpg", out)
 
         val url = URL(DEFAULT_API_ENDPOINT + QUERY + path)
         val conn: HttpURLConnection = url.openConnection() as HttpURLConnection

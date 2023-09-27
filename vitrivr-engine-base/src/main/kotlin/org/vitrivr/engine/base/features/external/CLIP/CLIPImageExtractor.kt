@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import org.vitrivr.engine.base.features.external.ExternalImageExtractor
-import org.vitrivr.engine.core.model.content.ImageContent
+import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithContent
@@ -44,7 +44,7 @@ class CLIPImageExtractor(
 
                 val path = "placeholder.jpg"
                 val out = File(path)
-                ImageIO.write(content[0].image, "jpg", out)
+                ImageIO.write(content[0].getContent(), "jpg", out)
 
 
                 val url = URL(DEFAULT_API_ENDPOINT + QUERY + path)
