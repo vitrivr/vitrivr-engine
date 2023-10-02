@@ -2,9 +2,9 @@ package org.vitrivr.engine.core.operators.ingest.templates
 
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.OperatorFactory
+import org.vitrivr.engine.core.operators.ingest.ExtractorFactory
 
-class DummyExtractorFactory : OperatorFactory.ExtractorFactory {
+class DummyExtractorFactory : ExtractorFactory {
 
     var input: Operator<Ingested>? = null
 
