@@ -20,7 +20,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  */
 class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig) {
 
-    private var enumerator : Enumerator? = null
+    private var enumerator : Enumerator
 
     init {
         assert(pipelineConfig.schema == schema.name) {
@@ -32,16 +32,15 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
             it.javaClass.name == "${it.javaClass.packageName}.${enumeratorConfig.name}Factory"
         }
             ?: throw IllegalArgumentException("Failed to find Enumerator implementation for '${enumeratorConfig.name}'."))
-            .createOperator()
-        logger.info { "Enumerator: ${this.enumerator!!.javaClass.name}" }
+            .newOperator(enumeratorConfig.parameters)
+        logger.info { "Enumerator: ${this.enumerator.javaClass.name}" }
 
         val decoderConfig = enumeratorConfig.decoder
         val decoder = (ServiceLoader.load(DecoderFactory::class.java).find {
             it.javaClass.name == "${it.javaClass.packageName}.${decoderConfig.name}Factory"
         }
             ?: throw IllegalArgumentException("Failed to find Decoder implementation for '${decoderConfig.name}'."))
-            .setSource(this.enumerator!!)
-            .createOperator()
+            .newOperator(this.enumerator, decoderConfig.parameters)
         logger.info { "Decoder: ${decoder.javaClass.name}" }
 
 
@@ -50,8 +49,7 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
             it.javaClass.name == "${it.javaClass.packageName}.${transformerConfig.name}Factory"
         }
             ?: throw IllegalArgumentException("Failed to find Transformer implementation for '${transformerConfig.name}'."))
-            .setSource(decoder)
-            .createOperator()
+            .newOperator(decoder, transformerConfig.parameters)
         logger.info { "Transformer: ${transformer.javaClass.name}" }
 
 
@@ -61,8 +59,7 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
                 it.javaClass.name == "${it.javaClass.packageName}.${segmenterConfig.name}Factory"
             }
                 ?: throw IllegalArgumentException("Failed to find Segmenter implementation for '${segmenterConfig.name}'."))
-                .setSource(transformer)
-                .createOperator()
+                .newOperator(transformer, segmenterConfig.parameters)
             logger.info { "Segmenter: ${segmenter.javaClass.name}" }
 
             val extractorsConfig = segmenterConfig.extractors
@@ -71,8 +68,7 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
                     it.javaClass.name == "${it.javaClass.packageName}.${extractorConfig.name}Factory"
                 }
                     ?: throw IllegalArgumentException("Failed to find Extractor implementation for '${extractorConfig.name}'."))
-                    .setSource(segmenter)
-                    .createOperator()
+                    .newOperator(segmenter, extractorConfig.parameters)
                 logger.info { "Extractor: ${extractor.javaClass.name}" }
             }
         }
@@ -80,7 +76,7 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
     }
 
     fun getPipeline(): Enumerator {
-        return this.enumerator!!
+        return this.enumerator
     }
 
     companion object {

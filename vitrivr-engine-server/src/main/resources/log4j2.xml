@@ -26,6 +26,8 @@
     <!-- Here one can set up, for each package individually, which level will be logged -->
     <logger name="org.vitrivr.engine.base" level="TRACE" additivity="true">
     </logger>
+    <logger name="sandbox" level="TRACE" additivity="true">
+    </logger>
     <logger name="org.vitrivr.engine.core" level="TRACE" additivity="true">
     </logger>
     <logger name="org.vitrivr.engine.index" level="TRACE" additivity="true">
