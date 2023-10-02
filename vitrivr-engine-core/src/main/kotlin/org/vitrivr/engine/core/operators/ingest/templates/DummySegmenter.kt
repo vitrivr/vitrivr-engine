@@ -38,6 +38,7 @@ class DummySegmenter(input: Operator<ContentElement<*>>, val parameters: Map<Str
         val retrievable = Ingested.Default(transient = false, type = "segment", content = mutableListOf(it))
         downstream.send(retrievable)
         logger.info { "Performed PassThrough Segmenter with options ${parameters} on ${input}" }
+        finish(downstream)
     }
 
     override suspend fun finish(downstream: ProducerScope<Ingested>) {

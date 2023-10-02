@@ -31,6 +31,7 @@ class DummyExtractor(
         get() = TODO("Not yet implemented")
 
     override fun toFlow(scope: CoroutineScope): Flow<Ingested> {
+        val input = this@DummyExtractor.input.toFlow(scope)
         return channelFlow { logger.info { "Performed Dummy Extractor with options ${parameters} on ${input}" } }
     }
 }

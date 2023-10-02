@@ -24,6 +24,7 @@ class DummyTransformer(
     val parameters: Map<String, Any>
 ) : Transformer {
     override fun toFlow(scope: CoroutineScope): Flow<ContentElement<*>> {
+        val input = this@DummyTransformer.input.toFlow(scope)
         return channelFlow { logger.info { "Performed Dummy Transformer with options ${parameters} on ${input}" } }
     }
 }
