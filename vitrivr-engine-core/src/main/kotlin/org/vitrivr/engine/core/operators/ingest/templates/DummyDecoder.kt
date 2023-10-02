@@ -20,6 +20,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  */
 class DummyDecoder(override val input: Operator<Source>) : Decoder {
     override fun toFlow(scope: CoroutineScope): Flow<ContentElement<*>> {
+        this.input.toFlow(scope)
         return channelFlow { logger.info { "Performed Dummy Decoder with options" } }
     }
 }
