@@ -14,6 +14,7 @@ import org.vitrivr.engine.core.operators.ingest.templates.*
 import org.vitrivr.engine.index.execution.ExecutionServer
 import org.vitrivr.engine.index.pipeline.PipelineBuilder
 import org.vitrivr.engine.server.config.ServerConfig
+import sandbox.SandboxCli
 import java.nio.file.Paths
 import kotlin.system.exitProcess
 
@@ -104,38 +105,7 @@ class SchemaCommand(private val schema: Schema) : NoOpCliktCommand(
 
     inner class Extract : CliktCommand(name = "extract", help = "Extracts data from a source and stores it in the schema.") {
         override fun run() {
-            val executionServer = ExecutionServer();
-
-            val schema = this@SchemaCommand.schema;
-            val pipeline = PipelineConfig.read(Paths.get(PipelineConfig.DEFAULT_PIPELINE_PATH)) ?: exitProcess(1)
-            assert(schema.name.equals(pipeline.schema, ignoreCase = true)) { "Pipeline schema '${pipeline.schema}' does not match schema '${schema.name}'." }
-            logger.trace { "Successfully initialized schema '${schema.name}' and pipeline '${pipeline.schema}'."}
-
-            val enumerator = DummyEnumerator()
-            val decoder = DummyDecoder(enumerator)
-            val transformer = DummyTransformer(decoder)
-            val segmenter = DummySegmenter(transformer)
-            val extractor = DummyExtractor(segmenter)
-
-            // Logging Test TODO: Remove
-            logger.trace { "Trace" }
-            logger.debug { "Debug" }
-            logger.info { "Info" }
-            logger.warn { "Warn" }
-            logger.error { "Error" }
-
-            // Operators test TODO: Remove
-//            executionServer.addOperator(enumerator)
-//            executionServer.addOperator(decoder)
-//            executionServer.addOperator(transformer)
-//            executionServer.addOperator(segmenter)
-//            executionServer.addOperator(extractor)
-
-            val pipelineBuilder = PipelineBuilder.forConfig(schema, pipeline)
-
-            executionServer.addOperatorPipeline(pipelineBuilder)
-            executionServer.execute()
-            executionServer.shutdown()
+           SandboxCli.extarctionSandbox(schema = this@SchemaCommand.schema)
         }
     }
 }
