@@ -125,13 +125,13 @@ class SchemaCommand(private val schema: Schema) : NoOpCliktCommand(
             logger.error { "Error" }
 
             // Operators test TODO: Remove
-            executionServer.addOperator(enumerator)
-            executionServer.addOperator(decoder)
-            executionServer.addOperator(transformer)
-            executionServer.addOperator(segmenter)
-            executionServer.addOperator(extractor)
+//            executionServer.addOperator(enumerator)
+//            executionServer.addOperator(decoder)
+//            executionServer.addOperator(transformer)
+//            executionServer.addOperator(segmenter)
+//            executionServer.addOperator(extractor)
 
-            val pipelineBuilder = PipelineBuilder(schema, pipeline)
+            val pipelineBuilder = PipelineBuilder.forConfig(schema, pipeline)
 
             executionServer.addOperatorPipeline(pipelineBuilder)
             executionServer.execute()
