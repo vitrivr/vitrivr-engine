@@ -2,6 +2,7 @@ package org.vitrivr.engine.index.execution
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.takeWhile
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.AbstractSegmenter
@@ -46,7 +47,7 @@ class ExecutionServer {
 
     fun execute() = runBlocking {
         val scope = CoroutineScope(this@ExecutionServer.dispatcher)
-        val jobs = this@ExecutionServer.operators.map { e -> scope.launch { e.toFlow(scope).takeWhile { it != AbstractSegmenter.TerminalIngestedRetrievable }.collect() } }
+        val jobs = this@ExecutionServer.operators.map { e -> scope.launch { e.toFlow(scope).take(10).collect()} }
         jobs.forEach { it.join() }
     }
 
