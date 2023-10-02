@@ -19,6 +19,6 @@ private val logger: KLogger = KotlinLogging.logger {}
  */
 class DummyEnumerator(val parameters: Map<String,Any> ) : Enumerator {
     override fun toFlow(scope: CoroutineScope): Flow<Source> {
-        return channelFlow { logger.info { "Performed Dummy Enumerator with options" } }
+        return channelFlow { logger.info { "Performed Dummy Enumerator with options ${parameters}" } }
     }
 }
