@@ -23,7 +23,7 @@ class DummyDecoder(
     val parameters: Map<String, Any>
 ) : Decoder {
     override fun toFlow(scope: CoroutineScope): Flow<ContentElement<*>> {
-        this.input.toFlow(scope)
+        val input = this@DummyDecoder.input.toFlow(scope)
         return channelFlow { logger.info { "Performed Dummy Decoder with ${parameters} on ${input}" } }
     }
 }
