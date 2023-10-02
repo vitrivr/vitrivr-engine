@@ -19,8 +19,11 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @author Raphael Waltenspül
  * @version 1.0
  */
-class DummyTransformer(override val input: Operator<ContentElement<*>>) : Transformer {
+class DummyTransformer(
+    override val input: Operator<ContentElement<*>>,
+    val parameters: Map<String, Any>
+) : Transformer {
     override fun toFlow(scope: CoroutineScope): Flow<ContentElement<*>> {
-        return channelFlow { logger.info { "Performed Dummy Transformer with options" } }
+        return channelFlow { logger.info { "Performed Dummy Transformer with options ${parameters} on ${input}" } }
     }
 }
