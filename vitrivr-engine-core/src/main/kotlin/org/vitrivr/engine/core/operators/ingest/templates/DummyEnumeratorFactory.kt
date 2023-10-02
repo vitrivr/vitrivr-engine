@@ -1,8 +1,7 @@
 package org.vitrivr.engine.core.operators.ingest.templates
+import org.vitrivr.engine.core.operators.ingest.EnumeratorFactory
 
-import org.vitrivr.engine.core.operators.OperatorFactory
-
-class DummyEnumeratorFactory : OperatorFactory.EnumeratorFactory {
+class DummyEnumeratorFactory : EnumeratorFactory {
 
     override fun createOperator(): DummyEnumerator {
         return DummyEnumerator()

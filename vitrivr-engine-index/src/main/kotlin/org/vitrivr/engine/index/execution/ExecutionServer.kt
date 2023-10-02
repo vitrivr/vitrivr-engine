@@ -24,6 +24,7 @@ class ExecutionServer {
 
     private val operators: MutableList<Operator<*>> = mutableListOf()
 
+
     /**
      * Executes an extraction job using a [List] of [Extractor]s.
      *
@@ -40,7 +41,7 @@ class ExecutionServer {
     }
 
     fun addOperatorPipeline(operatorPipeline: PipelineBuilder){
-
+        this.operators.add(operatorPipeline.getPipeline())
     }
 
     fun execute() = runBlocking {
