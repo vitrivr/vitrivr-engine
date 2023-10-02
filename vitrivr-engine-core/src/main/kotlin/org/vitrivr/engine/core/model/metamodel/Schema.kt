@@ -10,6 +10,7 @@ import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.model.util.DescriptorList
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.ingest.Exporter
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.io.Closeable
@@ -27,6 +28,8 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
 
     /** The [List] of [Field]s contained in this [Schema]. */
     private val fields: MutableList<Schema.Field<ContentElement<*>,Descriptor>> = mutableListOf()
+
+    private val exportData: MutableList<ExportData<ContentElement<*>>> = mutableListOf()
 
     /**
      * Adds a new [Field] to this [Schema].
@@ -64,6 +67,9 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
      * Closes this [Schema] and the associated database [Connection].
      */
     override fun close() = this.connection.close()
+    fun addExportData(name: String, exporter: Exporter, parameters: Map<String, String>) {
+        this.exportData.add(ExportData(name, exporter))
+    }
 
     /**
      * A [Field] that is part of a [Schema].
@@ -134,5 +140,12 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
          * @return [DescriptorWriter]
          */
         fun getWriter(): DescriptorWriter<D> = this@Schema.connection.getDescriptorWriter(this as Field<*,D>)
+    }
+
+    inner class ExportData<C:ContentElement<*>>(val name: String, val exporter: Exporter){
+        val schema: Schema
+            get() = this@Schema
+
+
     }
 }

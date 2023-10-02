@@ -5,6 +5,7 @@ import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
+import org.vitrivr.engine.core.operators.ingest.Exporter
 import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -28,6 +29,8 @@ class SchemaManager {
     /** A [Map] of all available [Analyser]s. These are loaded upon initialization of the class. */
     private val analysers: Map<String, Analyser<*, *>> = HashMap()
 
+    private val exporters: Map<String, Exporter> = HashMap()
+
     init {
         /* Reload analysers. */
         (this.analysers as MutableMap<String, Analyser<*, *>>).clear()
@@ -36,6 +39,15 @@ class SchemaManager {
                 /* TODO: Log warning! */
             }
             this.analysers[a.analyserName] = a
+        }
+
+        /* Reload exporters. */
+        (this.exporters as MutableMap<String, Exporter>).clear()
+        for (e in ServiceLoader.load(Exporter::class.java)) {
+            if (this.exporters.containsKey(e.exporterName)) {
+                /* TODO: Log warning! */
+            }
+            this.exporters[e.exporterName] = e
         }
     }
 
@@ -62,10 +74,16 @@ class SchemaManager {
             @Suppress("UNCHECKED_CAST")
             schema.addField(it.name, this.getAnalyserForName(it.analyser) as Analyser<ContentElement<*>, Descriptor>, it.parameters)
         }
+        config.exportData.map{
+            @Suppress("UNCHECKED_CAST")
+            schema.addExportData(it.name, this.getExporterForName(it.exporter), it.parameters)
+        }
 
         /* Cache and return connection. */
         this.schemas[schema.name] = schema
     }
+
+     fun getExporterForName(name: String): Exporter = this.exporters[name] ?: throw IllegalStateException("Failed to find exporter implementation for name '$name'.")
 
 
     /**

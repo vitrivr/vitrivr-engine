@@ -12,6 +12,9 @@
       "fields": [
         {"name": "averagecolor1", "analyser": "AverageColor"},
         {"name": "averagecolor2", "analyser": "AverageColor"}
+      ],
+      "exportData": [
+        {"name": "thumbnail", "exporter": "ThumbnailExporter", "parameters": {}}
       ]
     }
   ]

@@ -15,8 +15,18 @@ class ThumbnailExporter(
         private val location: String = "./thumbnails",
         private val maxSideResolution: Int = 100,
         private val format: String = "jpg",
-        override val input: Operator<Ingested>
+        override val input: Operator<Ingested>,
+        override val exporterName: String = "ThumbnailExporter"
 ) : Exporter {
+
+    companion object{
+        fun fromConfig(config: Map<String, String>): ThumbnailExporter {
+            val location = config["location"] ?: "./thumbnails"
+            val maxSideResolution = config["maxSideResolution"]?.toInt() ?: 100
+            val format = config["format"] ?: "jpg"
+            return ThumbnailExporter(location, maxSideResolution, format)
+        }
+    }
 
     override fun toFlow(scope: CoroutineScope) : Flow<Ingested> {
         val contentfactory = InMemoryContentFactory()

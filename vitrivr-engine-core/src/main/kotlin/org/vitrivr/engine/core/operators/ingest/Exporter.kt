@@ -12,4 +12,6 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface Exporter: Operator.Unary<Ingested, Ingested>
+interface Exporter: Operator.Unary<Ingested, Ingested> {
+    val exporterName : String
+}
