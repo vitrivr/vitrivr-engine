@@ -14,4 +14,13 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  */
 
 @Serializable
-data class SchemaConfig(val name: String = "vitrivr", val connection: ConnectionConfig, val fields: List<FieldConfig>)
+data class SchemaConfig(
+        /** Name of the [Schema]. */
+        val name: String = "vitrivr",
+
+        val connection: ConnectionConfig,
+
+        val fields: List<FieldConfig>,
+
+        val exportData: List<ExportDataConfig>
+)

@@ -4,11 +4,12 @@ import io.javalin.http.Context
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiResponse
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.server.api.rest.model.ErrorStatus
 
 @OpenApi(
-        path = "/api/{schema}/preview/{uuid}",
-        summary = "Return the preview of a retrievable.",
+        path = "/api/{schema}/fetch/{exportData}/{retrievable}",
+        summary = "Fetch previously exported data.",
         operationId = "getPreview",
         tags = ["Content"],
         pathParams = [],
@@ -17,6 +18,6 @@ import org.vitrivr.engine.server.api.rest.model.ErrorStatus
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)])
         ]
 )
-fun getPreview() { //what should be the parameters?
+fun getPreview(ctx: Context, schema: Schema, exportDataName: String, retrievableID: String) { //what should be the parameters?
     TODO()
 }
