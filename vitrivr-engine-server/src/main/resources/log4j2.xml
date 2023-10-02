@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+  <Properties>
+    <Property name="loggingPattern">[%d{MM-dd HH:mm:ss.SSS}][%-5level][%t] %C{1} - %msg%n</Property>
+  </Properties>
+  <Appenders>
+    <!-- Here one can set up which log level will be shown in console. Further one can configure the colors -->
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout disableAnsi="false"
+        pattern="%highlight{%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %p %c{0} - %msg%n}{ERROR=Red, WARN=Yellow, INFO=Green, DEBUG=Blue, TRACE=Blue}"/>
+      <ThresholdFilter level="${env:CINEAST_LOG_LEVEL:-INFO}" onMatch="ACCEPT" onMismatch="DENY"/>
+    </Console>
+    <!-- Here one can set up which log level will be stores in a file. Further one can configure the colors -->
+    <RollingFile name="File">
+      <FileName>logs/cineast.log</FileName>
+      <FilePattern>logs/%d{yyyy-MM-dd-hh}-%i.log.zip</FilePattern>
+      <PatternLayout pattern="${loggingPattern}"/>
+      <Policies>
+        <SizeBasedTriggeringPolicy size="5000 KB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="5"/>
+      <ThresholdFilter level="TRACE" onMatch="ACCEPT" onMismatch="DENY"/>
+    </RollingFile>
+  </Appenders>
+  <Loggers>
+    <!-- Here one can set up, for each package individually, which level will be logged -->
+    <logger name="org.vitrivr.engine.base" level="TRACE" additivity="true">
+    </logger>
+    <logger name="sandbox" level="TRACE" additivity="true">
+    </logger>
+    <logger name="org.vitrivr.engine.core" level="TRACE" additivity="true">
+    </logger>
+    <logger name="org.vitrivr.engine.index" level="TRACE" additivity="true">
+    </logger>
+    <logger name="org.vitrivr.engine.query" level="TRACE" additivity="true">
+    </logger>
+    <logger name="org.vitrivr.engine.server" level="TRACE" additivity="true" >
+    </logger>
+    <!-- Root is fall back config if no matching logger is found -->
+    <Root level="TRACE">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="File"/>
+    </Root>
+  </Loggers>
+</Configuration>
