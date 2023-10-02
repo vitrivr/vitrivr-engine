@@ -1,83 +1,99 @@
 package org.vitrivr.engine.index.pipeline
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.vitrivr.engine.core.config.pipelineConfig.PipelineConfig
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.OperatorFactory
+import org.vitrivr.engine.core.operators.ingest.*
+import java.util.*
 import kotlin.reflect.KClass
+
+private val logger: KLogger = KotlinLogging.logger {}
+
 
 /**
  *
  * @author Ralph Gasser
  * @version 1.0
  */
-class PipelineBuilder(private val schema: Schema) {
+class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig) {
 
-    companion object {
-        /**
-         * Creates a new [PipelineBuilder] using the provided [Schema].
-         *
-         * @param schema The [Schema] to create a [PipelineBuilder] for.
-         */
-        fun forSchema(schema: Schema) = PipelineBuilder(schema)
-    }
+    private var enumerator : Enumerator
+    private var opertors : MutableList<Operator<*>> = mutableListOf()
 
-    /** The [Enumerator] instance this [PipelineBuilder] is pointing to. */
-    private var child: Enumerator? = null
+    init {
+        assert(pipelineConfig.schema == schema.name) {
+            "Pipeline  name ${pipelineConfig.schema} does not match schema name ${schema.name}"
+        }
 
-    /**
-     * Appends an [Enumerator] to the [PipelineBuilder].
-     *
-     * @param enumerator The [KClass] specifying the [org.vitrivr.engine.core.operators.ingest.Enumerator].
-     * @param parameters A [Map] of parameters.
-     * @return [PipelineBuilder.Enumerator]
-     */
-    fun withEnumerator(enumerator: KClass<org.vitrivr.engine.core.operators.ingest.Enumerator>, parameters: Map<String, Any>): PipelineBuilder.Enumerator {
-        this.child = Enumerator(enumerator, parameters)
-        return this.child!!
-    }
+        val enumeratorConfig = pipelineConfig.enumerator
+        this.enumerator = (ServiceLoader.load(EnumeratorFactory::class.java).find {
+            it.javaClass.name == "${it.javaClass.packageName}.${enumeratorConfig.name}Factory"
+        }
+            ?: throw IllegalArgumentException("Failed to find Enumerator implementation for '${enumeratorConfig.name}'."))
+            .newOperator(enumeratorConfig.parameters)
+        opertors.add(this.enumerator)
+        logger.info { "Enumerator: ${this.enumerator.javaClass.name}" }
 
-    /**
-     * An [Enumerator] stage in the pipeline described by the surrounding [PipelineBuilder].
-     */
-    inner class Enumerator internal constructor(private val enumerator: KClass<org.vitrivr.engine.core.operators.ingest.Enumerator>, private val parameters: Map<String, Any>) {
+        val decoderConfig = enumeratorConfig.decoder
+        val decoder = (ServiceLoader.load(DecoderFactory::class.java).find {
+            it.javaClass.name == "${it.javaClass.packageName}.${decoderConfig.name}Factory"
+        }
+            ?: throw IllegalArgumentException("Failed to find Decoder implementation for '${decoderConfig.name}'."))
+            .newOperator(this.enumerator, decoderConfig.parameters)
+        opertors.add(decoder)
+        logger.info { "Decoder: ${decoder.javaClass.name}" }
 
-        /** The (child) [Decoder] instance this [PipelineBuilder.Enumerator] is pointing to. */
-        private var child: Decoder? = null
 
-        /**
-         * Appends an [Decoder] to the [Enumerator].
-         *
-         * @param decoder The [KClass] specifying the [org.vitrivr.engine.core.operators.ingest.Enumerator].
-         * @param parameters A [Map] of parameters.
-         * @return [PipelineBuilder.Enumerator]
-         */
-        fun withDecoder(decoder: KClass<org.vitrivr.engine.core.operators.ingest.Decoder>, parameters: Map<String, Any>): PipelineBuilder.Decoder {
-            this.child = Decoder(decoder, parameters)
-            return this.child!!
+        val transformerConfig = decoderConfig.transformer
+        val transformer = (ServiceLoader.load(TransformerFactory::class.java).find {
+            it.javaClass.name == "${it.javaClass.packageName}.${transformerConfig.name}Factory"
+        }
+            ?: throw IllegalArgumentException("Failed to find Transformer implementation for '${transformerConfig.name}'."))
+            .newOperator(decoder, transformerConfig.parameters)
+        opertors.add(transformer)
+        logger.info { "Transformer: ${transformer.javaClass.name}" }
+
+
+        val segmentersConfig = transformerConfig.segmenters
+        segmentersConfig.forEach { segmenterConfig ->
+            val segmenter = (ServiceLoader.load(SegmenterFactory::class.java).find {
+                it.javaClass.name == "${it.javaClass.packageName}.${segmenterConfig.name}Factory"
+            }
+                ?: throw IllegalArgumentException("Failed to find Segmenter implementation for '${segmenterConfig.name}'."))
+                .newOperator(transformer, segmenterConfig.parameters)
+                opertors.add(segmenter)
+            logger.info { "Segmenter: ${segmenter.javaClass.name}" }
+
+            val extractorsConfig = segmenterConfig.extractors
+            extractorsConfig.forEach { extractorConfig ->
+                val extractor = (ServiceLoader.load(ExtractorFactory::class.java).find {
+                    it.javaClass.name == "${it.javaClass.packageName}.${extractorConfig.name}Factory"
+                }
+                    ?: throw IllegalArgumentException("Failed to find Extractor implementation for '${extractorConfig.name}'."))
+                    .newOperator(segmenter, extractorConfig.parameters)
+                logger.info { "Extractor: ${extractor.javaClass.name}" }
+                opertors.add(extractor)
+            }
         }
 
     }
 
-    /**
-     * An [Decoder] stage in the pipeline described by the surrounding [PipelineBuilder].
-     */
-    inner class Decoder internal constructor(private val enumerator: KClass<org.vitrivr.engine.core.operators.ingest.Decoder>, private val parameters: Map<String, Any>) {
+    fun getPipeline(): Enumerator {
+        return this.enumerator
+    }
 
-        /** The (child) [Decoder] instance this [PipelineBuilder.Enumerator] is pointing to. */
-        private var child: Transformer? = null
 
+    companion object {
         /**
-         * Appends an [Decoder] to the [Enumerator].
+         * Creates a new [PipelineBuilder] using the provided [Schema] and [PipelineConfig].
          *
-         * @param decoder The [KClass] specifying the [org.vitrivr.engine.core.operators.ingest.Enumerator].
-         * @param parameters A [Map] of parameters.
-         * @return [PipelineBuilder.Enumerator]
+         * @param schema The [Schema] to create a [PipelineBuilder] for
+         * @param
          */
-        fun withTransformer(decoder: KClass<org.vitrivr.engine.core.operators.ingest.Decoder>, parameters: Map<String, Any>) = Decoder(decoder, parameters)
+        fun forConfig(schema: Schema, pipelineConfig: PipelineConfig) = PipelineBuilder(schema, pipelineConfig)
     }
 
-    /**
-     *
-     */
-    inner class Transformer internal constructor(private val enumerator: KClass<org.vitrivr.engine.core.operators.ingest.Transformer>, private val parameters: Map<String, Any>) {
-
-    }
 }
