@@ -1,6 +1,7 @@
 package org.vitrivr.engine.core.config
 
 import kotlinx.serialization.Serializable
+import org.vitrivr.engine.core.config.pipelineConfig.PipelineConfig
 import org.vitrivr.engine.core.model.metamodel.Schema
 
 
