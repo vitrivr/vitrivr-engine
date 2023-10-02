@@ -4,7 +4,4 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.OperatorFactory
 
-interface TransformerFactory : OperatorFactory {
-    override fun createOperator(): Transformer
-    fun setSource(source: Operator<ContentElement<*>>): TransformerFactory
-}
+interface TransformerFactory : OperatorFactory<Operator<ContentElement<*>>,Transformer>

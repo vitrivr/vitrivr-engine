@@ -17,7 +17,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @author Raphael Waltenspül
  * @version 1.0
  */
-class DummyEnumerator() : Enumerator {
+class DummyEnumerator(val parameters: Map<String,Any> ) : Enumerator {
     override fun toFlow(scope: CoroutineScope): Flow<Source> {
         return channelFlow { logger.info { "Performed Dummy Enumerator with options" } }
     }

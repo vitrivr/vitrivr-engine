@@ -18,9 +18,12 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @author Raphael Waltenspül
  * @version 1.0
  */
-class DummyDecoder(override val input: Operator<Source>) : Decoder {
+class DummyDecoder(
+    override val input: Operator<Source>,
+    val parameters: Map<String, Any>
+) : Decoder {
     override fun toFlow(scope: CoroutineScope): Flow<ContentElement<*>> {
         this.input.toFlow(scope)
-        return channelFlow { logger.info { "Performed Dummy Decoder with options" } }
+        return channelFlow { logger.info { "Performed Dummy Decoder with ${parameters} on ${input}" } }
     }
 }

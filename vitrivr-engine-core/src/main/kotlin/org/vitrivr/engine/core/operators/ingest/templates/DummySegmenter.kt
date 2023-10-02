@@ -15,6 +15,7 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.AbstractSegmenter
 import org.vitrivr.engine.core.operators.ingest.Segmenter
 import org.vitrivr.engine.core.operators.ingest.Transformer
+import javax.crypto.spec.RC2ParameterSpec
 
 
 private val logger: KLogger = KotlinLogging.logger {}
@@ -25,7 +26,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @author
  * @version 1.0.0
  */
-class DummySegmenter(input: Operator<ContentElement<*>>) : AbstractSegmenter(input) {
+class DummySegmenter(input: Operator<ContentElement<*>>, val parameters: Map<String, Any>) : AbstractSegmenter(input) {
 
     /**
      * Segments by creating a [Ingested] for every incoming [Content] element, attaching that [Content] element to the [Ingested].
@@ -36,7 +37,7 @@ class DummySegmenter(input: Operator<ContentElement<*>>) : AbstractSegmenter(inp
     override suspend fun segment(upstream: Flow<ContentElement<*>>, downstream: ProducerScope<Ingested>) = upstream.collect {
         val retrievable = Ingested.Default(transient = false, type = "segment", content = mutableListOf(it))
         downstream.send(retrievable)
-        logger.info { "Performed PassThrough Segmenter with options" }
+        logger.info { "Performed PassThrough Segmenter with options ${parameters} on ${input}" }
     }
 
     override suspend fun finish(downstream: ProducerScope<Ingested>) {
