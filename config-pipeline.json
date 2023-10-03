@@ -1,40 +1,40 @@
 {
       "schema": "vitrivr",
       "enumerator": {
-        "name": "DummyEnumerator", "type": "Enumerator", "parameters": {"path": "c://"},
+        "name": "DummyEnumerator", "type": "Enumerator", "parameters": {"name": "N1", "timeout": "0"},
         "decoder": {
-          "name": "DummyDecoder", "type": "Decoder", "parameters": {"name": "0", "name2": "0"},
+          "name": "DummyDecoder", "type": "Decoder", "parameters": {"name": "N1->D1", "timeout": "0"},
           "transformer": {
             "name": "DummyTransformer", "type": "Transformer",  "parameters": {},
             "segmenters": [
               {
-                "name": "DummySegmenter", "type": "Segmenter", "parameters": {"name": "A"},
+                "name": "DummySegmenter", "type": "Segmenter", "parameters": {"name": "N1->D1->S1"},
                 "extractors": [
-                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "A"},
+                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "N1->D1->S1->X1"},
                     "extractors": [
-                      {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "A1"},
+                      {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "N1->D1->S1->X1->X11"},
                         "extractors": [
-                          {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "A11"}}
+                          {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "N1->D1->S1->X1->X111"}}
                         ]
                       }
                     ]
                   },
-                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "B"}},
-                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "C"}}
+                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "N1->D1->S1->X2"}},
+                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "N1->D1->S1->X3"}}
                 ]
               },
               {
-                "name": "DummySegmenter", "type": "Segmenter", "parameters": {"name": "b"},
+                "name": "DummySegmenter", "type": "Segmenter", "parameters": {"name": "N1->D1->S2"},
                 "extractors": [
-                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "B"}},
-                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "C"}}
+                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "N1->D1->S2->X1"}},
+                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "N1->D1->S2->X2"}}
                 ]
               },
               {
-                "name": "DummySegmenter", "type": "Segmenter", "parameters": {"name": "c"},
+                "name": "DummySegmenter", "type": "Segmenter", "parameters": {"name": "N1->D1->S3"},
                 "extractors": [
-                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "A"}},
-                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "C"}}
+                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "N1->D1->S3->X1"}},
+                  {"name": "DummyExtractor", "type": "Extractor", "parameters": {"name": "N1->D1->S3->X2"}}
                 ]
               }
             ]
