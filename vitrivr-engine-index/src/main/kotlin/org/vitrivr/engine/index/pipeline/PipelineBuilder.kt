@@ -68,20 +68,12 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
                 it.javaClass.name == "${it.javaClass.packageName}.${segmenterConfig.name}Factory"
             }
                 ?: throw IllegalArgumentException("Failed to find Segmenter implementation for '${segmenterConfig.name}'."))
-<<<<<<< Updated upstream
-                .newOperator(transformer, segmenterConfig.parameters)
-<<<<<<< Updated upstream
-=======
-                opertors.add(segmenter)
-=======
                 .newOperator(parent, segmenterConfig.parameters)
 
             if (segmenterConfig.extractors.isEmpty()) {
                 throw IllegalArgumentException("Segmenter '${segmenterConfig.name}' must have at least one extractor.")
             }
             this.addExtractor(segmenter, segmenterConfig.extractors)
->>>>>>> Stashed changes
->>>>>>> Stashed changes
             logger.info { "Segmenter: ${segmenter.javaClass.name}" }
         }
     }
@@ -93,27 +85,10 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
             }
                 ?: throw IllegalArgumentException("Failed to find Extractor implementation for '${extractorConfig.name}'."))
                 .newOperator(parent, extractorConfig.parameters)
-
-<<<<<<< Updated upstream
-            val extractorsConfig = segmenterConfig.extractors
-            extractorsConfig.forEach { extractorConfig ->
-                val extractor = (ServiceLoader.load(ExtractorFactory::class.java).find {
-                    it.javaClass.name == "${it.javaClass.packageName}.${extractorConfig.name}Factory"
-                }
-                    ?: throw IllegalArgumentException("Failed to find Extractor implementation for '${extractorConfig.name}'."))
-                    .newOperator(segmenter, extractorConfig.parameters)
-                logger.info { "Extractor: ${extractor.javaClass.name}" }
-<<<<<<< Updated upstream
-                leaves.add(extractor)
-=======
-                opertors.add(extractor)
-=======
             if (extractorConfig.extractors.isNotEmpty()) {
                 this.addExtractor(extractor, extractorConfig.extractors)
             } else{
                 leaves.add(extractor)
->>>>>>> Stashed changes
->>>>>>> Stashed changes
             }
             logger.info { "Extractor: ${extractor.javaClass.name}" }
         }
