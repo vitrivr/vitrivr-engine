@@ -37,7 +37,8 @@ class SandboxCli {
                 DummyTransformerFactory().newOperator(decoder, mapOf("transformerKey" to "transformerValue"))
             val segmenter = DummySegmenterFactory().newOperator(transformer, mapOf("segmenterKey" to "segmenterValue"))
             val extractor = DummyExtractorFactory().newOperator(segmenter, mapOf("extractorKey" to "extractorValue"))
-            val exporter = DummyExporterFactory().newOperator(extractor, mapOf("exporterKey" to "exporterValue"))
+            val resolver = DummyResolverFactory().newOperator(mapOf("resolverKey" to "resolverValue"))
+            val exporter = DummyExporterFactory().newOperator(extractor, mapOf("exporterKey" to "exporterValue"), resolver)
 
             // Logging Test
             logger.trace { "Trace is set" }
