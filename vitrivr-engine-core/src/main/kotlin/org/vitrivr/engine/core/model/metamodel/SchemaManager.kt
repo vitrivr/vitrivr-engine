@@ -5,7 +5,7 @@ import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
-import java.util.*
+import org.vitrivr.engine.core.util.extension.loadServiceForName
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -25,20 +25,6 @@ class SchemaManager {
     /** A [ReentrantReadWriteLock] to mediate concurrent access to this class. */
     private val lock = ReentrantReadWriteLock()
 
-    /** A [Map] of all available [Analyser]s. These are loaded upon initialization of the class. */
-    private val analysers: Map<String, Analyser<*, *>> = HashMap()
-
-    init {
-        /* Reload analysers. */
-        (this.analysers as MutableMap<String, Analyser<*, *>>).clear()
-        for (a in ServiceLoader.load(Analyser::class.java)) {
-            if (this.analysers.containsKey(a.analyserName)) {
-                /* TODO: Log warning! */
-            }
-            this.analysers[a.analyserName] = a
-        }
-    }
-
     /**
      * Loads the [SchemaConfig] with this [SchemaManager].
      *
@@ -51,9 +37,8 @@ class SchemaManager {
         }
 
         /* Find connection provider for connection. */
-        val connectionProvider = ServiceLoader.load(ConnectionProvider::class.java).find {
-            it.databaseName == config.connection.database
-        } ?: throw IllegalArgumentException("Failed to find connection provider implementation for '${config.connection.database}'.")
+        val connectionProvider = loadServiceForName<ConnectionProvider>(config.connection.database)
+            ?: throw IllegalArgumentException("Failed to find connection provider implementation for '${config.connection.database}'.")
 
         /* Create new connection using reflection. */
         val connection = connectionProvider.openConnection(config.name, config.connection.parameters)
@@ -74,7 +59,7 @@ class SchemaManager {
      * @param name [String]
      * @return [Analyser] or null, if no [Analyser] exists for given name.
      */
-    fun getAnalyserForName(name: String): Analyser<*, *> = this.analysers[name] ?: throw IllegalStateException("Failed to find analyser implementation for name '$name'.")
+    fun getAnalyserForName(name: String): Analyser<*, *> = loadServiceForName<Analyser<*, *>>(name) ?: throw IllegalStateException("Failed to find analyser implementation for name '$name'.")
 
     /**
      * Lists all [Schema] managed by this [SchemaManager].
