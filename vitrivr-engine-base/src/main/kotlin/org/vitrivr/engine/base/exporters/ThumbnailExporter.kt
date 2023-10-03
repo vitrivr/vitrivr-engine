@@ -3,30 +3,22 @@ package org.vitrivr.engine.base.exporters
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.vitrivr.engine.base.resolvers.ImageOnDiskResolver
+import org.vitrivr.engine.base.resolvers.ResolvableImage
 import org.vitrivr.engine.core.content.impl.InMemoryContentFactory
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithContent
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Exporter
-import java.io.File
+import org.vitrivr.engine.core.operators.ingest.Resolver
+import java.awt.image.BufferedImage
 
 class ThumbnailExporter(
-        private val location: String = "./thumbnails",
         private val maxSideResolution: Int = 100,
-        private val format: String = "jpg",
         override val input: Operator<Ingested>,
-        override val exporterName: String = "ThumbnailExporter"
+        private val resolver : Resolver = ImageOnDiskResolver(),
 ) : Exporter {
-
-    companion object{
-        fun fromConfig(config: Map<String, String>): ThumbnailExporter {
-            val location = config["location"] ?: "./thumbnails"
-            val maxSideResolution = config["maxSideResolution"]?.toInt() ?: 100
-            val format = config["format"] ?: "jpg"
-            return ThumbnailExporter(location, maxSideResolution, format)
-        }
-    }
 
     override fun toFlow(scope: CoroutineScope) : Flow<Ingested> {
         val contentfactory = InMemoryContentFactory()
@@ -35,18 +27,16 @@ class ThumbnailExporter(
                 val content = retrievable.deriveContent("MostRepresentativeFrame", contentfactory)
                 if (content is ImageContent) {
                     val scaleFactor = if (content.getWidth() > content.getHeight()) {
-                        maxSideResolution / content.getWidth()
+                        maxSideResolution.toFloat() / content.getWidth()
                     } else {
-                        maxSideResolution / content.getHeight()
+                        maxSideResolution.toFloat() / content.getHeight()
                     }
                     val thumbnail = content.getContent().getScaledInstance(
                             (content.getWidth() * scaleFactor).toInt(),
                             (content.getHeight() * scaleFactor).toInt(),
                             java.awt.Image.SCALE_SMOOTH
                     )
-                    val thumbnailFile = File("$location/${content.hashCode()}.${format}")
-                    thumbnailFile.mkdirs()
-                    javax.imageio.ImageIO.write(thumbnail as java.awt.image.BufferedImage, format, thumbnailFile)
+                    this.resolver.saveBufferedImage(retrievable.id, thumbnail as BufferedImage)
                 }
             }
             retrievable
