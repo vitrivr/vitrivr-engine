@@ -21,13 +21,6 @@ import kotlin.reflect.KClass
  * @version 1.0.0
  */
 interface Analyser<C: ContentElement<*>, D: Descriptor> {
-    /**
-     * The type name of this [Analyser] instance. Is connected to the type of description derived by this [Analyser] (implementation).
-     *
-     * By default, the implementing class's fully-qualified name is used as [analyserName].
-     */
-    val analyserName: String
-
     /** The [KClass] of the [ContentElement] accepted by this [Analyser].  */
     val contentClass: KClass<C>
 
