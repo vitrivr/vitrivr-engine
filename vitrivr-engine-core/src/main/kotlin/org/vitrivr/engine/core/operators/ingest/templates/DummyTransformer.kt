@@ -5,7 +5,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.map
 import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.operators.ingest.Transformer
@@ -24,7 +26,9 @@ class DummyTransformer(
     val parameters: Map<String, Any>
 ) : Transformer {
     override fun toFlow(scope: CoroutineScope): Flow<ContentElement<*>> {
-        val input = this@DummyTransformer.input.toFlow(scope)
-        return channelFlow { logger.info { "Performed Dummy Transformer with options ${parameters} on ${input}" } }
+        return this.input.toFlow(scope).map { value: ContentElement<*> ->
+            logger.info { "Performed Dummy Transformer with options ${parameters} on ${value}" }
+            value
+        }
     }
 }
