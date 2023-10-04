@@ -12,11 +12,11 @@
     </Console>
     <!-- Here one can set up which log level will be stores in a file. Further one can configure the colors -->
     <RollingFile name="File">
-      <FileName>logs/cineast.log</FileName>
+      <FileName>logs/engine-server.log</FileName>
       <FilePattern>logs/%d{yyyy-MM-dd-hh}-%i.log.zip</FilePattern>
       <PatternLayout pattern="${loggingPattern}"/>
       <Policies>
-        <SizeBasedTriggeringPolicy size="5000 KB"/>
+        <SizeBasedTriggeringPolicy size="2560 KB"/>
       </Policies>
       <DefaultRolloverStrategy max="5"/>
       <ThresholdFilter level="TRACE" onMatch="ACCEPT" onMismatch="DENY"/>

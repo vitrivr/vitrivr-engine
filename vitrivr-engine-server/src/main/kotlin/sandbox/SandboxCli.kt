@@ -2,6 +2,13 @@ package sandbox
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.serialization.descriptors.PrimitiveKind
 import org.vitrivr.engine.core.config.pipelineConfig.PipelineConfig
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.Operator
@@ -9,6 +16,7 @@ import org.vitrivr.engine.core.operators.ingest.EnumeratorFactory
 import org.vitrivr.engine.core.operators.ingest.templates.*
 import org.vitrivr.engine.index.execution.ExecutionServer
 import org.vitrivr.engine.index.pipeline.PipelineBuilder
+import sandbox.SandboxCli.Companion.runSandboxes
 import java.nio.file.Paths
 import kotlin.system.exitProcess
 
@@ -60,5 +68,34 @@ class SandboxCli {
             executionServer.shutdown()
             logger.info { "Finished extraction sandbox for schema '${schema.name}'." }
         }
+
+        fun flowSandbox(name: String, timeMillis: Long, multiplyer: (Int) -> (Double) = { 1.0 }) = runBlocking<Unit> {
+            // Kotlin Flows Introduction
+            // https://kotlinlang.org/docs/flow.html
+
+            val flow: Flow<String> = flow { // flow builder
+                for (ic in 1..5) {
+                    delay(Math.round(timeMillis * multiplyer(ic))) // pretend we are doing something useful here
+                    emit("$name $ic") // emit next value
+                }
+            }
+            flow.collect { value -> println(value) }
+        }
+
+        fun runSandboxes() = runBlocking<Unit> {
+            launch {
+                SandboxCli.flowSandbox("Flow Sandbox A", 100)
+            }
+            launch {
+                SandboxCli.flowSandbox("Flow Sandbox B", 200)
+            }
+            withTimeoutOrNull(250) { // Timeout after 250ms
+                SandboxCli.flowSandbox("Flow Sandbox B", 200, { value -> Math.log(value.toDouble()) })
+            }
+        }
     }
+}
+
+fun main(args: Array<String>) {
+    runSandboxes()
 }
