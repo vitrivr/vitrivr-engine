@@ -35,7 +35,7 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
             it.javaClass.name == "${it.javaClass.packageName}.${enumeratorConfig.name}Factory"
         }
             ?: throw IllegalArgumentException("Failed to find Enumerator implementation for '${enumeratorConfig.name}'."))
-            .newOperator(enumeratorConfig.parameters)
+            .newOperator(enumeratorConfig.parameters, schema)
 
         logger.info { "Enumerator: ${enumerator.javaClass.name}" }
 
@@ -44,7 +44,7 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
             it.javaClass.name == "${it.javaClass.packageName}.${decoderConfig.name}Factory"
         }
             ?: throw IllegalArgumentException("Failed to find Decoder implementation for '${decoderConfig.name}'."))
-            .newOperator(enumerator, decoderConfig.parameters)
+            .newOperator(enumerator, decoderConfig.parameters, schema)
 
         logger.info { "Decoder: ${decoder.javaClass.name}" }
 
@@ -54,7 +54,7 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
             it.javaClass.name == "${it.javaClass.packageName}.${transformerConfig.name}Factory"
         }
             ?: throw IllegalArgumentException("Failed to find Transformer implementation for '${transformerConfig.name}'."))
-            .newOperator(decoder, transformerConfig.parameters)
+            .newOperator(decoder, transformerConfig.parameters, schema)
 
         logger.info { "Transformer: ${transformer.javaClass.name}" }
 
@@ -68,7 +68,7 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
                 it.javaClass.name == "${it.javaClass.packageName}.${segmenterConfig.name}Factory"
             }
                 ?: throw IllegalArgumentException("Failed to find Segmenter implementation for '${segmenterConfig.name}'."))
-                .newOperator(parent, segmenterConfig.parameters)
+                .newOperator(parent, segmenterConfig.parameters, schema)
 
             if (segmenterConfig.extractors.isEmpty()) {
                 throw IllegalArgumentException("Segmenter '${segmenterConfig.name}' must have at least one extractor.")
@@ -84,7 +84,7 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
                 it.javaClass.name == "${it.javaClass.packageName}.${extractorConfig.name}Factory"
             }
                 ?: throw IllegalArgumentException("Failed to find Extractor implementation for '${extractorConfig.name}'."))
-                .newOperator(parent, extractorConfig.parameters)
+                .newOperator(parent, extractorConfig.parameters, schema)
             if (extractorConfig.extractors.isNotEmpty()) {
                 this.addExtractor(extractor, extractorConfig.extractors)
             } else{

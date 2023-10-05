@@ -6,4 +6,4 @@ import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.OperatorFactory
 
-interface ExtractorFactory : OperatorFactory<Operator<Ingested>, Extractor<ContentElement<*>, Descriptor>>
+interface ExtractorFactory<C: ContentElement<*>, D: Descriptor> : OperatorFactory<Operator<Ingested>, Extractor<C, D>>
