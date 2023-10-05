@@ -39,13 +39,13 @@ class SandboxCli {
             logger.trace { "Successfully initialized schema '${schema.name}' and pipeline '${pipeline.schema}'." }
 
             val enumerator =
-                DummyEnumeratorFactory().newOperator(mapOf("enumeratorKey" to "enumeratorValue"))
-            val decoder = DummyDecoderFactory().newOperator(enumerator, mapOf("decoderKey" to "decoderValue"))
+                DummyEnumeratorFactory().newOperator(mapOf("enumeratorKey" to "enumeratorValue"), schema)
+            val decoder = DummyDecoderFactory().newOperator(enumerator, mapOf("decoderKey" to "decoderValue"), schema)
             val transformer =
-                DummyTransformerFactory().newOperator(decoder, mapOf("transformerKey" to "transformerValue"))
-            val segmenter = DummySegmenterFactory().newOperator(transformer, mapOf("segmenterKey" to "segmenterValue"))
-            val extractor = DummyExtractorFactory().newOperator(segmenter, mapOf("extractorKey" to "extractorValue"))
-            val exporter = DummyExporterFactory().newOperator(extractor, mapOf("exporterKey" to "exporterValue"))
+                DummyTransformerFactory().newOperator(decoder, mapOf("transformerKey" to "transformerValue"),   schema)
+            val segmenter = DummySegmenterFactory().newOperator(transformer, mapOf("segmenterKey" to "segmenterValue"), schema)
+            val extractor = DummyExtractorFactory().newOperator(segmenter, mapOf("extractorKey" to "extractorValue"), schema)
+            val exporter = DummyExporterFactory().newOperator(extractor, mapOf("exporterKey" to "exporterValue"), schema)
 
             // Logging Test
             logger.trace { "Trace is set" }
