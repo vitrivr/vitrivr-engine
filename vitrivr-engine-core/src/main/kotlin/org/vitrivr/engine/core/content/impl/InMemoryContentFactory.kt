@@ -10,7 +10,8 @@ import org.vitrivr.engine.core.model.content.impl.InMemoryTextContent
 import java.awt.image.BufferedImage
 import java.nio.ShortBuffer
 
-class InMemoryContentFactory : ContentFactory {
+class
+InMemoryContentFactory : ContentFactory {
 
     override fun newImageContent(bufferedImage: BufferedImage): ImageContent = InMemoryImageContent(bufferedImage)
 
