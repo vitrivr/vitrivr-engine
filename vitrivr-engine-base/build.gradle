@@ -7,4 +7,6 @@ dependencies {
     /** gRPC and Protobuf. */
     implementation group: 'io.grpc', name: 'grpc-all', version: version_grpc
     implementation group: 'com.google.protobuf', name: 'protobuf-java', version: version_protobuf
+
+    implementation("com.sksamuel.scrimage:scrimage-core:4.1.0")
 }

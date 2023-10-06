@@ -3,7 +3,8 @@ package org.vitrivr.engine.core.operators.ingest.templates
 import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
 import org.vitrivr.engine.core.operators.ingest.Resolvable
 import org.vitrivr.engine.core.operators.ingest.Resolver
-import java.awt.image.BufferedImage
+import org.vitrivr.engine.core.source.file.MimeType
+import java.io.OutputStream
 
 class DummyResolver : Resolver {
     /***
@@ -12,19 +13,13 @@ class DummyResolver : Resolver {
      * @author Fynn Faber
      * @version 1.0
      */
-    override fun resolve(id: RetrievableId): Resolvable {
-        return object : Resolvable {
-            override fun toDataUrl(): String {
-                return "dummy"
-            }
-        }
+    override fun resolve(id: RetrievableId): Resolvable? {
+        return null
     }
 
-    override fun saveBufferedImage(id: RetrievableId, img: BufferedImage) {
-        // do nothing
+    override fun getOutputStream(id: RetrievableId, mimeType: MimeType): OutputStream {
+        return OutputStream.nullOutputStream()
     }
 
-    override fun saveAny(id: RetrievableId, any: Any) {
-        // do nothing
-    }
+
 }

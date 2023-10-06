@@ -169,7 +169,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
 
         private fun getExporter(input: Operator<Ingested>): org.vitrivr.engine.core.operators.ingest.Exporter = this.exporterFactory.newOperator(input, this.exporterParameters, this.getResolver()) // TODO: Do we even need the schema to manage exporters if we have resolvers?
 
-        fun resolve(id: RetrievableId): Resolvable = this.getResolver().resolve(id)
+        fun resolve(id: RetrievableId): Resolvable? = this.getResolver().resolve(id)
 
     }
 }
