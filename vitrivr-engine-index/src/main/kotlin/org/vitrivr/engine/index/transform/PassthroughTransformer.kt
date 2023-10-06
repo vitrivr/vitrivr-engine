@@ -23,7 +23,7 @@ class PassthroughTransformer(
 ) : Transformer {
     override fun toFlow(scope: CoroutineScope): Flow<ContentElement<*>> {
         return this.input.toFlow(scope).map { value: ContentElement<*> ->
-            logger.info { "Performed Dummy Transformer with options ${parameters} on ${value}" }
+            logger.info { "Passes through ${value}" }
             value
         }
     }

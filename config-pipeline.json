@@ -1,16 +1,37 @@
 {
   "schema": "vitrivr",
   "enumerator": {
-    "name": "FileSystemEnumerator", "type": "Enumerator", "parameters": {"name": "N1", "timeout": "0"},
+    "name": "FileSystemEnumerator", "type": "Enumerator",
+    "parameters": {
+      "path": "C:/Users/walten0000/Documents/myRepo/ch.unibas/Work/vitrivr-engine/v3c-minimal-example",
+      "depth": "1",
+      "mediaTypes": "VIDEO"
+    },
     "decoder": {
-      "name": "VideoDecoder", "type": "Decoder", "parameters": {"name": "N1->D1", "timeout": "0"},
+      "name": "VideoDecoder", "type": "Decoder",
+      "parameters": {
+        "contentFactory": "inMemoryContentFactory",
+        "video": "true",
+        "audio": "true"
+      },
       "transformer": {
-        "name": "PassthroughTransformer", "type": "Transformer",  "parameters": {},
+        "name": "PassthroughTransformer", "type": "Transformer",
+        "parameters": {
+        },
         "segmenters": [
           {
-            "name": "FixedDurationSegmenter", "type": "Segmenter", "parameters": {"name": "N1->D1->S1"},
+            "name": "FixedDurationSegmenter", "type": "Segmenter",
+            "parameters": {
+              "retrievableWriter": "RetrievableWriter",
+              "duration": "1",
+              "lookAheadTime": "1"
+            },
             "extractors": [
-              {"name": "AverageColorExtractor", "type": "Extractor", "parameters": {"name": "N1->D1->S1->X1"}}
+              {"name": "AverageColorExtractor", "type": "Extractor",
+                "parameters": {
+                  "field": "averagecolor1",
+                  "persisting": "true"
+                }}
             ]
           }
         ]
