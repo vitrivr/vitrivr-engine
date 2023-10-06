@@ -19,12 +19,15 @@ import org.vitrivr.engine.server.api.rest.model.ErrorStatus
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)])
         ]
 )
-fun fetchExportData(ctx: Context, schema: Schema, exporterName: String, retrievableIdString: String) { //what should be the parameters?
-    val retrievableId = retrievableIdString as RetrievableId
-    val data = schema.getExporter(exporterName)?.resolve(retrievableId)
-    if (data == null) {
+fun fetchExportData(ctx: Context, schema: Schema) {
+    val exporterName = ctx.pathParam("exporter")
+    val retrievableIdString = ctx.pathParam("retrievable")
+    val retrievableId = RetrievableId.fromString(retrievableIdString)
+    val resolvable = schema.getExporter(exporterName)?.resolve(retrievableId)
+    if (resolvable == null) {
         ctx.status(404)
         return
     }
-    ctx.json(data.toDataUrl())
+    ctx.result(resolvable.inputStream)
+    ctx.contentType(resolvable.mimeType.mimeType)
 }

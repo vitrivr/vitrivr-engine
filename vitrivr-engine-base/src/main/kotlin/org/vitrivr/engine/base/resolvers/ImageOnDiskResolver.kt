@@ -3,23 +3,24 @@ package org.vitrivr.engine.base.resolvers
 import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
 import org.vitrivr.engine.core.operators.ingest.Resolvable
 import org.vitrivr.engine.core.operators.ingest.Resolver
+import org.vitrivr.engine.core.source.file.MimeType
 import java.awt.image.BufferedImage
 import java.io.File
+import java.io.OutputStream
 import javax.imageio.ImageIO
 
-class ImageOnDiskResolver(val format: ImageResolverFormat = ImageResolverFormat.JPG, val location: String = "./thumbnails") : Resolver {
-    override fun resolve(id: RetrievableId): Resolvable {
-        val thumbnailFile = File("$location/${id}.${format.value}")
-        return ResolvableImage(ImageIO.read(thumbnailFile))
-    }
+class DiskResolver(val location: String = "./thumbnails") : Resolver {
+    override fun resolve(id: RetrievableId): Resolvable? {
+            val directory = File(location)
+            val file = directory.listFiles { _, name -> name.startsWith(id.toString()) }?.firstOrNull()
+            val mimeType = file?.let { MimeType.getMimeType(it) } ?: return null
+            return Resolvable(mimeType, file.inputStream())
+        }
 
-    override fun saveBufferedImage(id: RetrievableId, img: BufferedImage) {
-        val thumbnailFile = File("$location/${id}.${format.value}")
+    override fun getOutputStream(id: RetrievableId, mimeType: MimeType): OutputStream {
+        val thumbnailFile = File("$location/${id}.${mimeType.fileExtension}")
         thumbnailFile.mkdirs()
-        javax.imageio.ImageIO.write(img, format.value, thumbnailFile)
+        return thumbnailFile.outputStream()
     }
 
-    override fun saveAny(id: RetrievableId, any: Any) {
-        throw IllegalArgumentException("ImageOnDiskResolver is designed specifically for image resolution. Received an unsupported type: ${any::class.java.name}. Please check your configuration.")
-    }
 }

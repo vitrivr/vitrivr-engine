@@ -5,6 +5,7 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Exporter
 import org.vitrivr.engine.core.operators.ingest.ExporterFactory
 import org.vitrivr.engine.core.operators.ingest.Resolver
+import org.vitrivr.engine.core.source.file.MimeType
 
 class ThumbnailExporterFactory : ExporterFactory {
 
@@ -12,6 +13,7 @@ class ThumbnailExporterFactory : ExporterFactory {
 
     override fun newOperator(input: Operator<Ingested>, parameters: Map<String, Any>, resolver: Resolver): Exporter {
         val maxSideResolution = parameters["maxSideResolution"] as? Int ?: 100
-        return ThumbnailExporter(input = input, maxSideResolution = maxSideResolution, resolver = resolver)
+        val mimeType = parameters["mimeType"] as? MimeType ?: MimeType.JPG
+        return ThumbnailExporter(input = input, maxSideResolution = maxSideResolution, resolver = resolver, mimeType = mimeType)
     }
 }

@@ -48,9 +48,8 @@ fun configureApiRoutes(config: ApiConfig, manager: SchemaManager, retrievalRunti
                         path(":exporter") {
                             path(":retrievable") {
                                 post { ctx ->
-                                    val exporter = ctx.pathParam("exporter")
-                                    val retrievableId = ctx.pathParam("retrievable")
-                                    fetchExportData(ctx, schema, exporter, retrievableId)
+
+                                    fetchExportData(ctx, schema)
                                 }
                             }
                         }
