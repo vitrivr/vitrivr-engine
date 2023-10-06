@@ -22,12 +22,23 @@ import org.vitrivr.engine.server.api.rest.model.ErrorStatus
 fun fetchExportData(ctx: Context, schema: Schema) {
     val exporterName = ctx.pathParam("exporter")
     val retrievableIdString = ctx.pathParam("retrievable")
-    val retrievableId = RetrievableId.fromString(retrievableIdString)
+
+    val retrievableId: RetrievableId
+    try {
+        retrievableId = RetrievableId.fromString(retrievableIdString)
+    } catch (e: IllegalArgumentException) {
+        ctx.status(400)
+        ctx.json(ErrorStatus("Invalid retrievable ID."))
+        return
+    }
+
     val resolvable = schema.getExporter(exporterName)?.resolve(retrievableId)
     if (resolvable == null) {
         ctx.status(404)
+        ctx.json(ErrorStatus("No data found."))
         return
     }
+
     ctx.result(resolvable.inputStream)
     ctx.contentType(resolvable.mimeType.mimeType)
 }

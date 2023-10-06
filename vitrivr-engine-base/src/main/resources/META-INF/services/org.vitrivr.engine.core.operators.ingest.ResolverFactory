@@ -1,1 +1,1 @@
-org.vitrivr.engine.base.resolvers.ImageOnDiskResolverFactory
+org.vitrivr.engine.base.resolvers.DiskResolverFactory
