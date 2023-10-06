@@ -50,7 +50,7 @@ class VideoDecoder(override val input: Operator<Source>, private val contentFact
         return channelFlow {
             val channel = this
             input.collect { source ->
-                val grabber = FFmpegFrameGrabber(source.inputStream, 0)
+                val grabber = FFmpegFrameGrabber(source.inputStream)
                 try {
                     grabber.start()
                     var frame = grabber.grabFrame(this@VideoDecoder.video, this@VideoDecoder.audio, true, false, true)

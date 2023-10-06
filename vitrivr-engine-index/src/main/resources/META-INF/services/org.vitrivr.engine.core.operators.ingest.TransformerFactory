@@ -1,1 +1,2 @@
 org.vitrivr.engine.core.operators.ingest.templates.DummyTransformerFactory
+org.vitrivr.engine.index.transform.PassthroughTransformerFactory
