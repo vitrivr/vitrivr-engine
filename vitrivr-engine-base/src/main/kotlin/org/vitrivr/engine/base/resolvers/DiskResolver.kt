@@ -4,10 +4,8 @@ import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
 import org.vitrivr.engine.core.operators.ingest.Resolvable
 import org.vitrivr.engine.core.operators.ingest.Resolver
 import org.vitrivr.engine.core.source.file.MimeType
-import java.awt.image.BufferedImage
 import java.io.File
 import java.io.OutputStream
-import javax.imageio.ImageIO
 
 class DiskResolver(val location: String = "./thumbnails") : Resolver {
     override fun resolve(id: RetrievableId): Resolvable? {

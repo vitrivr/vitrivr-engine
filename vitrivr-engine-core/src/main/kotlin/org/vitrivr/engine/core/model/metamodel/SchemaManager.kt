@@ -8,6 +8,7 @@ import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.operators.ingest.ExporterFactory
 import org.vitrivr.engine.core.operators.ingest.ResolverFactory
 import java.util.*
+import org.vitrivr.engine.core.util.extension.loadServiceForName
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -77,9 +78,8 @@ class SchemaManager {
         }
 
         /* Find connection provider for connection. */
-        val connectionProvider = ServiceLoader.load(ConnectionProvider::class.java).find {
-            it.databaseName == config.connection.database
-        } ?: throw IllegalArgumentException("Failed to find connection provider implementation for '${config.connection.database}'.")
+        val connectionProvider = loadServiceForName<ConnectionProvider>(config.connection.database)
+            ?: throw IllegalArgumentException("Failed to find connection provider implementation for '${config.connection.database}'.")
 
         /* Create new connection using reflection. */
         val connection = connectionProvider.openConnection(config.name, config.connection.parameters)
@@ -120,7 +120,7 @@ class SchemaManager {
      * @param name [String]
      * @return [Analyser] or null, if no [Analyser] exists for given name.
      */
-    fun getAnalyserForName(name: String): Analyser<*, *> = this.analysers[name] ?: throw IllegalStateException("Failed to find analyser implementation for name '$name'.")
+    fun getAnalyserForName(name: String): Analyser<*, *> = loadServiceForName<Analyser<*, *>>(name) ?: throw IllegalStateException("Failed to find analyser implementation for name '$name'.")
 
     /**
      * Lists all [Schema] managed by this [SchemaManager].

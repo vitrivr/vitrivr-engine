@@ -7,7 +7,8 @@ import org.vitrivr.engine.core.operators.ingest.EnumeratorFactory
 import org.vitrivr.engine.core.source.Source
 
 class DummyEnumeratorFactory : EnumeratorFactory {
-    override fun newOperator(parameters: Map<String, Any>): Enumerator {
+    override fun newOperator(parameters: Map<String, Any>, schema:Schema): Enumerator {
+
         return DummyEnumerator(parameters)
     }
 }
