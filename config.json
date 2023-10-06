@@ -3,7 +3,7 @@
     {
       "name": "vitrivr",
       "connection": {
-        "database": "Cottontail DB",
+        "database": "CottontailConnectionProvider",
         "parameters": {
           "host": "127.0.0.1",
           "port": "1865"

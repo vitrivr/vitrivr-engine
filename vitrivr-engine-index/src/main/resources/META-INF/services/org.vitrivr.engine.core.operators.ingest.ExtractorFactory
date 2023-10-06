@@ -1,0 +1,2 @@
+org.vitrivr.engine.core.operators.ingest.templates.DummyExtractorFactory
+org.vitrivr.engine.index.extract.AverageColorExtractorFactory

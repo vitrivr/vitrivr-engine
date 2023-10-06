@@ -1,0 +1,36 @@
+{
+  "entity": {
+    "schema": {
+      "name": "vitrivr"
+    },
+    "name": "retrievable"
+  },
+  "columns": {
+    "name": {
+      "entity": {
+        "schema": {
+          "name": "*"
+        },
+        "name": "*"
+      },
+      "name": "retrievableId"
+    },
+    "type": "STRING",
+    "length": 4294967295
+  },
+  "columns": {
+    "name": {
+      "entity": {
+        "schema": {
+          "name": "*"
+        },
+        "name": "*"
+      },
+      "name": "type"
+    },
+    "type": "STRING",
+    "length": 4294967295,
+    "nullable": true
+  },
+  "mayExist": true
+}

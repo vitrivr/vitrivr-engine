@@ -20,7 +20,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class AverageColor: Analyser<ImageContent,FloatVectorDescriptor> {
+class AverageColor: Analyser<ImageContent, FloatVectorDescriptor> {
     override val contentClass = ImageContent::class
     override val descriptorClass = FloatVectorDescriptor::class
 
