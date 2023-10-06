@@ -14,7 +14,7 @@
         {"name": "averagecolor2", "analyser": "AverageColor"}
       ],
       "exporters": [
-        {"name": "thumbnail", "exporterFactory": "ThumbnailExporterFactory", "exporterParameters": {}, "resolverFactory" :  "ImageOnDiskResolverFactory", "resolverParameters": {}}
+        {"name": "thumbnail", "exporterFactory": "ThumbnailExporter", "exporterParameters": {}, "resolverFactory" :  "DiskResolver", "resolverParameters": {}}
       ]
     }
   ]
