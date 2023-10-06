@@ -4,21 +4,9 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.jakewharton.picnic.table
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
-import org.vitrivr.engine.core.config.pipelineConfig.PipelineConfig
 import org.vitrivr.engine.core.database.Initializer
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.operators.ingest.Extractor
-import org.vitrivr.engine.core.operators.ingest.templates.*
-import org.vitrivr.engine.index.execution.ExecutionServer
-import org.vitrivr.engine.index.pipeline.PipelineBuilder
-import org.vitrivr.engine.server.config.ServerConfig
 import sandbox.SandboxCli
-import java.nio.file.Paths
-import kotlin.system.exitProcess
-
-private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  *
@@ -67,7 +55,7 @@ class SchemaCommand(private val schema: Schema) : NoOpCliktCommand(
                     for (field in this@SchemaCommand.schema.fields()) {
                         row {
                             cell(field.fieldName)
-                            cell(field.analyser.analyserName)
+                            cell(field.analyser::class.java.simpleName)
                             cell(field.analyser.contentClass.simpleName)
                             cell(field.analyser.descriptorClass.simpleName)
                             cell(this@SchemaCommand.schema.connection.description())

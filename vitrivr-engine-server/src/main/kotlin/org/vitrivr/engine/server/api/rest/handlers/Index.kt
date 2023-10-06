@@ -14,7 +14,7 @@ import org.vitrivr.engine.server.api.rest.model.ErrorStatus
     path = "/api/{schema}/index",
     methods = [HttpMethod.POST],
     summary = "Indexes an item, adding it to the defined schema.",
-    operationId = "postExecuteQuery",
+    operationId = "postExecuteIngest",
     tags = ["Ingest"],
     pathParams = [
         OpenApiParam("schema", type = String::class, description = "The name of the schema to execute a query for.", required = true)

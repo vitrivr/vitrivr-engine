@@ -6,7 +6,7 @@ import org.vitrivr.engine.core.operators.ingest.ResolverFactory
 class DummyResolverFactory : ResolverFactory {
     override val name: String = "DummyResolver"
 
-    override fun newOperator(parameters: Map<String, Any>): Resolver {
+    override fun newResolver(parameters: Map<String, Any>): Resolver {
         return DummyResolver()
     }
 }
