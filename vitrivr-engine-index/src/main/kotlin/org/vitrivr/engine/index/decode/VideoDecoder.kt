@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ProducerScope
+import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.filter
@@ -32,7 +33,12 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class VideoDecoder(override val input: Operator<Source>, private val contentFactory: ContentFactory, private val video: Boolean = true, private val audio: Boolean = true) : Decoder {
+class VideoDecoder(
+    override val input: Operator<Source>,
+    private val contentFactory: ContentFactory,
+    private val video: Boolean = true,
+    private val audio: Boolean = true
+) : Decoder {
 
     /** The [Java2DFrameConverter] used by this [VideoDecoder] instance. */
     private val converter: Java2DFrameConverter by lazy { Java2DFrameConverter() }
@@ -55,7 +61,7 @@ class VideoDecoder(override val input: Operator<Source>, private val contentFact
                     grabber.start()
                     var frame = grabber.grabFrame(this@VideoDecoder.video, this@VideoDecoder.audio, true, false, true)
                     while (frame != null) {
-                        when(frame.type) {
+                        when (frame.type) {
                             Frame.Type.VIDEO -> emitImageContent(frame, source, channel)
                             Frame.Type.AUDIO -> emitAudioContent(frame, source, channel)
                             //Frame.Type.SUBTITLE -> TODO
@@ -83,8 +89,35 @@ class VideoDecoder(override val input: Operator<Source>, private val contentFact
     private suspend fun emitImageContent(frame: Frame, source: Source, channel: ProducerScope<ContentElement<*>>) {
         val image = this.contentFactory.newImageContent(this.converter.convert(frame))
         val timestampNs: Long = frame.timestamp * 1000 // Convert microseconds to nanoseconds
-        channel.send(VideoFrameContent(image, source, timestampNs))
+        sendOnFreeCapacity(channel, VideoFrameContent(image, source, timestampNs))
     }
+
+    private suspend fun sendOnFreeCapacity(
+        channel: ProducerScope<ContentElement<*>>,
+        videoFrameContent: VideoFrameContent,
+        retry: Int = 1
+    ) {
+        channel.trySend(videoFrameContent)
+            .onFailure {
+                logger.error(it) { "Failed to send VideoFrameContent to channel. Retry $retry" }
+                Thread.sleep(Math.pow(2.0, retry.toDouble()).toLong())
+                sendOnFreeCapacity(channel, videoFrameContent, retry + 1)
+            }
+    }
+
+    private suspend fun sendOnFreeCapacity(
+        channel: ProducerScope<ContentElement<*>>,
+        videoFrameContent: AudioFrameContent,
+        retry: Int = 1
+    ) {
+        channel.trySend(videoFrameContent)
+            .onFailure {
+                logger.error(it) { "Failed to send VideoFrameContent to channel. Retry $retry" }
+                Thread.sleep(Math.pow(2.0, retry.toDouble()).toLong())
+                sendOnFreeCapacity(channel, videoFrameContent, retry + 1)
+            }
+    }
+
 
     /**
      * Converts a [Frame] of type [Frame.Type.AUDIO] to an [AudioContent].
@@ -95,13 +128,15 @@ class VideoDecoder(override val input: Operator<Source>, private val contentFact
      */
     private suspend fun emitAudioContent(frame: Frame, source: Source, channel: ProducerScope<ContentElement<*>>) {
         for ((c, s) in frame.samples.withIndex()) {
-            val normalizedSamples = when (s)  {
+            val normalizedSamples = when (s) {
                 is ShortBuffer -> s
-                else -> { ShortBuffer.allocate(0)/* TODO: Cover other cases. */ }
+                else -> {
+                    ShortBuffer.allocate(0)/* TODO: Cover other cases. */
+                }
             }
             val timestampNs: Long = frame.timestamp * 1000 // Convert microseconds to nanoseconds
             val audio = contentFactory.newAudioContent(c, frame.sampleRate, normalizedSamples)
-            channel.send(AudioFrameContent(audio, source, timestampNs))
+            sendOnFreeCapacity(channel,AudioFrameContent(audio, source, timestampNs))
         }
     }
 
@@ -111,7 +146,8 @@ class VideoDecoder(override val input: Operator<Source>, private val contentFact
      * @see ImageContent
      * @see SourcedContent.Temporal
      */
-    class VideoFrameContent(image: ImageContent, override val source: Source, override val timepointNs: Long): ImageContent by image, SourcedContent.Temporal
+    class VideoFrameContent(image: ImageContent, override val source: Source, override val timepointNs: Long) :
+        ImageContent by image, SourcedContent.Temporal
 
     /**
      * An internal class that represents a single frame of a video.
@@ -119,5 +155,6 @@ class VideoDecoder(override val input: Operator<Source>, private val contentFact
      * @see AudioContent
      * @see SourcedContent.Temporal
      */
-    class AudioFrameContent(audio: AudioContent, override val source: Source, override val timepointNs: Long): AudioContent by audio, SourcedContent.Temporal
+    class AudioFrameContent(audio: AudioContent, override val source: Source, override val timepointNs: Long) :
+        AudioContent by audio, SourcedContent.Temporal
 }
