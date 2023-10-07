@@ -43,7 +43,7 @@ class ExecutionServer {
 
     fun execute() = runBlocking {
         val scope = CoroutineScope(this@ExecutionServer.dispatcher)
-        val jobs = this@ExecutionServer.operators.map { e -> scope.launch { e.toFlow(scope).take(1030).collect() }  }
+        val jobs = this@ExecutionServer.operators.map { e -> scope.launch { e.toFlow(scope).takeWhile() { it != AbstractSegmenter.TerminalIngestedRetrievable }.collect() } }
         jobs.forEach { it.join() }
     }
 
