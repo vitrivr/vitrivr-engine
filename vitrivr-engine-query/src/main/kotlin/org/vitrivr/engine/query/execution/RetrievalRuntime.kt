@@ -12,11 +12,13 @@ import org.vitrivr.engine.core.operators.retrieve.Aggregator
 import org.vitrivr.engine.core.operators.retrieve.Transformer
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
 import org.vitrivr.engine.query.model.api.input.InputType
+import org.vitrivr.engine.query.model.api.input.RetrievableIdInputData
 import org.vitrivr.engine.query.model.api.input.VectorInputData
 import org.vitrivr.engine.query.model.api.operator.AggregatorDescription
 import org.vitrivr.engine.query.model.api.operator.OperatorType
 import org.vitrivr.engine.query.model.api.operator.RetrieverDescription
 import org.vitrivr.engine.query.model.api.operator.TransformerDescription
+import java.util.*
 
 class RetrievalRuntime {
 
@@ -36,25 +38,40 @@ class RetrievalRuntime {
                     val inputDescription = informationNeed.inputs[operationDescription.input]
                         ?: throw IllegalArgumentException("Input '${operationDescription.input}' for operation '$operationName' not found")
 
-                    val retriever = if (inputDescription.type == InputType.VECTOR) {
-                        inputDescription as VectorInputData
+                    val retriever = when (inputDescription.type) {
+                        InputType.VECTOR -> {
+                            inputDescription as VectorInputData
 
-                        val descriptor = FloatVectorDescriptor(
-                            transient = true,
-                            vector = inputDescription.data
-                        )
+                            val descriptor = FloatVectorDescriptor(
+                                transient = true,
+                                vector = inputDescription.data
+                            )
 
-                        field.getRetriever(descriptor)
-                    } else {
-                        val cachedContent = contentCache[operationDescription.input]
-                        val content = if (cachedContent != null) {
-                            cachedContent
-                        } else {
-                            val newContent = inputDescription.toContent()
-                            contentCache[operationDescription.input] = newContent
-                            newContent
+                            field.getRetriever(descriptor)
                         }
-                        field.getRetriever(content)
+
+                        InputType.ID -> {
+
+                            val id = UUID.fromString((inputDescription as RetrievableIdInputData).id)
+
+                            val reader = field.getReader()
+                            val descriptor = reader[id] ?: throw IllegalArgumentException("No retrievable with id '$id' present in ${field.fieldName}")
+
+                            field.getRetriever(descriptor)
+
+                        }
+
+                        else -> {
+                            val cachedContent = contentCache[operationDescription.input]
+                            val content = if (cachedContent != null) {
+                                cachedContent
+                            } else {
+                                val newContent = inputDescription.toContent()
+                                contentCache[operationDescription.input] = newContent
+                                newContent
+                            }
+                            field.getRetriever(content)
+                        }
                     }
 
                     operators[operationName] = retriever
@@ -67,7 +84,8 @@ class RetrievalRuntime {
                     val input = operators[operationDescription.input]
                         ?: throw IllegalArgumentException("Operator '${operationDescription.input}' not yet defined")
 
-                    val transformer: Transformer<Retrieved, Retrieved> = TODO("TODO: get transformer based on name and initialize with input and properties")
+                    val transformer: Transformer<Retrieved, Retrieved> =
+                        TODO("TODO: get transformer based on name and initialize with input and properties")
 
                     operators[operationName] = transformer
 
