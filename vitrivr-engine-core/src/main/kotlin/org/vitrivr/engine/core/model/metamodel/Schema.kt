@@ -24,7 +24,7 @@ typealias FieldName = String
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class Schema(val name: String = "vitrivr", val connection: Connection): Closeable {
+class Schema(val name: String = "vitrivr", val connection: Connection) : Closeable {
 
     /** The [List] of [Field]s contained in this [Schema]. */
     private val fields: MutableList<Schema.Field<ContentElement<*>, Descriptor>> = mutableListOf()
@@ -37,7 +37,11 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
      *
      * @param fieldName The name of the new [Field]. Must be unique.
      */
-    fun addField(fieldName: String, analyser: Analyser<ContentElement<*>, Descriptor>, parameters: Map<String, String> = emptyMap()) {
+    fun addField(
+        fieldName: String,
+        analyser: Analyser<ContentElement<*>, Descriptor>,
+        parameters: Map<String, String> = emptyMap()
+    ) {
         this.fields.add(Field(fieldName, analyser, parameters))
     }
 
@@ -81,7 +85,13 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
     /**
      * Adds a new [Exporter] to this [Schema].
      */
-    fun addExporter(name: String, exporterFactory: ExporterFactory, exporterParameters: Map<String, Any>, resolverFactory: ResolverFactory, resolverParameters: Map<String, Any>) {
+    fun addExporter(
+        name: String,
+        exporterFactory: ExporterFactory,
+        exporterParameters: Map<String, Any>,
+        resolverFactory: ResolverFactory,
+        resolverParameters: Map<String, Any>
+    ) {
         this.exporters.add(Exporter(name, exporterFactory, exporterParameters, resolverFactory, resolverParameters))
     }
 
@@ -90,7 +100,11 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
      *
      * A [Field] always has a unique name and is backed by an existing [Analyser].
      */
-    inner class Field<C : ContentElement<*>, D : Descriptor>(val fieldName: FieldName, val analyser: Analyser<C, D>, val parameters: Map<String, String> = emptyMap()) {
+    inner class Field<C : ContentElement<*>, D : Descriptor>(
+        val fieldName: FieldName,
+        val analyser: Analyser<C, D>,
+        val parameters: Map<String, String> = emptyMap()
+    ) {
 
         /** Pointer to the [Schema] this [Field] belongs to.*/
         val schema: Schema
@@ -114,7 +128,8 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
          * @param descriptors The [Descriptor](s) that should be used with the [Retriever].
          * @return [Retriever] instance.
          */
-        fun getRetriever(descriptors: DescriptorList<D>): Retriever<C, D> = this.analyser.newRetriever(this, descriptors)
+        fun getRetriever(descriptors: DescriptorList<D>): Retriever<C, D> =
+            this.analyser.newRetriever(this, descriptors)
 
         /**
          *
@@ -161,13 +176,25 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
      *
      * An [Exporter] always has a unique name and is backed by an existing [ExporterFactory] and an existing [ResolverFactory].
      */
-    inner class Exporter(val name: String, val exporterFactory: ExporterFactory, val exporterParameters: Map<String, Any> = emptyMap(), val resolverFactory: ResolverFactory, val resolverParameters: Map<String, Any> = emptyMap()) {
+    inner class Exporter(
+        val name: String,
+        val exporterFactory: ExporterFactory,
+        val exporterParameters: Map<String, Any> = emptyMap(),
+        val resolverFactory: ResolverFactory,
+        val resolverParameters: Map<String, Any> = emptyMap()
+    ) {
         val schema: Schema
             get() = this@Schema
 
         val resolver = this.resolverFactory.newResolver(this.resolverParameters)
 
-        private fun getExporter(input: Operator<Ingested>): org.vitrivr.engine.core.operators.ingest.Exporter = this.exporterFactory.newOperator(input, this.exporterParameters, this.schema, this.resolver) // TODO: Do we even need the schema to manage exporters if we have resolvers?
+        public fun getExporter(input: Operator<Ingested>): org.vitrivr.engine.core.operators.ingest.Exporter =
+            this.exporterFactory.newOperator(
+                input,
+                this.exporterParameters,
+                this.schema,
+                this.resolver
+            ) // TODO: Do we even need the schema to manage exporters if we have resolvers?
 
         fun resolve(id: RetrievableId): Resolvable? = this.resolver.resolve(id)
 
