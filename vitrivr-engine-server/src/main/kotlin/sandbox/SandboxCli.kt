@@ -8,11 +8,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlinx.serialization.descriptors.PrimitiveKind
 import org.vitrivr.engine.core.config.pipelineConfig.PipelineConfig
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.EnumeratorFactory
 import org.vitrivr.engine.core.operators.ingest.templates.*
 import org.vitrivr.engine.index.execution.ExecutionServer
 import org.vitrivr.engine.index.pipeline.PipelineBuilder
@@ -41,11 +38,11 @@ class SandboxCli {
             val enumerator =
                 DummyEnumeratorFactory().newOperator(mapOf("enumeratorKey" to "enumeratorValue"), schema)
             val decoder = DummyDecoderFactory().newOperator(enumerator, mapOf("decoderKey" to "decoderValue"), schema)
-            val transformer =
-                DummyTransformerFactory().newOperator(decoder, mapOf("transformerKey" to "transformerValue"),   schema)
+            val transformer = DummyTransformerFactory().newOperator(decoder, mapOf("transformerKey" to "transformerValue"), schema)
             val segmenter = DummySegmenterFactory().newOperator(transformer, mapOf("segmenterKey" to "segmenterValue"), schema)
             val extractor = DummyExtractorFactory().newOperator(segmenter, mapOf("extractorKey" to "extractorValue"), schema)
-            val exporter = DummyExporterFactory().newOperator(extractor, mapOf("exporterKey" to "exporterValue"), schema)
+            val resolver = DummyResolverFactory().newResolver(mapOf("resolverKey" to "resolverValue"))
+            val exporter = DummyExporterFactory().newOperator(extractor, mapOf("exporterKey" to "exporterValue"), schema, resolver)
 
             // Logging Test
             logger.trace { "Trace is set" }

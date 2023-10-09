@@ -5,6 +5,9 @@ import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
+import org.vitrivr.engine.core.operators.ingest.ExporterFactory
+import org.vitrivr.engine.core.operators.ingest.ResolverFactory
+import java.util.*
 import org.vitrivr.engine.core.util.extension.loadServiceForName
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -24,6 +27,44 @@ class SchemaManager {
 
     /** A [ReentrantReadWriteLock] to mediate concurrent access to this class. */
     private val lock = ReentrantReadWriteLock()
+
+    /** A [Map] of all available [Analyser]s. These are loaded upon initialization of the class. */
+    private val analysers: Map<String, Analyser<*, *>> = HashMap()
+
+    /** A [Map] of all available [ExporterFactory]s. These are loaded upon initialization of the class. */
+    private val exporterFactories: Map<String, ExporterFactory> = HashMap()
+
+    /** A [Map] of all available [ResolverFactory]s. These are loaded upon initialization of the class. */
+    private val resolverFactories: Map<String, ResolverFactory> = HashMap()
+
+    init {
+        /* Reload analysers. */
+        (this.analysers as MutableMap<String, Analyser<*, *>>).clear()
+        for (a in ServiceLoader.load(Analyser::class.java)) {
+            if (this.analysers.containsKey(a.analyserName)) {
+                /* TODO: Log warning! */
+            }
+            this.analysers[a.analyserName] = a
+        }
+
+        /* Reload exporter factories. */
+        (this.exporterFactories as MutableMap<String, ExporterFactory>).clear()
+        for (e in ServiceLoader.load(ExporterFactory::class.java)) {
+            if (this.exporterFactories.containsKey(e.name)) {
+                /* TODO: Log warning! */
+            }
+            this.exporterFactories[e.name] = e
+        }
+
+        /* Reload resolver factories. */
+        (this.resolverFactories as MutableMap<String, ResolverFactory>).clear()
+        for (r in ServiceLoader.load(ResolverFactory::class.java)) {
+            if (this.resolverFactories.containsKey(r.name)) {
+                /* TODO: Log warning! */
+            }
+            this.resolverFactories[r.name] = r
+        }
+    }
 
     /**
      * Loads the [SchemaConfig] with this [SchemaManager].
@@ -47,10 +88,30 @@ class SchemaManager {
             @Suppress("UNCHECKED_CAST")
             schema.addField(it.name, this.getAnalyserForName(it.analyser) as Analyser<ContentElement<*>, Descriptor>, it.parameters)
         }
+        config.exporters.map{
+            @Suppress("UNCHECKED_CAST")
+            schema.addExporter(it.name, this.getExporterFactoryForName(it.exporterFactory), it.exporterParameters, this.getResolverFactoryForName(it.resolverFactory), it.resolverParameters)
+        }
 
         /* Cache and return connection. */
         this.schemas[schema.name] = schema
     }
+
+    /**
+     * Returns a [ResolverFactory] for the provided resolverFactory name.
+     *
+     * @param name [String]
+     * @return [ResolverFactory] or null, if no [ResolverFactory] exists for given name.
+     */
+    fun getResolverFactoryForName(name: String): ResolverFactory = this.resolverFactories[name] ?: throw IllegalStateException("Failed to find resolver implementation for name '$name'.")
+
+    /**
+     * Returns an [ExporterFactory] for the provided exporterFactory name.
+     *
+     * @param name [String]
+     * @return [ExporterFactory] or null, if no [ExporterFactory] exists for given name.
+     */
+    fun getExporterFactoryForName(name: String): ExporterFactory = this.exporterFactories[name] ?: throw IllegalStateException("Failed to find exporter implementation for name '$name'.")
 
 
     /**
