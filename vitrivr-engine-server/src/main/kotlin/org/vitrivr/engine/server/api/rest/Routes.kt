@@ -5,6 +5,7 @@ import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.query.execution.RetrievalRuntime
 import org.vitrivr.engine.server.api.rest.handlers.executeIngest
 import org.vitrivr.engine.server.api.rest.handlers.executeQuery
+import org.vitrivr.engine.server.api.rest.handlers.fetchExportData
 import org.vitrivr.engine.server.api.rest.handlers.listSchemas
 import org.vitrivr.engine.server.config.ApiConfig
 
@@ -39,6 +40,20 @@ fun configureApiRoutes(config: ApiConfig, manager: SchemaManager, retrievalRunti
 
                 if (config.retrieval) {
                     post("query") { ctx -> executeQuery(ctx, schema, retrievalRuntime) }
+                }
+
+                if (config.export) {
+
+                    path("fetch") {
+                        path("{exporter}") {
+                            path("{retrievable}") {
+                                post { ctx ->
+
+                                    fetchExportData(ctx, schema)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

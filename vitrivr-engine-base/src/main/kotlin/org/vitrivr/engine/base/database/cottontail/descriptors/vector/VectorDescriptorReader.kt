@@ -41,10 +41,20 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
                 .distance(DESCRIPTOR_COLUMN_NAME, query.descriptor.toValue(), Distances.valueOf(query.distance.toString()), DESCRIPTOR_COLUMN_NAME)
                 .order(DISTANCE_COLUMN_NAME, Direction.valueOf(query.order.name))
                 .limit(query.k.toLong())
+
+            if (query.returnDescriptor) {
+                cottontailQuery.select(DESCRIPTOR_COLUMN_NAME)
+            }
+
             this.connection.client.query(cottontailQuery).asSequence().mapNotNull {
                 val retrievableId = it.asString(RETRIEVABLE_ID_COLUMN_NAME) ?: return@mapNotNull null
                 val distance = it.asFloat(DISTANCE_COLUMN_NAME) ?: return@mapNotNull null
-                Retrieved.WithDistance(UUID.fromString(retrievableId), null, distance, false) /* TODO: Use UUID type once supported. */
+                if(query.returnDescriptor) { /* TODO: Use UUID type once supported. */
+                    val descriptor = tupleToDescriptor(it)
+                    Retrieved.WithDistanceAndDescriptor(UUID.fromString(retrievableId), null, distance, listOf(descriptor), false)
+                } else {
+                    Retrieved.WithDistance(UUID.fromString(retrievableId), null, distance, false)
+                }
             }
         }
         else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by FloatVectorDescriptorReader.")

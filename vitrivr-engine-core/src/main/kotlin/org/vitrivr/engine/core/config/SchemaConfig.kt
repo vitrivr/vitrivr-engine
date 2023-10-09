@@ -1,7 +1,6 @@
 package org.vitrivr.engine.core.config
 
 import kotlinx.serialization.Serializable
-import org.vitrivr.engine.core.config.pipelineConfig.PipelineConfig
 import org.vitrivr.engine.core.model.metamodel.Schema
 
 
@@ -15,4 +14,13 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  */
 
 @Serializable
-data class SchemaConfig(val name: String = "vitrivr", val connection: ConnectionConfig, val fields: List<FieldConfig>)
+data class SchemaConfig(
+        /** Name of the [Schema]. */
+        val name: String = "vitrivr",
+
+        val connection: ConnectionConfig,
+
+        val fields: List<FieldConfig>,
+
+        val exporters: List<ExporterConfig> = emptyList(),
+)

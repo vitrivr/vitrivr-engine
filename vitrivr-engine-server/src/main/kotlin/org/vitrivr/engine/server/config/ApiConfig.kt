@@ -17,5 +17,8 @@ data class ApiConfig(
     val retrieval: Boolean = true,
 
     /** Flag indicating, if indexing functionality should be exposed via RESTful API. */
-    val index: Boolean = true
+    val index: Boolean = true,
+
+    /** Flag indicating, if exported data should be exposed via RESTful API. */
+    val export: Boolean = true
 )

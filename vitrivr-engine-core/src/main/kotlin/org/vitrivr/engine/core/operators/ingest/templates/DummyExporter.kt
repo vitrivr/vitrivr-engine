@@ -19,8 +19,8 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @version 1.0
  */
 class DummyExporter(
-    override val  input: Operator<Ingested>,
-    val parameters: Map<String, Any>
+        override val  input: Operator<Ingested>,
+        val parameters: Map<String, Any>
 ) : Exporter {
     override fun toFlow(scope: CoroutineScope):  Flow<Ingested> {
         return this.input.toFlow(scope).map { value: Ingested ->
