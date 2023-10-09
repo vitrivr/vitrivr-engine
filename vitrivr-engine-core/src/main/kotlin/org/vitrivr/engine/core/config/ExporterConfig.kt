@@ -1,12 +1,15 @@
 package org.vitrivr.engine.core.config
 
 import kotlinx.serialization.Serializable
+import org.vitrivr.engine.core.config.pipelineConfig.IngestedPipelineConfig
+import org.vitrivr.engine.core.model.database.retrievable.Ingested
 
 @Serializable
-class ExporterConfig (
+data class ExporterConfig(
     val name: String,
     val exporterFactory: String,
     val resolverFactory: String,
-    val exporterParameters: Map<String, String> = emptyMap(),
-    val resolverParameters: Map<String, String> = emptyMap()
+    val resolverParameters: Map<String, String> = emptyMap(),
+    val parameters: Map<String, String> = emptyMap(),
+    val childs: List<ExporterConfig> = emptyList(),
 )

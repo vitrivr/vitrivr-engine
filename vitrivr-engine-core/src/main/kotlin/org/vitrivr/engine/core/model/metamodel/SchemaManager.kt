@@ -86,11 +86,21 @@ class SchemaManager {
         val schema = Schema(config.name, connection)
         config.fields.map {
             @Suppress("UNCHECKED_CAST")
-            schema.addField(it.name, this.getAnalyserForName(it.analyser) as Analyser<ContentElement<*>, Descriptor>, it.parameters)
+            schema.addField(
+                it.name,
+                this.getAnalyserForName(it.analyser) as Analyser<ContentElement<*>, Descriptor>,
+                it.parameters
+            )
         }
-        config.exporters.map{
+        config.exporters.map {
             @Suppress("UNCHECKED_CAST")
-            schema.addExporter(it.name, this.getExporterFactoryForName(it.exporterFactory), it.exporterParameters, this.getResolverFactoryForName(it.resolverFactory), it.resolverParameters)
+            schema.addExporter(
+                it.name,
+                this.getExporterFactoryForName(it.exporterFactory),
+                it.parameters,
+                this.getResolverFactoryForName(it.resolverFactory),
+                it.parameters
+            )
         }
 
         /* Cache and return connection. */
@@ -103,7 +113,8 @@ class SchemaManager {
      * @param name [String]
      * @return [ResolverFactory] or null, if no [ResolverFactory] exists for given name.
      */
-    fun getResolverFactoryForName(name: String): ResolverFactory = this.resolverFactories[name] ?: throw IllegalStateException("Failed to find resolver implementation for name '$name'.")
+    fun getResolverFactoryForName(name: String): ResolverFactory = this.resolverFactories[name]
+        ?: throw IllegalStateException("Failed to find resolver implementation for name '$name'.")
 
     /**
      * Returns an [ExporterFactory] for the provided exporterFactory name.
@@ -111,7 +122,8 @@ class SchemaManager {
      * @param name [String]
      * @return [ExporterFactory] or null, if no [ExporterFactory] exists for given name.
      */
-    fun getExporterFactoryForName(name: String): ExporterFactory = this.exporterFactories[name] ?: throw IllegalStateException("Failed to find exporter implementation for name '$name'.")
+    fun getExporterFactoryForName(name: String): ExporterFactory = this.exporterFactories[name]
+        ?: throw IllegalStateException("Failed to find exporter implementation for name '$name'.")
 
 
     /**
@@ -120,7 +132,8 @@ class SchemaManager {
      * @param name [String]
      * @return [Analyser] or null, if no [Analyser] exists for given name.
      */
-    fun getAnalyserForName(name: String): Analyser<*, *> = loadServiceForName<Analyser<*, *>>(name) ?: throw IllegalStateException("Failed to find analyser implementation for name '$name'.")
+    fun getAnalyserForName(name: String): Analyser<*, *> = loadServiceForName<Analyser<*, *>>(name)
+        ?: throw IllegalStateException("Failed to find analyser implementation for name '$name'.")
 
     /**
      * Lists all [Schema] managed by this [SchemaManager].
