@@ -12,6 +12,8 @@ import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.util.DescriptorList
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.*
+import org.vitrivr.engine.core.operators.resolver.Resolvable
+import org.vitrivr.engine.core.operators.resolver.ResolverFactory
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.io.Closeable
 import java.util.*

@@ -1,11 +1,9 @@
 package org.vitrivr.engine.core.operators.ingest.templates
 
-import org.vitrivr.engine.core.operators.ingest.Resolver
-import org.vitrivr.engine.core.operators.ingest.ResolverFactory
+import org.vitrivr.engine.core.operators.resolver.Resolver
+import org.vitrivr.engine.core.operators.resolver.ResolverFactory
 
 class DummyResolverFactory : ResolverFactory {
-    override val name: String = "DummyResolver"
-
     override fun newResolver(parameters: Map<String, Any>): Resolver {
         return DummyResolver()
     }
