@@ -78,7 +78,7 @@ class VideoDecoder(
                     source.close()
                 }
             }
-        }.buffer(capacity = 1, onBufferOverflow = BufferOverflow.SUSPEND)
+        }.buffer(capacity = 10, onBufferOverflow = BufferOverflow.SUSPEND)
     }
 
     /**
