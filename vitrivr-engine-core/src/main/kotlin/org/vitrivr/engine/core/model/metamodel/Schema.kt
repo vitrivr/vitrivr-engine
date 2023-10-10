@@ -190,7 +190,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
 
         val resolver = this.resolverFactory.newResolver(this.resolverParameters)
 
-        public fun getExporter(input: Operator<Ingested>): org.vitrivr.engine.core.operators.ingest.Exporter =
+        fun getExporter(input: Operator<Ingested>): org.vitrivr.engine.core.operators.ingest.Exporter =
             this.exporterFactory.newOperator(
                 input,
                 this.exporterParameters,
