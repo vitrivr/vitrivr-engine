@@ -26,13 +26,20 @@
               "duration": "1",
               "lookAheadTime": "1"
             },
-            "childs": [
+            "extractors": [
               {"name": "AverageColorExtractor", "type": "Extractor",
                 "parameters": {
                   "field": "averagecolor1",
                   "persisting": "true"
                 },
-                "childs": []
+                "exporters": [
+                  {"name": "ThumbnailExporter",
+                    "parameters": {
+                      "exporter": "thumbnail"
+                    },
+                    "exporters": []
+                  }
+                ]
               }
             ]
           }
