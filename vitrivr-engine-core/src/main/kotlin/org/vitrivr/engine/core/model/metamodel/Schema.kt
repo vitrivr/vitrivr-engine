@@ -8,11 +8,10 @@ import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.util.DescriptorList
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.*
-import org.vitrivr.engine.core.operators.resolver.Resolvable
+import org.vitrivr.engine.core.operators.resolver.Resolver
 import org.vitrivr.engine.core.operators.resolver.ResolverFactory
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.io.Closeable
@@ -37,14 +36,22 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
     /**
      * Adds a new [Field] to this [Schema].
      *
-     * @param fieldName The name of the new [Field]. Must be unique.
+     * @param name The name of the new [Field]. Must be unique.
      */
-    fun addField(
-        fieldName: String,
-        analyser: Analyser<ContentElement<*>, Descriptor>,
-        parameters: Map<String, String> = emptyMap()
-    ) {
-        this.fields.add(Field(fieldName, analyser, parameters))
+    fun addField(name: String, analyser: Analyser<ContentElement<*>, Descriptor>, parameters: Map<String, String> = emptyMap()) {
+        this.fields.add(Field(name, analyser, parameters))
+    }
+
+    /**
+     * Adds a new [Exporter] to this [Schema].
+     *
+     * @param name The name of the [Exporter]. Must be unique.
+     * @param factory The [ExporterFactory] used to generated instance.
+     * @param parameters The parameters used to configure the [Exporter].
+     * @param resolver The [Resolver] instance.
+     */
+    fun addExporter(name: String, factory: ExporterFactory, parameters: Map<String, Any>, resolver: Resolver) {
+        this.exporters.add(Exporter(name, factory, parameters, resolver))
     }
 
     /**
@@ -85,19 +92,6 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
     override fun close() = this.connection.close()
 
     /**
-     * Adds a new [Exporter] to this [Schema].
-     */
-    fun addExporter(
-        name: String,
-        exporterFactory: ExporterFactory,
-        exporterParameters: Map<String, Any>,
-        resolverFactory: ResolverFactory,
-        resolverParameters: Map<String, Any>
-    ) {
-        this.exporters.add(Exporter(name, exporterFactory, exporterParameters, resolverFactory, resolverParameters))
-    }
-
-    /**
      * A [Field] that is part of a [Schema].
      *
      * A [Field] always has a unique name and is backed by an existing [Analyser].
@@ -130,8 +124,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
          * @param descriptors The [Descriptor](s) that should be used with the [Retriever].
          * @return [Retriever] instance.
          */
-        fun getRetriever(descriptors: DescriptorList<D>): Retriever<C, D> =
-            this.analyser.newRetriever(this, descriptors)
+        fun getRetriever(descriptors: DescriptorList<D>): Retriever<C, D> = this.analyser.newRetriever(this, descriptors)
 
         /**
          *
@@ -180,25 +173,19 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
      */
     inner class Exporter(
         val name: String,
-        val exporterFactory: ExporterFactory,
-        val exporterParameters: Map<String, Any> = emptyMap(),
-        val resolverFactory: ResolverFactory,
-        val resolverParameters: Map<String, Any> = emptyMap()
+        private val factory: ExporterFactory,
+        private val parameters: Map<String, Any> = emptyMap(),
+        val resolver: Resolver
     ) {
         val schema: Schema
             get() = this@Schema
 
-        val resolver = this.resolverFactory.newResolver(this.resolverParameters)
-
-        fun getExporter(input: Operator<Ingested>): org.vitrivr.engine.core.operators.ingest.Exporter =
-            this.exporterFactory.newOperator(
-                input,
-                this.exporterParameters,
-                this.schema,
-                this.resolver
-            ) // TODO: Do we even need the schema to manage exporters if we have resolvers?
-
-        fun resolve(id: RetrievableId): Resolvable? = this.resolver.resolve(id)
-
+        /**
+         * Convenience method to generate and return a [org.vitrivr.engine.core.operators.ingest.Exporter ] for this [Exporter].
+         *
+         * @return [DescriptorReader]
+         */
+        fun getExporter(input: Operator<Ingested>): org.vitrivr.engine.core.operators.ingest.Exporter
+            = this.factory.newOperator(input, this.parameters, this.schema, this.resolver)
     }
 }

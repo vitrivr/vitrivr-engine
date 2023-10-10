@@ -30,7 +30,7 @@ fun fetchExportData(ctx: Context, schema: Schema) {
     }
 
     /* Try to resolve resolvable for retrievable ID. */
-    val resolvable = schema.getExporter(exporterName)?.resolve(retrievableId)
+    val resolvable = schema.getExporter(exporterName)?.resolver?.resolve(retrievableId)
     if (resolvable == null) {
         ctx.status(404)
         ctx.json(ErrorStatus("Failed to resolve data."))
