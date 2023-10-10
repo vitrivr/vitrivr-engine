@@ -5,6 +5,9 @@ import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
+import org.vitrivr.engine.core.operators.ingest.ExporterFactory
+import org.vitrivr.engine.core.operators.resolver.ResolverFactory
+import java.util.*
 import org.vitrivr.engine.core.util.extension.loadServiceForName
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -44,22 +47,22 @@ class SchemaManager {
         val connection = connectionProvider.openConnection(config.name, config.connection.parameters)
         val schema = Schema(config.name, connection)
         config.fields.map {
+            val analyser = loadServiceForName<Analyser<*,*>>(it.factory) ?: throw IllegalArgumentException("Failed to find a factory implementation for '${it.factory}'.")
             @Suppress("UNCHECKED_CAST")
-            schema.addField(it.name, this.getAnalyserForName(it.analyser) as Analyser<ContentElement<*>, Descriptor>, it.parameters)
+            schema.addField(it.name, analyser as Analyser<ContentElement<*>, Descriptor>, it.parameters)
+        }
+        config.exporters.map {
+            schema.addExporter(
+                it.name,
+                loadServiceForName<ExporterFactory>(it.factory) ?: throw IllegalArgumentException("Failed to find exporter factory implementation for '${it.factory}'."),
+                it.parameters,
+                (loadServiceForName<ResolverFactory>(it.resolver.factory) ?: throw IllegalArgumentException("Failed to find resolver factory implementation for '${it.factory}'.")).newResolver(it.resolver.parameters),
+            )
         }
 
         /* Cache and return connection. */
         this.schemas[schema.name] = schema
     }
-
-
-    /**
-     * Returns an [Analyser] for the provided analyser name.
-     *
-     * @param name [String]
-     * @return [Analyser] or null, if no [Analyser] exists for given name.
-     */
-    fun getAnalyserForName(name: String): Analyser<*, *> = loadServiceForName<Analyser<*, *>>(name) ?: throw IllegalStateException("Failed to find analyser implementation for name '$name'.")
 
     /**
      * Lists all [Schema] managed by this [SchemaManager].

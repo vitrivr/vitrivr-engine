@@ -26,5 +26,7 @@ data class ProximityQuery<T: VectorDescriptor<*>>(
     val order: SortOrder = SortOrder.DESC,
 
     /** The [Distance] used for the comparison. */
-    val distance: Distance = Distance.EUCLIDEAN
+    val distance: Distance = Distance.EUCLIDEAN,
+
+    val returnDescriptor: Boolean = false
 ) : Query<T>

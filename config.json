@@ -10,8 +10,11 @@
         }
       },
       "fields": [
-        {"name": "averagecolor1", "analyser": "AverageColor"},
-        {"name": "averagecolor2", "analyser": "AverageColor"}
+        {"name": "averagecolor1", "factory": "AverageColor"},
+        {"name": "averagecolor2", "factory": "AverageColor"}
+      ],
+      "exporters": [
+        {"name": "thumbnail", "factory": "ThumbnailExporterFactory", "parameters": {}, "resolver": {"factory":  "DiskResolverFactory", "parameters": {}}}
       ]
     }
   ]

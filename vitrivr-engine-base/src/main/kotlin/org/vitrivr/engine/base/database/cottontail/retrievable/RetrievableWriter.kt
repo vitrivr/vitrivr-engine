@@ -44,7 +44,9 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
      * @param item [Retrievable] to add.
      */
     override fun add(item: Retrievable): Boolean {
-        val insert = Insert(this.entityName).any("id", item.id)
+        val insert = Insert(this.entityName)
+            .any("retrievableId", item.id.toString())
+            .any("type", null)
         return try {
             this.connection.client.insert(insert)
             true
