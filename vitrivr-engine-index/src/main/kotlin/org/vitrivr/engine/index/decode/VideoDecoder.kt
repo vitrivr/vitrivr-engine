@@ -5,7 +5,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.ProducerScope
-import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
@@ -91,23 +90,7 @@ class VideoDecoder(
     private suspend fun emitImageContent(frame: Frame, source: Source, channel: ProducerScope<ContentElement<*>>) {
         val image = this.contentFactory.newImageContent(this.converter.convert(frame))
         val timestampNs: Long = frame.timestamp * 1000 // Convert microseconds to nanoseconds
-        sendOnFreeCapacity(channel, VideoFrameContent(image, source, timestampNs))
-    }
-
-    private suspend fun sendOnFreeCapacity(
-        channel: ProducerScope<ContentElement<*>>,
-        videoFrameContent: VideoFrameContent,
-    ) {
-        channel.send(videoFrameContent)
-
-    }
-
-    private suspend fun sendOnFreeCapacity(
-        channel: ProducerScope<ContentElement<*>>,
-        videoFrameContent: AudioFrameContent,
-        retry: Int = 1
-    ) {
-        channel.send(videoFrameContent)
+        channel.send(VideoFrameContent(image, source, timestampNs))
     }
 
 
@@ -128,7 +111,7 @@ class VideoDecoder(
             }
             val timestampNs: Long = frame.timestamp * 1000 // Convert microseconds to nanoseconds
             val audio = contentFactory.newAudioContent(c, frame.sampleRate, normalizedSamples)
-            sendOnFreeCapacity(channel,AudioFrameContent(audio, source, timestampNs))
+            channel.send(AudioFrameContent(audio, source, timestampNs))
         }
     }
 
