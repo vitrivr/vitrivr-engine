@@ -10,8 +10,11 @@ import org.vitrivr.cottontail.client.language.ddl.TruncateEntity
 import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.types.Types
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
+import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.OBJECT_ID_COLUMN_NAME
+import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.PREDICATE_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.RETRIEVABLE_ID_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.RETRIEVABLE_TYPE_COLUMN_NAME
+import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.SUBJECT_ID_COLUMN_NAME
 import org.vitrivr.engine.core.database.retrievable.RetrievableInitializer
 import org.vitrivr.engine.core.model.database.retrievable.Retrievable
 
@@ -29,6 +32,9 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
     /** The [Name.EntityName] for this [RetrievableInitializer]. */
     private val entityName: Name.EntityName = Name.EntityName(this.connection.schemaName, CottontailConnection.RETRIEVABLE_ENTITY_NAME)
 
+    /** The [Name.EntityName] of the relationship entity. */
+    private val relationshipEntityName: Name.EntityName = Name.EntityName(this.connection.schemaName, CottontailConnection.RELATIONSHIP_ENTITY_NAME)
+
     /**
      * Initializes the entity that is used to store [Retrievable]s in Cottontail DB.
      */
@@ -41,7 +47,7 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
             logger.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
         }
 
-        /* Create entity. */
+        /* Create retrievable entity. */
         val createEntity = CreateEntity(this.entityName)
             .column(Name.ColumnName(RETRIEVABLE_ID_COLUMN_NAME), Types.String, nullable = false, primaryKey = true, autoIncrement = false)
             .column(Name.ColumnName(RETRIEVABLE_TYPE_COLUMN_NAME), Types.String, nullable = true, primaryKey = false, autoIncrement = false)
@@ -49,6 +55,19 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
 
         try {
             this.connection.client.create(createEntity)
+        } catch (e: StatusRuntimeException) {
+            logger.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
+        }
+
+        /* Create relationship entity. */
+        val createRelationshipEntity = CreateEntity(this.relationshipEntityName)
+            .column(Name.ColumnName(SUBJECT_ID_COLUMN_NAME), Types.String, nullable = false, primaryKey = false, autoIncrement = false)
+            .column(Name.ColumnName(PREDICATE_COLUMN_NAME), Types.String, nullable = false, primaryKey = false, autoIncrement = false)
+            .column(Name.ColumnName(OBJECT_ID_COLUMN_NAME), Types.String, nullable = false, primaryKey = false, autoIncrement = false)
+            .ifNotExists()
+
+        try {
+            this.connection.client.create(createRelationshipEntity)
         } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
         }
