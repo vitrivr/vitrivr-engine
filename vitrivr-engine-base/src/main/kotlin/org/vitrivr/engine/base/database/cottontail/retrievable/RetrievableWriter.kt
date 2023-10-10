@@ -5,6 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.StatusException
 import org.vitrivr.cottontail.client.language.basics.expression.Column
 import org.vitrivr.cottontail.client.language.basics.expression.Literal
+import org.vitrivr.cottontail.client.language.basics.predicate.And
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.client.language.dml.BatchInsert
 import org.vitrivr.cottontail.client.language.dml.Delete
@@ -12,9 +13,13 @@ import org.vitrivr.cottontail.client.language.dml.Insert
 import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.values.StringValue
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
+import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.OBJECT_ID_COLUMN_NAME
+import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.PREDICATE_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.RETRIEVABLE_ID_COLUMN_NAME
+import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.SUBJECT_ID_COLUMN_NAME
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.database.retrievable.Retrievable
+import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
 
 private val logger: KLogger = KotlinLogging.logger {}
 
@@ -27,8 +32,11 @@ private val logger: KLogger = KotlinLogging.logger {}
  */
 internal class RetrievableWriter(private val connection: CottontailConnection) : RetrievableWriter {
 
-    /** The [Name.EntityName]*/
+    /** The [Name.EntityName] of the retrievable entity. */
     private val entityName: Name.EntityName = Name.EntityName(this.connection.schemaName, CottontailConnection.RETRIEVABLE_ENTITY_NAME)
+
+    /** The [Name.EntityName] of the relationship entity. */
+    private val relationshipEntityName: Name.EntityName = Name.EntityName(this.connection.schemaName, CottontailConnection.RELATIONSHIP_ENTITY_NAME)
 
     /**
      * Adds a new [Retrievable] to the database using this [RetrievableWriter] instance.
@@ -57,7 +65,7 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
         val insert = BatchInsert(this.entityName).columns("id")
         for (item in items) {
             size += 1
-            insert.any(item)
+            insert.any(item.id)
         }
 
         /* Insert values. */
@@ -72,6 +80,59 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
 
     override fun update(item: Retrievable): Boolean {
         TODO("Not yet implemented")
+    }
+
+    /**
+     * Connects two [Retrievable] (specified by their [RetrievableId]) through a subject predicate, object relationship.
+     *
+     * @param subject [RetrievableId] of the subject [Retrievable]
+     * @param predicate The predicate describing the relationship.
+     * @param object [RetrievableId] of the object [Retrievable]
+     * @return True on success, false otherwise.
+     */
+    override fun connect(subject: RetrievableId, predicate: String, `object`: RetrievableId): Boolean {
+        val insert = Insert(this.relationshipEntityName)
+            .value(SUBJECT_ID_COLUMN_NAME, StringValue(subject.toString()))
+            .value(PREDICATE_COLUMN_NAME, StringValue(predicate))
+            .value(OBJECT_ID_COLUMN_NAME, StringValue(`object`.toString()))
+
+        /* Insert values. */
+        return try {
+            this.connection.client.insert(insert)
+            true
+        } catch (e: StatusException) {
+            logger.error(e) { "Failed to establish connection due to exception." }
+            false
+        }
+    }
+
+    /**
+     * Severs the specified connection between two [Retrievable]s.
+     *
+     * @param subject [RetrievableId] of the subject [Retrievable].
+     * @param predicate The predicate describing the relationship.
+     * @param object [RetrievableId] of the object [Retrievable].
+     * @return True on success, false otherwise.
+     */
+    override fun disconnect(subject: RetrievableId, predicate: String, `object`: RetrievableId): Boolean {
+        val delete = Delete(this.relationshipEntityName).where(
+            And(
+                Compare(Column(PREDICATE_COLUMN_NAME), Compare.Operator.EQUAL, Literal(StringValue(predicate))),
+                And(
+                    Compare(Column(OBJECT_ID_COLUMN_NAME), Compare.Operator.EQUAL, Literal(StringValue(`object`.toString()))),
+                    Compare(Column(SUBJECT_ID_COLUMN_NAME), Compare.Operator.EQUAL, Literal(StringValue(subject.toString())))
+                )
+            )
+        )
+
+        /* Insert values. */
+        return try {
+            this.connection.client.delete(delete)
+            true
+        } catch (e: StatusException) {
+            logger.error(e) { "Failed to sever connection due to exception." }
+            false
+        }
     }
 
     /**
