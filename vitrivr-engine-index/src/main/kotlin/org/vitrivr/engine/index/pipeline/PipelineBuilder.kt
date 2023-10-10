@@ -2,11 +2,9 @@ package org.vitrivr.engine.index.pipeline
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.vitrivr.engine.core.config.ExporterConfig
-import org.vitrivr.engine.core.config.pipelineConfig.*
+import org.vitrivr.engine.core.config.pipeline.*
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
-import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.*
@@ -41,9 +39,9 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
 
     fun addEnumerator(config: EnumeratorConfig) {
         val enumerator = (ServiceLoader.load(EnumeratorFactory::class.java).find {
-            it.javaClass.name == "${it.javaClass.packageName}.${config.name}Factory"
+            it.javaClass.name == "${it.javaClass.packageName}.${config.factory}Factory"
         }
-            ?: throw IllegalArgumentException("Failed to find Enumerator implementation for '${config.name}'."))
+            ?: throw IllegalArgumentException("Failed to find Enumerator implementation for '${config.factory}'."))
             .newOperator(config.parameters, schema)
 
         logger.info { "Enumerator: ${enumerator.javaClass.name}" }
@@ -53,9 +51,9 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
     fun addDecoder(parent: Operator<Source>, config: DecoderConfig) {
 
         val decoder = (ServiceLoader.load(DecoderFactory::class.java).find {
-            it.javaClass.name == "${it.javaClass.packageName}.${config.name}Factory"
+            it.javaClass.name == "${it.javaClass.packageName}.${config.factory}Factory"
         }
-            ?: throw IllegalArgumentException("Failed to find Decoder implementation for '${config.name}'."))
+            ?: throw IllegalArgumentException("Failed to find Decoder implementation for '${config.factory}'."))
             .newOperator(parent, config.parameters, schema)
 
         logger.info { "Decoder: ${decoder.javaClass.name}" }
@@ -64,9 +62,9 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
 
     fun addTransformer(parent: Operator<ContentElement<*>>, config: TransformerConfig) {
         val transformer = (ServiceLoader.load(TransformerFactory::class.java).find {
-            it.javaClass.name == "${it.javaClass.packageName}.${config.name}Factory"
+            it.javaClass.name == "${it.javaClass.packageName}.${config.factory}Factory"
         }
-            ?: throw IllegalArgumentException("Failed to find Transformer implementation for '${config.name}'."))
+            ?: throw IllegalArgumentException("Failed to find Transformer implementation for '${config.factory}'."))
             .newOperator(parent, config.parameters, schema)
 
         logger.info { "Transformer: ${transformer.javaClass.name}" }
@@ -76,9 +74,9 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
     fun addSegmenter(parent: Operator<ContentElement<*>>, configs: List<SegmenterConfig>) {
         configs.forEach { segmenterConfig ->
             val segmenter = (ServiceLoader.load(SegmenterFactory::class.java).find {
-                it.javaClass.name == "${it.javaClass.packageName}.${segmenterConfig.name}Factory"
+                it.javaClass.name == "${it.javaClass.packageName}.${segmenterConfig.factory}Factory"
             }
-                ?: throw IllegalArgumentException("Failed to find Segmenter implementation for '${segmenterConfig.name}'."))
+                ?: throw IllegalArgumentException("Failed to find Segmenter implementation for '${segmenterConfig.factory}'."))
                 .newOperator(parent, segmenterConfig.parameters, schema)
 
             if (segmenterConfig.extractors.isNotEmpty())

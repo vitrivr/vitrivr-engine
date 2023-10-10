@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.config.pipelineConfig
+package org.vitrivr.engine.core.config.pipeline
 
 interface IngestedPipelineConfig {
     val name: String
