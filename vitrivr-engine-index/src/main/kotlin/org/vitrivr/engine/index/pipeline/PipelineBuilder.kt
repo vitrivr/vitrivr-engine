@@ -82,20 +82,11 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
                 .newOperator(parent, segmenterConfig.parameters, schema)
 
             if (segmenterConfig.extractors.isNotEmpty())
-                this.addIngestedPipeline(segmenter, segmenterConfig.extractors)
+                this.addExtractor(segmenter, segmenterConfig.extractors)
             if (segmenterConfig.exporters.isNotEmpty())
-                this.addIngestedPipeline(segmenter, segmenterConfig.exporters)
+                this.addExporter(segmenter, segmenterConfig.exporters)
 
             logger.info { "Segmenter: ${segmenter.javaClass.name}" }
-        }
-    }
-
-    fun addIngestedPipeline(parent: Operator<Ingested>, configs: List<Any>) {
-
-        when (configs.firstOrNull()) {
-            is ExtractorConfig -> addExtractor(parent, configs as List<ExtractorConfig>)
-            is ExporterConfig -> addExporter(parent, configs as List<ExporterConfig>)
-            else -> throw IllegalArgumentException("IngestedPipelineConfig must be either a list of ExporterConfig or a list of IngestedPipelineConfig")
         }
     }
 
@@ -112,10 +103,10 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
                     ).getExtractor(parent)
 
             if (config.extractors.isNotEmpty()) {
-                this.addIngestedPipeline(extractor, config.extractors)
+                this.addExtractor(extractor, config.extractors)
             }
             if (config.exporters.isNotEmpty()) {
-                this.addIngestedPipeline(extractor, config.exporters)
+                this.addExporter(extractor, config.exporters)
             }
             else {
                 leaves.add(extractor)
@@ -136,10 +127,10 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
                     ).getExporter(parent)
 
             if (config.extractors.isNotEmpty()) {
-                this.addIngestedPipeline(exporter, config.extractors)
+                this.addExtractor(exporter, config.extractors)
             }
             if (config.exporters.isNotEmpty()) {
-                this.addIngestedPipeline(exporter, config.exporters)
+                this.addExporter(exporter, config.exporters)
             }
             else {
                 leaves.add(exporter)
