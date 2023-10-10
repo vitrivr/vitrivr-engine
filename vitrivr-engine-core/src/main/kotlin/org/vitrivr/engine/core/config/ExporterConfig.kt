@@ -2,9 +2,6 @@ package org.vitrivr.engine.core.config
 
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.config.pipelineConfig.ExtractorConfig
-import org.vitrivr.engine.core.config.pipelineConfig.IngestedPipelineConfig
-import org.vitrivr.engine.core.model.database.retrievable.Ingested
-
 @Serializable
 data class ExporterConfig(
     val name: String,
