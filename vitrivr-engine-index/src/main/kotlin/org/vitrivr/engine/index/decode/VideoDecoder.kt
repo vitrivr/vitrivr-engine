@@ -3,9 +3,11 @@ package org.vitrivr.engine.index.decode
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.filter
 import org.bytedeco.javacv.FFmpegFrameGrabber
@@ -76,7 +78,7 @@ class VideoDecoder(
                     source.close()
                 }
             }
-        }
+        }.buffer(capacity = 1, onBufferOverflow = BufferOverflow.SUSPEND)
     }
 
     /**
@@ -95,14 +97,9 @@ class VideoDecoder(
     private suspend fun sendOnFreeCapacity(
         channel: ProducerScope<ContentElement<*>>,
         videoFrameContent: VideoFrameContent,
-        retry: Int = 1
     ) {
-        channel.trySend(videoFrameContent)
-            .onFailure {
-                logger.error(it) { "Failed to send VideoFrameContent to channel. Retry $retry" }
-                Thread.sleep(Math.pow(2.0, retry.toDouble()).toLong())
-                sendOnFreeCapacity(channel, videoFrameContent, retry + 1)
-            }
+        channel.send(videoFrameContent)
+
     }
 
     private suspend fun sendOnFreeCapacity(
@@ -110,12 +107,7 @@ class VideoDecoder(
         videoFrameContent: AudioFrameContent,
         retry: Int = 1
     ) {
-        channel.trySend(videoFrameContent)
-            .onFailure {
-                logger.error(it) { "Failed to send VideoFrameContent to channel. Retry $retry" }
-                Thread.sleep(Math.pow(2.0, retry.toDouble()).toLong())
-                sendOnFreeCapacity(channel, videoFrameContent, retry + 1)
-            }
+        channel.send(videoFrameContent)
     }
 
 
