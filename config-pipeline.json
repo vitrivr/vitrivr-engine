@@ -1,41 +1,47 @@
 {
   "schema": "vitrivr",
   "enumerator": {
-    "name": "FileSystemEnumerator", "type": "Enumerator",
+    "factory": "FileSystemEnumerator",
     "parameters": {
       "path": "C:/Users/walten0000/Documents/myRepo/ch.unibas/Work/vitrivr-engine/v3c-minimal-example",
       "depth": "1",
       "mediaTypes": "VIDEO"
     },
     "decoder": {
-      "name": "VideoDecoder", "type": "Decoder",
+      "factory": "VideoDecoder",
       "parameters": {
         "contentFactory": "inMemoryContentFactory",
         "video": "true",
         "audio": "true"
       },
       "transformer": {
-        "name": "PassthroughTransformer", "type": "Transformer",
+        "factory": "PassthroughTransformer",
         "parameters": {
         },
         "segmenters": [
           {
-            "name": "FixedDurationSegmenter", "type": "Segmenter",
+            "factory": "FixedDurationSegmenter",
             "parameters": {
               "retrievableWriter": "RetrievableWriter",
               "duration": "1",
               "lookAheadTime": "1"
             },
             "extractors": [
-              {"name": "AverageColorExtractor", "type": "Extractor",
+              {"factory": "AverageColorExtractor",
                 "parameters": {
                   "field": "averagecolor1",
                   "persisting": "true"
                 },
                 "exporters": [
-                  {"name": "ThumbnailExporter",
+                  {"factory": "ThumbnailExporterFactory",
                     "parameters": {
                       "exporter": "thumbnail"
+                    },
+                    "resolver": {
+                      "factory": "DiskResolverFactory",
+                      "parameters": {
+                        "resolver": "thumbnail"
+                      }
                     },
                     "exporters": []
                   }

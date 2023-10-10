@@ -1,11 +1,10 @@
-package org.vitrivr.engine.core.config.pipelineConfig
+package org.vitrivr.engine.core.config.pipeline
 
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class DecoderConfig(
-    val name: String,
-    val type: String,
+    val factory: String,
     val parameters: Map<String, String> = emptyMap(),
     val transformer: TransformerConfig
 )
