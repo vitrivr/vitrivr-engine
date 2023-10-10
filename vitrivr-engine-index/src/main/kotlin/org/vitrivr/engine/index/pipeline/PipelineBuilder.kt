@@ -81,10 +81,11 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
                 ?: throw IllegalArgumentException("Failed to find Segmenter implementation for '${segmenterConfig.name}'."))
                 .newOperator(parent, segmenterConfig.parameters, schema)
 
-            if (segmenterConfig.childs.isEmpty()) {
-                throw IllegalArgumentException("Segmenter '${segmenterConfig.name}' must have at least one extractor.")
-            }
-            this.addIngestedPipeline(segmenter, segmenterConfig.childs)
+            if (segmenterConfig.extractors.isNotEmpty())
+                this.addIngestedPipeline(segmenter, segmenterConfig.extractors)
+            if (segmenterConfig.exporters.isNotEmpty())
+                this.addIngestedPipeline(segmenter, segmenterConfig.exporters)
+
             logger.info { "Segmenter: ${segmenter.javaClass.name}" }
         }
     }
@@ -110,9 +111,13 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
 
                     ).getExtractor(parent)
 
-            if (config.childs.isNotEmpty()) {
-                this.addIngestedPipeline(extractor, config.childs)
-            } else {
+            if (config.extractors.isNotEmpty()) {
+                this.addIngestedPipeline(extractor, config.extractors)
+            }
+            if (config.exporters.isNotEmpty()) {
+                this.addIngestedPipeline(extractor, config.exporters)
+            }
+            else {
                 leaves.add(extractor)
             }
             logger.info { "Extractor: ${extractor.javaClass.name}" }
@@ -121,7 +126,7 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
 
     fun addExporter(parent: Operator<Ingested>, configs: List<ExporterConfig>) {
         configs.forEach { config ->
-            val exporter = (schema.getExporter(config.parameters["exporters"] as String)
+            val exporter = (schema.getExporter(config.parameters["exporter"] as String)
                 ?: throw IllegalArgumentException("Field '${config.parameters["field"]}' does not exist in schema '${schema.name}'")
                     //  TODO Add non schema extractor
                     //   val extractor = (ServiceLoader.load(ExtractorFactory::class.java).find {
@@ -130,9 +135,13 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
 
                     ).getExporter(parent)
 
-            if (config.childs.isNotEmpty()) {
-                this.addIngestedPipeline(exporter, config.childs)
-            } else {
+            if (config.extractors.isNotEmpty()) {
+                this.addIngestedPipeline(exporter, config.extractors)
+            }
+            if (config.exporters.isNotEmpty()) {
+                this.addIngestedPipeline(exporter, config.exporters)
+            }
+            else {
                 leaves.add(exporter)
             }
             logger.info { "Exporter: ${exporter.javaClass.name}" }

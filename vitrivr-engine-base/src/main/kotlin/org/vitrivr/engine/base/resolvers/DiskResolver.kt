@@ -17,7 +17,8 @@ class DiskResolver(val location: String = "./thumbnails") : Resolver {
 
     override fun getOutputStream(id: RetrievableId, mimeType: MimeType): OutputStream {
         val thumbnailFile = File("$location/${id}.${mimeType.fileExtension}")
-        thumbnailFile.mkdirs()
+        thumbnailFile.parentFile.mkdirs()
+        thumbnailFile.createNewFile()
         return thumbnailFile.outputStream()
     }
 
