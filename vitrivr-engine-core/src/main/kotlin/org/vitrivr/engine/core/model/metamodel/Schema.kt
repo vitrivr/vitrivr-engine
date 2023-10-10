@@ -10,7 +10,9 @@ import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.model.util.DescriptorList
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.Extractor
+import org.vitrivr.engine.core.operators.ingest.*
+import org.vitrivr.engine.core.operators.resolver.Resolver
+import org.vitrivr.engine.core.operators.resolver.ResolverFactory
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.io.Closeable
 import java.util.*
@@ -23,18 +25,33 @@ typealias FieldName = String
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class Schema(val name: String = "vitrivr", val connection: Connection): Closeable {
+class Schema(val name: String = "vitrivr", val connection: Connection) : Closeable {
 
     /** The [List] of [Field]s contained in this [Schema]. */
-    private val fields: MutableList<Schema.Field<ContentElement<*>,Descriptor>> = mutableListOf()
+    private val fields: MutableList<Schema.Field<ContentElement<*>, Descriptor>> = mutableListOf()
+
+    /** The [List] of [Exporter]s contained in this [Schema]. */
+    private val exporters: MutableList<Schema.Exporter> = mutableListOf()
 
     /**
      * Adds a new [Field] to this [Schema].
      *
-     * @param fieldName The name of the new [Field]. Must be unique.
+     * @param name The name of the new [Field]. Must be unique.
      */
-    fun addField(fieldName: String, analyser: Analyser<ContentElement<*>,Descriptor>, parameters: Map<String,String> = emptyMap()) {
-        this.fields.add(Field(fieldName, analyser, parameters))
+    fun addField(name: String, analyser: Analyser<ContentElement<*>, Descriptor>, parameters: Map<String, String> = emptyMap()) {
+        this.fields.add(Field(name, analyser, parameters))
+    }
+
+    /**
+     * Adds a new [Exporter] to this [Schema].
+     *
+     * @param name The name of the [Exporter]. Must be unique.
+     * @param factory The [ExporterFactory] used to generated instance.
+     * @param parameters The parameters used to configure the [Exporter].
+     * @param resolver The [Resolver] instance.
+     */
+    fun addExporter(name: String, factory: ExporterFactory, parameters: Map<String, Any>, resolver: Resolver) {
+        this.exporters.add(Exporter(name, factory, parameters, resolver))
     }
 
     /**
@@ -42,7 +59,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
      *
      * @return Unmodifiable list of [Schema.Field].
      */
-    fun fields(): List<Schema.Field<ContentElement<*>,Descriptor>> = Collections.unmodifiableList(this.fields)
+    fun fields(): List<Schema.Field<ContentElement<*>, Descriptor>> = Collections.unmodifiableList(this.fields)
 
     /**
      * Returns the field at the provided [index].
@@ -61,6 +78,15 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
     operator fun get(name: String) = this.fields.firstOrNull { it.fieldName == name }
 
     /**
+     * Returns the exporter for the provided name.
+     *
+     * @param name The name of the [Schema.Exporter] to return.
+     * @return [Schema.Exporter] or null, if no such [Schema.Exporter] exists.
+     */
+    fun getExporter(name: String) = this.exporters.firstOrNull { it.name == name }
+
+
+    /**
      * Closes this [Schema] and the associated database [Connection].
      */
     override fun close() = this.connection.close()
@@ -70,7 +96,11 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
      *
      * A [Field] always has a unique name and is backed by an existing [Analyser].
      */
-    inner class Field<C: ContentElement<*>, D: Descriptor>(val fieldName: FieldName, val analyser: Analyser<C,D>, val parameters: Map<String,String> = emptyMap()) {
+    inner class Field<C : ContentElement<*>, D : Descriptor>(
+        val fieldName: FieldName,
+        val analyser: Analyser<C, D>,
+        val parameters: Map<String, String> = emptyMap()
+    ) {
 
         /** Pointer to the [Schema] this [Field] belongs to.*/
         val schema: Schema
@@ -133,6 +163,29 @@ class Schema(val name: String = "vitrivr", val connection: Connection): Closeabl
          *
          * @return [DescriptorWriter]
          */
-        fun getWriter(): DescriptorWriter<D> = this@Schema.connection.getDescriptorWriter(this as Field<*,D>)
+        fun getWriter(): DescriptorWriter<D> = this@Schema.connection.getDescriptorWriter(this as Field<*, D>)
+    }
+
+    /**
+     * An [Exporter] that is part of a [Schema].
+     *
+     * An [Exporter] always has a unique name and is backed by an existing [ExporterFactory] and an existing [ResolverFactory].
+     */
+    inner class Exporter(
+        val name: String,
+        private val factory: ExporterFactory,
+        private val parameters: Map<String, Any> = emptyMap(),
+        val resolver: Resolver
+    ) {
+        val schema: Schema
+            get() = this@Schema
+
+        /**
+         * Convenience method to generate and return a [org.vitrivr.engine.core.operators.ingest.Exporter ] for this [Exporter].
+         *
+         * @return [DescriptorReader]
+         */
+        fun getExporter(input: Operator<Ingested>): org.vitrivr.engine.core.operators.ingest.Exporter
+            = this.factory.newOperator(input, this.parameters, this.schema, this.resolver)
     }
 }

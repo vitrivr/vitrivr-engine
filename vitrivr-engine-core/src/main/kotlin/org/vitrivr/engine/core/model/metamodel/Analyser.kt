@@ -21,6 +21,8 @@ import kotlin.reflect.KClass
  * @version 1.0.0
  */
 interface Analyser<C: ContentElement<*>, D: Descriptor> {
+    abstract val analyserName: String
+
     /** The [KClass] of the [ContentElement] accepted by this [Analyser].  */
     val contentClass: KClass<C>
 

@@ -6,6 +6,7 @@ import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
+import org.vitrivr.engine.core.model.database.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.AbstractSegmenter
 import org.vitrivr.engine.core.source.Source
@@ -32,6 +33,7 @@ class FixedDurationSegmenter(
     private val cache = ArrayList<ContentElement<*>>()
     private var lastStartTime: Long = 0
     private var lastSource: Source? = null
+    private var lastDocumentRetrievable: Retrievable? = null
 
 
     override suspend fun segment(upstream: Flow<ContentElement<*>>, downstream: ProducerScope<Ingested>) {
@@ -43,6 +45,10 @@ class FixedDurationSegmenter(
                     if (content.source != lastSource) {
                         finish(downstream)
                         lastSource = content.source
+                        lastDocumentRetrievable = Ingested.Default(
+                            transient = false,
+                            type = "document"
+                        ) //TODO capture reference to the source
                         lastStartTime = 0
                     }
                     val cutOffTime = lastStartTime + lengthNanos + lookAheadNanos
@@ -67,7 +73,7 @@ class FixedDurationSegmenter(
         val nextStartTime = lastStartTime + lengthNanos
         val nextSegmentContent = mutableListOf<ContentElement<*>>()
         cache.removeIf {
-            require(it is SourcedContent.Temporal) { "Cache contains non.temporal content. This is a programmer's error!" }
+            require(it is SourcedContent.Temporal) { "Cache contains non-temporal content. This is a programmer's error!" }
             if (it.timepointNs < nextStartTime) {
                 nextSegmentContent.add(it)
                 true
@@ -75,7 +81,12 @@ class FixedDurationSegmenter(
                 false
             }
         }
-        val retrievable = Ingested.Default(transient = false, content = nextSegmentContent, type = "segment")
+        val retrievable = Ingested.Default(
+            transient = false,
+            content = nextSegmentContent,
+            type = "segment",
+            partOf = if (lastDocumentRetrievable != null) setOf(lastDocumentRetrievable!!) else emptySet()
+        )
         this.retrievableWriter?.add(retrievable)
         downstream.send(retrievable)
         this.lastStartTime = nextStartTime
