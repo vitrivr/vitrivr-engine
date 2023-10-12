@@ -38,7 +38,7 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
         is ProximityQuery<VectorDescriptor<*>> -> {
             val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
                 .select(RETRIEVABLE_ID_COLUMN_NAME)
-                .distance(DESCRIPTOR_COLUMN_NAME, query.descriptor.toValue(), Distances.valueOf(query.distance.toString()), DESCRIPTOR_COLUMN_NAME)
+                .distance(DESCRIPTOR_COLUMN_NAME, query.descriptor.toValue(), Distances.valueOf(query.distance.toString()), DISTANCE_COLUMN_NAME)
                 .order(DISTANCE_COLUMN_NAME, Direction.valueOf(query.order.name))
                 .limit(query.k.toLong())
 
