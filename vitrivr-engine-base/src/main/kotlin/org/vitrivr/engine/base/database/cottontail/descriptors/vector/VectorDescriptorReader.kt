@@ -48,7 +48,7 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
                 .order(DISTANCE_COLUMN_NAME, Direction.valueOf(query.order.name))
                 .limit(query.k.toLong())
 
-            if (query.returnDescriptor) {
+            if (query.withDescriptor) {
                 cottontailQuery.select(DESCRIPTOR_COLUMN_NAME)
             }
 
@@ -58,7 +58,7 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
                     (it.asFloat(DISTANCE_COLUMN_NAME) ?: it.asDouble(DISTANCE_COLUMN_NAME)?.toFloat())?.let { f ->
                         if (f.isNaN()) Float.MAX_VALUE else f
                     } ?: return@mapNotNull null
-                if (query.returnDescriptor) { /* TODO: Use UUID type once supported. */
+                if (query.withDescriptor) { /* TODO: Use UUID type once supported. */
                     val descriptor = tupleToDescriptor(it)
                     Retrieved.WithDistanceAndDescriptor(
                         UUID.fromString(retrievableId),
