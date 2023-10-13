@@ -7,16 +7,14 @@ import org.vitrivr.engine.core.operators.ingest.DecoderFactory
 import org.vitrivr.engine.core.source.Source
 
 /**
- * A [DecoderFactory] for the [VideoDecoder].
+ * A [DecoderFactory] for the [ImageDecoder].
  *
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class VideoDecoderFactory : DecoderFactory {
-    override fun newOperator(input: Operator<Source>, parameters: Map<String, Any>, schema: Schema): VideoDecoder {
+class ImageDecoderFactory : DecoderFactory {
+    override fun newOperator(input: Operator<Source>, parameters: Map<String, Any>, schema: Schema): ImageDecoder {
         val contentFactory = InMemoryContentFactory()
-        val video = true
-        val audio = true
-        return VideoDecoder(input, contentFactory, video, audio)
+        return ImageDecoder(input, contentFactory)
     }
 }
