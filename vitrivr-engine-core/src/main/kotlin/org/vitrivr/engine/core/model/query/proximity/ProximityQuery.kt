@@ -23,7 +23,7 @@ data class ProximityQuery<T: VectorDescriptor<*>>(
     val k: Int = 1000,
 
     /** The desired [SortOrder] of the results. Influences, whether the nearest or farthest neighbours are returned. */
-    val order: SortOrder = SortOrder.DESC,
+    val order: SortOrder = SortOrder.ASC,
 
     /** The [Distance] used for the comparison. */
     val distance: Distance = Distance.EUCLIDEAN,
