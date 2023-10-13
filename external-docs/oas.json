@@ -1,0 +1,121 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "External Feature Extraction Endpoint Definition",
+    "description": "RESTful definition for communication between vitrivr-engine and an external feature service"
+  },
+  "paths": {
+    "/extract/{featureName}": {
+      "post": {
+        "summary": "Creates a new extraction for a given element",
+        "operationId": "extract",
+        "tags": ["External"],
+        "parameters": [
+          {
+            "name": "featureName",
+            "in": "path",
+            "required": true,
+            "description": "The name of the feature to be extracted",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Content"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Descriptor"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Content": {
+        "type": "object",
+        "description": "Common root for all contents handled by vitrivr"
+      },
+      "Descriptor": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The ID of the Descriptor"
+          },
+          "retrievableId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "The ID of the Retrievable being described (if applicable)"
+          }
+        },
+        "required": ["id"],
+        "additionalProperties": false
+      },
+      "ErrorStatus": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "The error code"
+          },
+          "description": {
+            "type": "string",
+            "description": "A description of the error"
+          }
+        },
+        "required": ["code", "description"],
+        "additionalProperties": false
+      }
+    }
+  }
+}
