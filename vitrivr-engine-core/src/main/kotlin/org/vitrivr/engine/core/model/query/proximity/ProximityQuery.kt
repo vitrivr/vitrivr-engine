@@ -19,14 +19,15 @@ data class ProximityQuery<T: VectorDescriptor<*>>(
     /** The [VectorDescriptor] being used; specifies both the query field and the comparison value. */
     override val descriptor: T,
 
-    /** The number of results that should be returned by this [ProximityQuery]. */
-    val k: Int = 1000,
+    /** The [Distance] used for the comparison. */
+    val distance: Distance = Distance.EUCLIDEAN,
 
     /** The desired [SortOrder] of the results. Influences, whether the nearest or farthest neighbours are returned. */
     val order: SortOrder = SortOrder.ASC,
 
-    /** The [Distance] used for the comparison. */
-    val distance: Distance = Distance.EUCLIDEAN,
+    /** The number of results that should be returned by this [ProximityQuery]. */
+    val k: Int = 1000,
 
-    val returnDescriptor: Boolean = false
+    /** Flag indicating, whether [VectorDescriptor] should be returned as well. */
+    val withDescriptor: Boolean = false
 ) : Query<T>

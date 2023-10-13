@@ -33,7 +33,7 @@ class AverageColorRetriever(override val field: Schema.Field<ImageContent,FloatV
             descriptor = this.queryVector,
             k = this.k,
             distance = Distance.MANHATTAN,
-            returnDescriptor = returnDescriptor
+            withDescriptor = returnDescriptor
         )
         return flow {
             reader.getAll(query).forEach {
