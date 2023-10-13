@@ -1,2 +1,2 @@
-org.vitrivr.engine.core.operators.ingest.templates.DummySegmenterFactory
 org.vitrivr.engine.index.segment.FixedDurationSegmenterFactory
+org.vitrivr.engine.index.segment.PassThroughSegmenterFactory

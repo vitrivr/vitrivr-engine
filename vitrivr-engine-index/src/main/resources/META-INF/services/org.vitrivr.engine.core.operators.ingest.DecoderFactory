@@ -1,2 +1,2 @@
-org.vitrivr.engine.core.operators.ingest.templates.DummyDecoderFactory
 org.vitrivr.engine.index.decode.VideoDecoderFactory
+org.vitrivr.engine.index.decode.ImageDecoderFactory

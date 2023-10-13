@@ -7,7 +7,10 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.*
+import org.vitrivr.engine.core.operators.ingest.DecoderFactory
+import org.vitrivr.engine.core.operators.ingest.EnumeratorFactory
+import org.vitrivr.engine.core.operators.ingest.SegmenterFactory
+import org.vitrivr.engine.core.operators.ingest.TransformerFactory
 import org.vitrivr.engine.core.source.Source
 import java.util.*
 
@@ -52,8 +55,7 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
 
         val decoder = (ServiceLoader.load(DecoderFactory::class.java).find {
             it.javaClass.name == "${it.javaClass.packageName}.${config.factory}Factory"
-        }
-            ?: throw IllegalArgumentException("Failed to find Decoder implementation for '${config.factory}'."))
+        } ?: throw IllegalArgumentException("Failed to find Decoder implementation for '${config.factory}'."))
             .newOperator(parent, config.parameters, schema)
 
         logger.info { "Decoder: ${decoder.javaClass.name}" }
