@@ -1,6 +1,9 @@
 package org.vitrivr.engine.base.features.external
 
+import org.vitrivr.engine.core.model.content.Content
+import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
+import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import kotlin.reflect.KClass
@@ -18,11 +21,11 @@ import kotlin.reflect.KClass
  */
 abstract class ExternalAnalyser(
     override val analyserName: String,
-    override val contentClass: KClass<ImageContent>,
-    override val descriptorClass: KClass<FloatVectorDescriptor>,
+    override val contentClass: KClass<ContentElement<*>>,
+    override val descriptorClass: KClass<Descriptor>,
     val host: String,
     val port: Int,
     val featureName: String
-) : Analyser<ImageContent, FloatVectorDescriptor> {
+) : Analyser<ContentElement<*>, Descriptor> {
 
 }
