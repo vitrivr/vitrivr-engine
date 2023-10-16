@@ -4,15 +4,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
-import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithContent
 import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithDescriptor
-import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -39,7 +35,7 @@ abstract class ExternalExtractor<C : ContentElement<*>, D : Descriptor>(
 
     abstract fun parseFeatureResponse(response: String): List<Float>
 
-    abstract fun createDescriptor(retrievableId: RetrievableId, content: ContentElement<*>): D
+    abstract fun createDescriptor(retrievableId: RetrievableId, content: List<ContentElement<*>>): D
 
     override fun toFlow(scope: CoroutineScope): Flow<Ingested> {
         val writer = if (this.persisting) {
@@ -49,7 +45,7 @@ abstract class ExternalExtractor<C : ContentElement<*>, D : Descriptor>(
         }
         return this.input.toFlow(scope).map { retrievable: Ingested ->
             if (retrievable is RetrievableWithContent) {
-                val content = retrievable.content.filterIsInstance<ContentElement<*>>()
+                val content = retrievable.content
 
                 /*val descriptor = FloatVectorDescriptor(
                     retrievableId = retrievable.id,
@@ -57,7 +53,7 @@ abstract class ExternalExtractor<C : ContentElement<*>, D : Descriptor>(
                     vector = queryExternalFeatureAPI(content.first())
                 )*/
 
-                val descriptor = createDescriptor(retrievable.id, content.first())
+                val descriptor = createDescriptor(retrievable.id, content)
 
                 if (retrievable is RetrievableWithDescriptor.Mutable) {
                     retrievable.addDescriptor(descriptor)
