@@ -43,3 +43,14 @@ data class ImageInputData(val data: String) : InputData() {
     private val image: BufferedImage by lazy { BufferedImage(data) }
 
 }
+
+@Serializable
+data class RetrievableIdInputData(val id: String) : InputData() {
+
+    override val type = InputType.ID
+
+    override fun toContent(): ContentElement<*> {
+        throw UnsupportedOperationException("Cannot derive content from RetrievableInputData")
+    }
+
+}

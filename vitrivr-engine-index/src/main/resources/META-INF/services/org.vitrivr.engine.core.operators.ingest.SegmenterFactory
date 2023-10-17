@@ -1,0 +1,2 @@
+org.vitrivr.engine.index.segment.FixedDurationSegmenterFactory
+org.vitrivr.engine.index.segment.PassThroughSegmenterFactory

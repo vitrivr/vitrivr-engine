@@ -50,4 +50,12 @@ sealed interface Operator<O> {
         /** The input [Operator]s. */
         val inputs: List<Operator<I>>
     }
+
+    /**
+     * A [Sink] is an [Operator] that has no output.
+     */
+    interface Sink<I>: Operator<Unit> {
+        /** The input [Operator]. */
+        val input: Operator<I>
+    }
 }

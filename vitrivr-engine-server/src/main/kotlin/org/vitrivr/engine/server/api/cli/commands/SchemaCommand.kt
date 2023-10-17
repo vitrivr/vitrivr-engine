@@ -6,6 +6,7 @@ import com.github.ajalt.clikt.core.subcommands
 import com.jakewharton.picnic.table
 import org.vitrivr.engine.core.database.Initializer
 import org.vitrivr.engine.core.model.metamodel.Schema
+import sandbox.SandboxCli
 
 /**
  *
@@ -24,7 +25,8 @@ class SchemaCommand(private val schema: Schema) : NoOpCliktCommand(
     init {
         this.subcommands(
             About(),
-            Initialize()
+            Initialize(),
+            Extract()
         )
     }
 
@@ -53,7 +55,7 @@ class SchemaCommand(private val schema: Schema) : NoOpCliktCommand(
                     for (field in this@SchemaCommand.schema.fields()) {
                         row {
                             cell(field.fieldName)
-                            cell(field.analyser.analyserName)
+                            cell(field.analyser::class.java.simpleName)
                             cell(field.analyser.contentClass.simpleName)
                             cell(field.analyser.descriptorClass.simpleName)
                             cell(this@SchemaCommand.schema.connection.description())
@@ -86,6 +88,12 @@ class SchemaCommand(private val schema: Schema) : NoOpCliktCommand(
                 }
             }
             println("Successfully initialized schema '${schema.name}'; created $initialized entities.")
+        }
+    }
+
+    inner class Extract : CliktCommand(name = "extract", help = "Extracts data from a source and stores it in the schema.") {
+        override fun run() {
+           SandboxCli.extarctionSandbox(schema = this@SchemaCommand.schema)
         }
     }
 }

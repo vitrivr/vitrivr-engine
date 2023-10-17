@@ -1,0 +1,56 @@
+{
+  "schema": "vitrivr",
+  "enumerator": {
+    "factory": "FileSystemEnumerator",
+    "parameters": {
+      "path": "C:/Users/walten0000/Documents/myRepo/ch.unibas/Work/vitrivr-engine/v3c-minimal-example",
+      "depth": "1",
+      "mediaTypes": "VIDEO"
+    },
+    "decoder": {
+      "factory": "VideoDecoder",
+      "parameters": {
+        "contentFactory": "inMemoryContentFactory",
+        "video": "true",
+        "audio": "true"
+      },
+      "transformer": {
+        "factory": "PassthroughTransformer",
+        "parameters": {
+        },
+        "segmenters": [
+          {
+            "factory": "FixedDurationSegmenter",
+            "parameters": {
+              "retrievableWriter": "RetrievableWriter",
+              "duration": "1",
+              "lookAheadTime": "1"
+            },
+            "extractors": [
+              {"factory": "AverageColorExtractor",
+                "parameters": {
+                  "field": "averagecolor1",
+                  "persisting": "true"
+                },
+                "exporters": [
+                  {"factory": "ThumbnailExporterFactory",
+                    "parameters": {
+                      "exporter": "thumbnail"
+                    },
+                    "resolver": {
+                      "factory": "DiskResolverFactory",
+                      "parameters": {
+                        "resolver": "thumbnail"
+                      }
+                    },
+                    "exporters": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
