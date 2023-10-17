@@ -11,8 +11,6 @@ import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithContent
 import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithDescriptor
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 
 /**
  * [Extractor] implementation for external feature extraction.
@@ -23,17 +21,16 @@ import java.net.http.HttpResponse
  * @version 1.0.0
  */
 abstract class ExternalExtractor<C : ContentElement<*>, D : Descriptor>(
-    override val persisting: Boolean = true,
-    private val host: String,
-    private val port: Int,
-    private val featureName: String
-) : Extractor<ContentElement<*>, Descriptor> {
+    //override val persisting: Boolean = true,
+
+) : Extractor<C, D> {
+    abstract val host: String
+    abstract val port: Int
+    abstract val featureName: String
 
     private val client = HttpClient.newHttpClient()
 
-    abstract fun createHttpRequest(content: ContentElement<*>): HttpRequest
-
-    abstract fun parseFeatureResponse(response: String): List<Float>
+    abstract fun createHttpRequest(content: ContentElement<*>): List<*>
 
     abstract fun createDescriptor(retrievableId: RetrievableId, content: List<ContentElement<*>>): D
 
@@ -47,12 +44,6 @@ abstract class ExternalExtractor<C : ContentElement<*>, D : Descriptor>(
             if (retrievable is RetrievableWithContent) {
                 val content = retrievable.content
 
-                /*val descriptor = FloatVectorDescriptor(
-                    retrievableId = retrievable.id,
-                    transient = !persisting,
-                    vector = queryExternalFeatureAPI(content.first())
-                )*/
-
                 val descriptor = createDescriptor(retrievable.id, content)
 
                 if (retrievable is RetrievableWithDescriptor.Mutable) {
@@ -65,11 +56,5 @@ abstract class ExternalExtractor<C : ContentElement<*>, D : Descriptor>(
     }
 
 
-    private fun queryExternalFeatureAPI(content: ContentElement<*>): List<Float> {
-        val request = createHttpRequest(content)
-        val response = client.send(request, HttpResponse.BodyHandlers.ofString())
-
-        // Extract and parse the response from the external feature API
-        return parseFeatureResponse(response.body())
-    }
+    abstract fun queryExternalFeatureAPI(content: ContentElement<*>): List<*>
 }

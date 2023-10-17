@@ -19,13 +19,10 @@ import kotlin.reflect.KClass
  * @author Rahel Arnold
  * @version 1.0.0
  */
-abstract class ExternalAnalyser(
-    override val analyserName: String,
-    override val contentClass: KClass<ContentElement<*>>,
-    override val descriptorClass: KClass<Descriptor>,
-    val host: String,
-    val port: Int,
-    val featureName: String
-) : Analyser<ContentElement<*>, Descriptor> {
+abstract class ExternalAnalyser<T: ContentElement<*>, U: Descriptor>(
 
+) : Analyser<T, U> {
+    abstract val host: String
+    abstract val port: Int
+    abstract val featureName: String
 }
