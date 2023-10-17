@@ -5,10 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
-import org.vitrivr.engine.core.model.database.retrievable.Ingested
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithContent
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithDescriptor
+import org.vitrivr.engine.core.model.database.retrievable.*
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import java.net.http.HttpClient
 
@@ -32,7 +29,7 @@ abstract class ExternalExtractor<C : ContentElement<*>, D : Descriptor>(
 
     abstract fun createHttpRequest(content: ContentElement<*>): List<*>
 
-    abstract fun createDescriptor(retrievableId: RetrievableId, content: List<ContentElement<*>>): D
+    abstract fun createDescriptor(retrievable: RetrievableWithContent): D
 
     override fun toFlow(scope: CoroutineScope): Flow<Ingested> {
         val writer = if (this.persisting) {
@@ -44,7 +41,7 @@ abstract class ExternalExtractor<C : ContentElement<*>, D : Descriptor>(
             if (retrievable is RetrievableWithContent) {
                 val content = retrievable.content
 
-                val descriptor = createDescriptor(retrievable.id, content)
+                val descriptor = createDescriptor(retrievable)
 
                 if (retrievable is RetrievableWithDescriptor.Mutable) {
                     retrievable.addDescriptor(descriptor)
@@ -56,5 +53,5 @@ abstract class ExternalExtractor<C : ContentElement<*>, D : Descriptor>(
     }
 
 
-    abstract fun queryExternalFeatureAPI(content: ContentElement<*>): List<*>
+    abstract fun queryExternalFeatureAPI(retrievable: RetrievableWithContent): List<*>
 }

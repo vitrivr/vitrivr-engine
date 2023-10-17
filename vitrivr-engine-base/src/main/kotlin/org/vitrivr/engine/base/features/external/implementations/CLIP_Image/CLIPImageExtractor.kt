@@ -5,7 +5,9 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
+import org.vitrivr.engine.core.model.database.retrievable.Retrievable
 import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithContent
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.Operator
 import java.awt.image.BufferedImage
@@ -47,11 +49,11 @@ class CLIPImageExtractor(
      * @return The created FloatVectorDescriptor.
      */
     override fun createDescriptor(
-        retrievableId: RetrievableId, content: List<ContentElement<*>>
+        retrievable: RetrievableWithContent
     ): FloatVectorDescriptor {
 
         return FloatVectorDescriptor(
-            retrievableId = retrievableId, transient = !persisting, vector = queryExternalFeatureAPI(content.first())
+            retrievableId = retrievable.id, transient = !persisting, vector = queryExternalFeatureAPI(retrievable)
         )
     }
 
@@ -61,9 +63,9 @@ class CLIPImageExtractor(
      * @param content The content element to send to the external feature API.
      * @return The List<Float> representing the obtained external feature.
      */
-    override fun queryExternalFeatureAPI(content: ContentElement<*>): List<Float> {
+    override fun queryExternalFeatureAPI(retrievable: RetrievableWithContent): List<Float> {
         // Extract and parse the response from the external feature API
-        return createHttpRequest(content)
+        return createHttpRequest(retrievable.content.filterIsInstance<ImageContent>().first())
     }
 
     /**
