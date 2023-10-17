@@ -10,12 +10,12 @@ import org.vitrivr.engine.core.operators.Operator
 import java.util.*
 
 /**
- * Implementation of the [CLIPImageAnalyser] [ExternalAnalyser], which derives the CLIP feature from an [ImageContent] as [FloatVectorDescriptor].
+ * Implementation of the [CLIPImageFactory] [ExternalAnalyser], which derives the CLIP feature from an [ImageContent] as [FloatVectorDescriptor].
  *
  * @author Rahel Arnold
  * @version 1.0.0
  */
-class CLIPImageAnalyser : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
+class CLIPImageFactory : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
     override val analyserName: String = "CLIPImage"
     override val contentClass = ImageContent::class
     override val descriptorClass = FloatVectorDescriptor::class
@@ -24,7 +24,7 @@ class CLIPImageAnalyser : ExternalAnalyser<ImageContent, FloatVectorDescriptor>(
     override val port: Int = 8080
 
     /**
-     * Generates a prototypical [FloatVectorDescriptor] for this [CLIPImageAnalyser].
+     * Generates a prototypical [FloatVectorDescriptor] for this [CLIPImageFactory].
      *
      * @return [FloatVectorDescriptor]
      */

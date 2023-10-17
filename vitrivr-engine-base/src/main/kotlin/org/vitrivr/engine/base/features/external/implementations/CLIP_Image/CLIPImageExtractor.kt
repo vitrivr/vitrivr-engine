@@ -18,7 +18,7 @@ import java.util.*
 import javax.imageio.ImageIO
 
 /**
- * [CLIPImageExtractor] implementation of an [ExternalExtractor] for [CLIPImageAnalyser].
+ * [CLIPImageExtractor] implementation of an [ExternalExtractor] for [CLIPImageFactory].
  *
  * @param field Schema field for which the extractor generates descriptors.
  * @param input Operator representing the input data source.
