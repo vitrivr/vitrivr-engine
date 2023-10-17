@@ -7,5 +7,9 @@ typealias RetrievableIdString = String
 
 @Serializable
 data class QueryResultRetrievable(val id: RetrievableIdString, val score: Float, val parts: List<RetrievableIdString>) {
-    constructor(scoredRetrievable: Retrieved) : this(scoredRetrievable.id.toString(), 0.0f, emptyList()) /* TODO: Extract parts. */
+    constructor(retrieved: Retrieved) : this(
+        retrieved.id.toString(),
+        if (retrieved is Retrieved.RetrievedWithScore) retrieved.score else 0f,
+        emptyList()
+    ) /* TODO: Extract parts. */
 }
