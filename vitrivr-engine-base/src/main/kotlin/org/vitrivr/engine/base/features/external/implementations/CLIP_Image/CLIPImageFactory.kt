@@ -29,14 +29,35 @@ class CLIPImageFactory : ExternalAnalyser<ImageContent, FloatVectorDescriptor>()
     override val analyserName: String = "CLIPImage"
     override val contentClass = ImageContent::class
     override val descriptorClass = FloatVectorDescriptor::class
-    override val featureName: String = "/extract/clip_image"
+
+    // Default values for external API
+    override val endpoint: String = "/extract/clip_image"
+    override val host: String = "localhost"
+    override val port: Int = 8888
+
+    // Size and feature list for prototypical descriptor
+    val size = 512
+    private val featureList = List(size) { 0.0f }.toFloatArray().asList()
+
+    /**
+     * Requests the CLIP feature descriptor for the given [ContentElement].
+     *
+     * @param content The [ContentElement] for which to request the CLIP feature descriptor.
+     * @return A list of CLIP feature descriptors.
+     */
     override fun requestDescriptor(content: ContentElement<*>): List<Float> {
         return httpRequest(content)
     }
 
+    /**
+     * Performs an HTTP request to the external feature API to obtain the CLIP feature for the given content element.
+     *
+     * @param content The [ContentElement] for which to obtain the CLIP feature.
+     * @return A list containing the CLIP descriptor.
+     */
     fun httpRequest(content: ContentElement<*>): List<Float> {
         val imgContent = content as ImageContent
-        val url = "http://$host:$port$featureName"
+        val url = "http://$host:$port$endpoint"
         val base64 = encodeImageToBase64(imgContent.getContent())
 
         // Create an HttpURLConnection
@@ -96,19 +117,12 @@ class CLIPImageFactory : ExternalAnalyser<ImageContent, FloatVectorDescriptor>()
     }
 
 
-    override val host: String = "localhost"
-    override val port: Int = 8888
-
-    val size = 512
-    private val featureList = List(size) { 0.0f }.toFloatArray().asList()
-
     /**
      * Generates a prototypical [FloatVectorDescriptor] for this [CLIPImageFactory].
      *
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype() =
-        FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), featureList, true)
+    override fun prototype() = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), featureList, true)
 
 
     override fun analyse(content: Collection<ImageContent>): DescriptorList<FloatVectorDescriptor> {
@@ -119,10 +133,7 @@ class CLIPImageFactory : ExternalAnalyser<ImageContent, FloatVectorDescriptor>()
             val featureVector = requestDescriptor(imageContent)
 
             val descriptor = FloatVectorDescriptor(
-                UUID.randomUUID(),
-                null,
-                featureVector,
-                true
+                UUID.randomUUID(), null, featureVector, true
             )
 
             resultList.add(descriptor)
@@ -184,6 +195,12 @@ class CLIPImageFactory : ExternalAnalyser<ImageContent, FloatVectorDescriptor>()
             }
         }
 
+        /**
+         * Static method to request the CLIP feature descriptor for the given [ContentElement].
+         *
+         * @param content The [ContentElement] for which to request the CLIP feature descriptor.
+         * @return A list of CLIP feature descriptors.
+         */
         fun requestDescriptor(content: ContentElement<*>): List<Float> {
             return CLIPImageFactory().httpRequest(content)
         }

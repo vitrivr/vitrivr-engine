@@ -1,30 +1,47 @@
 package org.vitrivr.engine.base.features.external
 
-import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
-import kotlin.reflect.KClass
 
 /**
- * Implementation of the [ExternalAnalyser], which derives external features from an [ImageContent] as [FloatVectorDescriptor].
+ * Implementation of the [ExternalAnalyser], which derives external features from an [ContentElement] as [Descriptor].
  *
- * @param host The host address of the external feature extraction service.
- * @param port The port of the external feature extraction service.
- * @param featureName The name of the external feature to extract.
+ * @param T Type of [ContentElement] that this external analyzer operates on.
+ * @param U Type of [Descriptor] produced by this external analyzer.
  *
+ * @property host The host address of the external feature extraction service.
+ * @property port The port of the external feature extraction service.
+ * @property endpoint The endpoint of the external feature to extract.
+ *
+ * @see [Analyser]
  *
  * @author Rahel Arnold
  * @version 1.0.0
  */
-abstract class ExternalAnalyser<T: ContentElement<*>, U: Descriptor>(
-
-) : Analyser<T, U> {
+abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor> : Analyser<T, U> {
+    /**
+     * The host address of the external feature extraction service.
+     */
     abstract val host: String
-    abstract val port: Int
-    abstract val featureName: String
 
+    /**
+     * The port of the external feature extraction service.
+     */
+    abstract val port: Int
+
+    /**
+     * The endpoint for the external feature extraction service.
+     */
+    abstract val endpoint: String
+
+    /**
+     * Requests the external feature descriptor for the given [ContentElement].
+     *
+     * @param content The [ContentElement] for which to request the external feature descriptor.
+     * @return A list of external feature descriptors.
+     */
     abstract fun requestDescriptor(content: ContentElement<*>): List<*>
 }
