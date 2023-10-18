@@ -11,6 +11,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.util.DescriptorList
 import org.vitrivr.engine.core.model.util.toDescriptorList
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.util.extension.toDataURL
 import java.awt.image.BufferedImage
 import java.io.*
 import java.net.HttpURLConnection
@@ -59,11 +60,8 @@ class DINOFactory : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
     fun httpRequest(content: ContentElement<*>): List<Float> {
         val imgContent = content as ImageContent
         val url = "http://$host:$port$endpoint"
-        val base64 = encodeImageToBase64(imgContent.getContent())
-
-        // Construct the request body
-        val requestBody = "data=${URLEncoder.encode("image/png;base64,$base64", StandardCharsets.UTF_8.toString())}"
-
+        val base64 = imgContent.getContent().toDataURL()
+        val requestBody = URLEncoder.encode(base64, StandardCharsets.UTF_8.toString())
         return executeApiRequest(url, requestBody)
     }
 
@@ -115,37 +113,6 @@ class DINOFactory : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
     }
 
     companion object {
-        /**
-         * Encodes a BufferedImage to base64.
-         *
-         * @param bufferedImage The BufferedImage to encode.
-         * @return The base64-encoded string.
-         */
-        fun encodeImageToBase64(bufferedImage: BufferedImage): String {
-            val byteArrayOutputStream = ByteArrayOutputStream()
-
-            try {
-                // Write the BufferedImage to the output stream
-                ImageIO.write(bufferedImage, "png", byteArrayOutputStream)
-
-                // Convert the output stream to a byte array
-                val imageBytes = byteArrayOutputStream.toByteArray()
-
-                // Encode the byte array to base64
-                return Base64.getEncoder().encodeToString(imageBytes)
-            } catch (e: IOException) {
-                e.printStackTrace()
-                // TODO Handle the exception as needed
-                return ""
-            } finally {
-                try {
-                    byteArrayOutputStream.close()
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
-            }
-        }
-
         /**
          * Static method to request the DINO feature descriptor for the given [ContentElement].
          *
