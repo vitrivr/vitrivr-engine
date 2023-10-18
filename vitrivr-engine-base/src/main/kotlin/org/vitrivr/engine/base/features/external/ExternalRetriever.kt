@@ -5,7 +5,10 @@ import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 
 /**
- * [Retriever] implementation for external feature retrieval.
+ * Abstract class for implementing an external feature retriever.
+ *
+ * @param C Type of [ContentElement] that this external retriever operates on.
+ * @param D Type of [Descriptor] produced by this external retriever.
  *
  * @see [ExternalAnalyser]
  *
@@ -14,5 +17,8 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
  */
 abstract class ExternalRetriever<C : ContentElement<*>, D : Descriptor> : Retriever<C, D> {
 
+    /**
+     * The query vector for the external feature retrieval.
+     */
     abstract val queryVector: Descriptor
 }

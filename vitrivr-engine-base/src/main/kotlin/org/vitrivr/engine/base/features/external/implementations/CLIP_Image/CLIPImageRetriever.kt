@@ -11,9 +11,13 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 
 /**
- * [CLIPImageRetriever] implementation for external clip image feature retrieval.
+ * [CLIPImageRetriever] implementation for external CLIP image feature retrieval.
+ *
+ * @param field Schema field for which the retriever operates.
+ * @param queryVector The query vector for proximity-based retrieval.
  *
  * @see [ExternalRetriever]
+ * @see [ProximityQuery]
  *
  * @author Rahel Arnold
  * @version 1.0.0
