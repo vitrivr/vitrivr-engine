@@ -89,16 +89,16 @@ class CLIPImageExtractor(
             connection.doOutput = true
             connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
 
-            // Encode the base64 data
-            val encodedData = URLEncoder.encode(base64, StandardCharsets.UTF_8.toString())
-
             // Construct the request body
-            val requestBody = "data=$encodedData"
+            val requestBody = "data=${URLEncoder.encode("image/png;base64,$base64", StandardCharsets.UTF_8.toString())}"
 
             // Write the request body to the output stream
             val outputStream: OutputStream = connection.outputStream
-            outputStream.write(requestBody.toByteArray(StandardCharsets.UTF_8))
-            outputStream.flush()
+            val writer = BufferedWriter(OutputStreamWriter(outputStream))
+            writer.write("data=$requestBody")
+            writer.flush()
+            writer.close()
+            outputStream.close()
 
             // Get the response code (optional, but useful for error handling)
             val responseCode = connection.responseCode
