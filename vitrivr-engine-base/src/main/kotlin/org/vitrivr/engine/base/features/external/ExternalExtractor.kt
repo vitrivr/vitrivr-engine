@@ -17,17 +17,8 @@ import java.net.http.HttpClient
  * @author Rahel Arnold
  * @version 1.0.0
  */
-abstract class ExternalExtractor<C : ContentElement<*>, D : Descriptor>(
-    //override val persisting: Boolean = true,
+abstract class ExternalExtractor<C : ContentElement<*>, D : Descriptor> : Extractor<C, D> {
 
-) : Extractor<C, D> {
-    abstract val host: String
-    abstract val port: Int
-    abstract val featureName: String
-
-    private val client = HttpClient.newHttpClient()
-
-    abstract fun createHttpRequest(content: ContentElement<*>): List<*>
 
     abstract fun createDescriptor(retrievable: RetrievableWithContent): D
 
