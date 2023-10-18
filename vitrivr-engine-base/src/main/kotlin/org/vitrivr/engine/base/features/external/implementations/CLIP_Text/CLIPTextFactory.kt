@@ -36,7 +36,7 @@ class CLIPTextFactory : ExternalWithFloatVectorDescriptorAnalyser<TextContent>()
 
     // Size and feature list for prototypical descriptor
     val size = 512
-    private val featureList = List(size) { 0.0f }.toFloatArray().asList()
+    private val featureList = List(size) { 0.0f }
 
     /**
      * Requests the CLIP feature descriptor for the given [ContentElement].
