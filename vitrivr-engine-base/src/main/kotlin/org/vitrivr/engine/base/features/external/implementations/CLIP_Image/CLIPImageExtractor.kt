@@ -1,5 +1,6 @@
 package org.vitrivr.engine.base.features.external.implementations.CLIP_Image
 
+import com.google.gson.Gson
 import org.vitrivr.engine.base.features.external.ExternalExtractor
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -51,9 +52,10 @@ class CLIPImageExtractor(
     override fun createDescriptor(
         retrievable: RetrievableWithContent
     ): FloatVectorDescriptor {
-
+        val list: List<Float> = queryExternalFeatureAPI(retrievable)
+        //print(list)
         return FloatVectorDescriptor(
-            retrievableId = retrievable.id, transient = !persisting, vector = queryExternalFeatureAPI(retrievable)
+            retrievableId = retrievable.id, transient = !persisting, vector = list
         )
     }
 
@@ -104,12 +106,25 @@ class CLIPImageExtractor(
             val responseCode = connection.responseCode
             println("Response Code: $responseCode")
 
-            // Read the response as a List<Float>
-            return if (responseCode == HttpURLConnection.HTTP_OK) {
+            // Read the response as a JSON string
+            val responseJson = if (responseCode == HttpURLConnection.HTTP_OK) {
                 val inputStream = BufferedReader(InputStreamReader(connection.inputStream))
-                val response = inputStream.readLine()?.split(",")?.map { it.toFloat() }
+                val response = inputStream.readLine()
                 inputStream.close()
-                response ?: emptyList()
+                response
+            } else {
+                null
+            }
+
+            // Parse the JSON string to List<Float> using Gson
+            return if (responseJson != null) {
+                try {
+                    val gson = Gson()
+                    gson.fromJson(responseJson, List::class.java) as List<Float>
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    emptyList()
+                }
             } else {
                 emptyList()
             }
