@@ -23,13 +23,16 @@ class CLIPImageFactory : ExternalAnalyser<ImageContent, FloatVectorDescriptor>()
     override val host: String = "localhost"
     override val port: Int = 8888
 
+    val size = 512
+    private val featureList = List(size) { 0.0f }.toFloatArray().asList()
+
     /**
      * Generates a prototypical [FloatVectorDescriptor] for this [CLIPImageFactory].
      *
      * @return [FloatVectorDescriptor]
      */
     override fun prototype() =
-        FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), listOf(0.0f, 0.0f, 0.0f), true)
+        FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(),featureList, true)
 
 
     override fun analyse(content: Collection<ImageContent>): DescriptorList<FloatVectorDescriptor> {
