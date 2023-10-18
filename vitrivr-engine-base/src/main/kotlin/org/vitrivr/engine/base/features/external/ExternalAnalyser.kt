@@ -25,4 +25,6 @@ abstract class ExternalAnalyser<T: ContentElement<*>, U: Descriptor>(
     abstract val host: String
     abstract val port: Int
     abstract val featureName: String
+
+    abstract fun requestDescriptor(content: ContentElement<*>): List<*>
 }
