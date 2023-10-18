@@ -38,7 +38,7 @@ class DINOFactory : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
 
     // Size and feature list for prototypical descriptor
     val size = 384
-    private val featureList = List(size) { 0.0f }.toFloatArray().asList()
+    private val featureList = List(size) { 0.0f }
 
     /**
      * Requests the DINO feature descriptor for the given [ContentElement].
