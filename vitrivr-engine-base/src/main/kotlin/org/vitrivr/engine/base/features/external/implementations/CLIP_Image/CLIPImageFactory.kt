@@ -21,7 +21,7 @@ class CLIPImageFactory : ExternalAnalyser<ImageContent, FloatVectorDescriptor>()
     override val descriptorClass = FloatVectorDescriptor::class
     override val featureName: String = "/extract/clip_image"
     override val host: String = "localhost"
-    override val port: Int = 8080
+    override val port: Int = 8888
 
     /**
      * Generates a prototypical [FloatVectorDescriptor] for this [CLIPImageFactory].
