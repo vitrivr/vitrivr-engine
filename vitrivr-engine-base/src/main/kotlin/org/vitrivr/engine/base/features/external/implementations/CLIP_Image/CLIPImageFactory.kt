@@ -1,6 +1,5 @@
 package org.vitrivr.engine.base.features.external.implementations.CLIP_Image
 
-import com.google.gson.Gson
 import org.vitrivr.engine.base.features.external.ExternalAnalyser
 import org.vitrivr.engine.base.features.external.common.ExternalWithFloatVectorDescriptorAnalyser
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -12,14 +11,9 @@ import org.vitrivr.engine.core.model.util.DescriptorList
 import org.vitrivr.engine.core.model.util.toDescriptorList
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.util.extension.toDataURL
-import java.awt.image.BufferedImage
-import java.io.*
-import java.net.HttpURLConnection
-import java.net.URL
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.util.*
-import javax.imageio.ImageIO
 
 /**
  * Implementation of the [CLIPImageFactory] [ExternalAnalyser], which derives the CLIP feature from an [ImageContent] as [FloatVectorDescriptor].
@@ -37,9 +31,8 @@ class CLIPImageFactory : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>
     override val host: String = "localhost"
     override val port: Int = 8888
 
-    // Size and feature list for prototypical descriptor
-    val size = 512
-    private val featureList = List(size) { 0.0f }
+    // Size for prototypical descriptor
+    override val size = 512
 
     /**
      * Requests the CLIP feature descriptor for the given [ContentElement].
@@ -76,20 +69,7 @@ class CLIPImageFactory : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>
 
 
     override fun analyse(content: Collection<ImageContent>): DescriptorList<FloatVectorDescriptor> {
-        val resultList = mutableListOf<FloatVectorDescriptor>()
-
-        for (imageContent in content) {
-
-            val featureVector = requestDescriptor(imageContent)
-
-            val descriptor = FloatVectorDescriptor(
-                UUID.randomUUID(), null, featureVector, true
-            )
-
-            resultList.add(descriptor)
-        }
-
-        return resultList.toDescriptorList()
+        return processContent(content)
     }
 
     override fun newExtractor(

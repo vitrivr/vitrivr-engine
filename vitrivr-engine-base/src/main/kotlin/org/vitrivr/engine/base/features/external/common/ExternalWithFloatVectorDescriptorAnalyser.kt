@@ -3,14 +3,19 @@ package org.vitrivr.engine.base.features.external.common
 import com.google.gson.Gson
 import org.vitrivr.engine.base.features.external.ExternalAnalyser
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.database.descriptor.Descriptor
 import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
+import org.vitrivr.engine.core.model.util.DescriptorList
+import org.vitrivr.engine.core.model.util.toDescriptorList
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.*
 
-abstract class ExternalWithFloatVectorDescriptorAnalyser<C:ContentElement<*>> : ExternalAnalyser<C, FloatVectorDescriptor>() {
+abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> :
+    ExternalAnalyser<C, FloatVectorDescriptor>() {
 
+    abstract val size: Int
+    val featureList = List(size) { 0.0f }
     fun executeApiRequest(url: String, requestBody: String): List<Float> {
         // Create an HttpURLConnection
         val connection = URL(url).openConnection() as HttpURLConnection
@@ -64,4 +69,23 @@ abstract class ExternalWithFloatVectorDescriptorAnalyser<C:ContentElement<*>> : 
         }
         return emptyList()
     }
+
+    abstract override fun requestDescriptor(content: ContentElement<*>): List<Float>
+
+    fun processContent(content: Collection<*>): DescriptorList<FloatVectorDescriptor> {
+        val resultList = mutableListOf<FloatVectorDescriptor>()
+
+        for (item in content) {
+            val featureVector = requestDescriptor(item as ContentElement<*>)
+
+            val descriptor = FloatVectorDescriptor(
+                UUID.randomUUID(), null, featureVector, true
+            )
+
+            resultList.add(descriptor)
+        }
+
+        return resultList.toDescriptorList()
+    }
+
 }
