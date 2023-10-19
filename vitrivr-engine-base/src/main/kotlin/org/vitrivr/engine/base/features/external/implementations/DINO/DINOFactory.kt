@@ -8,7 +8,6 @@ import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescr
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.util.DescriptorList
-import org.vitrivr.engine.core.model.util.toDescriptorList
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.util.extension.toDataURL
 import java.net.URLEncoder
@@ -31,8 +30,10 @@ class DINOFactory : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
     override val host: String = "localhost"
     override val port: Int = 8888
 
-    // Size for prototypical descriptor
+    // Size and list for prototypical descriptor
     override val size = 384
+    override val featureList = List(size) { 0.0f }
+
 
     /**
      * Requests the DINO feature descriptor for the given [ContentElement].
@@ -41,7 +42,9 @@ class DINOFactory : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
      * @return A list of DINO feature descriptors.
      */
     override fun requestDescriptor(content: ContentElement<*>): List<Float> {
-        return httpRequest(content)
+        val a = httpRequest(content)
+        print(a)
+        return a
     }
 
     /**
@@ -50,13 +53,13 @@ class DINOFactory : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
      * @param content The [ContentElement] for which to obtain the DINO feature.
      * @return A list containing the DINO descriptor.
      */
-    fun httpRequest(content: ContentElement<*>): List<Float> {
+    /*fun httpRequest(content: ContentElement<*>): List<Float> {
         val imgContent = content as ImageContent
         val url = "http://$host:$port$endpoint"
         val base64 = imgContent.getContent().toDataURL()
         val requestBody = URLEncoder.encode(base64, StandardCharsets.UTF_8.toString())
         return executeApiRequest(url, requestBody)
-    }
+    }*/
 
 
     /**
