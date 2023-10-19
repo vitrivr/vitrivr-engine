@@ -8,7 +8,6 @@ import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescr
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.util.DescriptorList
-import org.vitrivr.engine.core.model.util.toDescriptorList
 import org.vitrivr.engine.core.operators.Operator
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -30,8 +29,10 @@ class CLIPTextFactory : ExternalWithFloatVectorDescriptorAnalyser<TextContent>()
     override val host: String = "localhost"
     override val port: Int = 8888
 
-    // Size for prototypical descriptor
+    // Size and list for prototypical descriptor
     override val size = 512
+    override val featureList = List(size) { 0.0f }
+
 
     /**
      * Requests the CLIP feature descriptor for the given [ContentElement].
@@ -49,16 +50,16 @@ class CLIPTextFactory : ExternalWithFloatVectorDescriptorAnalyser<TextContent>()
      * @param content The [ContentElement] for which to obtain the CLIP feature.
      * @return A list containing the CLIP descriptor.
      */
-    fun httpRequest(content: ContentElement<*>): List<Float> {
+    /*fun httpRequest(content: ContentElement<*>): List<Float> {
         val textContent = content as TextContent
         val url = "http://$host:$port$endpoint"
         val base64 = encodeTextToBase64(textContent.getContent())
 
         // Construct the request body
-        val requestBody = "data=${URLEncoder.encode("data:text/plain;charset=utf-8,$base64", StandardCharsets.UTF_8.toString())}"
+        val requestBody = URLEncoder.encode("data:text/plain;charset=utf-8,$base64", StandardCharsets.UTF_8.toString())
 
         return executeApiRequest(url, requestBody)
-    }
+    }*/
 
 
     /**
@@ -95,18 +96,6 @@ class CLIPTextFactory : ExternalWithFloatVectorDescriptorAnalyser<TextContent>()
     }
 
     companion object {
-        /**
-         * Encodes a text to base64.
-         *
-         * @param text The string to encode.
-         * @return The base64-encoded string.
-         */
-        fun encodeTextToBase64(text: String): String {
-            val textBytes = text.toByteArray(StandardCharsets.UTF_8)
-
-            // Encode the byte array to base64
-            return Base64.getEncoder().encodeToString(textBytes)
-        }
         /**
          * Static method to request the CLIP feature descriptor for the given [ContentElement].
          *
