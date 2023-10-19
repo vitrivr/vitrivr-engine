@@ -8,7 +8,10 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
+import org.vitrivr.engine.core.config.pipeline.ContextConfig
 import org.vitrivr.engine.core.config.pipeline.PipelineConfig
+import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.context.ContextFactory
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.ingest.templates.*
 import org.vitrivr.engine.index.execution.ExecutionServer
@@ -34,13 +37,13 @@ class SandboxCli {
                 )
             ) { "Pipeline schema '${pipeline.schema}' does not match schema '${schema.name}'." }
             logger.trace { "Successfully initialized schema '${schema.name}' and pipeline '${pipeline.schema}'." }
-
+            val context = ContextFactory().newContext(ContextConfig("inMemoryContentFactory"))
             val enumerator =
-                DummyEnumeratorFactory().newOperator(mapOf("enumeratorKey" to "enumeratorValue"), schema)
-            val decoder = DummyDecoderFactory().newOperator(enumerator, mapOf("decoderKey" to "decoderValue"), schema)
-            val transformer = DummyTransformerFactory().newOperator(decoder, mapOf("transformerKey" to "transformerValue"), schema)
-            val segmenter = DummySegmenterFactory().newOperator(transformer, mapOf("segmenterKey" to "segmenterValue"), schema)
-            val extractor = DummyExtractorFactory().newOperator(segmenter, mapOf("extractorKey" to "extractorValue"), schema)
+                DummyEnumeratorFactory().newOperator(mapOf("enumeratorKey" to "enumeratorValue"), schema,context)
+            val decoder = DummyDecoderFactory().newOperator(enumerator, mapOf("decoderKey" to "decoderValue"), schema,context)
+            val transformer = DummyTransformerFactory().newOperator(decoder, mapOf("transformerKey" to "transformerValue"), schema,context)
+            val segmenter = DummySegmenterFactory().newOperator(transformer, mapOf("segmenterKey" to "segmenterValue"), schema,context)
+            val extractor = DummyExtractorFactory().newOperator(segmenter, mapOf("extractorKey" to "extractorValue"), schema,context)
             val resolver = DummyResolverFactory().newResolver(mapOf("resolverKey" to "resolverValue"))
             val exporter = DummyExporterFactory().newOperator(extractor, mapOf("exporterKey" to "exporterValue"), schema, resolver)
 
