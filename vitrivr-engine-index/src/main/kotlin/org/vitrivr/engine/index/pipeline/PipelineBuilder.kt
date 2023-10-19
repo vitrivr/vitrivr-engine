@@ -12,6 +12,8 @@ import org.vitrivr.engine.core.operators.ingest.EnumeratorFactory
 import org.vitrivr.engine.core.operators.ingest.SegmenterFactory
 import org.vitrivr.engine.core.operators.ingest.TransformerFactory
 import org.vitrivr.engine.core.source.Source
+import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.context.ContextFactory
 import java.util.*
 
 private val logger: KLogger = KotlinLogging.logger {}
@@ -25,72 +27,72 @@ private val logger: KLogger = KotlinLogging.logger {}
  * Pipleine setup
  * Enumerator: Source -> Decoder: ContentElement<*> -> Transformer: ContentElement<*> -> Segmenter: Ingested -> Extractor: Ingested -> Exporter: Ingested
  */
-class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig) {
+class PipelineBuilder(private val schema: Schema, private val pipelineConfig: PipelineConfig) {
 
-
-    private var leaves: MutableList<Operator<*>> = mutableListOf()
+    private var leaves: MutableList<org.vitrivr.engine.core.operators.Operator<*>> = mutableListOf()
+    val context = ContextFactory().newContext(pipelineConfig.context)
 
     init {
         assert(pipelineConfig.schema == schema.name) {
             "Pipeline  name ${pipelineConfig.schema} does not match schema name ${schema.name}"
         }
 
-        addEnumerator(pipelineConfig.enumerator)
-
-
+        addEnumerator(pipelineConfig.enumerator, context)
     }
 
-    fun addEnumerator(config: EnumeratorConfig) {
+
+
+    fun addEnumerator(config: EnumeratorConfig , context: Context) {
         val enumerator = (ServiceLoader.load(EnumeratorFactory::class.java).find {
             it.javaClass.name == "${it.javaClass.packageName}.${config.factory}Factory"
         }
             ?: throw IllegalArgumentException("Failed to find Enumerator implementation for '${config.factory}'."))
-            .newOperator(config.parameters, schema)
+            .newOperator(config.parameters, schema, context)
 
         logger.info { "Enumerator: ${enumerator.javaClass.name}" }
-        addDecoder(enumerator, config.decoder)
+        addDecoder(enumerator, config.decoder, context)
     }
 
-    fun addDecoder(parent: Operator<Source>, config: DecoderConfig) {
+    fun addDecoder(parent: org.vitrivr.engine.core.operators.Operator<Source>, config: DecoderConfig, context: Context) {
 
         val decoder = (ServiceLoader.load(DecoderFactory::class.java).find {
             it.javaClass.name == "${it.javaClass.packageName}.${config.factory}Factory"
         } ?: throw IllegalArgumentException("Failed to find Decoder implementation for '${config.factory}'."))
-            .newOperator(parent, config.parameters, schema)
+            .newOperator(parent, config.parameters, schema, context)
 
         logger.info { "Decoder: ${decoder.javaClass.name}" }
-        addTransformer(decoder, config.transformer)
+        addTransformer(decoder, config.transformer, context)
     }
 
-    fun addTransformer(parent: Operator<ContentElement<*>>, config: TransformerConfig) {
+    fun addTransformer(parent: org.vitrivr.engine.core.operators.Operator<ContentElement<*>>, config: TransformerConfig, context: Context) {
         val transformer = (ServiceLoader.load(TransformerFactory::class.java).find {
             it.javaClass.name == "${it.javaClass.packageName}.${config.factory}Factory"
         }
             ?: throw IllegalArgumentException("Failed to find Transformer implementation for '${config.factory}'."))
-            .newOperator(parent, config.parameters, schema)
+            .newOperator(parent, config.parameters, schema, context)
 
         logger.info { "Transformer: ${transformer.javaClass.name}" }
-        addSegmenter(transformer, config.segmenters)
+        addSegmenter(transformer, config.segmenters, context)
     }
 
-    fun addSegmenter(parent: Operator<ContentElement<*>>, configs: List<SegmenterConfig>) {
+    fun addSegmenter(parent: org.vitrivr.engine.core.operators.Operator<ContentElement<*>>, configs: List<SegmenterConfig>, context: Context) {
         configs.forEach { segmenterConfig ->
             val segmenter = (ServiceLoader.load(SegmenterFactory::class.java).find {
                 it.javaClass.name == "${it.javaClass.packageName}.${segmenterConfig.factory}Factory"
             }
                 ?: throw IllegalArgumentException("Failed to find Segmenter implementation for '${segmenterConfig.factory}'."))
-                .newOperator(parent, segmenterConfig.parameters, schema)
+                .newOperator(parent, segmenterConfig.parameters, schema, context)
 
             if (segmenterConfig.extractors.isNotEmpty())
-                this.addExtractor(segmenter, segmenterConfig.extractors)
+                this.addExtractor(segmenter, segmenterConfig.extractors, context)
             if (segmenterConfig.exporters.isNotEmpty())
-                this.addExporter(segmenter, segmenterConfig.exporters)
+                this.addExporter(segmenter, segmenterConfig.exporters, context)
 
             logger.info { "Segmenter: ${segmenter.javaClass.name}" }
         }
     }
 
-    fun addExtractor(parent: Operator<Ingested>, configs: List<ExtractorConfig>) {
+    fun addExtractor(parent: org.vitrivr.engine.core.operators.Operator<Ingested>, configs: List<ExtractorConfig>, context: Context) {
 
         configs.forEach { config ->
             val extractor = (schema.get(config.parameters["field"] as String)
@@ -103,10 +105,10 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
                     ).getExtractor(parent)
 
             if (config.extractors.isNotEmpty()) {
-                this.addExtractor(extractor, config.extractors)
+                this.addExtractor(extractor, config.extractors, context)
             }
             if (config.exporters.isNotEmpty()) {
-                this.addExporter(extractor, config.exporters)
+                this.addExporter(extractor, config.exporters, context)
             }
             else {
                 leaves.add(extractor)
@@ -115,7 +117,7 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
         }
     }
 
-    fun addExporter(parent: Operator<Ingested>, configs: List<ExporterConfig>) {
+    fun addExporter(parent: org.vitrivr.engine.core.operators.Operator<Ingested>, configs: List<ExporterConfig>, context: Context) {
         configs.forEach { config ->
             val exporter = (schema.getExporter(config.parameters["exporter"] as String)
                 ?: throw IllegalArgumentException("Field '${config.parameters["field"]}' does not exist in schema '${schema.name}'")
@@ -127,10 +129,10 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
                     ).getExporter(parent)
 
             if (config.extractors.isNotEmpty()) {
-                this.addExtractor(exporter, config.extractors)
+                this.addExtractor(exporter, config.extractors, context)
             }
             if (config.exporters.isNotEmpty()) {
-                this.addExporter(exporter, config.exporters)
+                this.addExporter(exporter, config.exporters, context)
             }
             else {
                 leaves.add(exporter)
@@ -139,7 +141,7 @@ class PipelineBuilder(private val schema: Schema, pipelineConfig: PipelineConfig
         }
     }
 
-    fun getPipeline(): List<Operator<*>> {
+    fun getPipeline(): List<org.vitrivr.engine.core.operators.Operator<*>> {
         return leaves
     }
 

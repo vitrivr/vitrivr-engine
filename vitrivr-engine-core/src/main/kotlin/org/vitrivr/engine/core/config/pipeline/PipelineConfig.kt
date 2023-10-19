@@ -14,7 +14,7 @@ private val logger: KLogger = KotlinLogging.logger {}
 
 
 @Serializable
-data class PipelineConfig (val schema: String, val enumerator: EnumeratorConfig) {
+data class PipelineConfig (val schema: String, val context: ContextConfig,  val enumerator: EnumeratorConfig) {
     companion object {
         /** Default path to fall back to. */
         const val DEFAULT_PIPELINE_PATH = "./config-pipeline.json"
