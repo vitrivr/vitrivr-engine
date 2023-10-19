@@ -41,8 +41,7 @@ class PipelineBuilder(private val schema: Schema, private val pipelineConfig: Pi
     }
 
 
-
-    fun addEnumerator(config: EnumeratorConfig , context: Context) {
+    fun addEnumerator(config: EnumeratorConfig, context: Context) {
         val enumerator = (ServiceLoader.load(EnumeratorFactory::class.java).find {
             it.javaClass.name == "${it.javaClass.packageName}.${config.factory}Factory"
         }
@@ -53,7 +52,11 @@ class PipelineBuilder(private val schema: Schema, private val pipelineConfig: Pi
         addDecoder(enumerator, config.decoder, context)
     }
 
-    fun addDecoder(parent: org.vitrivr.engine.core.operators.Operator<Source>, config: DecoderConfig, context: Context) {
+    fun addDecoder(
+        parent: org.vitrivr.engine.core.operators.Operator<Source>,
+        config: DecoderConfig,
+        context: Context
+    ) {
 
         val decoder = (ServiceLoader.load(DecoderFactory::class.java).find {
             it.javaClass.name == "${it.javaClass.packageName}.${config.factory}Factory"
@@ -64,7 +67,11 @@ class PipelineBuilder(private val schema: Schema, private val pipelineConfig: Pi
         addTransformer(decoder, config.transformer, context)
     }
 
-    fun addTransformer(parent: org.vitrivr.engine.core.operators.Operator<ContentElement<*>>, config: TransformerConfig, context: Context) {
+    fun addTransformer(
+        parent: org.vitrivr.engine.core.operators.Operator<ContentElement<*>>,
+        config: TransformerConfig,
+        context: Context
+    ) {
         val transformer = (ServiceLoader.load(TransformerFactory::class.java).find {
             it.javaClass.name == "${it.javaClass.packageName}.${config.factory}Factory"
         }
@@ -75,7 +82,11 @@ class PipelineBuilder(private val schema: Schema, private val pipelineConfig: Pi
         addSegmenter(transformer, config.segmenters, context)
     }
 
-    fun addSegmenter(parent: org.vitrivr.engine.core.operators.Operator<ContentElement<*>>, configs: List<SegmenterConfig>, context: Context) {
+    fun addSegmenter(
+        parent: org.vitrivr.engine.core.operators.Operator<ContentElement<*>>,
+        configs: List<SegmenterConfig>,
+        context: Context
+    ) {
         configs.forEach { segmenterConfig ->
             val segmenter = (ServiceLoader.load(SegmenterFactory::class.java).find {
                 it.javaClass.name == "${it.javaClass.packageName}.${segmenterConfig.factory}Factory"
@@ -92,7 +103,11 @@ class PipelineBuilder(private val schema: Schema, private val pipelineConfig: Pi
         }
     }
 
-    fun addExtractor(parent: org.vitrivr.engine.core.operators.Operator<Ingested>, configs: List<ExtractorConfig>, context: Context) {
+    fun addExtractor(
+        parent: org.vitrivr.engine.core.operators.Operator<Ingested>,
+        configs: List<ExtractorConfig>,
+        context: Context
+    ) {
 
         configs.forEach { config ->
             val extractor = (schema.get(config.parameters["field"] as String)
@@ -109,15 +124,18 @@ class PipelineBuilder(private val schema: Schema, private val pipelineConfig: Pi
             }
             if (config.exporters.isNotEmpty()) {
                 this.addExporter(extractor, config.exporters, context)
-            }
-            else {
+            } else {
                 leaves.add(extractor)
             }
             logger.info { "Extractor: ${extractor.javaClass.name}" }
         }
     }
 
-    fun addExporter(parent: org.vitrivr.engine.core.operators.Operator<Ingested>, configs: List<ExporterConfig>, context: Context) {
+    fun addExporter(
+        parent: org.vitrivr.engine.core.operators.Operator<Ingested>,
+        configs: List<ExporterConfig>,
+        context: Context
+    ) {
         configs.forEach { config ->
             val exporter = (schema.getExporter(config.parameters["exporter"] as String)
                 ?: throw IllegalArgumentException("Field '${config.parameters["field"]}' does not exist in schema '${schema.name}'")
@@ -133,8 +151,7 @@ class PipelineBuilder(private val schema: Schema, private val pipelineConfig: Pi
             }
             if (config.exporters.isNotEmpty()) {
                 this.addExporter(exporter, config.exporters, context)
-            }
-            else {
+            } else {
                 leaves.add(exporter)
             }
             logger.info { "Exporter: ${exporter.javaClass.name}" }

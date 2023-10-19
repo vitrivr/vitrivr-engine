@@ -1,5 +1,6 @@
 package org.vitrivr.engine.index.segment
 
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.Operator
@@ -14,7 +15,7 @@ import java.time.Duration
  * @version 1.0.0
  */
 class FixedDurationSegmenterFactory : SegmenterFactory {
-    override fun newOperator(input: Operator<ContentElement<*>>, parameters: Map<String, Any>, schema: Schema): FixedDurationSegmenter {
+    override fun newOperator(input: Operator<ContentElement<*>>, parameters: Map<String, Any>, schema: Schema, context: Context): FixedDurationSegmenter {
         val retrievableWriter = schema.connection.getRetrievableWriter()
         val duration = Duration.ofSeconds(
             (parameters["duration"] as String? ?: throw IllegalArgumentException("'duration' must be specified")).toLong()

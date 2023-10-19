@@ -2,12 +2,6 @@ package org.vitrivr.engine.core.context
 
 import org.vitrivr.engine.core.config.pipeline.ContextConfig
 import org.vitrivr.engine.core.content.ContentFactory
-import org.vitrivr.engine.core.content.impl.InMemoryContentFactory
-import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.SegmenterFactory
-import org.vitrivr.engine.core.source.Source
-import org.vitrivr.engine.index.decode.ImageDecoder
 import java.util.*
 
 class ContextFactory {
