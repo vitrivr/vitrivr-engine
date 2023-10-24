@@ -1,5 +1,6 @@
 package org.vitrivr.engine.index.transform
 
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.Operator
@@ -11,7 +12,8 @@ class PassthroughTransformerFactory : TransformerFactory {
     override fun newOperator(
         input: Operator<ContentElement<*>>,
         parameters: Map<String, Any>,
-        schema: Schema
+        schema: Schema,
+        context: Context
     ): Transformer {
         return PassthroughTransformer(input, parameters)
     }
