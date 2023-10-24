@@ -1,4 +1,7 @@
 {
+  "context": {
+    "contentFactory": "inMemoryContentFactory"
+  },
   "schema": "vitrivr",
   "enumerator": {
     "factory": "FileSystemEnumerator",
@@ -10,7 +13,6 @@
     "decoder": {
       "factory": "VideoDecoder",
       "parameters": {
-        "contentFactory": "inMemoryContentFactory",
         "video": "true",
         "audio": "true"
       },
