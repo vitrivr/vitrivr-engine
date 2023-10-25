@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.metamodel
 
+import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.descriptor.DescriptorInitializer
 import org.vitrivr.engine.core.database.descriptor.DescriptorReader
@@ -124,12 +125,12 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
          * @param descriptors The [Descriptor](s) that should be used with the [Retriever].
          * @return [Retriever] instance.
          */
-        fun getRetriever(descriptors: DescriptorList<D>): Retriever<C, D> = this.analyser.newRetriever(this, descriptors)
+        fun getRetriever(descriptors: DescriptorList<D>, queryContext: QueryContext): Retriever<C, D> = this.analyser.newRetriever(this, descriptors, queryContext)
 
         /**
          *
          */
-        fun getRetriever(descriptor: D): Retriever<C, D> = this.analyser.newRetriever(this, DescriptorList(descriptor))
+        fun getRetriever(descriptor: D, queryContext: QueryContext): Retriever<C, D> = this.analyser.newRetriever(this, DescriptorList(descriptor), queryContext)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field].
@@ -137,12 +138,12 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
          * @param content The [Content] element(s) that should be used with the [Retriever].
          * @return [Retriever] instance.
          */
-        fun getRetriever(content: Collection<C>): Retriever<C, D> = this.analyser.newRetriever(this, content)
+        fun getRetriever(content: Collection<C>, queryContext: QueryContext): Retriever<C, D> = this.analyser.newRetriever(this, content, queryContext)
 
         /**
          *
          */
-        fun getRetriever(content: C): Retriever<C, D> = this.analyser.newRetriever(this, listOf(content))
+        fun getRetriever(content: C, queryContext: QueryContext): Retriever<C, D> = this.analyser.newRetriever(this, listOf(content), queryContext)
 
         /**
          * Returns the [DescriptorInitializer] for this [Schema.Field].

@@ -1,5 +1,6 @@
 package org.vitrivr.engine.base.features.averagecolor
 
+import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.color.MutableRGBFloatColorContainer
 import org.vitrivr.engine.core.model.color.RGBByteColorContainer
 import org.vitrivr.engine.core.model.color.RGBFloatColorContainer
@@ -43,17 +44,17 @@ class AverageColor: Analyser<ImageContent, FloatVectorDescriptor> {
     /**
      *
      */
-    override fun newRetriever(field: Schema.Field<ImageContent,FloatVectorDescriptor>, content: Collection<ImageContent>): AverageColorRetriever {
+    override fun newRetriever(field: Schema.Field<ImageContent,FloatVectorDescriptor>, content: Collection<ImageContent>, queryContext: QueryContext): AverageColorRetriever {
         require(field.analyser == this) { }
-        return newRetriever(field, this.analyse(content))
+        return newRetriever(field, this.analyse(content), queryContext)
     }
 
     /**
      *
      */
-    override fun newRetriever(field: Schema.Field<ImageContent,FloatVectorDescriptor>, descriptors: DescriptorList<FloatVectorDescriptor>): AverageColorRetriever {
+    override fun newRetriever(field: Schema.Field<ImageContent,FloatVectorDescriptor>, descriptors: DescriptorList<FloatVectorDescriptor>, queryContext: QueryContext): AverageColorRetriever {
         require(field.analyser == this) { }
-        return AverageColorRetriever(field, descriptors.first())
+        return AverageColorRetriever(field, descriptors.first(), queryContext)
     }
 
     /**
