@@ -1,7 +1,6 @@
 package org.vitrivr.engine.index.decode
 
-import org.vitrivr.engine.core.content.impl.InMemoryContentFactory
-import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.DecoderFactory
@@ -14,7 +13,7 @@ import org.vitrivr.engine.core.source.Source
  * @version 1.0.0
  */
 class ImageDecoderFactory : DecoderFactory {
-    override fun newOperator(input: Operator<Source>, parameters: Map<String, Any>, schema: Schema, context: Context): ImageDecoder {
+    override fun newOperator(input: Operator<Source>, parameters: Map<String, Any>, schema: Schema, context: IndexContext): ImageDecoder {
         val contentFactory = context.contentFactory
         return ImageDecoder(input, contentFactory)
     }

@@ -10,8 +10,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import org.vitrivr.engine.core.config.pipeline.ContextConfig
 import org.vitrivr.engine.core.config.pipeline.PipelineConfig
-import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.context.ContextFactory
+import org.vitrivr.engine.core.context.IndexContextFactory
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.ingest.templates.*
 import org.vitrivr.engine.index.execution.ExecutionServer
@@ -37,7 +36,7 @@ class SandboxCli {
                 )
             ) { "Pipeline schema '${pipeline.schema}' does not match schema '${schema.name}'." }
             logger.trace { "Successfully initialized schema '${schema.name}' and pipeline '${pipeline.schema}'." }
-            val context = ContextFactory().newContext(ContextConfig("inMemoryContentFactory"))
+            val context = IndexContextFactory().newContext(ContextConfig("inMemoryContentFactory"))
             val enumerator =
                 DummyEnumeratorFactory().newOperator(mapOf("enumeratorKey" to "enumeratorValue"), schema,context)
             val decoder = DummyDecoderFactory().newOperator(enumerator, mapOf("decoderKey" to "decoderValue"), schema,context)

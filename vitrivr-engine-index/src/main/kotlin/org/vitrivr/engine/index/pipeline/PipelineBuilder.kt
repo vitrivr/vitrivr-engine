@@ -6,14 +6,13 @@ import org.vitrivr.engine.core.config.pipeline.*
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.database.retrievable.Ingested
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.DecoderFactory
 import org.vitrivr.engine.core.operators.ingest.EnumeratorFactory
 import org.vitrivr.engine.core.operators.ingest.SegmenterFactory
 import org.vitrivr.engine.core.operators.ingest.TransformerFactory
 import org.vitrivr.engine.core.source.Source
-import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.context.ContextFactory
+import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.context.IndexContextFactory
 import java.util.*
 
 private val logger: KLogger = KotlinLogging.logger {}
@@ -30,7 +29,7 @@ private val logger: KLogger = KotlinLogging.logger {}
 class PipelineBuilder(private val schema: Schema, private val pipelineConfig: PipelineConfig) {
 
     private var leaves: MutableList<org.vitrivr.engine.core.operators.Operator<*>> = mutableListOf()
-    val context = ContextFactory().newContext(pipelineConfig.context)
+    val context = IndexContextFactory().newContext(pipelineConfig.context)
 
     init {
         assert(pipelineConfig.schema == schema.name) {
@@ -41,7 +40,7 @@ class PipelineBuilder(private val schema: Schema, private val pipelineConfig: Pi
     }
 
 
-    fun addEnumerator(config: EnumeratorConfig, context: Context) {
+    fun addEnumerator(config: EnumeratorConfig, context: IndexContext) {
         val enumerator = (ServiceLoader.load(EnumeratorFactory::class.java).find {
             it.javaClass.name == "${it.javaClass.packageName}.${config.factory}Factory"
         }
@@ -55,7 +54,7 @@ class PipelineBuilder(private val schema: Schema, private val pipelineConfig: Pi
     fun addDecoder(
         parent: org.vitrivr.engine.core.operators.Operator<Source>,
         config: DecoderConfig,
-        context: Context
+        context: IndexContext
     ) {
 
         val decoder = (ServiceLoader.load(DecoderFactory::class.java).find {
@@ -70,7 +69,7 @@ class PipelineBuilder(private val schema: Schema, private val pipelineConfig: Pi
     fun addTransformer(
         parent: org.vitrivr.engine.core.operators.Operator<ContentElement<*>>,
         config: TransformerConfig,
-        context: Context
+        context: IndexContext
     ) {
         val transformer = (ServiceLoader.load(TransformerFactory::class.java).find {
             it.javaClass.name == "${it.javaClass.packageName}.${config.factory}Factory"
@@ -85,7 +84,7 @@ class PipelineBuilder(private val schema: Schema, private val pipelineConfig: Pi
     fun addSegmenter(
         parent: org.vitrivr.engine.core.operators.Operator<ContentElement<*>>,
         configs: List<SegmenterConfig>,
-        context: Context
+        context: IndexContext
     ) {
         configs.forEach { segmenterConfig ->
             val segmenter = (ServiceLoader.load(SegmenterFactory::class.java).find {
@@ -106,7 +105,7 @@ class PipelineBuilder(private val schema: Schema, private val pipelineConfig: Pi
     fun addExtractor(
         parent: org.vitrivr.engine.core.operators.Operator<Ingested>,
         configs: List<ExtractorConfig>,
-        context: Context
+        context: IndexContext
     ) {
 
         configs.forEach { config ->
@@ -134,7 +133,7 @@ class PipelineBuilder(private val schema: Schema, private val pipelineConfig: Pi
     fun addExporter(
         parent: org.vitrivr.engine.core.operators.Operator<Ingested>,
         configs: List<ExporterConfig>,
-        context: Context
+        context: IndexContext
     ) {
         configs.forEach { config ->
             val exporter = (schema.getExporter(config.parameters["exporter"] as String)

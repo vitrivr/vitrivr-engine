@@ -1,7 +1,6 @@
 package org.vitrivr.engine.index.decode
 
-import org.vitrivr.engine.core.content.impl.InMemoryContentFactory
-import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.DecoderFactory
@@ -18,7 +17,7 @@ class VideoDecoderFactory : DecoderFactory {
         input: Operator<Source>,
         parameters: Map<String, Any>,
         schema: Schema,
-        context: Context
+        context: IndexContext
     ): VideoDecoder {
         val contentFactory = context.contentFactory
         val video = true
