@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.metamodel
 
+import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.database.descriptor.Descriptor
@@ -71,7 +72,7 @@ interface Analyser<C: ContentElement<*>, D: Descriptor> {
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    fun newRetriever(field: Schema.Field<C,D>, descriptors: DescriptorList<D>): Retriever<C,D>
+    fun newRetriever(field: Schema.Field<C,D>, descriptors: DescriptorList<D>, queryContext: QueryContext): Retriever<C,D>
 
     /**
      * Generates and returns a new [Retriever] instance for this [Analyser].
@@ -84,5 +85,5 @@ interface Analyser<C: ContentElement<*>, D: Descriptor> {
      *
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    fun newRetriever(field: Schema.Field<C,D>, content: Collection<C>): Retriever<C,D>
+    fun newRetriever(field: Schema.Field<C,D>, content: Collection<C>, queryContext: QueryContext): Retriever<C,D>
 }
