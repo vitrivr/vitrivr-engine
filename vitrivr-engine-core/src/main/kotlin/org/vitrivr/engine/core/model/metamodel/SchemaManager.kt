@@ -4,10 +4,9 @@ import org.vitrivr.engine.core.config.SchemaConfig
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.database.descriptor.Descriptor
+import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.operators.ingest.ExporterFactory
 import org.vitrivr.engine.core.operators.resolver.ResolverFactory
-import java.util.*
 import org.vitrivr.engine.core.util.extension.loadServiceForName
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read

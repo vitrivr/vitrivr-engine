@@ -1,6 +1,6 @@
 package org.vitrivr.engine.core.model.query.proximity
 
-import org.vitrivr.engine.core.model.database.descriptor.vector.VectorDescriptor
+import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.basics.SortOrder
 

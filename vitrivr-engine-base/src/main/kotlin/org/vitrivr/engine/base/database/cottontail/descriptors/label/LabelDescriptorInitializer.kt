@@ -9,7 +9,7 @@ import org.vitrivr.cottontail.core.types.Types
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.base.database.cottontail.descriptors.AbstractDescriptorInitializer
 import org.vitrivr.engine.base.database.cottontail.descriptors.DESCRIPTOR_COLUMN_NAME
-import org.vitrivr.engine.core.model.database.descriptor.struct.LabelDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 
 private val logger: KLogger = KotlinLogging.logger {}

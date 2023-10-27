@@ -1,13 +1,13 @@
 package org.vitrivr.engine.base.database.string
 
+import org.vitrivr.engine.base.database.string.writer.StringDescriptorWriter
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
 import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
-import org.vitrivr.engine.core.model.database.descriptor.Descriptor
-import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.base.database.string.writer.StringDescriptorWriter
 import org.vitrivr.engine.core.database.descriptor.NoDescriptorInitializer
+import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.metamodel.Schema
 
 class StringWriterProvider<D: Descriptor> : DescriptorProvider<D> {
 

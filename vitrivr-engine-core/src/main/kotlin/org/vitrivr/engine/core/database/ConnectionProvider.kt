@@ -1,9 +1,9 @@
 package org.vitrivr.engine.core.database
 
 import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
-import org.vitrivr.engine.core.model.database.descriptor.Descriptor
+import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
-import java.util.ServiceLoader
+import java.util.*
 import kotlin.reflect.KClass
 
 /**

@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.database.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.operators.BroadcastingOperator
 import org.vitrivr.engine.core.operators.Operator
 

@@ -1,6 +1,6 @@
 package org.vitrivr.engine.core.operators.resolver
 
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.source.file.MimeType
 import java.io.InputStream
 import java.io.OutputStream

@@ -3,7 +3,7 @@ package org.vitrivr.engine.base.database.cottontail.descriptors.vector
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
-import org.vitrivr.engine.core.model.database.descriptor.vector.VectorDescriptor
+import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 
 /**

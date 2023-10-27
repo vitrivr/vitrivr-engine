@@ -11,9 +11,9 @@ import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companio
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.RETRIEVABLE_TYPE_COLUMN_NAME
 import org.vitrivr.engine.core.database.retrievable.RetrievableInitializer
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
-import org.vitrivr.engine.core.model.database.retrievable.Retrievable
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
-import org.vitrivr.engine.core.model.database.retrievable.Retrieved
+import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.retrievable.Retrieved
 import java.util.*
 
 /**

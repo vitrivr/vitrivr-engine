@@ -18,8 +18,8 @@ import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companio
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.RETRIEVABLE_ID_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.SUBJECT_ID_COLUMN_NAME
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
-import org.vitrivr.engine.core.model.database.retrievable.Retrievable
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.RetrievableId
 
 private val logger: KLogger = KotlinLogging.logger {}
 

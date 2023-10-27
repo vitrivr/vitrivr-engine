@@ -1,6 +1,6 @@
 package org.vitrivr.engine.core.model.util
 
-import org.vitrivr.engine.core.model.database.descriptor.Descriptor
+import org.vitrivr.engine.core.model.descriptor.Descriptor
 
 class DescriptorList<D : Descriptor>(elements: Collection<D>) : ArrayList<D>(elements.size) {
 

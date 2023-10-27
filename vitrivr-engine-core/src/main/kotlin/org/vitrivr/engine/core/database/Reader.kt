@@ -1,8 +1,8 @@
 package org.vitrivr.engine.core.database
 
-import org.vitrivr.engine.core.model.database.Persistable
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
-import java.util.UUID
+import org.vitrivr.engine.core.model.Persistable
+import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import java.util.*
 
 /**
  * The [Reader] is part of the data persistence layer of vitrivr and can be used to encapsulate DQL operations  for the underlying database.

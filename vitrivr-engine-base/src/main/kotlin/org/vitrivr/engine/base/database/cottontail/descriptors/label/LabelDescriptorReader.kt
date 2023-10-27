@@ -4,10 +4,10 @@ import org.vitrivr.cottontail.core.tuple.Tuple
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.base.database.cottontail.descriptors.AbstractDescriptorReader
 import org.vitrivr.engine.base.database.cottontail.descriptors.DESCRIPTOR_COLUMN_NAME
-import org.vitrivr.engine.core.model.database.descriptor.struct.LabelDescriptor
-import org.vitrivr.engine.core.model.database.retrievable.Retrieved
+import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.retrievable.Retrieved
 import java.util.*
 
 /**
