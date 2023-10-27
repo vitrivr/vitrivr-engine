@@ -9,12 +9,7 @@ import org.vitrivr.engine.core.operators.ingest.SegmenterFactory
 
 class DummySegmenterFactory : SegmenterFactory {
 
-    override fun newOperator(
-        input: Operator<ContentElement<*>>,
-        parameters: Map<String, Any>,
-        schema: Schema,
-        context: IndexContext
-    ): Segmenter {
-        return DummySegmenter(input, parameters)
+    override fun newOperator(input: Operator<ContentElement<*>>, parameters: Map<String, Any>, schema: Schema, context: IndexContext): Segmenter {
+        return DummySegmenter(input, schema, parameters)
     }
 }

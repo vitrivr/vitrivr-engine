@@ -13,5 +13,5 @@ import org.vitrivr.engine.core.operators.ingest.SegmenterFactory
  * @version 1.0.0
  */
 class PassThroughSegmenterFactory : SegmenterFactory {
-    override fun newOperator(input: Operator<ContentElement<*>>, parameters: Map<String, Any>, schema: Schema, context : IndexContext) = PassThroughSegmenter(input, schema.connection.getRetrievableWriter())
+    override fun newOperator(input: Operator<ContentElement<*>>, parameters: Map<String, Any>, schema: Schema, context: IndexContext) = PassThroughSegmenter(input, schema)
 }
