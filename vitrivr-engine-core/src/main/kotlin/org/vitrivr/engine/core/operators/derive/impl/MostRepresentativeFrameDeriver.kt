@@ -1,7 +1,6 @@
 package org.vitrivr.engine.core.operators.derive.impl
 
 import org.vitrivr.engine.core.content.ContentFactory
-import org.vitrivr.engine.core.model.color.RGBByteColorContainer
 import org.vitrivr.engine.core.model.content.decorators.DerivedContent
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.impl.DerivedImageContent
@@ -9,7 +8,6 @@ import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithContent
 import org.vitrivr.engine.core.operators.derive.ContentDeriver
 import org.vitrivr.engine.core.operators.derive.DerivateName
-import org.vitrivr.engine.core.util.extension.getRGBArray
 
 
 /**
@@ -28,9 +26,9 @@ class MostRepresentativeFrameDeriver : ContentDeriver<DerivedImageContent?> {
 
         require(retrievable is RetrievableWithContent) { "Can only derive content from a retrievable that has content." }
 
-        val averageImage =
-            (retrievable.deriveContent(AverageImageContentDeriver.derivateName, contentFactory) as? DerivedImageContent)
-                ?: return null
+        //val averageImage =
+        //    (retrievable.deriveContent(AverageImageContentDeriver.derivateName, contentFactory) as? DerivedImageContent)
+        //        ?: return null
 
         val images = retrievable.content.filterIsInstance<ImageContent>().filter { it !is DerivedContent }
 
@@ -38,15 +36,16 @@ class MostRepresentativeFrameDeriver : ContentDeriver<DerivedImageContent?> {
             return null
         }
 
-        val averageImageColors =
-            averageImage.getContent().getRGBArray().map { RGBByteColorContainer.fromRGB(it).toFloatContainer() }
+        // val averageImageColors =
+        //     averageImage.getContent().getRGBArray().map { RGBByteColorContainer.fromRGB(it).toFloatContainer() }
 
-        val closestToAverage = images.map { img ->
-            img to img.getContent().getRGBArray().asSequence().mapIndexed { index, c ->
-                RGBByteColorContainer.fromRGB(c).toFloatContainer().distanceTo(averageImageColors[index])
-            }.sum()
-        }.minBy { it.second }.first
+        //val closestToAverage = images.map { img ->
+        //    img to img.getContent().getRGBArray().asSequence().mapIndexed { index, c ->
+        //        RGBByteColorContainer.fromRGB(c).toFloatContainer().distanceTo(averageImageColors[index])
+        //    }.sum()
+        //}.minBy { it.second }.first
 
-        return DerivedImageContent(closestToAverage, derivateName)
+        //return DerivedImageContent(closestToAverage, derivateName)
+        TODO()
     }
 }

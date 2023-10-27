@@ -16,13 +16,12 @@ import java.time.Duration
  */
 class FixedDurationSegmenterFactory : SegmenterFactory {
     override fun newOperator(input: Operator<ContentElement<*>>, parameters: Map<String, Any>, schema: Schema, context: IndexContext): FixedDurationSegmenter {
-        val retrievableWriter = schema.connection.getRetrievableWriter()
         val duration = Duration.ofSeconds(
             (parameters["duration"] as String? ?: throw IllegalArgumentException("'duration' must be specified")).toLong()
         )
         val lookAheadTime = Duration.ofSeconds(
             (parameters["duration"] as String? ?: throw IllegalArgumentException("'lookAheadTime' must be specified")).toLong()
         )
-        return FixedDurationSegmenter(input, retrievableWriter, duration, lookAheadTime)
+        return FixedDurationSegmenter(input, schema, duration, lookAheadTime)
     }
 }

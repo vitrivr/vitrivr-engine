@@ -9,16 +9,6 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
  * @version 1.0.0
  */
 interface RetrievableWithRelationship : Retrievable {
-    /** [Set] of [Retrievable]s, this [Retrievable] is a part of. May be empty! */
-    val partOf: Set<Retrievable>
-
-    /** [Set] of [Retrievable]s, that make-up this [Retrievable]. May be empty! */
-    val parts: Set<Retrievable>
-
-    /**
-     * A [Mutable] version of the [RetrievableWithRelationship].
-     */
-    interface Mutable : RetrievableWithRelationship {
-        /* TODO */
-    }
+    /** [Map] of all relationships of this [Retrievable]. */
+    val relationships: Map<String, List<Retrievable>>
 }

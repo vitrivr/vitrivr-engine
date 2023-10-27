@@ -6,7 +6,6 @@ import com.sksamuel.scrimage.nio.PngWriter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import org.vitrivr.engine.core.content.impl.InMemoryContentFactory
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithContent
@@ -32,7 +31,6 @@ class ThumbnailExporter(
     }
 
     override fun toFlow(scope: CoroutineScope) : Flow<Ingested> {
-        val contentFactory = InMemoryContentFactory()
         return this.input.toFlow(scope).map { retrievable: Ingested ->
             val resolvable = this.resolver.resolve(retrievable.id)
             if (resolvable != null && retrievable is RetrievableWithContent) {
@@ -42,9 +40,8 @@ class ThumbnailExporter(
                     MimeType.PNG -> PngWriter()
                     else -> throw IllegalArgumentException("Unsupported mime type $mimeType")
                 }
-                val content = retrievable.deriveContent("MostRepresentativeFrame", contentFactory)
-
-                if (content is ImageContent) {
+                val content = retrievable.content.filterIsInstance<ImageContent>().firstOrNull()
+                if (content != null) {
                     val imgBytes = ImmutableImage.fromAwt(content.getContent()).let {
                         if (it.width > it.height){
                             it.scaleToWidth(maxSideResolution)
