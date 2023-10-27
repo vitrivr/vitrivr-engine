@@ -13,11 +13,11 @@ import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.Frame
 import org.bytedeco.javacv.Java2DFrameConverter
 import org.vitrivr.engine.core.content.ContentFactory
-import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.model.content.Content
-import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
+import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.source.MediaType
@@ -57,24 +57,24 @@ class VideoDecoder(
         return channelFlow {
             val channel = this
             input.collect { source ->
-                val grabber = FFmpegFrameGrabber(source.inputStream)
-                try {
-                    grabber.start()
-                    var frame = grabber.grabFrame(this@VideoDecoder.video, this@VideoDecoder.audio, true, false, true)
-                    while (frame != null) {
-                        when (frame.type) {
-                            Frame.Type.VIDEO -> emitImageContent(frame, source, channel)
-                            Frame.Type.AUDIO -> emitAudioContent(frame, source, channel)
-                            //Frame.Type.SUBTITLE -> TODO
-                            else -> {}
+                source.newInputStream().use { input ->
+                    FFmpegFrameGrabber(input).use { grabber ->
+                        try {
+                            grabber.start()
+                            var frame = grabber.grabFrame(this@VideoDecoder.video, this@VideoDecoder.audio, true, false, true)
+                            while (frame != null) {
+                                when (frame.type) {
+                                    Frame.Type.VIDEO -> emitImageContent(frame, source, channel)
+                                    Frame.Type.AUDIO -> emitAudioContent(frame, source, channel)
+                                    //Frame.Type.SUBTITLE -> TODO
+                                    else -> {}
+                                }
+                                frame = grabber.grabFrame(this@VideoDecoder.video, this@VideoDecoder.audio, true, false, true)
+                            }
+                        } catch (exception: Exception) {
+                            logger.error(exception) { "An error occurred while decoding video from source $source. Skipping..." }
                         }
-                        frame = grabber.grabFrame(this@VideoDecoder.video, this@VideoDecoder.audio, true, false, true)
                     }
-                } catch (exception: Exception) {
-                    logger.error(exception) { "An error occurred while decoding video from source $source. Skipping..." }
-                } finally {
-                    grabber.stop()
-                    source.close()
                 }
             }
         }.buffer(capacity = 10, onBufferOverflow = BufferOverflow.SUSPEND)

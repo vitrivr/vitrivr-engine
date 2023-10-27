@@ -3,11 +3,13 @@ package org.vitrivr.engine.index.decode
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.mapNotNull
 import org.vitrivr.engine.core.content.ContentFactory
 import org.vitrivr.engine.core.model.content.Content
-import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
+import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.source.MediaType
@@ -38,7 +40,9 @@ class ImageDecoder(override val input: Operator<Source>, private val contentFact
         it.type == MediaType.IMAGE
     }.mapNotNull { source ->
         try {
-            val image = this.contentFactory.newImageContent(ImageIO.read(source.inputStream))
+            val image = source.newInputStream().use {
+                this.contentFactory.newImageContent(ImageIO.read(it))
+            }
             ImageContentWithSource(image, source)
         } catch (e: IOException) {
             logger.error(e) { "Failed to decode image from $source due to an IO exception." }

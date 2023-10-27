@@ -1,7 +1,9 @@
 package org.vitrivr.engine.core.source
 
-import java.io.Closeable
 import java.io.InputStream
+import java.util.*
+
+typealias SourceId = UUID
 
 /**
  * A [Source] of data that can be used in an extraction pipeline.
@@ -10,15 +12,15 @@ import java.io.InputStream
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface Source: Closeable {
+interface Source {
+    /** Unique [SourceId] for this [Source]. */
+    val sourceId: SourceId
+
     /** The name of the [Source]. */
     val name: String
 
     /** The [MediaType] of the [Source]. */
     val type: MediaType
-
-    /** The [InputStream] that provides access to the [Source]s* data. */
-    val inputStream: InputStream
 
     /** The timestamp at which this [Source] was generated. */
     val timestamp: Long
@@ -27,9 +29,9 @@ interface Source: Closeable {
     val metadata: Map<String, Any>
 
     /**
-     * Closes the [InputStream] associated with this [Source]-
+     * Opens a [InputStream] for this [Source]. It remains up to the caller to open the [InputStream].
+     *
+     * @return [InputStream] for this [Source]
      */
-    override fun close() {
-        this.inputStream.close()
-    }
+    fun newInputStream(): InputStream
 }
