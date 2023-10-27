@@ -1,6 +1,6 @@
 package org.vitrivr.engine.core.operators.resolver
 
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.retrievable.RetrievableId
 
 /**
  * A [Resolver] resolves a physical resource (e.g., a file) based on a [RetrievableId].

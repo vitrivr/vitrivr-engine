@@ -1,6 +1,6 @@
 package org.vitrivr.engine.core.operators.ingest.templates
 
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.operators.resolver.Resolvable
 import org.vitrivr.engine.core.operators.resolver.Resolver
 

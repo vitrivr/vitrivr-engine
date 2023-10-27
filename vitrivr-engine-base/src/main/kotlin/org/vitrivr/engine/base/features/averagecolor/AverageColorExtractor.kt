@@ -6,11 +6,11 @@ import kotlinx.coroutines.flow.map
 import org.vitrivr.engine.core.model.color.MutableRGBFloatColorContainer
 import org.vitrivr.engine.core.model.color.RGBFloatColorContainer
 import org.vitrivr.engine.core.model.content.element.ImageContent
-import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.database.retrievable.Ingested
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithContent
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithDescriptor
+import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithContent
+import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithDescriptor
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 

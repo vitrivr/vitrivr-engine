@@ -5,10 +5,10 @@ import org.vitrivr.engine.core.model.color.MutableRGBFloatColorContainer
 import org.vitrivr.engine.core.model.color.RGBByteColorContainer
 import org.vitrivr.engine.core.model.color.RGBFloatColorContainer
 import org.vitrivr.engine.core.model.content.element.ImageContent
-import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.database.retrievable.Ingested
+import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.util.DescriptorList
 import org.vitrivr.engine.core.model.util.toDescriptorList
 import org.vitrivr.engine.core.operators.Operator
@@ -44,7 +44,7 @@ class AverageColor: Analyser<ImageContent, FloatVectorDescriptor> {
     /**
      *
      */
-    override fun newRetriever(field: Schema.Field<ImageContent,FloatVectorDescriptor>, content: Collection<ImageContent>, queryContext: QueryContext): AverageColorRetriever {
+    override fun newRetriever(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, queryContext: QueryContext): AverageColorRetriever {
         require(field.analyser == this) { }
         return newRetriever(field, this.analyse(content), queryContext)
     }
@@ -52,7 +52,7 @@ class AverageColor: Analyser<ImageContent, FloatVectorDescriptor> {
     /**
      *
      */
-    override fun newRetriever(field: Schema.Field<ImageContent,FloatVectorDescriptor>, descriptors: DescriptorList<FloatVectorDescriptor>, queryContext: QueryContext): AverageColorRetriever {
+    override fun newRetriever(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: DescriptorList<FloatVectorDescriptor>, queryContext: QueryContext): AverageColorRetriever {
         require(field.analyser == this) { }
         return AverageColorRetriever(field, descriptors.first(), queryContext)
     }

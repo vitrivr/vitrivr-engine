@@ -5,10 +5,13 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel.Factory.RENDEZVOUS
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.*
+import org.vitrivr.engine.core.database.retrievable.RetrievableReader
+import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.database.retrievable.Ingested
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.operators.Operator
 import java.util.*
 import java.util.concurrent.locks.StampedLock
@@ -21,12 +24,19 @@ import java.util.concurrent.locks.StampedLock
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractSegmenter(override val input: Operator<ContentElement<*>>): Segmenter {
+abstract class AbstractSegmenter(override val input: Operator<ContentElement<*>>, val schema: Schema) : Segmenter {
 
     /** The [SharedFlow] returned by this [AbstractSegmenter]'s [toFlow] method. Is created lazily. */
     private var sharedFlow: SharedFlow<Ingested>? = null
 
+    /** A [StampedLock] to mediate access to [sharedFlow]. */
     private val lock = StampedLock()
+
+    /** The [RetrievableWriter] used by this [AbstractSegmenter]. */
+    protected val writer: RetrievableWriter = this.schema.connection.getRetrievableWriter()
+
+    /** The [RetrievableReader] used by this [AbstractSegmenter]. */
+    protected val reader: RetrievableReader = this.schema.connection.getRetrievableReader()
 
     /**
      * A special [Ingested] that can be used to signal the termination of an ingest pipeline.

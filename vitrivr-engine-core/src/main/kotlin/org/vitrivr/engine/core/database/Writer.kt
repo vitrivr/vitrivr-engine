@@ -1,6 +1,6 @@
 package org.vitrivr.engine.core.database
 
-import org.vitrivr.engine.core.model.database.Persistable
+import org.vitrivr.engine.core.model.Persistable
 
 import java.util.*
 
