@@ -6,15 +6,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import org.vitrivr.engine.core.operators.ingest.Enumerator
-import org.vitrivr.engine.core.source.file.FileSource
 import org.vitrivr.engine.core.source.MediaType
-import org.vitrivr.engine.core.source.file.MimeType
 import org.vitrivr.engine.core.source.Source
-import java.io.IOException
+import org.vitrivr.engine.core.source.file.FileSource
+import org.vitrivr.engine.core.source.file.MimeType
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.StandardOpenOption
 import kotlin.io.path.isRegularFile
 
 /**
@@ -28,13 +26,9 @@ class FileSystemEnumerator(private val path: Path, private val depth: Int = Int.
     override fun toFlow(scope: CoroutineScope): Flow<Source> = flow {
         val stream = Files.walk(this@FileSystemEnumerator.path, this@FileSystemEnumerator.depth, FileVisitOption.FOLLOW_LINKS).filter { it.isRegularFile() }
         for (element in stream) {
-            try {
-                val type = MimeType.getMimeType(element) ?: continue
-                if (type.mediaType in this@FileSystemEnumerator.mediaTypes) {
-                    emit(FileSource(element, type, Files.newInputStream(element, StandardOpenOption.READ)))
-                }
-            } catch (e: IOException) {
-                // TODO log
+            val type = MimeType.getMimeType(element) ?: continue
+            if (type.mediaType in this@FileSystemEnumerator.mediaTypes) {
+                emit(FileSource(path = element, mimeType = type))
             }
         }
     }.flowOn(Dispatchers.IO)
