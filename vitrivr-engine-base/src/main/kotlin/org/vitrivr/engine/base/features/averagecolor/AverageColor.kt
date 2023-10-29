@@ -50,9 +50,9 @@ class AverageColor: Analyser<ImageContent, FloatVectorDescriptor> {
     /**
      *
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, queryContext: QueryContext): AverageColorRetriever {
+    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): AverageColorRetriever {
         require(field.analyser == this) { }
-        return AverageColorRetriever(field, descriptors.first(), queryContext)
+        return AverageColorRetriever(field, descriptors.first(), context)
     }
 
     /**
@@ -63,7 +63,7 @@ class AverageColor: Analyser<ImageContent, FloatVectorDescriptor> {
      */
     fun analyse(content: Collection<ImageContent>): List<FloatVectorDescriptor> = content.map {
         val color = MutableRGBFloatColorContainer()
-        val rgb =  it.getContent().getRGBArray()
+        val rgb = it.content.getRGBArray()
         rgb.forEach { c -> color += RGBByteColorContainer.fromRGB(c) }
 
         /* Generate descriptor. */

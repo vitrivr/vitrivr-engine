@@ -85,21 +85,23 @@ class VideoDecoder(
      *
      * @param frame The [Frame] to convert.
      * @param source The [Frame]'s [Source]
-     * @param source The [ProducerScope]'s to send [VideoFrameContent] to.
+     * @param source The [ProducerScope]'s to send [ContentElement] to.
      */
     private suspend fun emitImageContent(frame: Frame, source: Source, channel: ProducerScope<ContentElement<*>>) {
         val image = this.contentFactory.newImageContent(this.converter.convert(frame))
         val timestampNs: Long = frame.timestamp * 1000 // Convert microseconds to nanoseconds
-        channel.send(VideoFrameContent(image, source, timestampNs))
+        channel.send(object : ImageContent by image, SourcedContent.Temporal {
+            override val source: Source = source
+            override val timepointNs: Long = timestampNs
+        })
     }
-
 
     /**
      * Converts a [Frame] of type [Frame.Type.AUDIO] to an [AudioContent].
      *
      * @param frame The [Frame] to convert.
      * @param source The [Frame]'s [Source]
-     * @param source The [ProducerScope]'s to send [VideoFrameContent] to.
+     * @param source The [ProducerScope]'s to send [ContentElement] to.
      */
     private suspend fun emitAudioContent(frame: Frame, source: Source, channel: ProducerScope<ContentElement<*>>) {
         for ((c, s) in frame.samples.withIndex()) {
@@ -111,25 +113,10 @@ class VideoDecoder(
             }
             val timestampNs: Long = frame.timestamp * 1000 // Convert microseconds to nanoseconds
             val audio = contentFactory.newAudioContent(c, frame.sampleRate, normalizedSamples)
-            channel.send(AudioFrameContent(audio, source, timestampNs))
+            channel.send(object : AudioContent by audio, SourcedContent.Temporal {
+                override val source: Source = source
+                override val timepointNs: Long = timestampNs
+            })
         }
     }
-
-    /**
-     * An internal class that represents a single frame of a video.
-     *
-     * @see ImageContent
-     * @see SourcedContent.Temporal
-     */
-    class VideoFrameContent(image: ImageContent, override val source: Source, override val timepointNs: Long) :
-        ImageContent by image, SourcedContent.Temporal
-
-    /**
-     * An internal class that represents a single frame of a video.
-     *
-     * @see AudioContent
-     * @see SourcedContent.Temporal
-     */
-    class AudioFrameContent(audio: AudioContent, override val source: Source, override val timepointNs: Long) :
-        AudioContent by audio, SourcedContent.Temporal
 }
