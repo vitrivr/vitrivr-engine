@@ -46,7 +46,7 @@ class RetrievalRuntime {
                                 vector = inputDescription.data
                             )
 
-                            field.getRetriever(descriptor, informationNeed.context)
+                            field.getRetrieverForDescriptor(descriptor, informationNeed.context)
                         }
 
                         InputType.ID -> {
@@ -56,7 +56,7 @@ class RetrievalRuntime {
                             val reader = field.getReader()
                             val descriptor = reader[id] ?: throw IllegalArgumentException("No retrievable with id '$id' present in ${field.fieldName}")
 
-                            field.getRetriever(descriptor, informationNeed.context)
+                            field.getRetrieverForDescriptor(descriptor, informationNeed.context)
 
                         }
 
@@ -69,7 +69,7 @@ class RetrievalRuntime {
                                 contentCache[operationDescription.input] = newContent
                                 newContent
                             }
-                            field.getRetriever(content, informationNeed.context)
+                            field.getRetrieverForContent(content, informationNeed.context)
                         }
                     }
 

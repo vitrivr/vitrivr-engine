@@ -109,14 +109,13 @@ class PipelineBuilder(private val schema: Schema, private val pipelineConfig: Pi
     ) {
 
         configs.forEach { config ->
-            val extractor = (schema.get(config.parameters["field"] as String)
-                ?: throw IllegalArgumentException("Field '${config.parameters["field"]}' does not exist in schema '${schema.name}'")
-                    //  TODO Add non schema extractor
-                    //   val extractor = (ServiceLoader.load(ExtractorFactory::class.java).find {
-                    //                it.javaClass.name == "${it.javaClass.packageName}.${config.name}Factory"
-                    //            }
+            val field = this.schema[config.parameters["field"] as String] ?: throw IllegalArgumentException("Field '${config.parameters["field"]}' does not exist in schema '${schema.name}'")
+            val extractor = field.getExtractor(parent, context)
 
-                    ).getExtractor(parent)
+            //  TODO Add non schema extractor
+            //   val extractor = (ServiceLoader.load(ExtractorFactory::class.java).find {
+            //                it.javaClass.name == "${it.javaClass.packageName}.${config.name}Factory"
+            //            }
 
             if (config.extractors.isNotEmpty()) {
                 this.addExtractor(extractor, config.extractors, context)
