@@ -11,7 +11,7 @@ import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadata
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import java.util.*
 
@@ -42,7 +42,7 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
      *
      * @return [TemporalMetadataExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, input: Operator<Ingested>, context: IndexContext, persisting: Boolean): TemporalMetadataExtractor {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean): TemporalMetadataExtractor {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         return TemporalMetadataExtractor(field, input, persisting)
     }

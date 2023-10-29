@@ -2,12 +2,12 @@ package org.vitrivr.engine.index.execution
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.takeWhile
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.AbstractSegmenter
 import org.vitrivr.engine.core.operators.ingest.Extractor
-import org.vitrivr.engine.index.pipeline.PipelineBuilder
+import org.vitrivr.engine.index.config.PipelineBuilder
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -30,9 +30,9 @@ class ExecutionServer {
      *
      * @param extractors The [List] of [Extractor]s to execute.
      */
-    fun extract(extractors: List<Extractor<*,*>>) = runBlocking {
+    fun extract(extractors: List<Operator<Retrievable>>) = runBlocking {
         val scope = CoroutineScope(this@ExecutionServer.dispatcher)
-        val jobs = extractors.map { e -> scope.launch { e.toFlow(scope).takeWhile { it != AbstractSegmenter.TerminalIngestedRetrievable }.collect() } }
+        val jobs = extractors.map { e -> scope.launch { e.toFlow(scope).takeWhile { it != AbstractSegmenter.TerminalRetrievable }.collect() } }
         jobs.forEach { it.join() }
     }
 
@@ -43,7 +43,7 @@ class ExecutionServer {
 
     fun execute() = runBlocking {
         val scope = CoroutineScope(this@ExecutionServer.dispatcher)
-        val jobs = this@ExecutionServer.operators.map { e -> scope.launch { e.toFlow(scope).takeWhile() { it != AbstractSegmenter.TerminalIngestedRetrievable }.collect() } }
+        val jobs = this@ExecutionServer.operators.map { e -> scope.launch { e.toFlow(scope).takeWhile() { it != AbstractSegmenter.TerminalRetrievable }.collect() } }
         jobs.forEach { it.join() }
     }
 

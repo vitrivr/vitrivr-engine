@@ -7,6 +7,7 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.FileMetadataDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithDescriptor
 import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithSource
 import org.vitrivr.engine.core.operators.Operator
@@ -21,33 +22,37 @@ import kotlin.io.path.absolutePathString
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class FileMetadataExtractor(override val field: Schema.Field<ContentElement<*>, FileMetadataDescriptor>, override val input: Operator<Ingested>, override val persisting: Boolean = true) : Extractor<ContentElement<*>, FileMetadataDescriptor> {
-    override fun toFlow(scope: CoroutineScope): Flow<Ingested> {
-        val writer by lazy { this.field.getWriter() }
-        return this.input.toFlow(scope).map { retrievable: Ingested ->
-            if (retrievable is RetrievableWithSource) {
-                val source = retrievable.source
-                if (source is FileSource) {
-                    val descriptor = FileMetadataDescriptor(
-                        id = retrievable.id,
-                        retrievableId = retrievable.id,
-                        path = source.path.absolutePathString(),
-                        size = Files.size(source.path),
-                        transient = !persisting
-                    )
+class FileMetadataExtractor(override val field: Schema.Field<ContentElement<*>, FileMetadataDescriptor>, override val input: Operator<Retrievable>, override val persisting: Boolean = true) : Extractor<ContentElement<*>, FileMetadataDescriptor> {
 
-                    /* Append descriptor. */
-                    if (retrievable is RetrievableWithDescriptor.Mutable) {
-                        retrievable.addDescriptor(descriptor)
-                    }
+    /** */
+    private val writer by lazy { this.field.getWriter() }
 
-                    /* Persist descriptor. */
-                    if (this.persisting) {
-                        writer.add(descriptor)
-                    }
+    /**
+     *
+     */
+    override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).map { retrievable ->
+        if (retrievable is RetrievableWithSource) {
+            val source = retrievable.source
+            if (source is FileSource) {
+                val descriptor = FileMetadataDescriptor(
+                    id = retrievable.id,
+                    retrievableId = retrievable.id,
+                    path = source.path.absolutePathString(),
+                    size = Files.size(source.path),
+                    transient = !persisting
+                )
+
+                /* Append descriptor. */
+                if (retrievable is RetrievableWithDescriptor.Mutable) {
+                    retrievable.addDescriptor(descriptor)
+                }
+
+                /* Persist descriptor. */
+                if (this.persisting) {
+                    this.writer.add(descriptor)
                 }
             }
-            retrievable
         }
+        retrievable
     }
 }
