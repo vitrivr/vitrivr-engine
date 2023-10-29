@@ -42,7 +42,7 @@ class ThumbnailExporter(
                 }
                 val content = retrievable.content.filterIsInstance<ImageContent>().firstOrNull()
                 if (content != null) {
-                    val imgBytes = ImmutableImage.fromAwt(content.getContent()).let {
+                    val imgBytes = ImmutableImage.fromAwt(content.content).let {
                         if (it.width > it.height){
                             it.scaleToWidth(maxSideResolution)
                         } else {

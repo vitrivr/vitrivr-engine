@@ -16,5 +16,5 @@ sealed interface ContentElement<T>: Content {
      *
      * @return [ContentElement]
      */
-    fun getContent(): T
+    val content: T
 }
