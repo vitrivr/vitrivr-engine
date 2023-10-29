@@ -5,6 +5,7 @@ import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.metadata.file.FileMetadata
 import org.vitrivr.engine.core.features.metadata.file.FileMetadataExtractor
 import org.vitrivr.engine.core.features.metadata.file.FileMetadataRetriever
+import org.vitrivr.engine.core.model.content.decorators.TemporalContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
@@ -15,6 +16,7 @@ import org.vitrivr.engine.core.operators.Operator
 import java.util.*
 
 /**
+ * Implementation of the [TemporalMetadata] [Analyser], which derives metadata information [TemporalContent].
  *
  * @author Ralph Gasser
  * @version 1.0.0
