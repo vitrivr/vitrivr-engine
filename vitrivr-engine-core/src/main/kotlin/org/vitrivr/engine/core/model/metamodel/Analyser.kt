@@ -5,7 +5,7 @@ import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
-import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
@@ -50,7 +50,7 @@ interface Analyser<C: ContentElement<*>, D: Descriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    fun newExtractor(field: Schema.Field<C, D>, input: Operator<Ingested>, context: IndexContext, persisting: Boolean = true): Extractor<C, D>
+    fun newExtractor(field: Schema.Field<C, D>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean = true): Extractor<C, D>
 
     /**
      * Generates and returns a new [Retriever] instance for this [Analyser].

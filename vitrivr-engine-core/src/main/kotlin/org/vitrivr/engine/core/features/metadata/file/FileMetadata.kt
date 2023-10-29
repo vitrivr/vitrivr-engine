@@ -7,7 +7,7 @@ import org.vitrivr.engine.core.model.descriptor.struct.metadata.FileMetadataDesc
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
@@ -39,7 +39,7 @@ class FileMetadata : Analyser<ContentElement<*>, FileMetadataDescriptor> {
      *
      * @return [FileMetadataExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, FileMetadataDescriptor>, input: Operator<Ingested>, context: IndexContext, persisting: Boolean): FileMetadataExtractor {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, FileMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean): FileMetadataExtractor {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         return FileMetadataExtractor(field, input, persisting)
     }

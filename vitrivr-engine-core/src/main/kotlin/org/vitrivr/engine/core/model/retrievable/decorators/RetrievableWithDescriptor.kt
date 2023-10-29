@@ -41,5 +41,10 @@ interface RetrievableWithDescriptor : Retrievable {
          * @param descriptor The [Descriptor] element to add.
          */
         fun addDescriptor(descriptor: Descriptor)
+
+        /**
+         * Clears list of descriptors.
+         */
+        fun clearDescriptors()
     }
 }

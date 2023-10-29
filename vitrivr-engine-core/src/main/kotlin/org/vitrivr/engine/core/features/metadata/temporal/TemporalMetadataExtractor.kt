@@ -8,6 +8,7 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadataDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithContent
 import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithDescriptor
 import org.vitrivr.engine.core.operators.Operator
@@ -20,35 +21,39 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class TemporalMetadataExtractor(override val field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, override val input: Operator<Ingested>, override val persisting: Boolean = true) :
+class TemporalMetadataExtractor(override val field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, override val input: Operator<Retrievable>, override val persisting: Boolean = true) :
     Extractor<ContentElement<*>, TemporalMetadataDescriptor> {
-    override fun toFlow(scope: CoroutineScope): Flow<Ingested> {
-        val writer by lazy { this.field.getWriter() }
-        return this.input.toFlow(scope).map { retrievable: Ingested ->
-            if (retrievable is RetrievableWithContent) {
-                for (c in retrievable.content) {
-                    if (c is TemporalContent) {
-                        val descriptor = when (c) {
-                            is TemporalContent.Timepoint -> TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, c.timepointNs, c.timepointNs, !persisting)
-                            is TemporalContent.TimeSpan -> TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, c.startNs, c.endNs, !persisting)
-                            else -> {
-                                throw IllegalStateException("TemporalContent is neither timepoint nor time span.")
-                            }
-                        }
 
-                        /* Append descriptor. */
-                        if (retrievable is RetrievableWithDescriptor.Mutable) {
-                            retrievable.addDescriptor(descriptor)
-                        }
+    /** */
+    private val writer by lazy { this.field.getWriter() }
 
-                        /* Persist descriptor. */
-                        if (this.persisting) {
-                            writer.add(descriptor)
+    /**
+     *
+     */
+    override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).map { retrievable ->
+        if (retrievable is RetrievableWithContent) {
+            for (c in retrievable.content) {
+                if (c is TemporalContent) {
+                    val descriptor = when (c) {
+                        is TemporalContent.Timepoint -> TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, c.timepointNs, c.timepointNs, !persisting)
+                        is TemporalContent.TimeSpan -> TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, c.startNs, c.endNs, !persisting)
+                        else -> {
+                            throw IllegalStateException("TemporalContent is neither timepoint nor time span.")
                         }
+                    }
+
+                    /* Append descriptor. */
+                    if (retrievable is RetrievableWithDescriptor.Mutable) {
+                        retrievable.addDescriptor(descriptor)
+                    }
+
+                    /* Persist descriptor. */
+                    if (this.persisting) {
+                        writer.add(descriptor)
                     }
                 }
             }
-            retrievable
         }
+        retrievable
     }
 }

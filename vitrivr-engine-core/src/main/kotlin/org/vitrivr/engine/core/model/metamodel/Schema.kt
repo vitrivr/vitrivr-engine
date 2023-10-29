@@ -9,13 +9,13 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
-import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.ExporterFactory
 import org.vitrivr.engine.core.operators.ingest.Extractor
-import org.vitrivr.engine.core.operators.resolver.Resolver
-import org.vitrivr.engine.core.operators.resolver.ResolverFactory
 import org.vitrivr.engine.core.operators.retrieve.Retriever
+import org.vitrivr.engine.core.resolver.Resolver
+import org.vitrivr.engine.core.resolver.ResolverFactory
 import java.io.Closeable
 import java.util.*
 
@@ -118,7 +118,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
          * @param context The [IndexContext] to use with the [Extractor].
          * @return [Extractor] instance.
          */
-        fun getExtractor(input: Operator<Ingested>, context: IndexContext): Extractor<C, D> = this.analyser.newExtractor(this, input, context, true)
+        fun getExtractor(input: Operator<Retrievable>, context: IndexContext): Extractor<C, D> = this.analyser.newExtractor(this, input, context, true)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field].
@@ -195,9 +195,10 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
         /**
          * Convenience method to generate and return a [org.vitrivr.engine.core.operators.ingest.Exporter ] for this [Exporter].
          *
+         * @param input The [Operator] to use as input.
+         * @param context The [IndexContext] to use.
          * @return [DescriptorReader]
          */
-        fun getExporter(input: Operator<Ingested>): org.vitrivr.engine.core.operators.ingest.Exporter
-            = this.factory.newOperator(input, this.parameters, this.schema, this.resolver)
+        fun getExporter(input: Operator<Retrievable>, context: IndexContext): org.vitrivr.engine.core.operators.ingest.Exporter = this.factory.newOperator(input, context, this.parameters)
     }
 }

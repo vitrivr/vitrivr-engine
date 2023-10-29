@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.BroadcastingOperator
 import org.vitrivr.engine.core.operators.Operator
 
@@ -20,4 +21,4 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface Segmenter : Operator.Unary<ContentElement<*>, Ingested>, BroadcastingOperator<Ingested>
+interface Segmenter : Operator.Unary<ContentElement<*>, Retrievable>, BroadcastingOperator<Retrievable>

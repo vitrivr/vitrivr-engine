@@ -1,6 +1,0 @@
-org.vitrivr.engine.core.operators.aggregate.impl.AllContentAggregator
-org.vitrivr.engine.core.operators.aggregate.impl.FirstContentAggregator
-org.vitrivr.engine.core.operators.aggregate.impl.LastContentAggregator
-org.vitrivr.engine.core.operators.aggregate.impl.AverageImageContentAggregator
-org.vitrivr.engine.core.operators.aggregate.impl.MostRepresentativeContentAggregator
-
