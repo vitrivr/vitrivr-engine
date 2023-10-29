@@ -13,7 +13,7 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 data class TemporalMetadataDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId,
-    val timestampNs: Long,
-    val durationNs: Long,
+    val startNs: Long,
+    val endNs: Long,
     override val transient: Boolean = false
 ) : StructDescriptor

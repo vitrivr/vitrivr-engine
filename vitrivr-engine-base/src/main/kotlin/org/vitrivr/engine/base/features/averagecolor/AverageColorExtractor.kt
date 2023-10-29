@@ -36,8 +36,7 @@ class AverageColorExtractor(
         return this.input.toFlow(scope).map { retrievable: Ingested ->
             if (retrievable is RetrievableWithContent) {
                 val content = retrievable.content.filterIsInstance<ImageContent>()
-                val descriptors = this.field.analyser.analyse(content)
-
+                val descriptors = (this.field.analyser as? AverageColor)?.analyse(content) ?: emptyList()
                 val color = MutableRGBFloatColorContainer()
 
                 descriptors.forEach {

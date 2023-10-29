@@ -14,12 +14,9 @@ typealias RetrievableId = UUID
  * @version 1.0.0
  */
 interface Retrievable : Persistable {
-
     /** The [RetrievableId] held by this [Retrievable]. */
     override val id: RetrievableId
 
     /** The type of this [Retrievable]. This is basically a string that can help to keep apart different types of [Retrievable]. */
     val type: String?
-
-
 }
