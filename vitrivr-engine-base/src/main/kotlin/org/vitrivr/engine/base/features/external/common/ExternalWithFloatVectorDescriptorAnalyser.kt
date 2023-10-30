@@ -5,9 +5,7 @@ import org.vitrivr.engine.base.features.external.ExternalAnalyser
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
-import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.util.DescriptorList
-import org.vitrivr.engine.core.model.util.toDescriptorList
+import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.util.extension.toDataURL
 import java.io.*
 import java.net.HttpURLConnection
@@ -24,8 +22,7 @@ import java.util.*
  * @author Rahel Arnold
  * @version 1.0.0
  */
-abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> :
-    ExternalAnalyser<C, FloatVectorDescriptor>() {
+abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> : ExternalAnalyser<C, FloatVectorDescriptor>() {
 
     /**
      * Size of the feature vector.
@@ -106,9 +103,9 @@ abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> 
      * Processes a collection of [ContentElement] items and generates a [DescriptorList] of [FloatVectorDescriptor].
      *
      * @param content The collection of [ContentElement] items to process.
-     * @return [DescriptorList] of [FloatVectorDescriptor].
+     * @return [List] of [FloatVectorDescriptor].
      */
-    fun processContent(content: Collection<*>): DescriptorList<FloatVectorDescriptor> {
+    fun processContent(content: Collection<*>): List<FloatVectorDescriptor> {
         val resultList = mutableListOf<FloatVectorDescriptor>()
 
         for (item in content) {
@@ -120,15 +117,14 @@ abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> 
 
             resultList.add(descriptor)
         }
-
-        return resultList.toDescriptorList()
+        return resultList
     }
 
     fun httpRequest(content: ContentElement<*>): List<Float> {
         val url = "http://$host:$port$endpoint"
         val base64 = when (content) {
-            is TextContent -> encodeTextToBase64(content.getContent())
-            is ImageContent -> content.getContent().toDataURL()
+            is TextContent -> encodeTextToBase64(content.content)
+            is ImageContent -> content.content.toDataURL()
             else -> throw IllegalArgumentException("Unsupported content type")
         }
 
