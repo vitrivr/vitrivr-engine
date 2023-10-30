@@ -23,7 +23,7 @@ data class FileMetadataDescriptor(
     companion object {
         private val SCHEMA = listOf(
             FieldSchema("path", FieldType.STRING),
-            FieldSchema("size", FieldType.STRING),
+            FieldSchema("size", FieldType.LONG),
         )
     }
 

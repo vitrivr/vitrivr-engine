@@ -18,7 +18,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class FileMetadata : Analyser<ContentElement<*>, FileMetadataDescriptor> {
+class  FileMetadata : Analyser<ContentElement<*>, FileMetadataDescriptor> {
     override val contentClass = ContentElement::class
     override val descriptorClass = FileMetadataDescriptor::class
 
