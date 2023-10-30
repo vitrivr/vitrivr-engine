@@ -1,9 +1,7 @@
 package org.vitrivr.engine.base.features.external
 
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.content.element.ImageContent
-import org.vitrivr.engine.core.model.database.descriptor.Descriptor
-import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
+import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 
 /**
@@ -22,19 +20,13 @@ import org.vitrivr.engine.core.model.metamodel.Analyser
  * @version 1.0.0
  */
 abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor> : Analyser<T, U> {
-    /**
-     * The host address of the external feature extraction service.
-     */
+    /** The host address of the external feature extraction service. */
     abstract val host: String
 
-    /**
-     * The port of the external feature extraction service.
-     */
+    /** The port of the external feature extraction service. */
     abstract val port: Int
 
-    /**
-     * The endpoint for the external feature extraction service.
-     */
+    /** The endpoint for the external feature extraction service. */
     abstract val endpoint: String
 
     /**
