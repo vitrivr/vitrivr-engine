@@ -43,8 +43,9 @@ abstract class AbstractDescriptorWriter<D : Descriptor>(final override val field
 
         /* Delete values. */
         return try {
-            this.connection.client.delete(delete)
-            true
+            this.connection.client.delete(delete).use {
+                it.hasNext()
+            }
         } catch (e: StatusException) {
             logger.error(e) { "Failed to delete scalar descriptor due to exception." }
             false
@@ -69,8 +70,9 @@ abstract class AbstractDescriptorWriter<D : Descriptor>(final override val field
 
         /* Delete values. */
         return try {
-            this.connection.client.delete(delete)
-            true
+            this.connection.client.delete(delete).use {
+                it.hasNext()
+            }
         } catch (e: StatusException) {
             logger.error(e) { "Failed to delete descriptor due to exception." }
             false

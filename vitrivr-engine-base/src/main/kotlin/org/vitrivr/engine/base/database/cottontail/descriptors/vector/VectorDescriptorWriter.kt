@@ -44,8 +44,9 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
             DESCRIPTOR_COLUMN_NAME to item.toValue()
         )
         return try {
-            this.connection.client.insert(insert)
-            true
+            this.connection.client.insert(insert).use {
+                it.hasNext()
+            }
         } catch (e: StatusException) {
             logger.error(e) { "Failed to persist descriptor ${item.id} due to exception." }
             false

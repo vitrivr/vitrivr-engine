@@ -45,8 +45,9 @@ class ScalarDescriptorWriter(field: Schema.Field<*, ScalarDescriptor<*>>, connec
             DESCRIPTOR_COLUMN_NAME to item.toValue()
         )
         return try {
-            this.connection.client.insert(insert)
-            true
+            this.connection.client.insert(insert).use {
+                it.hasNext()
+            }
         } catch (e: StatusException) {
             logger.error(e) { "Failed to persist descriptor ${item.id} due to exception." }
             false
@@ -70,8 +71,9 @@ class ScalarDescriptorWriter(field: Schema.Field<*, ScalarDescriptor<*>>, connec
 
         /* Insert values. */
         return try {
-            this.connection.client.insert(insert)
-            true
+            this.connection.client.insert(insert).use {
+                it.hasNext()
+            }
         } catch (e: StatusException) {
             logger.error(e) { "Failed to persist $size scalar descriptors due to exception." }
             false
