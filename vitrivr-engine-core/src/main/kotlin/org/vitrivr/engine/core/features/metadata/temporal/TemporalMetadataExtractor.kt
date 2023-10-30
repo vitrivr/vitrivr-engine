@@ -21,8 +21,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class TemporalMetadataExtractor(override val field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, override val input: Operator<Retrievable>, override val persisting: Boolean = true) :
-    Extractor<ContentElement<*>, TemporalMetadataDescriptor> {
+class TemporalMetadataExtractor(override val field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, override val input: Operator<Retrievable>, override val persisting: Boolean = true) : Extractor<ContentElement<*>, TemporalMetadataDescriptor> {
 
     /** */
     private val writer by lazy { this.field.getWriter() }
@@ -37,9 +36,7 @@ class TemporalMetadataExtractor(override val field: Schema.Field<ContentElement<
                     val descriptor = when (c) {
                         is TemporalContent.Timepoint -> TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, c.timepointNs, c.timepointNs, !persisting)
                         is TemporalContent.TimeSpan -> TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, c.startNs, c.endNs, !persisting)
-                        else -> {
-                            throw IllegalStateException("TemporalContent is neither timepoint nor time span.")
-                        }
+                        else -> throw IllegalStateException("TemporalContent is neither timepoint nor time span.")
                     }
 
                     /* Append descriptor. */
