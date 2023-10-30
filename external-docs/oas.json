@@ -1,0 +1,120 @@
+{
+  "openapi": "3.0.0",
+  "servers": [
+    {
+      "url": "http://localhost:8888",
+      "description": "Local development server"
+    }
+  ],
+  "info": {
+    "version": "1.0.0",
+    "title": "External Feature Extraction Endpoint Definition",
+    "description": "RESTful definition for communication between vitrivr-engine and an external feature service"
+  },
+  "paths": {
+    "/extract/{featureName}": {
+      "post": {
+        "summary": "Creates a new extraction for a given element",
+        "operationId": "extract",
+        "tags": ["External"],
+        "parameters": [
+          {
+            "name": "featureName",
+            "in": "path",
+            "required": true,
+            "description": "The name of the feature to be extracted",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Data"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Descriptor"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Data": {
+        "type": "object",
+        "description": "Base64 encoded data to be processed as a data URL",
+        "properties": {
+          "data": {
+            "type": "string",
+            "description": "The DataURL of the object to be processed"
+          }
+        }
+      },
+      "Descriptor": {
+        "type": "object",
+        "description": "The extracted descriptor. For example, if a vector feature is extracted of the data, this is a vector of floats.",
+        "additionalProperties": false
+      },
+      "ErrorStatus": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "The error code"
+          },
+          "description": {
+            "type": "string",
+            "description": "A description of the error"
+          }
+        },
+        "required": ["code", "description"],
+        "additionalProperties": false
+      }
+    }
+  }
+}

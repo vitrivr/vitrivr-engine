@@ -35,7 +35,7 @@ class AverageColor: Analyser<ImageContent, FloatVectorDescriptor> {
      *
      */
     override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean): AverageColorExtractor {
-        require(field.analyser == this) { "" }
+        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         return AverageColorExtractor(field, input, persisting)
     }
 
@@ -43,7 +43,7 @@ class AverageColor: Analyser<ImageContent, FloatVectorDescriptor> {
      *
      */
     override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext): AverageColorRetriever {
-        require(field.analyser == this) { }
+        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         return this.newRetrieverForDescriptors(field, this.analyse(content), context)
     }
 
@@ -51,7 +51,7 @@ class AverageColor: Analyser<ImageContent, FloatVectorDescriptor> {
      *
      */
     override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): AverageColorRetriever {
-        require(field.analyser == this) { }
+        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         return AverageColorRetriever(field, descriptors.first(), context)
     }
 
