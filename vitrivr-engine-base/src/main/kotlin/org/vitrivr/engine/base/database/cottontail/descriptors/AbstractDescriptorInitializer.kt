@@ -38,7 +38,9 @@ abstract class AbstractDescriptorInitializer<D : Descriptor>(final override val 
     override fun truncate() {
         val truncate = TruncateEntity(this.entityName)
         try {
-            this.connection.client.truncate(truncate)
+            this.connection.client.truncate(truncate).use {
+                it.hasNext()
+            }
         } catch (e: StatusRuntimeException) {
             /* TODO: Log. */
         }

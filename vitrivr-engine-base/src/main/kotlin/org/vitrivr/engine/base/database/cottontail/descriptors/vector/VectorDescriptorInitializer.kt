@@ -36,7 +36,7 @@ internal class VectorDescriptorInitializer(field: Schema.Field<*, VectorDescript
             .column(Name.ColumnName(DESCRIPTOR_COLUMN_NAME), type, nullable = false, primaryKey = false, autoIncrement = false)
 
         try {
-            this.connection.client.create(create)
+            this.connection.client.create(create).close()
         } catch (e: StatusException) {
             logger.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
         }
