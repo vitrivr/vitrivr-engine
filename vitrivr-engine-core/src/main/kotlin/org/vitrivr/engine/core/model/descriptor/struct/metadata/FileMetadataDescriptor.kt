@@ -16,4 +16,9 @@ data class FileMetadataDescriptor(
     val path: String,
     val size: Long,
     override val transient: Boolean = false
-) : StructDescriptor
+) : StructDescriptor {
+    override fun asMap(): Map<String, Any?> = mapOf(
+        "path" to this.path,
+        "size" to this.size
+    )
+}
