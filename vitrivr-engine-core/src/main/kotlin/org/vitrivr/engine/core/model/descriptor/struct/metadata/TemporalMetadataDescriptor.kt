@@ -16,4 +16,9 @@ data class TemporalMetadataDescriptor(
     val startNs: Long,
     val endNs: Long,
     override val transient: Boolean = false
-) : StructDescriptor
+) : StructDescriptor {
+    override fun asMap(): Map<String, Any?> = mapOf(
+        "start" to this.startNs,
+        "end" to this.endNs
+    )
+}

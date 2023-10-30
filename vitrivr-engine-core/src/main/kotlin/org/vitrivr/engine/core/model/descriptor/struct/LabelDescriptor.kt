@@ -15,4 +15,9 @@ data class LabelDescriptor(
     val label: String,
     val confidence: Float,
     override val transient: Boolean = false
-) : StructDescriptor
+) : StructDescriptor {
+    override fun asMap(): Map<String, Any?> = mapOf(
+        "label" to this.label,
+        "confidence" to this.confidence
+    )
+}

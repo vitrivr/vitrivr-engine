@@ -18,4 +18,11 @@ data class Rectangle2DMetadataDescriptor(
     val width: Int,
     val height: Int,
     override val transient: Boolean = false
-) : StructDescriptor
+) : StructDescriptor {
+    override fun asMap(): Map<String, Any?> = mapOf(
+        "leftX" to this.leftX,
+        "leftY" to this.leftY,
+        "width" to this.width,
+        "height" to this.height
+    )
+}
