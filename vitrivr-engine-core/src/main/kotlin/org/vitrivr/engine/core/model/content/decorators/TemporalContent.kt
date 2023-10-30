@@ -9,13 +9,13 @@ package org.vitrivr.engine.core.model.content.decorators
 sealed interface TemporalContent : ContentDecorator {
 
     /** A [TemporalContent] that represents a point in time. */
-    interface Timepoint {
+    interface Timepoint: TemporalContent {
         /** The timepoint of the temporal location in nanoseconds. */
         val timepointNs: Long
     }
 
     /** A [TemporalContent] that represents a time span- */
-    interface TimeSpan {
+    interface TimeSpan: TemporalContent {
         /** The start timepoint of the temporal location in nanoseconds. */
         val startNs: Long
 
