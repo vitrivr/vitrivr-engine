@@ -1,5 +1,11 @@
 {
   "openapi": "3.0.0",
+  "servers": [
+    {
+      "url": "http://localhost:8888",
+      "description": "Local development server"
+    }
+  ],
   "info": {
     "version": "1.0.0",
     "title": "External Feature Extraction Endpoint Definition",
@@ -25,9 +31,9 @@
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/Content"
+                "$ref": "#/components/schemas/Data"
               }
             }
           }
@@ -79,26 +85,19 @@
   },
   "components": {
     "schemas": {
-      "Content": {
+      "Data": {
         "type": "object",
-        "description": "Common root for all contents handled by vitrivr"
+        "description": "Base64 encoded data to be processed as a data URL",
+        "properties": {
+          "data": {
+            "type": "string",
+            "description": "The DataURL of the object to be processed"
+          }
+        }
       },
       "Descriptor": {
         "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "The ID of the Descriptor"
-          },
-          "retrievableId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true,
-            "description": "The ID of the Retrievable being described (if applicable)"
-          }
-        },
-        "required": ["id"],
+        "description": "The extracted descriptor. For example, if a vector feature is extracted of the data, this is a vector of floats.",
         "additionalProperties": false
       },
       "ErrorStatus": {
