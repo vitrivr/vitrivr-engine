@@ -10,8 +10,9 @@
         }
       },
       "fields": [
-        {"name": "averagecolor1", "factory": "AverageColor"},
-        {"name": "averagecolor2", "factory": "AverageColor"}
+        {"name": "averagecolor", "factory": "AverageColor"},
+        {"name": "file", "factory": "FileMetadata"},
+        {"name": "time", "factory": "TemporalMetadata"}
       ],
       "exporters": [
         {

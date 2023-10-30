@@ -7,8 +7,8 @@
   "enumerator": {
     "name": "FileSystemEnumerator",
     "parameters": {
-      "path": "/Volumes/V3C1/V3C1/videos",
-      "depth": "1",
+      "path": "/Users/gassra02/Downloads/videos",
+      "depth": "2",
       "mediaTypes": "VIDEO"
     },
     "next": {
@@ -23,11 +23,17 @@
           },
           "aggregators": [
             {
-              "name": "FirstContentAggregator",
+              "name": "AverageImageContentAggregator",
               "nextExtractor": {
-                "fieldName": "averagecolor1",
+                "fieldName": "averagecolor",
                 "nextExporter": {
-                  "exporterName": "thumbnail"
+                  "exporterName": "thumbnail",
+                  "nextExtractor": {
+                    "fieldName": "file",
+                    "nextExtractor": {
+                      "fieldName": "time"
+                    }
+                  }
                 }
               }
             }
