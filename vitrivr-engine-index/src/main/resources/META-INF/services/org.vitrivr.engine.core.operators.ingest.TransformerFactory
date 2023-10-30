@@ -1,1 +1,1 @@
-org.vitrivr.engine.index.transform.PassthroughTransformerFactory
+org.vitrivr.engine.index.transform.PassthroughTransformer

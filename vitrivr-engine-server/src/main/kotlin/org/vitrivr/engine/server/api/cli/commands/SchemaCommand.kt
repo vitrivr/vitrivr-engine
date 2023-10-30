@@ -6,14 +6,17 @@ import com.github.ajalt.clikt.core.subcommands
 import com.jakewharton.picnic.table
 import org.vitrivr.engine.core.database.Initializer
 import org.vitrivr.engine.core.model.metamodel.Schema
-import sandbox.SandboxCli
+import org.vitrivr.engine.index.config.IndexConfig
+import org.vitrivr.engine.index.config.PipelineBuilder
+import org.vitrivr.engine.index.execution.ExecutionServer
+import java.nio.file.Paths
 
 /**
  *
  * @author Ralph Gasser
  * @version 1.0
  */
-class SchemaCommand(private val schema: Schema) : NoOpCliktCommand(
+class SchemaCommand(private val schema: Schema, private val server: ExecutionServer) : NoOpCliktCommand(
     name = schema.name,
     help = "Groups commands related to a specific the schema '${schema.name}'.",
     epilog = "Schema related commands usually have the form: <schema> <command>, e.g., `vitrivr about` Check help for command specific parameters.",
@@ -26,7 +29,7 @@ class SchemaCommand(private val schema: Schema) : NoOpCliktCommand(
         this.subcommands(
             About(),
             Initialize(),
-            Extract()
+            Extract(this.schema, this.server)
         )
     }
 
@@ -91,9 +94,12 @@ class SchemaCommand(private val schema: Schema) : NoOpCliktCommand(
         }
     }
 
-    inner class Extract : CliktCommand(name = "extract", help = "Extracts data from a source and stores it in the schema.") {
+    inner class Extract(private val schema: Schema, private val server: ExecutionServer) : CliktCommand(name = "extract", help = "Extracts data from a source and stores it in the schema.") {
         override fun run() {
-           SandboxCli.extarctionSandbox(schema = this@SchemaCommand.schema)
+            val config = IndexConfig.read(Paths.get(IndexConfig.DEFAULT_PIPELINE_PATH)) ?: return
+            val pipelineBuilder = PipelineBuilder.forConfig(this.schema, config)
+            val pipeline = pipelineBuilder.getPipeline()
+            this.server.extract(pipeline)
         }
     }
 }

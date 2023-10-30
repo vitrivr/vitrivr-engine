@@ -3,10 +3,9 @@ package org.vitrivr.engine.query.execution
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithScore
-import org.vitrivr.engine.core.model.database.retrievable.Retrieved
+import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Aggregator
 import org.vitrivr.engine.core.operators.retrieve.Transformer
@@ -47,7 +46,7 @@ class RetrievalRuntime {
                                 vector = inputDescription.data
                             )
 
-                            field.getRetriever(descriptor)
+                            field.getRetrieverForDescriptor(descriptor, informationNeed.context)
                         }
 
                         InputType.ID -> {
@@ -57,7 +56,7 @@ class RetrievalRuntime {
                             val reader = field.getReader()
                             val descriptor = reader[id] ?: throw IllegalArgumentException("No retrievable with id '$id' present in ${field.fieldName}")
 
-                            field.getRetriever(descriptor)
+                            field.getRetrieverForDescriptor(descriptor, informationNeed.context)
 
                         }
 
@@ -70,7 +69,7 @@ class RetrievalRuntime {
                                 contentCache[operationDescription.input] = newContent
                                 newContent
                             }
-                            field.getRetriever(content)
+                            field.getRetrieverForContent(content, informationNeed.context)
                         }
                     }
 

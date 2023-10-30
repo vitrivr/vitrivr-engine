@@ -4,8 +4,8 @@ import io.javalin.http.Context
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiResponse
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.server.api.rest.model.ErrorStatus
 
 @OpenApi(

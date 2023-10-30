@@ -1,55 +1,38 @@
 {
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverFactory": "DiskResolver"
+  },
   "schema": "vitrivr",
   "enumerator": {
-    "factory": "FileSystemEnumerator",
+    "name": "FileSystemEnumerator",
     "parameters": {
-      "path": "C:/Users/walten0000/Documents/myRepo/ch.unibas/Work/vitrivr-engine/v3c-minimal-example",
+      "path": "/Volumes/V3C1/V3C1/videos",
       "depth": "1",
       "mediaTypes": "VIDEO"
     },
-    "decoder": {
-      "factory": "VideoDecoder",
-      "parameters": {
-        "contentFactory": "inMemoryContentFactory",
-        "video": "true",
-        "audio": "true"
-      },
-      "transformer": {
-        "factory": "PassthroughTransformer",
-        "parameters": {
-        },
-        "segmenters": [
-          {
-            "factory": "FixedDurationSegmenter",
-            "parameters": {
-              "retrievableWriter": "RetrievableWriter",
-              "duration": "1",
-              "lookAheadTime": "1"
-            },
-            "extractors": [
-              {"factory": "AverageColorExtractor",
-                "parameters": {
-                  "field": "averagecolor1",
-                  "persisting": "true"
-                },
-                "exporters": [
-                  {"factory": "ThumbnailExporterFactory",
-                    "parameters": {
-                      "exporter": "thumbnail"
-                    },
-                    "resolver": {
-                      "factory": "DiskResolverFactory",
-                      "parameters": {
-                        "resolver": "thumbnail"
-                      }
-                    },
-                    "exporters": []
-                  }
-                ]
+    "next": {
+      "name": "VideoDecoder",
+      "nextTransformer": {
+        "name": "PassthroughTransformer",
+        "nextSegmenter": {
+          "name": "FixedDurationSegmenter",
+          "parameters": {
+            "duration": "1",
+            "lookAheadTime": "1"
+          },
+          "aggregators": [
+            {
+              "name": "FirstContentAggregator",
+              "nextExtractor": {
+                "fieldName": "averagecolor1",
+                "nextExporter": {
+                  "exporterName": "thumbnail"
+                }
               }
-            ]
-          }
-        ]
+            }
+          ]
+        }
       }
     }
   }

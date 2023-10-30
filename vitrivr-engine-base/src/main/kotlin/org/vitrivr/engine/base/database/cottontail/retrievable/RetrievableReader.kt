@@ -1,7 +1,11 @@
 package org.vitrivr.engine.base.database.cottontail.retrievable
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
+import io.grpc.StatusException
 import org.vitrivr.cottontail.client.language.basics.expression.Column
 import org.vitrivr.cottontail.client.language.basics.expression.List
+import org.vitrivr.cottontail.client.language.basics.expression.Literal
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.client.language.dql.Query
 import org.vitrivr.cottontail.core.database.Name
@@ -11,10 +15,12 @@ import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companio
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.RETRIEVABLE_TYPE_COLUMN_NAME
 import org.vitrivr.engine.core.database.retrievable.RetrievableInitializer
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
-import org.vitrivr.engine.core.model.database.retrievable.Retrievable
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
-import org.vitrivr.engine.core.model.database.retrievable.Retrieved
+import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.retrievable.Retrieved
 import java.util.*
+
+private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * A [RetrievableReader] implementation for Cottontail DB.
@@ -32,7 +38,42 @@ internal class RetrievableReader(private val connection: CottontailConnection): 
      * @param id [RetrievableId]s to return.
      * @return A [Sequence] of all [Retrievable].
      */
-    override fun get(id: UUID): Retrievable? = this.getAll(listOf(id)).firstOrNull()
+    override fun get(id: RetrievableId): Retrievable? {
+        val query = Query(this.entityName).where(Compare(Column(this.entityName.column(RETRIEVABLE_ID_COLUMN_NAME)), Compare.Operator.EQUAL, Literal(id.toString())))
+        return try {
+            this.connection.client.query(query).use {
+                if (it.hasNext()) {
+                    val tuple = it.next()
+                    val retrievableId = UUID.fromString(tuple.asString(RETRIEVABLE_ID_COLUMN_NAME) ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'."))
+                    val type = tuple.asString(RETRIEVABLE_TYPE_COLUMN_NAME)
+                    Retrieved.Default(retrievableId, type, false) /* TODO: Use UUID type once supported. */
+                } else {
+                    null
+                }
+            }
+        } catch (e: StatusException) {
+            logger.error(e) { "Failed to retrieve descriptor $id due to exception." }
+            null
+        }
+    }
+
+    /**
+     * Checks whether a [Retrievable] with the provided [UUID] exists.
+     *
+     * @param id The [RetrievableId], i.e., the [UUID] of the [Retrievable] to check for.
+     * @return True if descriptor exsits, false otherwise
+     */
+    override fun exists(id: RetrievableId): Boolean {
+        val query = Query(this.entityName).exists()
+            .where(Compare(Column(this.entityName.column(RETRIEVABLE_ID_COLUMN_NAME)), Compare.Operator.EQUAL, Literal(id.toString())))
+        return try {
+            val result = this.connection.client.query(query)
+            result.next().asBoolean(0) ?: false
+        } catch (e: StatusException) {
+            logger.error(e) { "Failed to check for existence of retrievable $id due to exception." }
+            false
+        }
+    }
 
     /**
      * Returns all [Retrievable]s  that match any of the provided [RetrievableId]

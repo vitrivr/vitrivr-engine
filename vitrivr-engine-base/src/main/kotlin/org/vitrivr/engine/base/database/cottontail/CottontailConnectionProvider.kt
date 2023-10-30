@@ -5,10 +5,10 @@ import org.vitrivr.engine.base.database.cottontail.descriptors.scalar.ScalarDesc
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
-import org.vitrivr.engine.core.model.database.descriptor.Descriptor
-import org.vitrivr.engine.core.model.database.descriptor.scalar.*
-import org.vitrivr.engine.core.model.database.descriptor.struct.LabelDescriptor
-import org.vitrivr.engine.core.model.database.descriptor.vector.*
+import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.descriptor.scalar.*
+import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
+import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.metamodel.Schema
 import java.util.*
 import kotlin.reflect.KClass

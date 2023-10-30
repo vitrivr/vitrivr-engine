@@ -11,13 +11,13 @@ import org.vitrivr.engine.base.database.cottontail.descriptors.AbstractDescripto
 import org.vitrivr.engine.base.database.cottontail.descriptors.DESCRIPTOR_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.descriptors.operator
 import org.vitrivr.engine.base.database.cottontail.descriptors.toValue
-import org.vitrivr.engine.core.model.database.descriptor.scalar.ScalarDescriptor
-import org.vitrivr.engine.core.model.database.descriptor.scalar.StringDescriptor
-import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.database.retrievable.Retrieved
+import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor
+import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
+import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.BooleanQuery
+import org.vitrivr.engine.core.model.retrievable.Retrieved
 import java.util.*
 
 /**
