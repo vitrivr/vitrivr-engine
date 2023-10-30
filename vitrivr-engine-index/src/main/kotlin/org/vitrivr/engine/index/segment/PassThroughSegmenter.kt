@@ -54,20 +54,28 @@ class PassThroughSegmenter : SegmenterFactory {
          */
         override suspend fun segment(upstream: Flow<ContentElement<*>>, downstream: ProducerScope<Retrievable>) = upstream.collect {
             /* Retrievable for data source. */
-            val retrievable = if (it is SourcedContent) {
-                val sourceRetrievable = this.findOrCreateRetrievableForSource(it.source, downstream)
+            if (it is SourcedContent) {
+                val sourceRetrievable = this.findOrCreateRetrievableForSource(it.source)
 
                 /* Prepare retrievable (with relationship). */
-                Ingested(UUID.randomUUID(), "segment", false, content = listOf(it), relationships = mapOf("partOf" to listOf(sourceRetrievable)))
+                val retrievable = Ingested(UUID.randomUUID(), "segment", false, content = listOf(it), relationships = mapOf("partOf" to listOf(sourceRetrievable)))
+
+                /* Persist retrievable and connection. */
+                this.writer.add(retrievable)
+                this.writer.connect(retrievable.id, "partOf", sourceRetrievable.id)
+
+                /* Send retrievables downstream. */
+                downstream.send(sourceRetrievable)
+                downstream.send(retrievable)
             } else {
-                Ingested(UUID.randomUUID(), "segment", false, content = listOf(it))
+                val retrievable = Ingested(UUID.randomUUID(), "segment", false, content = listOf(it))
+
+                /* Persist retrievable. */
+                this.writer.add(retrievable)
+
+                /* Send retrievable downstream. */
+                downstream.send(retrievable)
             }
-
-            /* Persist the new retrievable. */
-            this.writer.add(retrievable)
-
-            /* Send retrievable downstream. */
-            downstream.send(retrievable)
         }
 
         override suspend fun finish(downstream: ProducerScope<Retrievable>) {
@@ -80,7 +88,7 @@ class PassThroughSegmenter : SegmenterFactory {
          *
          * @param source The [Source] to create [Retrievable] for.
          */
-        private suspend fun findOrCreateRetrievableForSource(source: Source, downstream: ProducerScope<Retrievable>): RetrievableWithSource {
+        private fun findOrCreateRetrievableForSource(source: Source): RetrievableWithSource {
             val result = object : RetrievableWithSource {
                 override val id: RetrievableId = source.sourceId
                 override val type: String = "source"
@@ -91,7 +99,6 @@ class PassThroughSegmenter : SegmenterFactory {
             /* Persist retrievable. */
             if (!this.reader.exists(source.sourceId)) {
                 this.writer.add(result)
-                downstream.send(result)
             }
 
             /* Return result. */

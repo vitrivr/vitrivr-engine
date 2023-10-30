@@ -158,8 +158,9 @@ class FixedDurationSegmenter : SegmenterFactory {
             /* Prepare retrievable. */
             val retrievable = Ingested(UUID.randomUUID(), "segment", false, content, emptyList(), mapOf("partOf" to listOf(sourceRetrievable)))
 
-            /* Persist retrievable. */
+            /* Persist retrievable and relationship. */
             this.writer.add(retrievable)
+            this.writer.connect(retrievable.id, "partOf", sourceRetrievable.id)
 
             /* Send retrievable downstream. */
             downstream.send(retrievable)
