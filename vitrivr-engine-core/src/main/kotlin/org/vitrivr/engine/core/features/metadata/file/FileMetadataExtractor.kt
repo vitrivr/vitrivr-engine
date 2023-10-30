@@ -14,6 +14,7 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.source.file.FileSource
 import java.nio.file.Files
+import java.util.*
 import kotlin.io.path.absolutePathString
 
 /**
@@ -35,7 +36,7 @@ class FileMetadataExtractor(override val field: Schema.Field<ContentElement<*>, 
             val source = retrievable.source
             if (source is FileSource) {
                 val descriptor = FileMetadataDescriptor(
-                    id = retrievable.id,
+                    id = UUID.randomUUID(),
                     retrievableId = retrievable.id,
                     path = source.path.absolutePathString(),
                     size = Files.size(source.path),
