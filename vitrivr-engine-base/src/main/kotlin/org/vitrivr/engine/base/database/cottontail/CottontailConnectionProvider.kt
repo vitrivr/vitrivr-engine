@@ -1,6 +1,6 @@
 package org.vitrivr.engine.base.database.cottontail
 
-import org.vitrivr.engine.base.database.cottontail.descriptors.label.LabelDescriptorProvider
+import org.vitrivr.engine.base.database.cottontail.descriptors.label.StructDescriptorProvider
 import org.vitrivr.engine.base.database.cottontail.descriptors.scalar.ScalarDescriptorProvider
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
@@ -8,6 +8,9 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.scalar.*
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.metadata.FileMetadataDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.metadata.Rectangle2DMetadataDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.metamodel.Schema
 import java.util.*
@@ -58,8 +61,11 @@ class CottontailConnectionProvider: ConnectionProvider {
         FloatVectorDescriptor::class to org.vitrivr.engine.base.database.cottontail.descriptors.vector.VectorDescriptorProvider,
         DoubleVectorDescriptor::class to org.vitrivr.engine.base.database.cottontail.descriptors.vector.VectorDescriptorProvider,
 
-        /* Label descriptor. */
-        LabelDescriptor::class to LabelDescriptorProvider
+        /* Struct descriptor. */
+        LabelDescriptor::class to StructDescriptorProvider,
+        FileMetadataDescriptor::class to StructDescriptorProvider,
+        TemporalMetadataDescriptor::class to StructDescriptorProvider,
+        Rectangle2DMetadataDescriptor::class to StructDescriptorProvider,
     )
 
     /**
