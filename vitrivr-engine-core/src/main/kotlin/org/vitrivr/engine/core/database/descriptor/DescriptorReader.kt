@@ -1,11 +1,11 @@
 package org.vitrivr.engine.core.database.descriptor
 
 import org.vitrivr.engine.core.database.Reader
-import org.vitrivr.engine.core.model.database.descriptor.Descriptor
-import org.vitrivr.engine.core.model.database.retrievable.Retrieved
+import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.retrievable.Retrieved
 
 /**
  * A [DescriptorReader] is an extension of a [Reader], that allows the execution of [Descriptor] specific [Query] objects.

@@ -1,15 +1,19 @@
 package org.vitrivr.engine.core.operators.ingest
 
-import org.vitrivr.engine.core.model.database.retrievable.Ingested
-import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.OperatorFactory
-import org.vitrivr.engine.core.source.Source
+import org.vitrivr.engine.core.context.IndexContext
 
-interface EnumeratorFactory : OperatorFactory<Operator<Nothing>, Enumerator> {
-    fun newOperator(parameters: Map<String, Any>, schema: Schema): Enumerator
-
-    override fun newOperator(input: Operator<Nothing>, parameters: Map<String, Any>, schema: Schema): Enumerator {
-        return newOperator(parameters, schema)
-    }
+/**
+ * A factory object for a specific [Enumerator] type.
+ *
+ * @author Raphael Waltenspuel
+ * @version 1.0.0
+ */
+interface EnumeratorFactory {
+    /**
+     * Creates a new [Enumerator] instance from this [EnumeratorFactory].
+     *
+     * @param context The [IndexContext] to use.
+     * @param parameters Optional set of parameters.
+     */
+    fun newOperator(context: IndexContext, parameters: Map<String, Any> = emptyMap()): Enumerator
 }

@@ -88,12 +88,33 @@ class FileCachedContentFactory(private val basePath: Path) : ContentFactory {
 
     }
 
+    /**
+     * This class represents a [ImageContent] that is backed by a file.
+     */
     private inner class FileBackedImageContent(bufferedImage: BufferedImage) : ImageContent {
 
+        /** The [FileBackedByteBuffer] used for caching. */
         private val backing: FileBackedByteBuffer
-        private val width = bufferedImage.width
-        private val height = bufferedImage.height
+
+        /** The type of the [BufferedImage]. */
         private val type = bufferedImage.type
+
+        /** The width of the [BufferedImage] (is stored explicitly). */
+        override val width = bufferedImage.width
+
+        /** The height of the [BufferedImage] (is stored explicitly). */
+        override val height = bufferedImage.height
+
+        /** This method reads the [BufferedImage] directly from the file system. */
+        override val content: BufferedImage
+            get() {
+                val buf = this.backing.buffer.asIntBuffer()
+                val colors = IntArray(buf.remaining())
+                buf.get(colors)
+                val image = BufferedImage(width, height, type)
+                image.setRGBArray(colors)
+                return image
+            }
 
         init {
             val colors = bufferedImage.getRGBArray()
@@ -101,29 +122,20 @@ class FileCachedContentFactory(private val basePath: Path) : ContentFactory {
             for (c in colors) {
                 buf.putInt(c)
             }
-            backing = FileBackedByteBuffer(buf.array(), basePath.resolve(counter.getAndIncrement().toString()))
+            this.backing = FileBackedByteBuffer(buf.array(), basePath.resolve(counter.getAndIncrement().toString()))
         }
-
-        override fun getContent(): BufferedImage {
-            val buf = backing.buffer.asIntBuffer()
-            val colors = IntArray(buf.remaining())
-            buf.get(colors)
-            val image = BufferedImage(width, height, type)
-            image.setRGBArray(colors)
-            return image
-        }
-
     }
 
     override fun newImageContent(bufferedImage: BufferedImage): ImageContent = FileBackedImageContent(bufferedImage)
 
-    private inner class FileBackedAudioContent(
-        override val channel: Int,
-        override val samplingRate: Int,
-        audio: ShortBuffer
-    ) : AudioContent {
+    /**
+     * This class represents a [AudioContent] that is backed by a file.
+     */
+    private inner class FileBackedAudioContent(override val channel: Int, override val samplingRate: Int, audio: ShortBuffer) : AudioContent {
 
         private val backing: FileBackedByteBuffer
+        override val content: ShortBuffer
+            get() = this.backing.buffer.asShortBuffer().asReadOnlyBuffer()
 
         init {
             val samples = audio.array()
@@ -133,29 +145,29 @@ class FileCachedContentFactory(private val basePath: Path) : ContentFactory {
             }
             backing = FileBackedByteBuffer(buf.array(), basePath.resolve(counter.getAndIncrement().toString()))
         }
-
-        override fun getContent(): ShortBuffer = backing.buffer.asShortBuffer().asReadOnlyBuffer()
-
     }
 
     override fun newAudioContent(channel: Int, samplingRate: Int, audio: ShortBuffer): AudioContent =
         FileBackedAudioContent(channel, samplingRate, audio)
 
+    /**
+     * This class represents a [TextContent] that is backed by a file.
+     */
     private inner class FileBackedTextContent(text: String) : TextContent {
 
-        private val backing: FileBackedByteBuffer =
-            FileBackedByteBuffer(text.encodeToByteArray(), basePath.resolve(counter.getAndIncrement().toString()))
+        private val backing: FileBackedByteBuffer = FileBackedByteBuffer(text.encodeToByteArray(), basePath.resolve(counter.getAndIncrement().toString()))
 
-        override fun getContent(): String {
+        /** The length of the text is stored explicitly.  */
+        override val length: Int = text.length
 
-            val buf = backing.buffer
-            val arr = ByteArray(buf.remaining())
-            buf.get(arr)
-
-            return String(arr)
-
-        }
-
+        /** This method reads the [String] directly from the file system. */
+        override val content: String
+            get() {
+                val buf = backing.buffer
+                val arr = ByteArray(buf.remaining())
+                buf.get(arr)
+                return String(arr)
+            }
     }
 
     override fun newTextContent(text: String): TextContent = FileBackedTextContent(text)

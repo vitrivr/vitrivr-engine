@@ -10,12 +10,12 @@ import org.vitrivr.engine.base.database.cottontail.descriptors.AbstractDescripto
 import org.vitrivr.engine.base.database.cottontail.descriptors.DESCRIPTOR_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.descriptors.DISTANCE_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.descriptors.toValue
-import org.vitrivr.engine.core.model.database.descriptor.vector.*
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithScore
-import org.vitrivr.engine.core.model.database.retrievable.Retrieved
+import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
+import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithScore
 import java.util.*
 
 /**
