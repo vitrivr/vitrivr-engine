@@ -21,8 +21,6 @@ data class ExtractorConfig(
         require(this.fieldName != null || this.factoryName != null) { "An extractor must have either a field name or a factory name." }
         if (this.nextExtractor != null) {
             require(this.nextExporter == null) { "An extractor can either be followed by another extractor OR an exporter." }
-        } else {
-            require(this.nextExporter != null) { "An extractor can either be followed by another transformer OR an exporter." }
         }
     }
 }
