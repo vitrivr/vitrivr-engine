@@ -1,5 +1,7 @@
 package org.vitrivr.engine.core.model.descriptor.vector
 
+import org.vitrivr.engine.core.model.descriptor.FieldSchema
+import org.vitrivr.engine.core.model.descriptor.FieldType
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import java.util.*
 
@@ -16,4 +18,11 @@ data class LongVectorDescriptor(
     override val retrievableId: RetrievableId? = null,
     override val vector: List<Long>,
     override val transient: Boolean = false
-) : VectorDescriptor<Long>
+) : VectorDescriptor<Long> {
+    /**
+     * Returns the [FieldSchema] [List ]of this [LongVectorDescriptor].
+     *
+     * @return [List] of [FieldSchema]
+     */
+    override fun schema(): List<FieldSchema> = listOf(FieldSchema("vector", FieldType.LONG, intArrayOf(this.dimensionality)))
+}

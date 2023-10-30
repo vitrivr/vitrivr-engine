@@ -9,5 +9,14 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
  * @version 1.0.0
  */
 sealed interface ScalarDescriptor<T> : Descriptor {
+
+    /** The [Value] held by this [ScalarDescriptor]. */
     val value: T
+
+    /**
+     * Returns the fields and its values of this [ScalarDescriptor] as a [Map].
+     *
+     * @return A [Map] of this [ScalarDescriptor]'s fields (without the IDs).
+     */
+    override fun values(): Map<String, T?> = mapOf("value" to this.value)
 }
