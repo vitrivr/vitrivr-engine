@@ -1,8 +1,7 @@
 package org.vitrivr.engine.core.database
 
-import org.vitrivr.engine.core.model.database.Persistable
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
-import java.util.UUID
+import org.vitrivr.engine.core.model.Persistable
+import java.util.*
 
 /**
  * The [Reader] is part of the data persistence layer of vitrivr and can be used to encapsulate DQL operations  for the underlying database.
@@ -17,18 +16,25 @@ interface Reader<out T : Persistable> {
     /**
      * Returns a  [Persistable] of type [T] that corresponds to the provided [UUID].
      *
-     * @param id The [RetrievableId] to return.
+     * @param id The [UUID] to return.
      * @return [Sequence] of [Persistable] of type [T]
      */
-    operator fun get(id: RetrievableId): T?
+    operator fun get(id: UUID): T?
+
+    /**
+     * Checks if a [Persistable] of type [T] with the provided [UUID] exists.
+     *
+     * @return True if [Persistable] exists, false otherwise.
+     */
+    fun exists(id: UUID): Boolean
 
     /**
      * Returns a [Sequence] of all [Persistable] accessible by this [Reader] whose [UUID] is contained in the provided [Iterable].
      *
-     * @param ids A [Iterable] of [RetrievableId]s to return.
+     * @param ids A [Iterable] of [UUID]s to return.
      * @return [Sequence] of [Persistable] of type [T]
      */
-    fun getAll(ids: Iterable<RetrievableId>): Sequence<T>
+    fun getAll(ids: Iterable<UUID>): Sequence<T>
 
     /**
      * Returns a [Sequence] of all [Persistable] accessible by this [Reader].

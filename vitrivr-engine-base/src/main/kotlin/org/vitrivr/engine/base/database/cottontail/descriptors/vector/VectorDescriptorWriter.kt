@@ -18,7 +18,7 @@ import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companio
 import org.vitrivr.engine.base.database.cottontail.descriptors.AbstractDescriptorWriter
 import org.vitrivr.engine.base.database.cottontail.descriptors.DESCRIPTOR_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.descriptors.toValue
-import org.vitrivr.engine.core.model.database.descriptor.vector.VectorDescriptor
+import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 
 private val logger: KLogger = KotlinLogging.logger {}
@@ -44,8 +44,9 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
             DESCRIPTOR_COLUMN_NAME to item.toValue()
         )
         return try {
-            this.connection.client.insert(insert)
-            true
+            this.connection.client.insert(insert).use {
+                it.hasNext()
+            }
         } catch (e: StatusException) {
             logger.error(e) { "Failed to persist descriptor ${item.id} due to exception." }
             false

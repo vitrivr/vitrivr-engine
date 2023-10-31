@@ -1,6 +1,7 @@
 package org.vitrivr.engine.core.operators.ingest
 
-import org.vitrivr.engine.core.model.database.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 
 /**
@@ -12,4 +13,4 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface Exporter: Operator.Unary<Ingested, Ingested>
+interface Exporter : Operator.Unary<Retrievable, Retrievable>

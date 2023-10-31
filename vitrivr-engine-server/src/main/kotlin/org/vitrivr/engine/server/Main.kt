@@ -8,6 +8,7 @@ import io.javalin.openapi.plugin.SecurityComponentConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
+import org.vitrivr.engine.index.execution.ExecutionServer
 import org.vitrivr.engine.query.execution.RetrievalRuntime
 import org.vitrivr.engine.server.api.cli.Cli
 import org.vitrivr.engine.server.api.cli.commands.SchemaCommand
@@ -34,6 +35,7 @@ fun main(args: Array<String>) {
     }
 
     /* Initialize retrieval runtime. */
+    val executionServer = ExecutionServer()
     val runtime = RetrievalRuntime()
 
     /* Prepare Javalin endpoint. */
@@ -78,7 +80,7 @@ fun main(args: Array<String>) {
     /* Prepare CLI endpoint. */
     val cli = Cli(manager)
     for (schema in manager.listSchemas()) {
-        cli.register(SchemaCommand(schema))
+        cli.register(SchemaCommand(schema, executionServer))
     }
 
     /* Start the Javalin and CLI. */

@@ -1,6 +1,6 @@
 package org.vitrivr.engine.core.model.query.bool
 
-import org.vitrivr.engine.core.model.database.descriptor.scalar.ScalarDescriptor
+import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
 

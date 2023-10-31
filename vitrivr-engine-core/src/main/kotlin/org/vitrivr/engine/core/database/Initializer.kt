@@ -1,6 +1,6 @@
 package org.vitrivr.engine.core.database
 
-import org.vitrivr.engine.core.model.database.Persistable
+import org.vitrivr.engine.core.model.Persistable
 
 /**
  * The [Initializer] is part of the data persistence layer of vitrivr and can be used to encapsulate DDL operations

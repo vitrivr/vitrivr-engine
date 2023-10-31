@@ -17,38 +17,17 @@ interface SourcedContent: ContentDecorator {
     /**
      * A [SourcedContent] that has a temporal location within the [Source].
      */
-    interface Temporal: SourcedContent {
-        /** The timepoint of the temporal location in nanoseconds. */
-        val timepointNs: Long
-    }
+    interface Temporal : SourcedContent, TemporalContent.Timepoint
 
     /**
      * A [SourcedContent] that has a spatial (point) location within the [Source].
      */
-    interface Point2D: SourcedContent {
-        /** Position in X direction within the [Source]. */
-        val x: Int
-
-        /** Position in Y direction within the [Source]. */
-        val y: Int
-    }
+    interface Point2D : SourcedContent, Spatial2DContent.Point
 
     /**
      * A [SourcedContent] that has a spatial (area) location within the [Source].
      */
-    interface Rectangle2D: SourcedContent {
-        /** Position of the top-left point in X direction within the [Source]. */
-        val leftX: Int
-
-        /** Position of the top-left point in Y  direction within the [Source]. */
-        val leftY: Int
-
-        /** Width of the rectangle in pixels [Source]. */
-        val width: Int
-
-        /** Height of the rectangle in pixels [Source]. */
-        val height: Int
-    }
+    interface Rectangle2D : SourcedContent, Spatial2DContent.Rectangle
 
     /**
      * A [SourcedContent] that has a spatial location within the [Source]

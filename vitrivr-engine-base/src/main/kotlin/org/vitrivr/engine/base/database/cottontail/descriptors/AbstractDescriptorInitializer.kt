@@ -6,7 +6,7 @@ import org.vitrivr.cottontail.client.language.ddl.TruncateEntity
 import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.core.database.descriptor.DescriptorInitializer
-import org.vitrivr.engine.core.model.database.descriptor.Descriptor
+import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 
 /**
@@ -38,7 +38,9 @@ abstract class AbstractDescriptorInitializer<D : Descriptor>(final override val 
     override fun truncate() {
         val truncate = TruncateEntity(this.entityName)
         try {
-            this.connection.client.truncate(truncate)
+            this.connection.client.truncate(truncate).use {
+                it.hasNext()
+            }
         } catch (e: StatusRuntimeException) {
             /* TODO: Log. */
         }

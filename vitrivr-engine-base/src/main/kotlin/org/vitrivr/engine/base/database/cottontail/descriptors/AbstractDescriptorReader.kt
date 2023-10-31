@@ -1,5 +1,7 @@
 package org.vitrivr.engine.base.database.cottontail.descriptors
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.StatusException
 import org.vitrivr.cottontail.client.language.basics.expression.Column
 import org.vitrivr.cottontail.client.language.basics.expression.Literal
@@ -9,9 +11,12 @@ import org.vitrivr.cottontail.core.tuple.Tuple
 import org.vitrivr.cottontail.core.values.StringValue
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.core.database.descriptor.DescriptorReader
-import org.vitrivr.engine.core.model.database.descriptor.Descriptor
+import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.metamodel.Schema
 import java.util.*
+
+private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * An abstract implementation of a [DescriptorReader] for Cottontail DB.
@@ -42,8 +47,26 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
             result.close()
             ret
         } catch (e: StatusException) {
-            /* TODO: Log. */
+            logger.error(e) { "Failed to retrieve descriptor $id due to exception." }
             null
+        }
+    }
+
+    /**
+     * Checks whether a [Descriptor] of type [D] with the provided [UUID] exists.
+     *
+     * @param id The [DescriptorId], i.e., the [UUID] of the [Descriptor] to check for.
+     * @return True if descriptor exsits, false otherwise
+     */
+    override fun exists(id: DescriptorId): Boolean {
+        val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName).exists()
+            .where(Compare(Column(this.entityName.column(CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME)), Compare.Operator.EQUAL, Literal(id.toString())))
+        return try {
+            val result = this.connection.client.query(query)
+            result.next().asBoolean(0) ?: false
+        } catch (e: StatusException) {
+            logger.error(e) { "Failed to retrieve descriptor $id due to exception." }
+            false
         }
     }
 

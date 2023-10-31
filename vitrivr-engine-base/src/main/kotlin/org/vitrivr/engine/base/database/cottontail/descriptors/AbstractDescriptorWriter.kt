@@ -11,7 +11,7 @@ import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.values.StringValue
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
-import org.vitrivr.engine.core.model.database.descriptor.Descriptor
+import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 
 private val logger: KLogger = KotlinLogging.logger {}
@@ -43,8 +43,9 @@ abstract class AbstractDescriptorWriter<D : Descriptor>(final override val field
 
         /* Delete values. */
         return try {
-            this.connection.client.delete(delete)
-            true
+            this.connection.client.delete(delete).use {
+                it.hasNext()
+            }
         } catch (e: StatusException) {
             logger.error(e) { "Failed to delete scalar descriptor due to exception." }
             false
@@ -69,8 +70,9 @@ abstract class AbstractDescriptorWriter<D : Descriptor>(final override val field
 
         /* Delete values. */
         return try {
-            this.connection.client.delete(delete)
-            true
+            this.connection.client.delete(delete).use {
+                it.hasNext()
+            }
         } catch (e: StatusException) {
             logger.error(e) { "Failed to delete descriptor due to exception." }
             false
