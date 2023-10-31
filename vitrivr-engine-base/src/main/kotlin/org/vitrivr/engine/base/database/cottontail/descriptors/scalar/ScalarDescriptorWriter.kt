@@ -17,9 +17,9 @@ import org.vitrivr.engine.base.database.cottontail.descriptors.AbstractDescripto
 import org.vitrivr.engine.base.database.cottontail.descriptors.DESCRIPTOR_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.descriptors.toValue
 import org.vitrivr.engine.base.database.cottontail.descriptors.vector.VectorDescriptorWriter
-import org.vitrivr.engine.core.model.database.descriptor.scalar.ScalarDescriptor
-import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.database.descriptor.vector.VectorDescriptor
+import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor
+import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
+import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 
 private val logger: KLogger = KotlinLogging.logger {}
@@ -45,8 +45,9 @@ class ScalarDescriptorWriter(field: Schema.Field<*, ScalarDescriptor<*>>, connec
             DESCRIPTOR_COLUMN_NAME to item.toValue()
         )
         return try {
-            this.connection.client.insert(insert)
-            true
+            this.connection.client.insert(insert).use {
+                it.hasNext()
+            }
         } catch (e: StatusException) {
             logger.error(e) { "Failed to persist descriptor ${item.id} due to exception." }
             false
@@ -70,8 +71,9 @@ class ScalarDescriptorWriter(field: Schema.Field<*, ScalarDescriptor<*>>, connec
 
         /* Insert values. */
         return try {
-            this.connection.client.insert(insert)
-            true
+            this.connection.client.insert(insert).use {
+                it.hasNext()
+            }
         } catch (e: StatusException) {
             logger.error(e) { "Failed to persist $size scalar descriptors due to exception." }
             false

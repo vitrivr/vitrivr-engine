@@ -18,8 +18,8 @@ import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companio
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.RETRIEVABLE_ID_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.SUBJECT_ID_COLUMN_NAME
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
-import org.vitrivr.engine.core.model.database.retrievable.Retrievable
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.RetrievableId
 
 private val logger: KLogger = KotlinLogging.logger {}
 
@@ -46,10 +46,11 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
     override fun add(item: Retrievable): Boolean {
         val insert = Insert(this.entityName)
             .any("retrievableId", item.id.toString())
-            .any("type", null)
+            .any("type", item.type)
         return try {
-            this.connection.client.insert(insert)
-            true
+            return this.connection.client.insert(insert).use {
+                it.hasNext()
+            }
         } catch (e: StatusException) {
             logger.error(e) { "Failed to persist retrievable ${item.id} due to exception." }
             false
@@ -64,22 +65,27 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
     override fun addAll(items: Iterable<Retrievable>): Boolean {
         /* Prepare insert query. */
         var size = 0
-        val insert = BatchInsert(this.entityName).columns("id")
+        val insert = BatchInsert(this.entityName).columns("id").columns("type")
         for (item in items) {
             size += 1
             insert.any(item.id)
+            insert.any(item.type)
         }
 
         /* Insert values. */
         return try {
-            this.connection.client.insert(insert)
-            true
+            return this.connection.client.insert(insert).use {
+                it.hasNext()
+            }
         } catch (e: StatusException) {
             logger.error(e) { "Failed to persist $size retrievables due to exception." }
             false
         }
     }
 
+    /**
+     *
+     */
     override fun update(item: Retrievable): Boolean {
         TODO("Not yet implemented")
     }

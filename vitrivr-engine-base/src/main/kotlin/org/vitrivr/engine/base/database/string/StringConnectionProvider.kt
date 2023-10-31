@@ -2,13 +2,13 @@ package org.vitrivr.engine.base.database.string
 
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
-import org.vitrivr.engine.core.model.database.Persistable
-import org.vitrivr.engine.core.model.database.descriptor.Descriptor
-import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
+import org.vitrivr.engine.core.model.Persistable
+import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import java.io.OutputStream
 import kotlin.reflect.KClass
 
-class StringConnectionProvider(internal val targetStream: OutputStream = System.out, val stringify: (Persistable) -> String = {persistable -> persistable.toString()}) : ConnectionProvider {
+class StringConnectionProvider(internal val targetStream: OutputStream = System.out, val stringify: (Persistable) -> String = { persistable -> persistable.toString() }) : ConnectionProvider {
 
     override val databaseName = "String"
     override val version = "1.0"

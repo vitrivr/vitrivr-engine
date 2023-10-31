@@ -10,17 +10,11 @@ import java.awt.image.BufferedImage
  * @version 1.0.0
  */
 interface ImageContent: ContentElement<BufferedImage> {
-    /**
-     * Returns the width of the [BufferedImage] held by this [ContentElement].
-     *
-     * @return Width of the [ContentElement] in pixels.
-     */
-    fun getWidth() = this.getContent().width
+    /** Width of the [BufferedImage] held by this [ContentElement]. */
+    val width: Int
+        get() = this.content.width
 
-    /**
-     * Returns the height of the [BufferedImage] held by this [ContentElement].
-     *
-     * @return Height of the [ContentElement] in pixels.
-     */
-    fun getHeight() = this.getContent().width
+    /** Height of the [BufferedImage] held by this [ContentElement]. */
+    val height: Int
+        get() = this.content.height
 }

@@ -6,11 +6,11 @@ import kotlinx.coroutines.flow.map
 import org.vitrivr.engine.core.model.color.MutableRGBFloatColorContainer
 import org.vitrivr.engine.core.model.color.RGBFloatColorContainer
 import org.vitrivr.engine.core.model.content.element.ImageContent
-import org.vitrivr.engine.core.model.database.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.database.retrievable.Ingested
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithContent
-import org.vitrivr.engine.core.model.database.retrievable.RetrievableWithDescriptor
+import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithContent
+import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithDescriptor
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 
@@ -24,20 +24,19 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  */
 class AverageColorExtractor(
     override val field: Schema.Field<ImageContent, FloatVectorDescriptor>,
-    override val input: Operator<Ingested>,
+    override val input: Operator<Retrievable>,
     override val persisting: Boolean = true,
 ) : Extractor<ImageContent, FloatVectorDescriptor> {
-    override fun toFlow(scope: CoroutineScope): Flow<Ingested> {
+    override fun toFlow(scope: CoroutineScope): Flow<Retrievable> {
         val writer = if (this.persisting) {
             this.field.getWriter()
         } else {
             null
         }
-        return this.input.toFlow(scope).map { retrievable: Ingested ->
+        return this.input.toFlow(scope).map { retrievable ->
             if (retrievable is RetrievableWithContent) {
                 val content = retrievable.content.filterIsInstance<ImageContent>()
-                val descriptors = this.field.analyser.analyse(content)
-
+                val descriptors = (this.field.analyser as? AverageColor)?.analyse(content) ?: emptyList()
                 val color = MutableRGBFloatColorContainer()
 
                 descriptors.forEach {

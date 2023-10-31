@@ -1,6 +1,6 @@
 package org.vitrivr.engine.core.model.query
 
-import org.vitrivr.engine.core.model.database.descriptor.Descriptor
+import org.vitrivr.engine.core.model.descriptor.Descriptor
 
 /**
  * A [Query] that can be executed by vitrivr's retrieval pipeline.

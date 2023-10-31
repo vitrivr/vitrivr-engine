@@ -1,7 +1,7 @@
 package org.vitrivr.engine.query.model.api.result
 
 import kotlinx.serialization.Serializable
-import org.vitrivr.engine.core.model.database.retrievable.Retrieved
+import org.vitrivr.engine.core.model.retrievable.Retrieved
 
 typealias RetrievableIdString = String
 

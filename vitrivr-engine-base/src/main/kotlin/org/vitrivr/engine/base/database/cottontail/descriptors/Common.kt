@@ -3,8 +3,8 @@ package org.vitrivr.engine.base.database.cottontail.descriptors
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.core.types.Types
 import org.vitrivr.cottontail.core.values.*
-import org.vitrivr.engine.core.model.database.descriptor.scalar.*
-import org.vitrivr.engine.core.model.database.descriptor.vector.*
+import org.vitrivr.engine.core.model.descriptor.scalar.*
+import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
 import org.vitrivr.engine.core.model.query.bool.BooleanQuery
 

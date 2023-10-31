@@ -10,11 +10,20 @@
         }
       },
       "fields": [
-        {"name": "averagecolor1", "factory": "AverageColor"},
-        {"name": "averagecolor2", "factory": "AverageColor"}
+        {"name": "averagecolor", "factory": "AverageColor"},
+        {"name": "file", "factory": "FileMetadata"},
+        {"name": "time", "factory": "TemporalMetadata"}
       ],
       "exporters": [
-        {"name": "thumbnail", "factory": "ThumbnailExporterFactory", "parameters": {}, "resolver": {"factory":  "DiskResolverFactory", "parameters": {}}}
+        {
+          "name": "thumbnail",
+          "factory": "ThumbnailExporter",
+          "parameters": {},
+          "resolver": {
+            "factory": "DiskResolver",
+            "parameters": {}
+          }
+        }
       ]
     }
   ]

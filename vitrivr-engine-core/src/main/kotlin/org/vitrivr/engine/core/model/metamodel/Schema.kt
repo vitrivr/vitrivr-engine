@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.metamodel
 
+import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.descriptor.DescriptorInitializer
@@ -7,14 +8,14 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.database.descriptor.Descriptor
-import org.vitrivr.engine.core.model.database.retrievable.Ingested
-import org.vitrivr.engine.core.model.util.DescriptorList
+import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.*
-import org.vitrivr.engine.core.operators.resolver.Resolver
-import org.vitrivr.engine.core.operators.resolver.ResolverFactory
+import org.vitrivr.engine.core.operators.ingest.ExporterFactory
+import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
+import org.vitrivr.engine.core.resolver.Resolver
+import org.vitrivr.engine.core.resolver.ResolverFactory
 import java.io.Closeable
 import java.util.*
 
@@ -102,7 +103,6 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
         val analyser: Analyser<C, D>,
         val parameters: Map<String, String> = emptyMap()
     ) {
-
         /** Pointer to the [Schema] this [Field] belongs to.*/
         val schema: Schema
             get() = this@Schema
@@ -115,22 +115,38 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
          * Returns an [Extractor] instances for this [Schema.Field].
          *
          * @param input The input [Operator] for the [Extractor].
+         * @param context The [IndexContext] to use with the [Extractor].
          * @return [Extractor] instance.
          */
-        fun getExtractor(input: Operator<Ingested>): Extractor<C, D> = this.analyser.newExtractor(this, input)
+        fun getExtractor(input: Operator<Retrievable>, context: IndexContext): Extractor<C, D> = this.analyser.newExtractor(this, input, context, true)
+
+        /**
+         * Returns a [Retriever] instance for this [Schema.Field].
+         *
+         * @param descriptor The [Descriptor](s) that should be used with the [Retriever].
+         * @param context The [QueryContext] to use with the [Retriever].
+         * @return [Retriever] instance.
+         */
+        fun getRetrieverForDescriptor(descriptor: D, context: QueryContext): Retriever<C, D> = this.analyser.newRetrieverForDescriptors(this, listOf(descriptor), context)
+
+        /**
+         * Returns a [Retriever] instance for this [Schema.Field].
+         *
+         * @param content The [Content](s) that should be used with the [Retriever].
+         * @param context The [QueryContext] to use with the [Retriever].
+
+         * @return [Retriever] instance.
+         */
+        fun getRetrieverForContent(content: C, context: QueryContext): Retriever<C, D> = this.analyser.newRetrieverForContent(this, listOf(content), context)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field].
          *
          * @param descriptors The [Descriptor](s) that should be used with the [Retriever].
+         * @param context The [QueryContext] to use with the [Retriever].
          * @return [Retriever] instance.
          */
-        fun getRetriever(descriptors: DescriptorList<D>, queryContext: QueryContext): Retriever<C, D> = this.analyser.newRetriever(this, descriptors, queryContext)
-
-        /**
-         *
-         */
-        fun getRetriever(descriptor: D, queryContext: QueryContext): Retriever<C, D> = this.analyser.newRetriever(this, DescriptorList(descriptor), queryContext)
+        fun getRetrieverForDescriptors(descriptors: Collection<D>, context: QueryContext): Retriever<C, D> = this.analyser.newRetrieverForDescriptors(this, descriptors, context)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field].
@@ -138,12 +154,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
          * @param content The [Content] element(s) that should be used with the [Retriever].
          * @return [Retriever] instance.
          */
-        fun getRetriever(content: Collection<C>, queryContext: QueryContext): Retriever<C, D> = this.analyser.newRetriever(this, content, queryContext)
-
-        /**
-         *
-         */
-        fun getRetriever(content: C, queryContext: QueryContext): Retriever<C, D> = this.analyser.newRetriever(this, listOf(content), queryContext)
+        fun getRetrieverForContent(content: Collection<C>, queryContext: QueryContext): Retriever<C, D> = this.analyser.newRetrieverForContent(this, content, queryContext)
 
         /**
          * Returns the [DescriptorInitializer] for this [Schema.Field].
@@ -184,9 +195,10 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
         /**
          * Convenience method to generate and return a [org.vitrivr.engine.core.operators.ingest.Exporter ] for this [Exporter].
          *
+         * @param input The [Operator] to use as input.
+         * @param context The [IndexContext] to use.
          * @return [DescriptorReader]
          */
-        fun getExporter(input: Operator<Ingested>): org.vitrivr.engine.core.operators.ingest.Exporter
-            = this.factory.newOperator(input, this.parameters, this.schema, this.resolver)
+        fun getExporter(input: Operator<Retrievable>, context: IndexContext): org.vitrivr.engine.core.operators.ingest.Exporter = this.factory.newOperator(input, context, this.parameters)
     }
 }
