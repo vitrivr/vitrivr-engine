@@ -7,7 +7,7 @@
   "enumerator": {
     "name": "FileSystemEnumerator",
     "parameters": {
-      "path": "/Users/gassra02/Downloads/videos",
+      "path": "../archipanion-local-rescources/datasets/PTT Testdaten",
       "depth": "2",
       "mediaTypes": "VIDEO"
     },
