@@ -10,18 +10,40 @@
         }
       },
       "fields": [
-        {"name": "averagecolor", "factory": "AverageColor"},
-        {"name": "file", "factory": "FileMetadata"},
-        {"name": "time", "factory": "TemporalMetadata"}
+        {
+          "name": "averagecolor",
+          "factory": "AverageColor",
+          "parameters": {
+            "key": "AverageColor-value-schema"
+          }
+        },
+        {
+          "name": "file",
+          "factory": "FileMetadata",
+          "parameters": {
+            "key": "FileMetadata-value-schema"
+          }
+        },
+        {
+          "name": "time",
+          "factory": "TemporalMetadata",
+          "parameters": {
+            "key": "TemporalMetadata-value-schema"
+          }
+        }
       ],
       "exporters": [
         {
           "name": "thumbnail",
           "factory": "ThumbnailExporter",
-          "parameters": {},
+          "parameters": {
+            "key": "ThumbnailExporter-value-schema"
+          },
           "resolver": {
             "factory": "DiskResolver",
-            "parameters": {}
+            "parameters": {
+              "key": "DiskResolver-value-schema"
+            }
           }
         }
       ]

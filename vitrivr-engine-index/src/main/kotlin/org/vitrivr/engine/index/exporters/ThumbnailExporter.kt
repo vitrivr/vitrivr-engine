@@ -3,6 +3,8 @@ package org.vitrivr.engine.index.exporters
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.nio.JpegWriter
 import com.sksamuel.scrimage.nio.PngWriter
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -15,6 +17,8 @@ import org.vitrivr.engine.core.operators.ingest.Exporter
 import org.vitrivr.engine.core.operators.ingest.ExporterFactory
 import org.vitrivr.engine.core.source.file.MimeType
 
+private val logger: KLogger = KotlinLogging.logger {}
+
 /**
  * An [Exporter] that generates thumbnails from videos and images.
  *
@@ -22,6 +26,7 @@ import org.vitrivr.engine.core.source.file.MimeType
  * @version 1.0.0
  */
 class ThumbnailExporter : ExporterFactory {
+
     /**
      * Creates a new [Exporter] instance from this [ThumbnailExporter].
      *
@@ -29,6 +34,7 @@ class ThumbnailExporter : ExporterFactory {
      * @param parameters Optional set of parameters.
      */
     override fun newOperator(input: Operator<Retrievable>, context: IndexContext, parameters: Map<String, Any>): Exporter {
+        logger.debug { "Creating new ThumbnailExporter with parameters $parameters." }
         val maxSideResolution = parameters["maxSideResolution"] as? Int ?: 100
         val mimeType = parameters["mimeType"] as? MimeType ?: MimeType.JPG
         return Instance(input, context, maxSideResolution, mimeType)

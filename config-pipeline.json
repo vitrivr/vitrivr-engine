@@ -8,7 +8,7 @@
     "name": "FileSystemEnumerator",
     "parameters": {
       "path": "../archipanion-local-rescources/datasets/PTT Testdaten",
-      "depth": "2",
+      "depth": "5",
       "mediaTypes": "VIDEO"
     },
     "next": {
@@ -26,8 +26,15 @@
               "name": "AverageImageContentAggregator",
               "nextExtractor": {
                 "fieldName": "averagecolor",
+                "parameters": {
+                  "key": "AverageImageContentAggregator-value-pipeline"
+                },
                 "nextExporter": {
+                  "name": "ThumbnailExporter",
                   "exporterName": "thumbnail",
+                  "parameters": {
+                    "key": "thumbnail-value-pipeline"
+                  },
                   "nextExtractor": {
                     "fieldName": "file",
                     "nextExtractor": {

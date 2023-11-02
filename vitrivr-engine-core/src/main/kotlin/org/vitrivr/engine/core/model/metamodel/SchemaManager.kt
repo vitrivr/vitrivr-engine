@@ -1,5 +1,7 @@
 package org.vitrivr.engine.core.model.metamodel
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.config.SchemaConfig
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
@@ -11,6 +13,8 @@ import org.vitrivr.engine.core.util.extension.loadServiceForName
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
+
+private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * The central [Schema] manager used by vitrivr.

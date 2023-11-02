@@ -149,7 +149,11 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
     private fun addExtractor(parent: Operator<Retrievable>, context: IndexContext, config: ExtractorConfig) {
         val extractor = if (config.fieldName != null) {
             val field = context.schema[config.fieldName] ?: throw IllegalArgumentException("Field '${config.parameters["field"]}' does not exist in schema '${context.schema.name}'")
-            field.getExtractor(parent, context)
+            if (config.parameters.isNotEmpty()) {
+                field.getExtractor(parent, context, config.parameters)
+            } else {
+                field.getExtractor(parent, context)
+            }
         } else if (config.factoryName != null) {
             val factory = loadServiceForName<Analyser<*, *>>(config.factoryName) ?: throw IllegalArgumentException("Failed to find extractor factory implementation for '${config.factoryName}'.")
             TODO()
@@ -176,7 +180,11 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
     private fun addExporter(parent: Operator<Retrievable>, context: IndexContext, config: ExporterConfig) {
         val exporter = if (config.exporterName != null) {
             val exporter = context.schema.getExporter(config.exporterName) ?: throw IllegalArgumentException("Exporter '${config.exporterName}' does not exist in schema '${context.schema.name}'")
-            exporter.getExporter(parent, context)
+            if (config.parameters.isNotEmpty()) {
+                exporter.getExporter(parent, context, config.parameters)
+            } else {
+                exporter.getExporter(parent, context)
+            }
         } else if (config.factoryName != null) {
             val factory = loadServiceForName<ExporterFactory>(config.factoryName) ?: throw IllegalArgumentException("Failed to find extractor factory implementation for '${config.factoryName}'.")
             factory.newOperator(parent, context, config.parameters)

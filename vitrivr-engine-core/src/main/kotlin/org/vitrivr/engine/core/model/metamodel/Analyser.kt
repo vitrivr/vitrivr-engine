@@ -50,7 +50,7 @@ interface Analyser<C: ContentElement<*>, D: Descriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    fun newExtractor(field: Schema.Field<C, D>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean = true): Extractor<C, D>
+    fun newExtractor(field: Schema.Field<C, D>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean = true, parameters: Map<String, Any> = emptyMap()): Extractor<C, D>
 
     /**
      * Generates and returns a new [Retriever] instance for this [Analyser].
