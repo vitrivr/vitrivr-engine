@@ -1,5 +1,7 @@
 package org.vitrivr.engine.base.features.external.implementations.dino
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.base.features.external.ExternalAnalyser
 import org.vitrivr.engine.base.features.external.common.ExternalWithFloatVectorDescriptorAnalyser
 import org.vitrivr.engine.core.context.IndexContext
@@ -16,6 +18,8 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
+
+private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * Implementation of the [DINO] [ExternalAnalyser], which derives the DINO feature from an [ImageContent] as [FloatVectorDescriptor].
@@ -71,8 +75,15 @@ class DINO : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
     override fun prototype() = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), featureList, true)
 
 
-    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean): Extractor<ImageContent, FloatVectorDescriptor> {
+    override fun newExtractor(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        input: Operator<Retrievable>,
+        context: IndexContext,
+        persisting: Boolean,
+        parameters: Map<String, Any>
+    ): Extractor<ImageContent, FloatVectorDescriptor> {
         require(field.analyser == this) { "" }
+        logger.debug { "Creating new DINOExtractor for field '${field.fieldName}' with parameters $parameters." }
         return DINOExtractor(input, field, context, persisting)
     }
 
@@ -86,7 +97,11 @@ class DINO : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext): Retriever<ImageContent, FloatVectorDescriptor> {
+    override fun newRetrieverForContent(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        content: Collection<ImageContent>,
+        context: QueryContext
+    ): Retriever<ImageContent, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         return this.newRetrieverForDescriptors(field, this.processContent(content), context)
     }
@@ -101,7 +116,11 @@ class DINO : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): Retriever<ImageContent, FloatVectorDescriptor> {
+    override fun newRetrieverForDescriptors(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        descriptors: Collection<FloatVectorDescriptor>,
+        context: QueryContext
+    ): Retriever<ImageContent, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         return DINORetriever(field, descriptors.first(), context)
     }

@@ -1,5 +1,7 @@
 package org.vitrivr.engine.base.features.averagecolor
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.color.MutableRGBFloatColorContainer
@@ -14,13 +16,15 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.util.extension.getRGBArray
 import java.util.*
 
+private val logger: KLogger = KotlinLogging.logger {}
+
 /**
  * Implementation of the [AverageColor] [Analyser], which derives the average color from an [ImageContent] as [FloatVectorDescriptor].
  *
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class AverageColor: Analyser<ImageContent, FloatVectorDescriptor> {
+class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
     override val contentClass = ImageContent::class
     override val descriptorClass = FloatVectorDescriptor::class
 
@@ -29,20 +33,32 @@ class AverageColor: Analyser<ImageContent, FloatVectorDescriptor> {
      *
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype() = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), listOf(0.0f, 0.0f, 0.0f), true)
+    override fun prototype() =
+        FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), listOf(0.0f, 0.0f, 0.0f), true)
 
     /**
      *
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean): AverageColorExtractor {
+    override fun newExtractor(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        input: Operator<Retrievable>,
+        context: IndexContext,
+        persisting: Boolean,
+        parameters: Map<String, Any>
+    ): AverageColorExtractor {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
+        logger.debug { "Creating new AverageColorExtractor for field '${field.fieldName}' with parameters $parameters." }
         return AverageColorExtractor(field, input, persisting)
     }
 
     /**
      *
      */
-    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext): AverageColorRetriever {
+    override fun newRetrieverForContent(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        content: Collection<ImageContent>,
+        context: QueryContext
+    ): AverageColorRetriever {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         return this.newRetrieverForDescriptors(field, this.analyse(content), context)
     }
@@ -50,7 +66,11 @@ class AverageColor: Analyser<ImageContent, FloatVectorDescriptor> {
     /**
      *
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): AverageColorRetriever {
+    override fun newRetrieverForDescriptors(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        descriptors: Collection<FloatVectorDescriptor>,
+        context: QueryContext
+    ): AverageColorRetriever {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         return AverageColorRetriever(field, descriptors.first(), context)
     }
