@@ -1,5 +1,7 @@
 package org.vitrivr.engine.index.execution
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.takeWhile
@@ -10,6 +12,8 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.index.config.PipelineBuilder
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+
+private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * A

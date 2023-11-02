@@ -1,10 +1,13 @@
 package org.vitrivr.engine.index.enumerate
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import org.slf4j.event.LoggingEvent
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.operators.ingest.EnumeratorFactory
@@ -32,6 +35,8 @@ class FileSystemEnumerator : EnumeratorFactory {
      * @param context The [IndexContext] to use.
      * @param parameters Optional set of parameters.
      */
+    private val logger: KLogger = KotlinLogging.logger {}
+
     override fun newOperator(context: IndexContext, parameters: Map<String, Any>): Enumerator {
         val path = Path(parameters["path"] as String? ?: throw IllegalArgumentException("Path is required"))
         val depth = (parameters["depth"] as String? ?: Int.MAX_VALUE.toString()).toInt()
@@ -39,7 +44,7 @@ class FileSystemEnumerator : EnumeratorFactory {
             .split(";").map { x ->
                 MediaType.valueOf(x.trim())
             }
-
+        logger.info { "Enumerator: FileSystemEnumerator with path: $path, depth: $depth, mediaTypes: $mediaTypes" }
         return Instance(path, depth, mediaTypes)
     }
 

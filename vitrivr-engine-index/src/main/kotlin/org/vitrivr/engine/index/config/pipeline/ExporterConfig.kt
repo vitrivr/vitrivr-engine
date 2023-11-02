@@ -11,6 +11,7 @@ import org.vitrivr.engine.core.operators.ingest.Exporter
  */
 @Serializable
 data class ExporterConfig(
+    val name: String,
     val exporterName: String? = null,
     val factoryName: String? = null,
     val parameters: Map<String, String> = emptyMap(),
