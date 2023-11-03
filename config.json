@@ -45,7 +45,12 @@
               "key": "DiskResolver-value-schema"
             }
           }
-        }
+        },
+        "pipelines": [
+
+            ]
+          }
+        ]
       ]
     }
   ]
