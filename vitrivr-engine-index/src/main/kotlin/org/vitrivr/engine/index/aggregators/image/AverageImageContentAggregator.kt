@@ -34,7 +34,7 @@ class AverageImageContentAggregator : AggregatorFactory {
      * @param parameters Optional set of parameters.
      * @return [AverageImageContentAggregator.Instance]
      */
-    override fun newOperator(input: Segmenter, context: IndexContext, parameters: Map<String, Any>): Aggregator = Instance(input, context)
+    override fun newOperator(input: Segmenter, context: IndexContext, parameters: Map<String, String>): Aggregator = Instance(input, context)
 
     /**
      * The [Instance] returns by the [AggregatorFactory]

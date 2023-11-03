@@ -16,5 +16,5 @@ interface AggregatorFactory {
      * @param context The [IndexContext] to use.
      * @param parameters Optional set of parameters.
      */
-    fun newOperator(input: Segmenter, context: IndexContext, parameters: Map<String, Any> = emptyMap()): Aggregator
+    fun newOperator(input: Segmenter, context: IndexContext, parameters: Map<String, String> = emptyMap()): Aggregator
 }

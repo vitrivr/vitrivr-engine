@@ -21,8 +21,8 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @version 1.0
  */
 class PassthroughTransformer : TransformerFactory {
-    override fun newOperator(input: Decoder, context: IndexContext, parameters: Map<String, Any>): Transformer = Instance(input)
-    override fun newOperator(input: Transformer, context: IndexContext, parameters: Map<String, Any>): Transformer = Instance(input)
+    override fun newOperator(input: Decoder, context: IndexContext, parameters: Map<String, String>): Transformer = Instance(input)
+    override fun newOperator(input: Transformer, context: IndexContext, parameters: Map<String, String>): Transformer = Instance(input)
 
     private class Instance(override val input: Operator<ContentElement<*>>) : Transformer {
         override fun toFlow(scope: CoroutineScope): Flow<ContentElement<*>> {

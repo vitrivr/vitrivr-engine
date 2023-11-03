@@ -42,7 +42,7 @@ class FixedDurationSegmenter : SegmenterFactory {
      * @param context The [IndexContext] to use.
      * @param parameters Optional set of parameters.
      */
-    override fun newOperator(input: Transformer, context: IndexContext, parameters: Map<String, Any>): Segmenter = internalNewOperator(input, context, parameters)
+    override fun newOperator(input: Transformer, context: IndexContext, parameters: Map<String, String>): Segmenter = internalNewOperator(input, context, parameters)
 
     /**
      * Creates a new [Segmenter] instance from this [SegmenterFactory].
@@ -51,7 +51,7 @@ class FixedDurationSegmenter : SegmenterFactory {
      * @param context The [IndexContext] to use.
      * @param parameters Optional set of parameters.
      */
-    override fun newOperator(input: Decoder, context: IndexContext, parameters: Map<String, Any>): Segmenter = internalNewOperator(input, context, parameters)
+    override fun newOperator(input: Decoder, context: IndexContext, parameters: Map<String, String>): Segmenter = internalNewOperator(input, context, parameters)
 
     /**
      * The [AbstractSegmenter] returned by this [FixedDurationSegmenter].

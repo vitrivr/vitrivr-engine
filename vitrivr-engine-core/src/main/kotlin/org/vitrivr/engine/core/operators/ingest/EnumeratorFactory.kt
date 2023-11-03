@@ -15,5 +15,5 @@ interface EnumeratorFactory {
      * @param context The [IndexContext] to use.
      * @param parameters Optional set of parameters.
      */
-    fun newOperator(context: IndexContext, parameters: Map<String, Any> = emptyMap()): Enumerator
+    fun newOperator(context: IndexContext, parameters: Map<String, String> = emptyMap()): Enumerator
 }

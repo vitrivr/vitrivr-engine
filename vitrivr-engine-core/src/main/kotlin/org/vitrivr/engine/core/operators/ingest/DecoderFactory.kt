@@ -16,5 +16,5 @@ interface DecoderFactory {
      * @param context The [IndexContext] to use.
      * @param parameters Optional set of parameters.
      */
-    fun newOperator(input: Enumerator, context: IndexContext, parameters: Map<String, Any> = emptyMap()): Decoder
+    fun newOperator(input: Enumerator, context: IndexContext, parameters: Map<String, String> = emptyMap()): Decoder
 }

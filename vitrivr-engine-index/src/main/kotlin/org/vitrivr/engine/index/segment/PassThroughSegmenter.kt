@@ -30,7 +30,7 @@ class PassThroughSegmenter : SegmenterFactory {
      * @param context The [IndexContext] to use.
      * @param parameters Optional set of parameters.
      */
-    override fun newOperator(input: Transformer, context: IndexContext, parameters: Map<String, Any>): Segmenter = Instance(input, context)
+    override fun newOperator(input: Transformer, context: IndexContext, parameters: Map<String, String>): Segmenter = Instance(input, context)
 
     /**
      * Creates a new [Segmenter] instance from this [PassThroughSegmenter].
@@ -39,7 +39,7 @@ class PassThroughSegmenter : SegmenterFactory {
      * @param context The [IndexContext] to use.
      * @param parameters Optional set of parameters.
      */
-    override fun newOperator(input: Decoder, context: IndexContext, parameters: Map<String, Any>): Segmenter = Instance(input, context)
+    override fun newOperator(input: Decoder, context: IndexContext, parameters: Map<String, String>): Segmenter = Instance(input, context)
 
     /**
      * The [AbstractSegmenter] returned by this [PassThroughSegmenter].
