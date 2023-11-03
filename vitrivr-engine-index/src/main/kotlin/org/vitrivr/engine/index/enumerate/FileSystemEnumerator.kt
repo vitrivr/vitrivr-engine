@@ -37,10 +37,10 @@ class FileSystemEnumerator : EnumeratorFactory {
      */
     private val logger: KLogger = KotlinLogging.logger {}
 
-    override fun newOperator(context: IndexContext, parameters: Map<String, Any>): Enumerator {
-        val path = Path(parameters["path"] as String? ?: throw IllegalArgumentException("Path is required"))
-        val depth = (parameters["depth"] as String? ?: Int.MAX_VALUE.toString()).toInt()
-        val mediaTypes = (parameters["mediaTypes"] as String? ?: throw IllegalArgumentException("MediaTypes are required"))
+    override fun newOperator(context: IndexContext, parameters: Map<String, String>): Enumerator {
+        val path = Path(parameters["path"] ?: throw IllegalArgumentException("Path is required"))
+        val depth = (parameters["depth"] ?: Int.MAX_VALUE.toString()).toInt()
+        val mediaTypes = (parameters["mediaTypes"] ?: throw IllegalArgumentException("MediaTypes are required"))
             .split(";").map { x ->
                 MediaType.valueOf(x.trim())
             }
