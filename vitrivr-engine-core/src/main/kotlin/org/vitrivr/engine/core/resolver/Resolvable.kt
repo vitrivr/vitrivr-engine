@@ -8,7 +8,7 @@ import java.io.OutputStream
 /**
  * A [Resolvable] as returned by a [Resolver].
  *
- * @author Finn Faber
+ * @author Fynn Faber
  * @version 1.0.0.
  */
 interface Resolvable {
