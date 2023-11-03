@@ -8,7 +8,12 @@ sealed class OperatorDescription{
 }
 
 @Serializable
-data class RetrieverDescription(val input: String) : OperatorDescription() {
+data class RetrieverDescription(
+    /** The name of the input in the information need */
+    val input: String,
+    /** The name of the field in the schema */
+    val field: String
+) : OperatorDescription() {
     override val type = OperatorType.RETRIEVER
 }
 
