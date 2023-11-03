@@ -50,6 +50,7 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
 
             if (query.withDescriptor) {
                 cottontailQuery.select(DESCRIPTOR_COLUMN_NAME)
+                cottontailQuery.select(DESCRIPTOR_ID_COLUMN_NAME)
             }
 
             this.connection.client.query(cottontailQuery).asSequence().mapNotNull {
