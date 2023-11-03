@@ -36,7 +36,7 @@ class ImageDecoder : DecoderFactory {
      * @param context The [IndexContext] to use.
      * @param parameters Optional set of parameters.
      */
-    override fun newOperator(input: Enumerator, context: IndexContext, parameters: Map<String, Any>): Decoder = Instance(input, context)
+    override fun newOperator(input: Enumerator, context: IndexContext, parameters: Map<String, String>): Decoder = Instance(input, context)
 
     /**
      * The [Decoder] returned by this [ImageDecoder].

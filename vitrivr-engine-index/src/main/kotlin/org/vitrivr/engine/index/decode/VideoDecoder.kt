@@ -36,9 +36,9 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @version 1.0.0
  */
 class VideoDecoder : DecoderFactory {
-    override fun newOperator(input: Enumerator, context: IndexContext, parameters: Map<String, Any>): Decoder {
-        val video = parameters["video"] as Boolean? ?: true
-        val audio = parameters["audio"] as Boolean? ?: true
+    override fun newOperator(input: Enumerator, context: IndexContext, parameters: Map<String, String>): Decoder {
+        val video = parameters["video"]?.let { it.lowercase() == "true" } ?: true
+        val audio = parameters["audio"]?.let { it.lowercase() == "true" } ?: true
         return Instance(input, context, video, audio)
     }
 
