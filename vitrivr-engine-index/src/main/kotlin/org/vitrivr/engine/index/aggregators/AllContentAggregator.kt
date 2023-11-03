@@ -24,7 +24,7 @@ class AllContentAggregator : AggregatorFactory {
      * @param parameters Optional set of parameters.
      * @return [AllContentAggregator.Instance]
      */
-    override fun newOperator(input: Segmenter, context: IndexContext, parameters: Map<String, Any>): Aggregator = Instance(input, context)
+    override fun newOperator(input: Segmenter, context: IndexContext, parameters: Map<String, String>): Aggregator = Instance(input, context)
 
     /**
      * The [Instance] simply copies the incoming [Ingested] and replaces the content with the aggregated content.

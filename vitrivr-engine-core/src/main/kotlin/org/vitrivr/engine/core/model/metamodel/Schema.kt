@@ -60,7 +60,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
      * @param parameters The parameters used to configure the [Exporter].
      * @param resolver The [Resolver] instance.
      */
-    fun addExporter(name: String, factory: ExporterFactory, parameters: Map<String, Any>, resolver: Resolver) {
+    fun addExporter(name: String, factory: ExporterFactory, parameters: Map<String, String>, resolver: Resolver) {
         this.exporters.add(Exporter(name, factory, parameters, resolver))
     }
 
@@ -199,7 +199,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
     inner class Exporter(
         val name: String,
         private val factory: ExporterFactory,
-        private val parameters: Map<String, Any> = emptyMap(),
+        private val parameters: Map<String, String> = emptyMap(),
         val resolver: Resolver
     ) {
         val schema: Schema
@@ -215,7 +215,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
         fun getExporter(
             input: Operator<Retrievable>,
             context: IndexContext,
-            parameters: Map<String, Any> = this.parameters
+            parameters: Map<String, String> = this.parameters
         ): org.vitrivr.engine.core.operators.ingest.Exporter = this.factory.newOperator(input, context, parameters)
     }
 }
