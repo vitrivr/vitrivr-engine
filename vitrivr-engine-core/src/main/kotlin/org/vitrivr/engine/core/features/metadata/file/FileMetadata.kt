@@ -1,5 +1,7 @@
 package org.vitrivr.engine.core.features.metadata.file
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -11,6 +13,8 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
+
+private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * Implementation of the [FileMetadata] [Analyser], which derives metadata information from file-based retrievables
@@ -39,8 +43,9 @@ class  FileMetadata : Analyser<ContentElement<*>, FileMetadataDescriptor> {
      *
      * @return [FileMetadataExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, FileMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean): FileMetadataExtractor {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, FileMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): FileMetadataExtractor {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
+        logger.debug { "Creating new FileMetadataExtractor for field '${field.fieldName}' with parameters $parameters." }
         return FileMetadataExtractor(field, input, persisting)
     }
 

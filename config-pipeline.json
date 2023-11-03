@@ -7,8 +7,8 @@
   "enumerator": {
     "name": "FileSystemEnumerator",
     "parameters": {
-      "path": "/Users/gassra02/Downloads/videos",
-      "depth": "2",
+      "path": "../archipanion-local-rescources/datasets/PTT Testdaten",
+      "depth": "5",
       "mediaTypes": "VIDEO"
     },
     "next": {
@@ -26,8 +26,15 @@
               "name": "AverageImageContentAggregator",
               "nextExtractor": {
                 "fieldName": "averagecolor",
+                "parameters": {
+                  "key": "AverageImageContentAggregator-value-pipeline"
+                },
                 "nextExporter": {
+                  "name": "ThumbnailExporter",
                   "exporterName": "thumbnail",
+                  "parameters": {
+                    "key": "thumbnail-value-pipeline"
+                  },
                   "nextExtractor": {
                     "fieldName": "file",
                     "nextExtractor": {
