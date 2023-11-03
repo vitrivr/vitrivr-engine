@@ -1,5 +1,7 @@
 package org.vitrivr.engine.core.features.metadata.temporal
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.metadata.file.FileMetadata
@@ -21,6 +23,9 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
+
+private val logger: KLogger = KotlinLogging.logger {}
+
 class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor> {
     override val contentClass = ContentElement::class
     override val descriptorClass = TemporalMetadataDescriptor::class
@@ -42,8 +47,15 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
      *
      * @return [TemporalMetadataExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean): TemporalMetadataExtractor {
+    override fun newExtractor(
+        field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>,
+        input: Operator<Retrievable>,
+        context: IndexContext,
+        persisting: Boolean,
+        parameters: Map<String, Any>
+    ): TemporalMetadataExtractor {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
+        logger.debug { "Creating new TemporalMetadataExtractor for field '${field.fieldName}' with parameters $parameters." }
         return TemporalMetadataExtractor(field, input, persisting)
     }
 
@@ -54,7 +66,11 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
      * @param content The [List] of [ContentElement] to create [FileMetadataRetriever] for. This is usually empty.
      * @param context The [QueryContext]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): TemporalMetadataRetriever {
+    override fun newRetrieverForContent(
+        field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>,
+        content: Collection<ContentElement<*>>,
+        context: QueryContext
+    ): TemporalMetadataRetriever {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         return TemporalMetadataRetriever(field, context)
     }
@@ -67,7 +83,11 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
      * @param context The [QueryContext]
      * @return [TemporalMetadataRetriever]
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, descriptors: Collection<TemporalMetadataDescriptor>, context: QueryContext): TemporalMetadataRetriever {
+    override fun newRetrieverForDescriptors(
+        field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>,
+        descriptors: Collection<TemporalMetadataDescriptor>,
+        context: QueryContext
+    ): TemporalMetadataRetriever {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         return TemporalMetadataRetriever(field, context)
     }
