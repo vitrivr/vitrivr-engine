@@ -150,7 +150,7 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
         val extractor = if (config.fieldName != null) {
             val field = context.schema[config.fieldName] ?: throw IllegalArgumentException("Field '${config.parameters["field"]}' does not exist in schema '${context.schema.name}'")
             if (config.parameters.isNotEmpty()) {
-                throw IllegalArgumentException("Extractor '${config.fieldName}' parameters provided in schema '${context.schema.name}' are not supported.")
+                //throw IllegalArgumentException("Extractor '${config.fieldName}' parameters provided in schema '${context.schema.name}' are not supported.")
                 logger.warn { "PipelineBuilder overrides Extractor '${config.fieldName}' parameters provided in schema '${context.schema.name}'." }
                 field.getExtractor(parent, context, config.parameters)
             } else {
@@ -183,7 +183,7 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
         val exporter = if (config.exporterName != null) {
             val exporter = context.schema.getExporter(config.exporterName) ?: throw IllegalArgumentException("Exporter '${config.exporterName}' does not exist in schema '${context.schema.name}'")
             if (config.parameters.isNotEmpty()) {
-                throw IllegalArgumentException("Exporter '${config.exporterName}' parameters provided in schema '${context.schema.name}' are not supported.")
+//                throw IllegalArgumentException("Exporter '${config.exporterName}' parameters provided in schema '${context.schema.name}' are not supported.")
                 logger.warn { "PipelineBuilder overrides Exporter '${config.exporterName}' parameters provided in schema '${context.schema.name}'." }
                 exporter.getExporter(parent, context, config.parameters)
             } else {
