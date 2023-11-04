@@ -2,7 +2,7 @@ package org.vitrivr.engine.base.database.cottontail.descriptors.vector
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.grpc.StatusException
+import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.basics.expression.Column
 import org.vitrivr.cottontail.client.language.basics.expression.List
 import org.vitrivr.cottontail.client.language.basics.expression.Literal
@@ -47,7 +47,7 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
             this.connection.client.insert(insert).use {
                 it.hasNext()
             }
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to persist descriptor ${item.id} due to exception." }
             false
         }
@@ -72,7 +72,7 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
         return try {
             this.connection.client.insert(insert)
             true
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to persist $size descriptors due to exception." }
             false
         }
@@ -97,7 +97,7 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
         return try {
             this.connection.client.update(update)
             true
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to update descriptor due to exception." }
             false
         }
@@ -122,7 +122,7 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
         return try {
             this.connection.client.delete(delete)
             true
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to delete descriptor due to exception." }
             false
         }
@@ -148,7 +148,7 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
         return try {
             this.connection.client.delete(delete)
             true
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to delete descriptor due to exception." }
             false
         }

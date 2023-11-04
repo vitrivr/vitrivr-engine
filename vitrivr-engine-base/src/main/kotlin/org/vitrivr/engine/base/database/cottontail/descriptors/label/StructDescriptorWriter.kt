@@ -2,7 +2,7 @@ package org.vitrivr.engine.base.database.cottontail.descriptors.label
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.grpc.StatusException
+import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.basics.expression.Column
 import org.vitrivr.cottontail.client.language.basics.expression.Literal
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
@@ -47,7 +47,7 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
             this.connection.client.insert(insert).use {
                 it.hasNext()
             }
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to persist descriptor ${item.id} due to exception." }
             false
         }
@@ -79,7 +79,7 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
             this.connection.client.insert(insert).use {
                 it.hasNext()
             }
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to persist $size scalar descriptors due to exception." }
             false
         }
@@ -109,7 +109,7 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
         return try {
             this.connection.client.update(update)
             true
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to update descriptor due to exception." }
             false
         }

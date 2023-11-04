@@ -2,7 +2,7 @@ package org.vitrivr.engine.base.database.cottontail.descriptors.vector
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.grpc.StatusException
+import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.ddl.CreateEntity
 import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.types.Types
@@ -37,7 +37,7 @@ internal class VectorDescriptorInitializer(field: Schema.Field<*, VectorDescript
 
         try {
             this.connection.client.create(create).close()
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
         }
     }

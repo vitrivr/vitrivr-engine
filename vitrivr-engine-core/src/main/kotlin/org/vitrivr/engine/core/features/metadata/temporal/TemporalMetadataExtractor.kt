@@ -46,7 +46,7 @@ class TemporalMetadataExtractor(override val field: Schema.Field<ContentElement<
 
                     /* Persist descriptor. */
                     if (this.persisting) {
-                        writer.add(descriptor)
+                        this.writer.add(descriptor)
                     }
                 }
             }
