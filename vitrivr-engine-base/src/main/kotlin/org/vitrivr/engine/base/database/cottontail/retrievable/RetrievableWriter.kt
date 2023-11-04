@@ -2,7 +2,7 @@ package org.vitrivr.engine.base.database.cottontail.retrievable
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.grpc.StatusException
+import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.basics.expression.Column
 import org.vitrivr.cottontail.client.language.basics.expression.Literal
 import org.vitrivr.cottontail.client.language.basics.predicate.And
@@ -51,7 +51,7 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
             return this.connection.client.insert(insert).use {
                 it.hasNext()
             }
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to persist retrievable ${item.id} due to exception." }
             false
         }
@@ -77,7 +77,7 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
             return this.connection.client.insert(insert).use {
                 it.hasNext()
             }
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to persist $size retrievables due to exception." }
             false
         }
@@ -108,7 +108,7 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
         return try {
             this.connection.client.insert(insert)
             true
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to establish connection due to exception." }
             false
         }
@@ -137,7 +137,7 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
         return try {
             this.connection.client.delete(delete)
             true
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to sever connection due to exception." }
             false
         }
@@ -162,7 +162,7 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
         return try {
             this.connection.client.delete(delete)
             true
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to delete retrievable due to exception." }
             false
         }
@@ -188,7 +188,7 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
         return try {
             this.connection.client.delete(delete)
             true
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to delete retrievables due to exception." }
             false
         }

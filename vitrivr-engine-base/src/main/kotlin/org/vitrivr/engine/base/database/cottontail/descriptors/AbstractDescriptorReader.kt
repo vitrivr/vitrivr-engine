@@ -2,7 +2,7 @@ package org.vitrivr.engine.base.database.cottontail.descriptors
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.grpc.StatusException
+import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.basics.expression.Column
 import org.vitrivr.cottontail.client.language.basics.expression.Literal
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
@@ -46,7 +46,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
             }
             result.close()
             ret
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to retrieve descriptor $id due to exception." }
             null
         }
@@ -64,7 +64,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
         return try {
             val result = this.connection.client.query(query)
             result.next().asBoolean(0) ?: false
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to retrieve descriptor $id due to exception." }
             false
         }
@@ -80,7 +80,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
         return try {
             val result = this.connection.client.query(query)
             result.asSequence().map { this.tupleToDescriptor(it) }
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             /* TODO: Log. */
             emptySequence()
         }
@@ -97,7 +97,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
         return try {
             val result = this.connection.client.query(query)
             result.asSequence().map { this.tupleToDescriptor(it) }
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             /* TODO: Log. */
             emptySequence()
         }
@@ -119,7 +119,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
             }
             result.close()
             ret
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             /* TODO: Log. */
             0L
         }
