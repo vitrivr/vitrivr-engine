@@ -3,11 +3,11 @@
     "contentFactory": "InMemoryContentFactory",
     "resolverFactory": "DiskResolver"
   },
-  "schema": "vitrivr",
+  "schema": "VBSLHE",
   "enumerator": {
     "name": "FileSystemEnumerator",
     "parameters": {
-      "path": "../archipanion-local-rescources/datasets/PTT Testdaten",
+      "path": "Z:\\Datasets\\VBSLHE\\720p-h264",
       "depth": "5",
       "mediaTypes": "VIDEO"
     },
@@ -26,19 +26,19 @@
               "name": "AverageImageContentAggregator",
               "nextExtractor": {
                 "fieldName": "averagecolor",
-                "parameters": {
-                  "key": "AverageImageContentAggregator-value-pipeline"
-                },
                 "nextExporter": {
                   "name": "ThumbnailExporter",
                   "exporterName": "thumbnail",
-                  "parameters": {
-                    "key": "thumbnail-value-pipeline"
-                  },
                   "nextExtractor": {
                     "fieldName": "file",
                     "nextExtractor": {
-                      "fieldName": "time"
+                      "fieldName": "time",
+                      "nextExtractor": {
+                        "fieldName": "clip",
+                        "nextExtractor": {
+                          "fieldName": "dino"
+                        }
+                      }
                     }
                   }
                 }
