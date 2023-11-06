@@ -2,7 +2,7 @@ package org.vitrivr.engine.base.database.cottontail.descriptors.label
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.grpc.StatusException
+import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.ddl.CreateEntity
 import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.types.Types
@@ -50,7 +50,7 @@ class StructDescriptorInitializer(field: Schema.Field<*, StructDescriptor>, conn
         try {
             /* Try to create entity. */
             this.connection.client.create(create)
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
         }
     }
