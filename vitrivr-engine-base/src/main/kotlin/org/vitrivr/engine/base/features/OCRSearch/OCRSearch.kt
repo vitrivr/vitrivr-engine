@@ -27,7 +27,13 @@ class OCRSearch : Analyser<ImageContent,StringDescriptor> {
         return OCRSearchRetriever(field, descriptors.first(), context)
     }
 
-    override fun newExtractor(field: Schema.Field<ImageContent, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean): Extractor<ImageContent, StringDescriptor> {
+    override fun newExtractor(
+        field: Schema.Field<ImageContent, StringDescriptor>,
+        input: Operator<Retrievable>,
+        context: IndexContext,
+        persisting: Boolean,
+        parameters: Map<String, Any>
+    ): Extractor<ImageContent, StringDescriptor> {
         TODO("Not yet implemented")
     }
 
