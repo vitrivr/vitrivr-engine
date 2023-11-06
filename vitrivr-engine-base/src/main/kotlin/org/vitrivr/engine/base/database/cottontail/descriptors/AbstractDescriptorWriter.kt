@@ -2,7 +2,7 @@ package org.vitrivr.engine.base.database.cottontail.descriptors
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.grpc.StatusException
+import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.basics.expression.Column
 import org.vitrivr.cottontail.client.language.basics.expression.Literal
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
@@ -46,7 +46,7 @@ abstract class AbstractDescriptorWriter<D : Descriptor>(final override val field
             this.connection.client.delete(delete).use {
                 it.hasNext()
             }
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to delete scalar descriptor due to exception." }
             false
         }
@@ -73,7 +73,7 @@ abstract class AbstractDescriptorWriter<D : Descriptor>(final override val field
             this.connection.client.delete(delete).use {
                 it.hasNext()
             }
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to delete descriptor due to exception." }
             false
         }
