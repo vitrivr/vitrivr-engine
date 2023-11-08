@@ -7,7 +7,7 @@
   "enumerator": {
     "name": "FileSystemEnumerator",
     "parameters": {
-      "path": "Z:\\Datasets\\VBSLHE\\720p-h264",
+      "path": "/Volumes/V3C1/LHE/videos",
       "depth": "5",
       "mediaTypes": "VIDEO"
     },
