@@ -23,5 +23,5 @@ sealed interface VectorDescriptor<T> : Descriptor {
      *
      * @return A [Map] of this [ScalarDescriptor]'s fields (without the IDs).
      */
-    override fun values(): Map<String, List<T>?> = mapOf("vector" to this.vector)
+    override fun values(): List<Pair<String, List<T>?>> = listOf("vector" to this.vector)
 }
