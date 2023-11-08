@@ -12,7 +12,6 @@ import org.vitrivr.cottontail.client.language.dml.Update
 import org.vitrivr.cottontail.core.values.StringValue
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.base.database.cottontail.descriptors.AbstractDescriptorWriter
-import org.vitrivr.engine.base.database.cottontail.descriptors.DESCRIPTOR_COLUMN_NAME
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 
@@ -62,7 +61,7 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
     override fun addAll(items: Iterable<StructDescriptor>): Boolean {
         /* Prepare insert query. */
         var size = 0
-        val insert = BatchInsert(this.entityName).columns(CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME, CottontailConnection.RETRIEVABLE_ID_COLUMN_NAME, DESCRIPTOR_COLUMN_NAME, CONFIDENCE_COLUMN_NAME)
+        val insert = BatchInsert(this.entityName).columns(CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME, CottontailConnection.RETRIEVABLE_ID_COLUMN_NAME)
         for (item in items) {
             size += 1
             val value = item.values()
