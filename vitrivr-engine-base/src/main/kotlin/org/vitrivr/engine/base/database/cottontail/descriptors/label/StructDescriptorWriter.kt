@@ -67,7 +67,13 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
         for (item in items) {
             val values = item.values()
             if (index == 0) {
-                val columns = values.map { it.first }.toTypedArray()
+                val columns = Array(values.size + 2) {
+                    when (it) {
+                        0 -> CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME
+                        1 -> CottontailConnection.RETRIEVABLE_ID_COLUMN_NAME
+                        else -> values[it - 2].first
+                    }
+                }
                 insert.columns(*columns)
             }
             val inserts: Array<Any?> = Array(values.size + 2) {
