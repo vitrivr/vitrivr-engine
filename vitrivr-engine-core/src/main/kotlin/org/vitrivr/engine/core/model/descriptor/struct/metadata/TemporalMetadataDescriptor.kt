@@ -3,7 +3,6 @@ package org.vitrivr.engine.core.model.descriptor.struct.metadata
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
 import org.vitrivr.engine.core.model.descriptor.FieldType
-import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 
@@ -40,7 +39,7 @@ data class TemporalMetadataDescriptor(
      *
      * @return A [Map] of this [TemporalMetadataDescriptor]'s fields (without the IDs).
      */
-    override fun values(): Map<String, Any?> = mapOf(
+    override fun values(): List<Pair<String, Any?>> = listOf(
         "start" to this.startNs,
         "end" to this.endNs
     )

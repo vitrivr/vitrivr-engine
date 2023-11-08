@@ -60,17 +60,25 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
      */
     override fun addAll(items: Iterable<StructDescriptor>): Boolean {
         /* Prepare insert query. */
-        var size = 0
-        val insert = BatchInsert(this.entityName).columns(CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME, CottontailConnection.RETRIEVABLE_ID_COLUMN_NAME)
+        var index = 0
+        val insert = BatchInsert(this.entityName)
+
+        /* Insert values. */
         for (item in items) {
-            size += 1
-            val value = item.values()
-            val inserts: MutableList<Any?> = mutableListOf(
-                item.id.toString(),
-                item.retrievableId.toString()
-            )
-            item.schema().forEach { inserts.add(value[it.name]) }
-            insert.any(*inserts.toTypedArray())
+            val values = item.values()
+            if (index == 0) {
+                val columns = values.map { it.first }.toTypedArray()
+                insert.columns(*columns)
+            }
+            val inserts: Array<Any?> = Array(values.size + 2) {
+                when (it) {
+                    0 -> item.id.toString()
+                    1 -> item.retrievableId.toString()
+                    else -> values[it - 2].second
+                }
+            }
+            insert.any(*inserts)
+            index += 1
         }
 
         /* Insert values. */
@@ -79,7 +87,7 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
                 it.hasNext()
             }
         } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to persist $size scalar descriptors due to exception." }
+            logger.error(e) { "Failed to persist ${index + 1} scalar descriptors due to exception." }
             false
         }
     }
