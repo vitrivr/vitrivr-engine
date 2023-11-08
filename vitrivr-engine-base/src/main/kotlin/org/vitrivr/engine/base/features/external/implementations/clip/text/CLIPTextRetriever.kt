@@ -3,8 +3,8 @@ package org.vitrivr.engine.base.features.external.implementations.clip.text
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.vitrivr.engine.base.features.external.ExternalRetriever
 import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.features.AbstractRetriever
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -17,7 +17,7 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
  * @param field Schema field for which the retriever operates.
  * @param query The query vector for proximity-based retrieval.
  *
- * @see [ExternalRetriever]
+ * @see [AbstractRetriever]
  * @see [ProximityQuery]
  *
  * @author Rahel Arnold
@@ -27,7 +27,7 @@ class CLIPTextRetriever(
     field: Schema.Field<TextContent, FloatVectorDescriptor>,
     query: FloatVectorDescriptor,
     context: QueryContext
-) : ExternalRetriever<TextContent, FloatVectorDescriptor>(field, query, context) {
+) : AbstractRetriever<TextContent, FloatVectorDescriptor>(field, query, context) {
 
     override fun toFlow(scope: CoroutineScope): Flow<Retrieved> = flow {
         val query = ProximityQuery(this@CLIPTextRetriever.query)
