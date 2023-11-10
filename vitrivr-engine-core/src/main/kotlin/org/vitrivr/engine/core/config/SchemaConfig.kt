@@ -28,5 +28,10 @@ data class SchemaConfig(
         /**
          * List of [ExporterConfig]s that are part of this [SchemaConfig].
          */
-        val exporters: List<ExporterConfig> = emptyList()
+        val exporters: List<ExporterConfig> = emptyList(),
+
+        /**
+         * List of [PipelineConfig]s that are part of this [SchemaConfig].
+         */
+        val pipelines: List<PipelineConfig> = emptyList()
 )

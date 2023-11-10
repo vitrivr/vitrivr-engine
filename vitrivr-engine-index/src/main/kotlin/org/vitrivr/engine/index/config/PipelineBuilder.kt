@@ -36,7 +36,7 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
     }
 
     /** List of leaf operators held by this [PipelineBuilder]. */
-    private val leaves: MutableList<Operator<Retrievable>> = mutableListOf()
+    private val pipeline: Pipeline = Pipeline()
 
     init {
         val context = IndexContextFactory.newContext(schema, config.context)
@@ -168,7 +168,7 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
         } else if (config.nextExporter != null) {
             addExporter(extractor, context, config.nextExporter)
         } else {
-            this.leaves.add(extractor)
+            this.pipeline.addLeaf(extractor)
         }
     }
 
@@ -201,7 +201,7 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
         } else if (config.nextExporter != null) {
             addExporter(exporter, context, config.nextExporter)
         } else {
-            this.leaves.add(exporter)
+            this.pipeline.addLeaf(exporter)
         }
     }
 
@@ -210,5 +210,5 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
      *
      * @return [List] of leaf [Operator]s.
      */
-    fun getPipeline(): List<Operator<Retrievable>> = Collections.unmodifiableList(this.leaves)
+    fun getPipeline(): Pipeline = this.pipeline
 }

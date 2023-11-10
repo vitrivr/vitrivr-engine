@@ -93,6 +93,16 @@
             }
           }
         }
+      ],
+      "pipelines" : [
+        {
+          "name": "image",
+          "path": "./config-pipelines/image-pipeline.json"
+        },
+        {
+          "name": "video",
+          "path": "./config-pipelines/video-pipeline.json"
+        }
       ]
     }
   ]
