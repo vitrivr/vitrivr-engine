@@ -1,8 +1,10 @@
-package org.vitrivr.engine.index.config
+package org.vitrivr.engine.core.config.pipeline
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.vitrivr.engine.core.config.pipeline.Pipeline
+import org.vitrivr.engine.core.config.IndexConfig
+import org.vitrivr.engine.core.config.IndexContextFactory
+import org.vitrivr.engine.core.config.operators.*
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.metamodel.Analyser
@@ -11,7 +13,6 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.*
 import org.vitrivr.engine.core.util.extension.loadServiceForName
-import org.vitrivr.engine.index.config.operators.*
 
 private val logger: KLogger = KotlinLogging.logger {}
 
