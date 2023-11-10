@@ -156,7 +156,7 @@ class FixedDurationSegmenter : SegmenterFactory {
             }
 
             /* Prepare retrievable. */
-            val retrievable = Ingested(UUID.randomUUID(), "segment", false, content, emptyList(), mapOf("partOf" to listOf(sourceRetrievable)))
+            val retrievable = Ingested(UUID.randomUUID(), "segment", false, content, emptyList(),mapOf("partOf" to listOf(sourceRetrievable)))
 
             /* Persist retrievable and relationship. */
             this.writer.add(retrievable)

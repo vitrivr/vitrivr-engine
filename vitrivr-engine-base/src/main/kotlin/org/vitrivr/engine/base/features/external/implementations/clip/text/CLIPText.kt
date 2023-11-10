@@ -93,7 +93,7 @@ class CLIPText : ExternalWithFloatVectorDescriptorAnalyser<TextContent>() {
     ): Extractor<TextContent, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         logger.debug { "Creating new CLIPTextExtractor for field '${field.fieldName}' with parameters $parameters." }
-        return CLIPTextExtractor(input, field, context, persisting)
+        return CLIPTextExtractor(input, field, persisting)
     }
 
     /**

@@ -89,7 +89,7 @@ class CLIPImage : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
     ): Extractor<ImageContent, FloatVectorDescriptor> {
         require(field.analyser == this) { "" }
         logger.debug { "Creating new CLIPImageExtractor for field '${field.fieldName}' with parameters $parameters." }
-        return CLIPImageExtractor(input, field, context, persisting)
+        return CLIPImageExtractor(input, field, persisting)
     }
 
     /**

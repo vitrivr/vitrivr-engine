@@ -2,7 +2,7 @@ package org.vitrivr.engine.base.database.cottontail.descriptors.label
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.grpc.StatusException
+import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.basics.expression.Column
 import org.vitrivr.cottontail.client.language.basics.expression.Literal
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
@@ -12,7 +12,6 @@ import org.vitrivr.cottontail.client.language.dml.Update
 import org.vitrivr.cottontail.core.values.StringValue
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.base.database.cottontail.descriptors.AbstractDescriptorWriter
-import org.vitrivr.engine.base.database.cottontail.descriptors.DESCRIPTOR_COLUMN_NAME
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 
@@ -47,7 +46,7 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
             this.connection.client.insert(insert).use {
                 it.hasNext()
             }
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to persist descriptor ${item.id} due to exception." }
             false
         }
@@ -61,17 +60,31 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
      */
     override fun addAll(items: Iterable<StructDescriptor>): Boolean {
         /* Prepare insert query. */
-        var size = 0
-        val insert = BatchInsert(this.entityName).columns(CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME, CottontailConnection.RETRIEVABLE_ID_COLUMN_NAME, DESCRIPTOR_COLUMN_NAME, CONFIDENCE_COLUMN_NAME)
+        var index = 0
+        val insert = BatchInsert(this.entityName)
+
+        /* Insert values. */
         for (item in items) {
-            size += 1
-            val value = item.values()
-            val inserts: MutableList<Any?> = mutableListOf(
-                item.id.toString(),
-                item.retrievableId.toString()
-            )
-            item.schema().forEach { inserts.add(value[it.name]) }
-            insert.any(*inserts.toTypedArray())
+            val values = item.values()
+            if (index == 0) {
+                val columns = Array(values.size + 2) {
+                    when (it) {
+                        0 -> CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME
+                        1 -> CottontailConnection.RETRIEVABLE_ID_COLUMN_NAME
+                        else -> values[it - 2].first
+                    }
+                }
+                insert.columns(*columns)
+            }
+            val inserts: Array<Any?> = Array(values.size + 2) {
+                when (it) {
+                    0 -> item.id.toString()
+                    1 -> item.retrievableId.toString()
+                    else -> values[it - 2].second
+                }
+            }
+            insert.any(*inserts)
+            index += 1
         }
 
         /* Insert values. */
@@ -79,8 +92,8 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
             this.connection.client.insert(insert).use {
                 it.hasNext()
             }
-        } catch (e: StatusException) {
-            logger.error(e) { "Failed to persist $size scalar descriptors due to exception." }
+        } catch (e: StatusRuntimeException) {
+            logger.error(e) { "Failed to persist ${index + 1} scalar descriptors due to exception." }
             false
         }
     }
@@ -109,7 +122,7 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
         return try {
             this.connection.client.update(update)
             true
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to update descriptor due to exception." }
             false
         }
