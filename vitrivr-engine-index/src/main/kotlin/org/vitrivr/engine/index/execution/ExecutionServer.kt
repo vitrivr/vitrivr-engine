@@ -5,11 +5,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.takeWhile
-import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.AbstractSegmenter
 import org.vitrivr.engine.core.operators.ingest.Extractor
-import org.vitrivr.engine.index.config.Pipeline
+import org.vitrivr.engine.core.config.pipeline.Pipeline
 import org.vitrivr.engine.index.config.PipelineBuilder
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
