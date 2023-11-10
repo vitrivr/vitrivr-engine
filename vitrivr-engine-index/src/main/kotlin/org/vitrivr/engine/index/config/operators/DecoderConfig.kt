@@ -1,4 +1,4 @@
-package org.vitrivr.engine.index.config.pipeline
+package org.vitrivr.engine.index.config.operators
 
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.operators.ingest.Decoder
@@ -10,7 +10,7 @@ import org.vitrivr.engine.core.operators.ingest.Decoder
  * @version 1.0.0
  */
 @Serializable
-data class TransformerConfig(
+data class DecoderConfig(
     val name: String,
     val parameters: Map<String, String> = emptyMap(),
     val nextTransformer: TransformerConfig? = null,
@@ -18,9 +18,9 @@ data class TransformerConfig(
 ) {
     init {
         if (this.nextTransformer != null) {
-            require(this.nextSegmenter == null) { "A transformer can either be followed by another transformer OR a segmenter." }
+            require(this.nextSegmenter == null) { "A decoder can either be followed by a transformer OR a segmenter." }
         } else {
-            require(this.nextSegmenter != null) { "A transformer can either be followed by another transformer OR a segmenter." }
+            require(this.nextSegmenter != null) { "A decoder can either be followed by a transformer OR a segmenter." }
         }
     }
 }
