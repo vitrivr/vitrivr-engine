@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.model.metamodel
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.vitrivr.engine.core.config.PipelineConfig
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.database.Connection
@@ -38,6 +39,9 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
 
     /** The [List] of [Exporter]s contained in this [Schema]. */
     private val exporters: MutableList<Schema.Exporter> = mutableListOf()
+
+    /** The [List] of [Pipeline]s contained in this [Schema]. */
+    //private val pipelines: MutableList<PipelineBuilder> = mutableListOf()
 
     /**
      * Adds a new [Field] to this [Schema].
