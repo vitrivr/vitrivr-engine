@@ -27,7 +27,7 @@ class PassthroughTransformer : TransformerFactory {
     private class Instance(override val input: Operator<ContentElement<*>>) : Transformer {
         override fun toFlow(scope: CoroutineScope): Flow<ContentElement<*>> {
             return this.input.toFlow(scope).map { value: ContentElement<*> ->
-                logger.info { "Passes through ${value}" }
+                logger.trace { "Passes through $value" }
                 value
             }
         }

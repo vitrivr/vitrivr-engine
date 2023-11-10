@@ -84,7 +84,7 @@ class DINO : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
     ): Extractor<ImageContent, FloatVectorDescriptor> {
         require(field.analyser == this) { "" }
         logger.debug { "Creating new DINOExtractor for field '${field.fieldName}' with parameters $parameters." }
-        return DINOExtractor(input, field, context, persisting)
+        return DINOExtractor(input, field, persisting)
     }
 
     /**

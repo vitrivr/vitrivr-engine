@@ -31,8 +31,8 @@ class RetrievalRuntime {
                 OperatorType.RETRIEVER -> {
                     operationDescription as RetrieverDescription
 
-                    val field = schema[operationName]
-                        ?: throw IllegalArgumentException("Retriever '$operationName' not defined in schema")
+                    val field = schema[operationDescription.field]
+                        ?: throw IllegalArgumentException("Retriever '${operationDescription.field}' not defined in schema")
 
                     val inputDescription = informationNeed.inputs[operationDescription.input]
                         ?: throw IllegalArgumentException("Input '${operationDescription.input}' for operation '$operationName' not found")

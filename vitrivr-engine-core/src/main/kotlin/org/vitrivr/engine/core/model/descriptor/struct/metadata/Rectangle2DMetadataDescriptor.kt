@@ -44,7 +44,7 @@ data class Rectangle2DMetadataDescriptor(
      *
      * @return A [Map] of this [Rectangle2DMetadataDescriptor]'s fields (without the IDs).
      */
-    override fun values(): Map<String, Any?> = mapOf(
+    override fun values(): List<Pair<String, Any?>> = listOf(
         "leftX" to this.leftX,
         "leftY" to this.leftY,
         "width" to this.width,

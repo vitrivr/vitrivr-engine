@@ -24,7 +24,7 @@ class AverageColorRetriever(override val field: Schema.Field<ImageContent, Float
 
     companion object {
         private const val MAXIMUM_DISTANCE = 3f
-        fun scoringFunction(retrieved: Retrieved.RetrievedWithDistance) : Float = (retrieved.distance / MAXIMUM_DISTANCE)
+        fun scoringFunction(retrieved: Retrieved.RetrievedWithDistance) : Float = 1f - (retrieved.distance / MAXIMUM_DISTANCE)
 
     }
 

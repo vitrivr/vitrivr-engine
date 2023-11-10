@@ -3,7 +3,7 @@ package org.vitrivr.engine.core.resolver
 /**
  * A factory class for [Resolver]s.
  *
- * @author Finn Faber
+ * @author Fynn Faber
  * @version 1.0.0.
  */
 interface ResolverFactory {

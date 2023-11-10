@@ -5,7 +5,7 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 /**
  * A [Resolver] resolves a physical resource (e.g., a file) based on a [RetrievableId].
  *
- * @author Finn Faber
+ * @author Fynn Faber
  * @version 1.0.0
  */
 interface Resolver {

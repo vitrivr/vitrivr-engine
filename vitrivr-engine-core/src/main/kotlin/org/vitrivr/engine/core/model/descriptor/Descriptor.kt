@@ -1,7 +1,6 @@
 package org.vitrivr.engine.core.model.descriptor
 
 import org.vitrivr.engine.core.model.Persistable
-import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import java.util.*
@@ -35,5 +34,5 @@ interface Descriptor : Persistable {
      *
      * @return A [Map] of this [Descriptor]'s fields (without the IDs).
      */
-    fun values(): Map<String, Any?>
+    fun values(): List<Pair<String, Any?>>
 }
