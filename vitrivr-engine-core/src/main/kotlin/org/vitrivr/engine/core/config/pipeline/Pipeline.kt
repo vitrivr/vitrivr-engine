@@ -1,4 +1,4 @@
-package org.vitrivr.engine.index.config
+package org.vitrivr.engine.core.config.pipeline
 
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
