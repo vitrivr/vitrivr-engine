@@ -10,8 +10,7 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.*
 import org.vitrivr.engine.core.util.extension.loadServiceForName
-import org.vitrivr.engine.index.config.pipeline.*
-import java.util.*
+import org.vitrivr.engine.index.config.operators.*
 
 private val logger: KLogger = KotlinLogging.logger {}
 
