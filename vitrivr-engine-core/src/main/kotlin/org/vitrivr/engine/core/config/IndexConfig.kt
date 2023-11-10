@@ -1,18 +1,16 @@
-package org.vitrivr.engine.index.config
+package org.vitrivr.engine.core.config
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
-import org.vitrivr.engine.index.config.operators.EnumeratorConfig
+import org.vitrivr.engine.core.config.operators.EnumeratorConfig
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 
-/** [KLogger] instance. */
 private val logger: KLogger = KotlinLogging.logger {}
-
 /**
  * A configuraion object for an indexing job. Can be processed by the [PipelineBuilder].
  *

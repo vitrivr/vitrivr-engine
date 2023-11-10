@@ -1,6 +1,8 @@
-package org.vitrivr.engine.index.config.operators
+package org.vitrivr.engine.core.config.operators
 
 import kotlinx.serialization.Serializable
+import org.vitrivr.engine.core.config.operators.ExporterConfig
+import org.vitrivr.engine.core.config.operators.ExtractorConfig
 
 
 /**
