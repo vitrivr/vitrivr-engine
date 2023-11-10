@@ -2,6 +2,7 @@ package org.vitrivr.engine.index.config
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.vitrivr.engine.core.config.pipeline.Pipeline
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.metamodel.Analyser
