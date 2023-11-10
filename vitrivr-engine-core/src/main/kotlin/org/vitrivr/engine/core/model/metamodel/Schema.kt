@@ -2,7 +2,8 @@ package org.vitrivr.engine.core.model.metamodel
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.vitrivr.engine.core.config.PipelineConfig
+import org.vitrivr.engine.core.config.pipeline.Pipeline
+import org.vitrivr.engine.core.config.pipeline.PipelineBuilder
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.database.Connection
@@ -41,7 +42,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
     private val exporters: MutableList<Schema.Exporter> = mutableListOf()
 
     /** The [List] of [Pipeline]s contained in this [Schema]. */
-    //private val pipelines: MutableList<PipelineBuilder> = mutableListOf()
+    private val pipelines: Map<String, PipelineBuilder> = mutableMapOf()
 
     /**
      * Adds a new [Field] to this [Schema].
@@ -100,6 +101,9 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
     fun getExporter(name: String) = this.exporters.firstOrNull { it.name == name }
 
 
+    fun getPipeline(key: String): Pipeline = this.pipelines[key]?.getPipeline()
+        ?: throw IllegalArgumentException("No pipeline with key '$key' found in schema '$name'.")
+
     /**
      * Closes this [Schema] and the associated database [Connection].
      */
@@ -130,7 +134,11 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
          * @param context The [IndexContext] to use with the [Extractor].
          * @return [Extractor] instance.
          */
-        fun getExtractor(input: Operator<Retrievable>, context: IndexContext, parameters: Map<String, Any> = this.parameters): Extractor<C, D> =
+        fun getExtractor(
+            input: Operator<Retrievable>,
+            context: IndexContext,
+            parameters: Map<String, Any> = this.parameters
+        ): Extractor<C, D> =
             this.analyser.newExtractor(this, input, context, true, parameters)
 
         /**
