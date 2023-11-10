@@ -1,5 +1,7 @@
 package org.vitrivr.engine.server
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.Javalin
 import io.javalin.openapi.CookieAuth
 import io.javalin.openapi.plugin.OpenApiPlugin
@@ -20,6 +22,8 @@ import org.vitrivr.engine.server.config.ServerConfig
 import org.vitrivr.engine.server.config.ServerConfig.Companion.DEFAULT_SCHEMA_PATH
 import java.nio.file.Paths
 import kotlin.system.exitProcess
+
+private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * Entry point for vitrivr engine (index + query).
@@ -85,6 +89,7 @@ fun main(args: Array<String>) {
 
     /* Start the Javalin and CLI. */
     javalin.start(config.api.port)
+    logger.info { "vitrivr engine API is listening on port ${config.api.port}." }
     cli.start() /* Blocks. */
 
     /* End Javalin once Cli is stopped. */
