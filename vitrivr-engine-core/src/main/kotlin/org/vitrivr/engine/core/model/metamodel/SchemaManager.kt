@@ -62,6 +62,9 @@ class SchemaManager {
                 (loadServiceForName<ResolverFactory>(it.resolver.factory) ?: throw IllegalArgumentException("Failed to find resolver factory implementation for '${it.resolver.factory}'.")).newResolver(it.resolver.parameters),
             )
         }
+        config.pipelines.map {
+
+        }
 
         /* Cache and return connection. */
         this.schemas[schema.name] = schema
