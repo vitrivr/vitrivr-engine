@@ -33,5 +33,5 @@ data class SchemaConfig(
         /**
          * List of [PipelineConfig]s that are part of this [SchemaConfig].
          */
-        val pipelines: List<PipelineConfig> = emptyList()
+        val extractionPipelines: List<PipelineConfig> = emptyList()
 )

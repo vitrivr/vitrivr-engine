@@ -3,11 +3,9 @@ package org.vitrivr.engine.server.api.rest.handlers
 import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
 import io.javalin.openapi.*
-import org.vitrivr.engine.core.config.pipeline.Pipeline
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.query.execution.RetrievalRuntime
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
-import org.vitrivr.engine.query.model.api.PipelineInformationNeedDescription
 import org.vitrivr.engine.query.model.api.result.QueryResult
 import org.vitrivr.engine.server.api.rest.model.ErrorStatus
 import org.vitrivr.engine.server.api.rest.model.ErrorStatusException
@@ -45,7 +43,7 @@ fun executeQuery(ctx: Context, schema: Schema, runtime: RetrievalRuntime) {
  *
  * @author Raphael Waltenspül
  * @version 1.0
- */
+
 @OpenApi(
     path = "/api/{schema}/query",
     methods = [HttpMethod.POST],
@@ -70,3 +68,4 @@ fun executeQuery(ctx: Context, schema: Schema, pipeline: Pipeline, runtime: Retr
     val results = runtime.query(schema, informationNeed)
     ctx.json(QueryResult(results))
 }
+*/

@@ -1,15 +1,14 @@
 {
+  "schema": "vitrivr",
   "context": {
     "contentFactory": "InMemoryContentFactory",
     "resolverFactory": "DiskResolver"
   },
-  "schema": "VBSLHE",
   "enumerator": {
-    "name": "FileSystemEnumerator",
+    "name": "ApiEnumerator",
     "parameters": {
-      "path": "/Volumes/V3C1/LHE/videos",
       "depth": "5",
-      "mediaTypes": "VIDEO"
+      "mediaTypes": "IMAGE"
     },
     "next": {
       "name": "VideoDecoder",
@@ -29,6 +28,7 @@
                 "nextExporter": {
                   "name": "ThumbnailExporter",
                   "exporterName": "thumbnail",
+
                   "nextExtractor": {
                     "fieldName": "file",
                     "nextExtractor": {

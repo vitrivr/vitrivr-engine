@@ -30,6 +30,14 @@
           "parameters": {
             "key": "TemporalMetadata-value-schema"
           }
+        },
+        {
+          "name": "clip",
+          "factory": "CLIPImage"
+        },
+        {
+          "name": "dino",
+          "factory": "DINO"
         }
       ],
       "exporters": [
@@ -45,6 +53,16 @@
               "key": "DiskResolver-value-schema"
             }
           }
+        }
+      ],
+      "extractionPipelines" : [
+        {
+          "name": "image",
+          "path": "./config-pipelines/image-pipeline.json"
+        },
+        {
+          "name": "video",
+          "path": "./config-pipelines/video-pipeline.json"
         }
       ]
     },
@@ -92,16 +110,6 @@
               "key": "DiskResolver-value-schema"
             }
           }
-        }
-      ],
-      "pipelines" : [
-        {
-          "name": "image",
-          "path": "./config-pipelines/image-pipeline.json"
-        },
-        {
-          "name": "video",
-          "path": "./config-pipelines/video-pipeline.json"
         }
       ]
     }
