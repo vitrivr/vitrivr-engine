@@ -10,7 +10,7 @@ import io.javalin.openapi.plugin.SecurityComponentConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
-import org.vitrivr.engine.index.execution.ExecutionServer
+import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.query.execution.RetrievalRuntime
 import org.vitrivr.engine.server.api.cli.Cli
 import org.vitrivr.engine.server.api.cli.commands.SchemaCommand
@@ -63,6 +63,7 @@ fun main(args: Array<String>) {
                     }
             )
         )
+        c.http.maxRequestSize = 1024 * 1024 * 1024 /* 1GB */
 
         /* Registers Swagger Plugin. */
         c.plugins.register(

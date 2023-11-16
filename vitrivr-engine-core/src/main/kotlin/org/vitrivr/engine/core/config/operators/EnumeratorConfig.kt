@@ -13,6 +13,7 @@ import org.vitrivr.engine.core.operators.ingest.Enumerator
 @Serializable
 data class EnumeratorConfig(
     val name: String,
+    val api: Boolean = false,
     val parameters: Map<String, String> = emptyMap(),
     val next: DecoderConfig
 )

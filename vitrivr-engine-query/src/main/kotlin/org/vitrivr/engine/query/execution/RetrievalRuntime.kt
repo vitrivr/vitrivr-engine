@@ -10,7 +10,6 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Aggregator
 import org.vitrivr.engine.core.operators.retrieve.Transformer
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
-import org.vitrivr.engine.query.model.api.PipelineInformationNeedDescription
 import org.vitrivr.engine.query.model.api.input.InputType
 import org.vitrivr.engine.query.model.api.input.RetrievableIdInputData
 import org.vitrivr.engine.query.model.api.input.VectorInputData
@@ -21,15 +20,18 @@ import org.vitrivr.engine.query.model.api.operator.TransformerDescription
 import java.util.*
 
 class RetrievalRuntime {
+//
+//    fun query(schema: Schema, informationNeed: PipelineInformationNeedDescription): List<Retrieved> {
+//        var inputs: Map<String, InputData> = informationNeed.inputs
+//
+//        val pipeline = schema.getPipeline(informationNeed.pipeline)
+//        pipeline.setApiEnumeratorSource(informationNeed.inputs)
+//        val outputOperator = pipeline.getOutputOperator(informationNeed.output)
+//        return runBlocking {
+//            outputOperator.toFlow(this).toList()
+//        }
+//    }
 
-    fun query(schema: Schema, informationNeed: PipelineInformationNeedDescription): List<Retrieved> {
-        val pipeline = schema.getPipeline(informationNeed.pipeline)
-        pipeline.setApiEnumeratorSource(informationNeed.inputs)
-        val outputOperator = pipeline.getOutputOperator(informationNeed.output)
-        return runBlocking {
-            outputOperator.toFlow(this).toList()
-        }
-    }
 
     fun query(schema: Schema, informationNeed: InformationNeedDescription): List<Retrieved> {
 
