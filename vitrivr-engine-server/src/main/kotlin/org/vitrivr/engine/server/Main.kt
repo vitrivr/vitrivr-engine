@@ -1,5 +1,7 @@
 package org.vitrivr.engine.server
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.Javalin
 import io.javalin.openapi.CookieAuth
 import io.javalin.openapi.plugin.OpenApiPlugin
@@ -8,7 +10,7 @@ import io.javalin.openapi.plugin.SecurityComponentConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
-import org.vitrivr.engine.index.execution.ExecutionServer
+import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.query.execution.RetrievalRuntime
 import org.vitrivr.engine.server.api.cli.Cli
 import org.vitrivr.engine.server.api.cli.commands.SchemaCommand
@@ -20,6 +22,8 @@ import org.vitrivr.engine.server.config.ServerConfig
 import org.vitrivr.engine.server.config.ServerConfig.Companion.DEFAULT_SCHEMA_PATH
 import java.nio.file.Paths
 import kotlin.system.exitProcess
+
+private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * Entry point for vitrivr engine (index + query).
@@ -59,6 +63,7 @@ fun main(args: Array<String>) {
                     }
             )
         )
+        c.http.maxRequestSize = 1024 * 1024 * 1024 /* 1GB */
 
         /* Registers Swagger Plugin. */
         c.plugins.register(
@@ -85,6 +90,7 @@ fun main(args: Array<String>) {
 
     /* Start the Javalin and CLI. */
     javalin.start(config.api.port)
+    logger.info { "vitrivr engine API is listening on port ${config.api.port}." }
     cli.start() /* Blocks. */
 
     /* End Javalin once Cli is stopped. */
