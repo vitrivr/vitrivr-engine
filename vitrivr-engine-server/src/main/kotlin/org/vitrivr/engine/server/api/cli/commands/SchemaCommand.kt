@@ -8,7 +8,7 @@ import org.vitrivr.engine.core.database.Initializer
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.config.IndexConfig
 import org.vitrivr.engine.core.config.pipeline.PipelineBuilder
-import org.vitrivr.engine.index.execution.ExecutionServer
+import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import java.nio.file.Paths
 
 /**

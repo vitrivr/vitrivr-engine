@@ -13,6 +13,8 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.*
 import org.vitrivr.engine.core.util.extension.loadServiceForName
+import java.io.ObjectInputFilter
+import java.util.stream.Stream
 
 private val logger: KLogger = KotlinLogging.logger {}
 
@@ -24,7 +26,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  * Pipleine setup
  * Enumerator: Source -> Decoder: ContentElement<*> -> Transformer: ContentElement<*> -> Segmenter: Ingested -> Extractor: Ingested -> Exporter: Ingested
  */
-class PipelineBuilder(schema: Schema, config: IndexConfig) {
+class PipelineBuilder(val schema: Schema, val config: IndexConfig) {
 
     companion object {
         /**
@@ -37,11 +39,11 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
     }
 
     /** List of leaf operators held by this [PipelineBuilder]. */
-    private val pipeline: Pipeline = Pipeline()
+    private var pipeline: Pipeline? = null
+    private val context: IndexContext
 
     init {
-        val context = IndexContextFactory.newContext(schema, config.context)
-        this.parseEnumerator(config.enumerator, context)
+        this.context = IndexContextFactory.newContext(schema, config.context)
     }
 
     /**
@@ -51,8 +53,24 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
      * @param context The [IndexConfig] to use.
      */
     private fun parseEnumerator(config: EnumeratorConfig, context: IndexContext) {
-        val factory = loadServiceForName<EnumeratorFactory>(config.name) ?: throw IllegalArgumentException("Failed to find enumerator factory implementation for '${config.name}'.")
+        val factory = loadServiceForName<EnumeratorFactory>(config.name)
+            ?: throw IllegalArgumentException("Failed to find enumerator factory implementation for '${config.name}'.")
         val enumerator: Enumerator = factory.newOperator(context, config.parameters)
+        logger.info { "Enumerator: ${enumerator.javaClass.name}" }
+        addDecoder(enumerator, context, config.next)
+    }
+
+    /**
+     * Parses the [Enumerator] stage of the operator pipeline.
+     *
+     * @param config [EnumeratorConfig] to parse.
+     * @param context The [IndexConfig] to use.
+     */
+    private fun parseApiEnumerator(config: EnumeratorConfig, context: IndexContext, stream: Stream<*>) {
+
+        val factory = loadServiceForName<EnumeratorFactory>(config.name)
+            ?: throw IllegalArgumentException("Failed to find enumerator factory implementation for '${config.name}'.")
+        val enumerator: Enumerator = factory.newOperator(context, config.parameters, stream)
         logger.info { "Enumerator: ${enumerator.javaClass.name}" }
         addDecoder(enumerator, context, config.next)
     }
@@ -65,7 +83,8 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
      * @param config [EnumeratorConfig] to parse.
      */
     private fun addDecoder(parent: Enumerator, context: IndexContext, config: DecoderConfig) {
-        val factory = loadServiceForName<DecoderFactory>(config.name) ?: throw IllegalArgumentException("Failed to find decoder factory implementation for '${config.name}'.")
+        val factory = loadServiceForName<DecoderFactory>(config.name)
+            ?: throw IllegalArgumentException("Failed to find decoder factory implementation for '${config.name}'.")
         val decoder = factory.newOperator(parent, context, config.parameters)
         logger.info { "Decoder: ${decoder.javaClass.name}" }
         if (config.nextSegmenter != null) {
@@ -85,7 +104,8 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
      * @param config [EnumeratorConfig] to parse.
      */
     private fun addTransformer(parent: Operator<ContentElement<*>>, context: IndexContext, config: TransformerConfig) {
-        val factory = loadServiceForName<TransformerFactory>(config.name) ?: throw IllegalArgumentException("Failed to find transformer factory implementation for '${config.name}'.")
+        val factory = loadServiceForName<TransformerFactory>(config.name)
+            ?: throw IllegalArgumentException("Failed to find transformer factory implementation for '${config.name}'.")
         val transformer = when (parent) {
             is Decoder -> factory.newOperator(parent, context, config.parameters)
             is Transformer -> factory.newOperator(parent, context, config.parameters)
@@ -108,7 +128,8 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
      * @param context The [IndexConfig] to use.
      */
     private fun addSegmenter(parent: Operator<ContentElement<*>>, context: IndexContext, config: SegmenterConfig) {
-        val factory = loadServiceForName<SegmenterFactory>(config.name) ?: throw IllegalArgumentException("Failed to find segmenter factory implementation for '${config.name}'.")
+        val factory = loadServiceForName<SegmenterFactory>(config.name)
+            ?: throw IllegalArgumentException("Failed to find segmenter factory implementation for '${config.name}'.")
         val segmenter = when (parent) {
             is Decoder -> factory.newOperator(parent, context, config.parameters)
             is Transformer -> factory.newOperator(parent, context, config.parameters)
@@ -128,7 +149,8 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
      * @param config [EnumeratorConfig] to parse.
      */
     private fun addAggregator(parent: Segmenter, context: IndexContext, config: AggregatorConfig) {
-        val factory = loadServiceForName<AggregatorFactory>(config.name) ?: throw IllegalArgumentException("Failed to find aggregator factory implementation for '${config.name}'.")
+        val factory = loadServiceForName<AggregatorFactory>(config.name)
+            ?: throw IllegalArgumentException("Failed to find aggregator factory implementation for '${config.name}'.")
         val aggregator = factory.newOperator(parent, context, config.parameters)
         logger.info { "Aggregator: ${aggregator.javaClass.name}" }
         if (config.nextExtractor != null) {
@@ -149,7 +171,8 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
      */
     private fun addExtractor(parent: Operator<Retrievable>, context: IndexContext, config: ExtractorConfig) {
         val extractor = if (config.fieldName != null) {
-            val field = context.schema[config.fieldName] ?: throw IllegalArgumentException("Field '${config.parameters["field"]}' does not exist in schema '${context.schema.name}'")
+            val field = context.schema[config.fieldName]
+                ?: throw IllegalArgumentException("Field '${config.parameters["field"]}' does not exist in schema '${context.schema.name}'")
             if (config.parameters.isNotEmpty()) {
                 //throw IllegalArgumentException("Extractor '${config.fieldName}' parameters provided in schema '${context.schema.name}' are not supported.")
                 logger.warn { "PipelineBuilder overrides Extractor '${config.fieldName}' parameters provided in schema '${context.schema.name}'." }
@@ -158,7 +181,8 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
                 field.getExtractor(parent, context)
             }
         } else if (config.factoryName != null) {
-            val factory = loadServiceForName<Analyser<*, *>>(config.factoryName) ?: throw IllegalArgumentException("Failed to find extractor factory implementation for '${config.factoryName}'.")
+            val factory = loadServiceForName<Analyser<*, *>>(config.factoryName)
+                ?: throw IllegalArgumentException("Failed to find extractor factory implementation for '${config.factoryName}'.")
             TODO()
         } else {
             throw IllegalArgumentException("Aggregator must be followed by either an extractor or an exporter.")
@@ -169,7 +193,7 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
         } else if (config.nextExporter != null) {
             addExporter(extractor, context, config.nextExporter)
         } else {
-            this.pipeline.addLeaf(extractor)
+            this.pipeline?.addLeaf(extractor)
         }
     }
 
@@ -182,7 +206,8 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
      */
     private fun addExporter(parent: Operator<Retrievable>, context: IndexContext, config: ExporterConfig) {
         val exporter = if (config.exporterName != null) {
-            val exporter = context.schema.getExporter(config.exporterName) ?: throw IllegalArgumentException("Exporter '${config.exporterName}' does not exist in schema '${context.schema.name}'")
+            val exporter = context.schema.getExporter(config.exporterName)
+                ?: throw IllegalArgumentException("Exporter '${config.exporterName}' does not exist in schema '${context.schema.name}'")
             if (config.parameters.isNotEmpty()) {
 //                throw IllegalArgumentException("Exporter '${config.exporterName}' parameters provided in schema '${context.schema.name}' are not supported.")
                 logger.warn { "PipelineBuilder overrides Exporter '${config.exporterName}' parameters provided in schema '${context.schema.name}'." }
@@ -191,7 +216,8 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
                 exporter.getExporter(parent, context)
             }
         } else if (config.factoryName != null) {
-            val factory = loadServiceForName<ExporterFactory>(config.factoryName) ?: throw IllegalArgumentException("Failed to find extractor factory implementation for '${config.factoryName}'.")
+            val factory = loadServiceForName<ExporterFactory>(config.factoryName)
+                ?: throw IllegalArgumentException("Failed to find extractor factory implementation for '${config.factoryName}'.")
             factory.newOperator(parent, context, config.parameters)
         } else {
             throw IllegalArgumentException("Aggregator must be followed by either an extractor or an exporter.")
@@ -202,7 +228,7 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
         } else if (config.nextExporter != null) {
             addExporter(exporter, context, config.nextExporter)
         } else {
-            this.pipeline.addLeaf(exporter)
+            this.pipeline?.addLeaf(exporter)
         }
     }
 
@@ -211,5 +237,15 @@ class PipelineBuilder(schema: Schema, config: IndexConfig) {
      *
      * @return [List] of leaf [Operator]s.
      */
-    fun getPipeline(): Pipeline = this.pipeline
+    fun getPipeline(): Pipeline {
+        this.pipeline = Pipeline()
+        this.parseEnumerator(this.config.enumerator, context)
+        return this.pipeline!!
+    }
+
+    fun getApiPipeline(inputFiles: Stream<*>): Pipeline {
+        this.pipeline = Pipeline()
+        this.parseApiEnumerator(this.config.enumerator, context, inputFiles)
+        return this.pipeline!!
+    }
 }
