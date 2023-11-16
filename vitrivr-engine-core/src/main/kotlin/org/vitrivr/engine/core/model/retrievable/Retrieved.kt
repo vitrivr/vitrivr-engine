@@ -3,6 +3,7 @@ package org.vitrivr.engine.core.model.retrievable
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithDescriptor
 import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithDistance
+import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithRelationship
 import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithScore
 import java.util.*
 
@@ -20,24 +21,46 @@ interface Retrieved : Retrievable {
 
     interface RetrievedWithScore : Retrieved, RetrievableWithScore
 
+    interface RetrievedWithRelationship : Retrieved, RetrievableWithRelationship
+
     data class Default(override val id: UUID, override val type: String?, override val transient: Boolean) : Retrieved
 
 
-    data class WithDescriptor(override val id: UUID, override val type: String?, override val descriptors: List<Descriptor>, override val transient: Boolean) : RetrievedWithDescriptor
+    data class WithDescriptor(
+        override val id: UUID,
+        override val type: String?,
+        override val descriptors: List<Descriptor>,
+        override val transient: Boolean
+    ) : RetrievedWithDescriptor
 
 
-    data class WithScore(override val id: UUID, override val type: String?, override val score: Float, override val transient: Boolean) : RetrievedWithScore {
+    data class WithScore(
+        override val id: UUID,
+        override val type: String?,
+        override val score: Float,
+        override val transient: Boolean
+    ) : RetrievedWithScore {
         init {
             require(this.score in 0.0f..1.0f) { "Score must be between 0.0 and 1.0." }
         }
     }
 
-    data class PlusScore(private val retrievedWithDistance: RetrievedWithDistance, override val score: Float) : RetrievedWithDistance by retrievedWithDistance, RetrievedWithScore {
-        constructor(retrievedWithDistance: RetrievedWithDistance, scoringFunction: (RetrievedWithDistance) -> Float) : this(retrievedWithDistance, scoringFunction(retrievedWithDistance))
+    data class PlusScore(private val retrievedWithDistance: RetrievedWithDistance, override val score: Float) :
+        RetrievedWithDistance by retrievedWithDistance, RetrievedWithScore {
+        constructor(
+            retrievedWithDistance: RetrievedWithDistance,
+            scoringFunction: (RetrievedWithDistance) -> Float
+        ) : this(retrievedWithDistance, scoringFunction(retrievedWithDistance))
     }
 
 
-    data class WithScoreAndDescriptor(override val id: UUID, override val type: String?, override val score: Float, override val descriptors: List<Descriptor>, override val transient: Boolean) : RetrievedWithScore,
+    data class WithScoreAndDescriptor(
+        override val id: UUID,
+        override val type: String?,
+        override val score: Float,
+        override val descriptors: List<Descriptor>,
+        override val transient: Boolean
+    ) : RetrievedWithScore,
         RetrievedWithDescriptor {
         init {
             require(this.score in 0.0f..1.0f) { "Score must be between 0.0 and 1.0." }
@@ -45,17 +68,41 @@ interface Retrieved : Retrievable {
     }
 
 
-    data class WithDistance(override val id: UUID, override val type: String?, override val distance: Float, override val transient: Boolean) : RetrievedWithDistance {
+    data class WithDistance(
+        override val id: UUID,
+        override val type: String?,
+        override val distance: Float,
+        override val transient: Boolean
+    ) : RetrievedWithDistance {
         init {
             require(this.distance >= 0.0f) { "Distance must be greater or equal to zero." }
         }
     }
 
 
-    data class WithDistanceAndDescriptor(override val id: UUID, override val type: String?, override val distance: Float, override val descriptors: List<Descriptor>, override val transient: Boolean) : RetrievedWithDistance,
+    data class WithDistanceAndDescriptor(
+        override val id: UUID,
+        override val type: String?,
+        override val distance: Float,
+        override val descriptors: List<Descriptor>,
+        override val transient: Boolean
+    ) : RetrievedWithDistance,
         RetrievedWithDescriptor {
         init {
             require(this.distance >= 0.0f) { "Distance must be greater or equal to zero." }
         }
     }
+
+    data class WithRelationship(
+        override val id: UUID, override val type: String?,
+        override val transient: Boolean,
+        override val relationships: MutableMap<String, MutableList<Retrievable>> = mutableMapOf()
+    ) : RetrievedWithRelationship {
+        constructor(retrievable: Retrievable) : this(retrievable.id, retrievable.type, retrievable.transient)
+    }
+
+    class PlusRelationship(
+        retrieved: Retrieved,
+        override val relationships: MutableMap<String, MutableList<Retrievable>> = mutableMapOf()
+    ) : Retrieved by retrieved, RetrievedWithRelationship
 }
