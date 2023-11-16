@@ -1,4 +1,4 @@
-package org.vitrivr.engine.index.config.pipeline
+package org.vitrivr.engine.core.config.operators
 
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.operators.ingest.Extractor

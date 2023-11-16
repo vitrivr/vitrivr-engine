@@ -1,4 +1,4 @@
-package org.vitrivr.engine.index.config.pipeline
+package org.vitrivr.engine.core.config.operators
 
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.operators.ingest.Enumerator
@@ -13,6 +13,7 @@ import org.vitrivr.engine.core.operators.ingest.Enumerator
 @Serializable
 data class EnumeratorConfig(
     val name: String,
+    val api: Boolean = false,
     val parameters: Map<String, String> = emptyMap(),
     val next: DecoderConfig
 )

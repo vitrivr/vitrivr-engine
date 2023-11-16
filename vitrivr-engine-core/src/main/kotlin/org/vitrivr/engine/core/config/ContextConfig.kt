@@ -1,4 +1,4 @@
-package org.vitrivr.engine.index.config
+package org.vitrivr.engine.core.config
 
 import kotlinx.serialization.Serializable
 
