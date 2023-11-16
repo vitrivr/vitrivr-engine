@@ -1,4 +1,4 @@
-package org.vitrivr.engine.index.execution
+package org.vitrivr.engine.core.config.pipeline.execution
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
