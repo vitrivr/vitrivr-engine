@@ -1,11 +1,12 @@
 package org.vitrivr.engine.tools
 
-import kotlinx.serialization.*
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.modules.*
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.Json.Default.serializersModule
-
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.serializer
 import org.vitrivr.engine.core.config.SchemaConfig
 import org.vitrivr.engine.core.database.Initializer
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -15,12 +16,8 @@ import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadata
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
-import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
-import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithSource
-import org.vitrivr.engine.core.source.file.FileSource
-import org.vitrivr.engine.core.source.file.MimeType
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.security.MessageDigest
@@ -28,8 +25,6 @@ import java.util.*
 import kotlin.experimental.and
 import kotlin.experimental.or
 import kotlin.reflect.KClass
-import kotlin.reflect.cast
-import kotlin.reflect.typeOf
 
 
 @Serializable

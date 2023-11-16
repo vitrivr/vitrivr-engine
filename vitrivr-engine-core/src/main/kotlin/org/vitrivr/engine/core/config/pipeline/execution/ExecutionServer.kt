@@ -1,15 +1,15 @@
-package org.vitrivr.engine.index.execution
+package org.vitrivr.engine.core.config.pipeline.execution
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.takeWhile
-import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.AbstractSegmenter
 import org.vitrivr.engine.core.operators.ingest.Extractor
-import org.vitrivr.engine.index.config.PipelineBuilder
+import org.vitrivr.engine.core.config.pipeline.Pipeline
+import org.vitrivr.engine.core.config.pipeline.PipelineBuilder
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -34,15 +34,15 @@ class ExecutionServer {
      *
      * @param extractors The [List] of [Extractor]s to execute.
      */
-    fun extract(extractors: List<Operator<Retrievable>>) = runBlocking {
+    fun extract(pipeline: Pipeline) = runBlocking {
         val scope = CoroutineScope(this@ExecutionServer.dispatcher)
-        val jobs = extractors.map { e -> scope.launch { e.toFlow(scope).takeWhile { it != AbstractSegmenter.TerminalRetrievable }.collect() } }
+        val jobs = pipeline.getLeaves().map { e -> scope.launch { e.toFlow(scope).takeWhile { it != AbstractSegmenter.TerminalRetrievable }.collect() } }
         jobs.forEach { it.join() }
     }
 
 
     fun addOperatorPipeline(operatorPipeline: PipelineBuilder){
-        this.operators = operatorPipeline.getPipeline()
+        this.operators = operatorPipeline.getPipeline().getLeaves();
     }
 
     fun execute() = runBlocking {
