@@ -1,4 +1,4 @@
-name: Publish Cottontail DB to the OSS Snapshot Repository
+name: Publish vitrivr Engine artifacts to the OSS Snapshot Repository
 on:
   push:
     branches:
@@ -17,7 +17,7 @@ jobs:
           java-version: 21.0.3
           server-id: maven
       - id: publish-gradle
-        name: Publish package to the OSS Snapshot Repository & GitHub Packages
+        name: Publish package to the OSS Snapshot Repository
         run: gradle publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
