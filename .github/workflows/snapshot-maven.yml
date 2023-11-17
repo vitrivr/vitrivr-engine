@@ -2,7 +2,7 @@ name: Publish vitrivr Engine artifacts to the OSS Snapshot Repository
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   publish:
