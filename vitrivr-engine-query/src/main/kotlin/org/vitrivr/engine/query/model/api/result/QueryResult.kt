@@ -21,7 +21,7 @@ data class QueryResult(val retrievables: List<QueryResultRetrievable>) {
                 }
             }
 
-            return results.values.toList().sortedBy { it.score }
+            return results.values.toList().sortedByDescending { it.score }
 
         }
 
