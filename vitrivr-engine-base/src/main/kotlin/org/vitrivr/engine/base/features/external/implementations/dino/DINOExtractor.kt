@@ -23,7 +23,7 @@ import org.vitrivr.engine.core.source.file.FileSource
  * @author Rahel Arnold
  * @version 1.0.0
  */
-class DINOExtractor(input: Operator<Retrievable>, field: Schema.Field<ImageContent, FloatVectorDescriptor>, persisting: Boolean) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, field, persisting) {
+class DINOExtractor(input: Operator<Retrievable>, field: Schema.Field<ImageContent, FloatVectorDescriptor>, persisting: Boolean, private val dino: DINO) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, field, persisting) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
@@ -43,6 +43,6 @@ class DINOExtractor(input: Operator<Retrievable>, field: Schema.Field<ImageConte
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
         check(retrievable is RetrievableWithContent) { "Incoming retrievable is not a retrievable with content. This is a programmer's error!" }
         val content = retrievable.content.filterIsInstance<ImageContent>()
-        return content.map { c -> FloatVectorDescriptor(retrievableId = retrievable.id, vector = DINO.requestDescriptor(c), transient = !this.persisting) }
+        return content.map { c -> FloatVectorDescriptor(retrievableId = retrievable.id, vector = dino.requestDescriptor(c), transient = !this.persisting) }
     }
 }

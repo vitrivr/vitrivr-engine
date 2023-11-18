@@ -119,8 +119,7 @@ abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> 
         return resultList
     }
 
-    fun httpRequest(content: ContentElement<*>): List<Float> {
-        val url = "http://$host:$port$endpoint"
+    fun httpRequest(content: ContentElement<*>, url: String): List<Float> {
         val base64 = when (content) {
             is TextContent -> encodeTextToBase64(content.content)
             is ImageContent -> content.content.toDataURL()
@@ -147,6 +146,4 @@ abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> 
         // Encode the byte array to base64
         return Base64.getEncoder().encodeToString(textBytes)
     }
-
-
 }
