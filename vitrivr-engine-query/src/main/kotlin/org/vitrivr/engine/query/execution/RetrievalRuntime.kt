@@ -68,7 +68,7 @@ class RetrievalRuntime {
                             val id = UUID.fromString((inputDescription as RetrievableIdInputData).id)
 
                             val reader = field.getReader()
-                            val descriptor = reader[id] ?: throw IllegalArgumentException("No retrievable with id '$id' present in ${field.fieldName}")
+                            val descriptor = reader.getBy(id, "retrievableId") ?: throw IllegalArgumentException("No retrievable with id '$id' present in ${field.fieldName}")
 
                             field.getRetrieverForDescriptor(descriptor, informationNeed.context)
 

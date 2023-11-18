@@ -34,9 +34,11 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      *
      * @return [Sequence] of all [Descriptor]s.
      */
-    override fun get(id: UUID): D? {
+    override fun get(id: UUID): D? = getBy(id, CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME)
+
+    override fun getBy(id: UUID, columnName: String): D? {
         val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
-            .where(Compare(Column(this.entityName.column(CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME)), Compare.Operator.EQUAL, Literal(id.toString())))
+            .where(Compare(Column(this.entityName.column(columnName)), Compare.Operator.EQUAL, Literal(id.toString())))
         return try {
             val result = this.connection.client.query(query)
             val ret = if (result.hasNext()) {
