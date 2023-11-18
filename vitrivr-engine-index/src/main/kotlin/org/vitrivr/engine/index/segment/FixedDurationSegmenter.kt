@@ -7,6 +7,7 @@ import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithSource
@@ -156,7 +157,8 @@ class FixedDurationSegmenter : SegmenterFactory {
             }
 
             /* Prepare retrievable. */
-            val retrievable = Ingested(UUID.randomUUID(), "segment", false, content, emptyList(),mapOf("partOf" to listOf(sourceRetrievable)))
+            val retrievable = Ingested(UUID.randomUUID(), "segment", false, content, emptyList())
+            retrievable.relationships.add(Relationship(retrievable, "partOf", sourceRetrievable))
 
             /* Persist retrievable and relationship. */
             this.writer.add(retrievable)
