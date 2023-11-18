@@ -15,8 +15,8 @@ data class QueryResult(val retrievables: List<QueryResultRetrievable>) {
             //map partOf relations the right way around
             retrieved.forEach { retrieved: Retrieved ->
                 if (retrieved is Retrieved.RetrievedWithRelationship) {
-                    retrieved.relationships.filter { it.second == "partOf" && it.first == retrieved.id }.forEach {
-                        results[it.third.toString()]?.parts?.add(retrieved.id.toString())
+                    retrieved.relationships.filter { it.pred == "partOf" && it.sub.first == retrieved.id }.forEach {
+                        results[it.obj.first.toString()]?.parts?.add(retrieved.id.toString())
                     }
                 }
             }
