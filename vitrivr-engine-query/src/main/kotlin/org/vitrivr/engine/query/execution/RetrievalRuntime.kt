@@ -9,6 +9,8 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Aggregator
 import org.vitrivr.engine.core.operators.retrieve.Transformer
+import org.vitrivr.engine.core.operators.retrieve.TransformerFactory
+import org.vitrivr.engine.core.util.extension.loadServiceForName
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
 import org.vitrivr.engine.query.model.api.input.InputType
 import org.vitrivr.engine.query.model.api.input.RetrievableIdInputData
@@ -95,8 +97,9 @@ class RetrievalRuntime {
                     val input = operators[operationDescription.input]
                         ?: throw IllegalArgumentException("Operator '${operationDescription.input}' not yet defined")
 
-                    val transformer: Transformer<Retrieved, Retrieved> =
-                        TODO("TODO: get transformer based on name and initialize with input and properties")
+                    val factory = loadServiceForName<TransformerFactory<Retrieved, Retrieved>>(operationDescription.transformerName + "Factory") ?: throw IllegalArgumentException("No factory found for '${operationDescription.transformerName}'")
+
+                    val transformer: Transformer<Retrieved, Retrieved> = factory.newTransformer(input, schema, operationDescription.properties)
 
                     operators[operationName] = transformer
 

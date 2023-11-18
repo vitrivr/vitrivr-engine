@@ -101,8 +101,23 @@ interface Retrieved : Retrievable {
         constructor(retrievable: Retrievable) : this(retrievable.id, retrievable.type, retrievable.transient)
     }
 
-    class PlusRelationship(
+
+    companion object {
+        fun PlusRelationship(retrieved: Retrieved, relationships: MutableMap<String, MutableList<Retrievable>> = mutableMapOf()) =
+            when(retrieved) {
+                is RetrievedWithScore -> _PlusRelationshipScore(retrieved, relationships)
+                else -> _PlusRelationship(retrieved, relationships)
+            }
+    }
+
+
+    class _PlusRelationship(
         retrieved: Retrieved,
         override val relationships: MutableMap<String, MutableList<Retrievable>> = mutableMapOf()
     ) : Retrieved by retrieved, RetrievedWithRelationship
+
+    class _PlusRelationshipScore(
+        retrieved: RetrievedWithScore,
+        override val relationships: MutableMap<String, MutableList<Retrievable>> = mutableMapOf()
+    ) : RetrievedWithScore by retrieved, RetrievedWithRelationship
 }

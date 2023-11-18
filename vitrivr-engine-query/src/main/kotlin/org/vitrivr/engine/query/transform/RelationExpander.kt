@@ -25,7 +25,7 @@ class RelationExpander(
             return@flow
         }
 
-        val relations = if (incomingRelations.isNotEmpty()) {
+        val relations = (if (incomingRelations.isNotEmpty()) {
             retrievableReader.getConnections(emptyList(), incomingRelations, ids)
         } else {
             emptySequence()
@@ -33,7 +33,7 @@ class RelationExpander(
             retrievableReader.getConnections(ids, outgoingRelations, emptyList())
         } else {
             emptySequence()
-        }
+        }).toList()
 
         val newIds = relations.flatMap { listOf(it.first, it.third) } - ids
 
