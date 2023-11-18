@@ -27,7 +27,7 @@ import java.util.*
 private val logger: KLogger = KotlinLogging.logger {}
 
 class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor> {
-    override val contentClass = ContentElement::class
+    override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = TemporalMetadataDescriptor::class
 
     /**

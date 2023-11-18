@@ -42,7 +42,7 @@ class CLIPImage : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
         }
     }
 
-    override val contentClass = ImageContent::class
+    override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = FloatVectorDescriptor::class
 
     // Default values for external API
