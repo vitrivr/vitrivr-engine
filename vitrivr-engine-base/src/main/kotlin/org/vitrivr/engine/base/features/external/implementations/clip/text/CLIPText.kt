@@ -43,7 +43,7 @@ class CLIPText : ExternalWithFloatVectorDescriptorAnalyser<TextContent>() {
         }
     }
 
-    override val contentClass = TextContent::class
+    override val contentClasses = setOf(TextContent::class)
     override val descriptorClass = FloatVectorDescriptor::class
 
     // Default values for external API
