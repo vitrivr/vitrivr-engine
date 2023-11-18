@@ -10,6 +10,10 @@ data class QueryResultRetrievable(val id: RetrievableIdString, val score: Float,
     constructor(retrieved: Retrieved) : this(
         retrieved.id.toString(),
         if (retrieved is Retrieved.RetrievedWithScore) retrieved.score else 0f,
-        emptyList()
-    ) /* TODO: Extract parts. */
+        if (retrieved is Retrieved.RetrievedWithRelationship) {
+            retrieved.relationships["partOf"]?.map { it.id.toString() } ?: emptyList()
+        } else {
+            emptyList()
+        }
+    )
 }
