@@ -29,14 +29,15 @@ import kotlin.io.path.isRegularFile
  * @version 1.0.0
  */
 class FileSystemEnumerator : EnumeratorFactory {
+
+    private val logger: KLogger = KotlinLogging.logger {}
+
     /**
      * Creates a new [Enumerator] instance from this [FileSystemEnumerator].
      *
      * @param context The [IndexContext] to use.
      * @param parameters Optional set of parameters.
      */
-    private val logger: KLogger = KotlinLogging.logger {}
-
     override fun newOperator(context: IndexContext, parameters: Map<String, String>): Enumerator {
         val path = Path(parameters["path"] ?: throw IllegalArgumentException("Path is required"))
         val depth = (parameters["depth"] ?: Int.MAX_VALUE.toString()).toInt()

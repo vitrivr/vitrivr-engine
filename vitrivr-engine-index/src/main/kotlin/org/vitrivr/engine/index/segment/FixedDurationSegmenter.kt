@@ -1,5 +1,7 @@
 package org.vitrivr.engine.index.segment
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.sync.Mutex
@@ -89,6 +91,9 @@ class FixedDurationSegmenter : SegmenterFactory {
         /** Reference to the last [Source] encountered by this [FixedDurationSegmenter]. */
         private var lastSource: Source? = null
 
+        /** [KLogger] instance. */
+        private val logger: KLogger = KotlinLogging.logger {}
+
         override suspend fun segment(upstream: Flow<ContentElement<*>>, downstream: ProducerScope<Retrievable>) {
             upstream.collect { content ->
                 this.mutex.lock()
@@ -100,6 +105,7 @@ class FixedDurationSegmenter : SegmenterFactory {
                             }
                             this.lastSource = content.source
                             this.lastStartTime = 0
+                            logger.info { "Starting to segment new source ${lastSource?.name} (${lastSource?.sourceId})" }
                         }
                         this.cache.add(content)
                         val cutOffTime = this.lastStartTime + this.lengthNanos + this.lookAheadNanos

@@ -25,8 +25,6 @@ import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Source
 import java.nio.ShortBuffer
 
-/** [KLogger] instance. */
-private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * A [Decoder] that can decode [ImageContent] and [AudioContent] from a [Source] of [MediaType.VIDEO].
@@ -36,6 +34,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @version 1.0.0
  */
 class VideoDecoder : DecoderFactory {
+
     override fun newOperator(input: Enumerator, context: IndexContext, parameters: Map<String, String>): Decoder {
         val video = parameters["video"]?.let { it.lowercase() == "true" } ?: true
         val audio = parameters["audio"]?.let { it.lowercase() == "true" } ?: true
@@ -47,6 +46,9 @@ class VideoDecoder : DecoderFactory {
      * The [Decoder] returned by this [VideoDecoder].
      */
     private class Instance(override val input: Enumerator, private val context: IndexContext, private val video: Boolean = true, private val audio: Boolean = true) : Decoder {
+
+        /** [KLogger] instance. */
+        private val logger: KLogger = KotlinLogging.logger {}
 
         /** The [Java2DFrameConverter] used by this [VideoDecoder] instance. */
         private val converter: Java2DFrameConverter by lazy { Java2DFrameConverter() }
@@ -66,6 +68,7 @@ class VideoDecoder : DecoderFactory {
                 input.collect { source ->
                     source.newInputStream().use { input ->
                         FFmpegFrameGrabber(input).use { grabber ->
+                            logger.info { "Start decoding source ${source.name} (${source.sourceId})" }
                             try {
                                 grabber.start()
                                 var frame = grabber.grabFrame(this@Instance.video, this@Instance.audio, true, false, true)
@@ -81,6 +84,7 @@ class VideoDecoder : DecoderFactory {
                             } catch (exception: Exception) {
                                 logger.error(exception) { "An error occurred while decoding video from source $source. Skipping..." }
                             }
+                            logger.info { "Finished decoding source ${source.name} (${source.sourceId})" }
                         }
                     }
                 }
