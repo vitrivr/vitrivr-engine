@@ -99,9 +99,8 @@ class PassThroughSegmenter : SegmenterFactory {
             }
 
             /* Persist retrievable. */
-            if (!this.reader.exists(source.sourceId)) {
-                this.writer.add(result)
-            }
+            this.writer.add(result)
+
 
             /* Return result. */
             return result
