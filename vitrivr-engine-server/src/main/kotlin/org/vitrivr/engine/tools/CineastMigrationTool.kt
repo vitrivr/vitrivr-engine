@@ -33,11 +33,40 @@ import kotlin.reflect.typeOf
 
 
 @Serializable
-data class CineastMultimediaObject(val objectid: String, val mediatype : Int, val name: String, val path: String)
+data class CineastMultimediaObject(
+        @SerialName("cineast.cineast_multimediaobject.objectid")
+        val objectid: String,
+        @SerialName("cineast.cineast_multimediaobject.mediatype")
+        val mediatype : Int,
+        @SerialName("cineast.cineast_multimediaobject.name")
+        val name: String,
+        @SerialName("cineast.cineast_multimediaobject.path")
+        val path: String)
 
 @Serializable
-data class CineastSegment(val segmentid: String, val objectid: String, val segmentnumber: Int, val segmentstart: Int, val segmentend: Int, val segmentstartabs : Float, val segmentendabs: Float)
+data class CineastSegment(
+        @SerialName("cineast.cineast_segment.segmentid")
+        val segmentid: String,
+        @SerialName("cineast.cineast_segment.objectid")
+        val objectid: String,
+        @SerialName("cineast.cineast_segment.segmentnumber")
+        val segmentnumber: Int,
+        @SerialName("cineast.cineast_segment.segmentstart")
+        val segmentstart: Int,
+        @SerialName("cineast.cineast_segment.segmentend")
+        val segmentend: Int,
+        @SerialName("cineast.cineast_segment.segmentstartabs")
+        val segmentstartabs : Float,
+        @SerialName("cineast.cineast_segment.segmentendabs")
+        val segmentendabs: Float
+)
 
+
+@Serializable
+data class CineastObjectMetadata(val objectid: String, val domain: String, val key: String, val value: String)
+
+@Serializable
+data class CineastSegmentMetadata(val segmentid: String, val domain: String, val key: String, val value: String)
 
 interface CineastFeature {
 
