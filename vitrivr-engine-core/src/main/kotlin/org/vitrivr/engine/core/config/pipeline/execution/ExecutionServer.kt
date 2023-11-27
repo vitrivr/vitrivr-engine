@@ -87,6 +87,8 @@ class ExecutionServer private constructor(schema: Schema){
                 } catch (e: Exception) {
                     logger.error { "Error while executing extraction job: ${e.message}" }
                 }
+                // wait
+                Thread.sleep(10000)
             }
         }.start()
     }
