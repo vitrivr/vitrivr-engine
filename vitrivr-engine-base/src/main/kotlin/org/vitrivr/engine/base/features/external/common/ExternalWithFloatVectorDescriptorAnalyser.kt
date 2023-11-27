@@ -61,7 +61,6 @@ abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> 
 
             // Get the response code (optional, but useful for error handling)
             val responseCode = connection.responseCode
-            println("Response Code: $responseCode")
 
             // Read the response as a JSON string
             val responseJson = if (responseCode == HttpURLConnection.HTTP_OK) {
@@ -73,12 +72,12 @@ abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> 
                 null
             }
 
-            print(featureList.size)
 
             // Parse the JSON string to List<Float> using Gson
             return if (responseJson != null) {
                 try {
                     val gson = Gson()
+                    @Suppress("UNCHECKED_CAST")
                     gson.fromJson(responseJson, List::class.java) as List<Float>
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -120,8 +119,7 @@ abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> 
         return resultList
     }
 
-    fun httpRequest(content: ContentElement<*>): List<Float> {
-        val url = "http://$host:$port$endpoint"
+    fun httpRequest(content: ContentElement<*>, url: String): List<Float> {
         val base64 = when (content) {
             is TextContent -> encodeTextToBase64(content.content)
             is ImageContent -> content.content.toDataURL()
@@ -148,6 +146,4 @@ abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> 
         // Encode the byte array to base64
         return Base64.getEncoder().encodeToString(textBytes)
     }
-
-
 }

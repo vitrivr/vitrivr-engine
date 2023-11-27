@@ -19,9 +19,9 @@ open class Ingested(
     override val transient: Boolean,
     content: List<ContentElement<*>> = emptyList(),
     descriptors: List<Descriptor> = emptyList(),
-    relationships: Map<String, List<Retrievable>> = emptyMap(),
+    relationships: Set<Relationship> = emptySet(),
 ) : Retrievable, RetrievableWithDescriptor, RetrievableWithContent, RetrievableWithRelationship {
     override val content: List<ContentElement<*>> = LinkedList(content)                     /* Make shallow copy. */
     override val descriptors: List<Descriptor> = LinkedList(descriptors)                    /* Make shallow copy. */
-    override val relationships: Map<String, List<Retrievable>> = HashMap(relationships)     /* Make shallow copy. */
+    override val relationships: MutableSet<Relationship> = HashSet(relationships)  /* Make shallow copy. */
 }

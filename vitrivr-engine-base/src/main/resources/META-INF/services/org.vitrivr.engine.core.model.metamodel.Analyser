@@ -1,2 +1,4 @@
 org.vitrivr.engine.base.features.averagecolor.AverageColor
+org.vitrivr.engine.base.features.external.implementations.dino.DINO
+org.vitrivr.engine.base.features.external.implementations.clip.CLIP
 org.vitrivr.engine.base.features.OCRSearch.OCRSearch

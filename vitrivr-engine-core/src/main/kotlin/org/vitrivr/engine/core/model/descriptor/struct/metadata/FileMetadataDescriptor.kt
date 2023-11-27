@@ -39,7 +39,7 @@ data class FileMetadataDescriptor(
      *
      * @return A [Map] of this [FileMetadataDescriptor]'s fields (without the IDs).
      */
-    override fun values(): Map<String, Any?> = mapOf(
+    override fun values(): List<Pair<String, Any?>> = listOf(
         "path" to this.path,
         "size" to this.size
     )

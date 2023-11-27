@@ -1,14 +1,12 @@
 package org.vitrivr.engine.core.features.metadata.file
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.FileMetadataDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithDescriptor
 import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithSource
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -23,37 +21,39 @@ import kotlin.io.path.absolutePathString
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class FileMetadataExtractor(override val field: Schema.Field<ContentElement<*>, FileMetadataDescriptor>, override val input: Operator<Retrievable>, override val persisting: Boolean = true) : Extractor<ContentElement<*>, FileMetadataDescriptor> {
-
-    /** */
-    private val writer by lazy { this.field.getWriter() }
+class FileMetadataExtractor(
+    input: Operator<Retrievable>,
+    field: Schema.Field<ContentElement<*>, FileMetadataDescriptor>,
+    persisting: Boolean = true
+) : AbstractExtractor<ContentElement<*>, FileMetadataDescriptor>(input, field, persisting, bufferSize = 1) {
+    /**
+     * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
+     *
+     * [FileMetadataExtractor] implementation only works with [RetrievableWithSource] that contain a [FileSource].
+     *
+     * @param retrievable The [Retrievable] to check.
+     * @return True on match, false otherwise,
+     */
+    override fun matches(retrievable: Retrievable): Boolean =
+        retrievable is RetrievableWithSource && retrievable.source is FileSource
 
     /**
-     *
+     * Internal method to perform extraction on [Retrievable].
+     **
+     * @param retrievable The [Retrievable] to process.
+     * @return List of resulting [Descriptor]s.
      */
-    override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).map { retrievable ->
-        if (retrievable is RetrievableWithSource) {
-            val source = retrievable.source
-            if (source is FileSource) {
-                val descriptor = FileMetadataDescriptor(
-                    id = UUID.randomUUID(),
-                    retrievableId = retrievable.id,
-                    path = source.path.absolutePathString(),
-                    size = Files.size(source.path),
-                    transient = !persisting
-                )
-
-                /* Append descriptor. */
-                if (retrievable is RetrievableWithDescriptor.Mutable) {
-                    retrievable.addDescriptor(descriptor)
-                }
-
-                /* Persist descriptor. */
-                if (this.persisting) {
-                    this.writer.add(descriptor)
-                }
-            }
-        }
-        retrievable
+    override fun extract(retrievable: Retrievable): List<FileMetadataDescriptor> {
+        check(retrievable is RetrievableWithSource) { "Incoming retrievable is not a retrievable with source. This is a programmer's error!" }
+        check(retrievable.source is FileSource) { "Incoming retrievable is not a retrievable with file source. This is a programmer's error!" }
+        return listOf(
+            FileMetadataDescriptor(
+                id = UUID.randomUUID(),
+                retrievableId = retrievable.id,
+                path = (retrievable.source as FileSource).path.absolutePathString(),
+                size = Files.size((retrievable.source as FileSource).path),
+                transient = !persisting
+            )
+        )
     }
 }

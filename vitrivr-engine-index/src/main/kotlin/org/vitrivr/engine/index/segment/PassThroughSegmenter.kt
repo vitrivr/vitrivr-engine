@@ -7,6 +7,7 @@ import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithSource
@@ -58,7 +59,8 @@ class PassThroughSegmenter : SegmenterFactory {
                 val sourceRetrievable = this.findOrCreateRetrievableForSource(it.source)
 
                 /* Prepare retrievable (with relationship). */
-                val retrievable = Ingested(UUID.randomUUID(), "segment", false, content = listOf(it), relationships = mapOf("partOf" to listOf(sourceRetrievable)))
+                val retrievable = Ingested(UUID.randomUUID(), "segment", false, content = listOf(it))
+                retrievable.relationships.add(Relationship(retrievable, "partOf", sourceRetrievable))
 
                 /* Persist retrievable and connection. */
                 this.writer.add(retrievable)
@@ -97,9 +99,8 @@ class PassThroughSegmenter : SegmenterFactory {
             }
 
             /* Persist retrievable. */
-            if (!this.reader.exists(source.sourceId)) {
-                this.writer.add(result)
-            }
+            this.writer.add(result)
+
 
             /* Return result. */
             return result

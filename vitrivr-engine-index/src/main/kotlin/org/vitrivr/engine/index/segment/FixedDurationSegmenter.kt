@@ -1,5 +1,7 @@
 package org.vitrivr.engine.index.segment
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.sync.Mutex
@@ -7,6 +9,7 @@ import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithSource
@@ -88,6 +91,13 @@ class FixedDurationSegmenter : SegmenterFactory {
         /** Reference to the last [Source] encountered by this [FixedDurationSegmenter]. */
         private var lastSource: Source? = null
 
+        /** Tracks if the current source retrievable has already been persisted. */
+        private var sourceWritten = false
+
+
+        /** [KLogger] instance. */
+        private val logger: KLogger = KotlinLogging.logger {}
+
         override suspend fun segment(upstream: Flow<ContentElement<*>>, downstream: ProducerScope<Retrievable>) {
             upstream.collect { content ->
                 this.mutex.lock()
@@ -99,6 +109,8 @@ class FixedDurationSegmenter : SegmenterFactory {
                             }
                             this.lastSource = content.source
                             this.lastStartTime = 0
+                            this.sourceWritten = false
+                            logger.info { "Starting to segment new source ${lastSource?.name} (${lastSource?.sourceId})" }
                         }
                         this.cache.add(content)
                         val cutOffTime = this.lastStartTime + this.lengthNanos + this.lookAheadNanos
@@ -137,11 +149,13 @@ class FixedDurationSegmenter : SegmenterFactory {
                 override val source: Source = source
             }
 
-            /* Persist source retrievable and send it downstream, if it doesn't exist. */
-            if (!this.reader.exists(source.sourceId)) {
+            /* Persist source retrievable and send it downstream */
+            if (!this.sourceWritten) {
                 this.writer.add(sourceRetrievable)
                 downstream.send(sourceRetrievable)
+                this.sourceWritten = true
             }
+
 
             /* Drain cache. */
             val content = LinkedList<ContentElement<*>>()
@@ -156,7 +170,8 @@ class FixedDurationSegmenter : SegmenterFactory {
             }
 
             /* Prepare retrievable. */
-            val retrievable = Ingested(UUID.randomUUID(), "segment", false, content, emptyList(),mapOf("partOf" to listOf(sourceRetrievable)))
+            val retrievable = Ingested(UUID.randomUUID(), "segment", false, content, emptyList())
+            retrievable.relationships.add(Relationship(retrievable, "partOf", sourceRetrievable))
 
             /* Persist retrievable and relationship. */
             this.writer.add(retrievable)

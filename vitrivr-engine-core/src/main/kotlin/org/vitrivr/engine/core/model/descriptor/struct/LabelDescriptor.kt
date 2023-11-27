@@ -32,7 +32,7 @@ data class LabelDescriptor(
      */
     override fun schema(): List<FieldSchema> = SCHEMA
 
-    override fun values(): Map<String, Any?> = mapOf(
+    override fun values(): List<Pair<String, Any?>> = listOf(
         "label" to this.label,
         "confidence" to this.confidence
     )
