@@ -5,6 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.config.IndexConfig
 import org.vitrivr.engine.core.config.pipeline.Pipeline
 import org.vitrivr.engine.core.config.pipeline.PipelineBuilder
+import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.database.Connection
@@ -41,6 +42,9 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
 
     /** The [List] of [Exporter]s contained in this [Schema]. */
     private val exporters: MutableList<Schema.Exporter> = mutableListOf()
+
+    /** The [List] of [Pipeline]s contained in this [Schema]. */
+    private val executionServer: ExecutionServer = ExecutionServer.getInstance(this)
 
     /** The [List] of [Pipeline]s contained in this [Schema]. */
     private val extractionPipelines: MutableMap<String, PipelineBuilder> = mutableMapOf()
@@ -116,6 +120,8 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
 
     fun getPipelineBuilder(key: String): PipelineBuilder = this.extractionPipelines[key]
         ?: throw IllegalArgumentException("No pipeline with key '$key' found in schema '$name'.")
+
+    fun getExecutionServer(): ExecutionServer = this.executionServer
 
     /**
      * Closes this [Schema] and the associated database [Connection].
