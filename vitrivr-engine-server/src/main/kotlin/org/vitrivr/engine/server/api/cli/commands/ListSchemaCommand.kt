@@ -41,7 +41,7 @@ class ListSchemaCommand(private val manager: SchemaManager) : CliktCommand(name 
                         cell(schema.name)
                         cell(schema.fields().size)
                         cell(schema.connection.description())
-                        cell("${(initialized / total).roundToInt()}%")
+                        cell("${((initialized * 100) / total).roundToInt()}%")
                     }
                 }
             }

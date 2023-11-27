@@ -1,5 +1,7 @@
 plugins {
     id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
+    id 'maven-publish'
+    id 'signing'
 }
 
 dependencies {
@@ -14,4 +16,71 @@ dependencies {
 
     /** ScrImage (used for image resizing). */
     implementation group: 'com.sksamuel.scrimage', name: 'scrimage-core', version: version_scrimage
+}
+
+/* Publication of vitrivr engine index to Maven Central. */
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'org.vitrivr'
+            artifactId = 'vitrivr-engine-index'
+            version = System.getenv().getOrDefault("MAVEN_PUBLICATION_VERSION", version.toString())
+            from components.java
+            pom {
+                name = 'vitrivr Engine Core'
+                description = 'Default indexing and extraction components of the vitrivr multimedia retrieval engine.'
+                url = 'https://github.com/vitrivr/vitrivr-engine/'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'ppanopticon'
+                        name = 'Ralph Gasser'
+                        email = 'ralph.gasser@unibas.ch'
+                    }
+                    developer {
+                        id = 'lucaro'
+                        name = 'Luca Rossetto'
+                        email = 'rossetto@ifi.uzh.ch'
+                    }
+                    developer {
+                        id = 'net-cscience-raphael'
+                        name = 'Raphael Waltensül'
+                        email = 'raphael.waltenspuel@unibas.ch'
+                    }
+                    developer {
+                        id = 'rahelarnold98'
+                        name = 'Rahel Arnold'
+                        email = 'rahel.arnold@unibas.ch'
+                    }
+                    developer {
+                        id = 'rahelarnold98'
+                        name = 'faberf'
+                        email = 'fynnfirouz.faber@unibas.ch'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/vitrivr/vitrivr-engine.git'
+                    url = 'https://github.com/vitrivr/vitrivr-engine/'
+                }
+            }
+        }
+    }
+    repositories {
+        repositories {
+            maven {
+                def releasesRepoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+                def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
+                name = "OSSRH"
+                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+                credentials {
+                    username = System.getenv("MAVEN_USERNAME")
+                    password = System.getenv("MAVEN_PASSWORD")
+                }
+            }
+        }
+    }
 }

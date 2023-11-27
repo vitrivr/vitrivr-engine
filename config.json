@@ -30,6 +30,14 @@
           "parameters": {
             "key": "TemporalMetadata-value-schema"
           }
+        },
+        {
+          "name": "clip",
+          "factory": "CLIP"
+        },
+        {
+          "name": "dino",
+          "factory": "DINO"
         }
       ],
       "exporters": [
@@ -45,13 +53,112 @@
               "key": "DiskResolver-value-schema"
             }
           }
+        }
+      ],
+      "extractionPipelines" : [
+        {
+          "name": "image",
+          "path": "./config-pipelines/image-pipeline.json"
         },
-        "pipelines": [
-
-            ]
-          }
-        ]
+        {
+          "name": "video",
+          "path": "./config-pipelines/video-pipeline.json"
+        }
       ]
+    },
+    {
+      "name": "VBSLHE",
+      "connection": {
+        "database": "CottontailConnectionProvider",
+        "parameters": {
+          "host": "127.0.0.1",
+          "port": "1865"
+        }
+      },
+      "fields": [
+        {
+          "name": "averagecolor",
+          "factory": "AverageColor"
+        },
+        {
+          "name": "clip",
+          "factory": "CLIP"
+        },
+        {
+          "name": "dino",
+          "factory": "DINO"
+        },
+        {
+          "name": "file",
+          "factory": "FileMetadata"
+        },
+        {
+          "name": "time",
+          "factory": "TemporalMetadata"
+        }
+      ],
+      "exporters": [
+        {
+          "name": "thumbnail",
+          "factory": "ThumbnailExporter",
+          "parameters": {
+            "key": "ThumbnailExporter-value-schema"
+          },
+          "resolver": {
+            "factory": "DiskResolver",
+            "parameters": {
+              "key": "DiskResolver-value-schema"
+            }
+          }
+        }
+      ]
+    },
+    {
+    "name": "MVK",
+    "connection": {
+      "database": "CottontailConnectionProvider",
+      "parameters": {
+        "host": "127.0.0.1",
+        "port": "1865"
+      }
+    },
+    "fields": [
+      {
+        "name": "averagecolor",
+        "factory": "AverageColor"
+      },
+      {
+        "name": "clip",
+        "factory": "CLIP"
+      },
+      {
+        "name": "dino",
+        "factory": "DINO"
+      },
+      {
+        "name": "file",
+        "factory": "FileMetadata"
+      },
+      {
+        "name": "time",
+        "factory": "TemporalMetadata"
+      }
+    ],
+    "exporters": [
+      {
+        "name": "thumbnail",
+        "factory": "ThumbnailExporter",
+        "parameters": {
+          "key": "ThumbnailExporter-value-schema"
+        },
+        "resolver": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "key": "DiskResolver-value-schema"
+          }
+        }
+      }
+    ]
     }
   ]
 }

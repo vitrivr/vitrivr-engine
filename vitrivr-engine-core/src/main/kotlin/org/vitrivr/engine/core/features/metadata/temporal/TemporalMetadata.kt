@@ -27,7 +27,7 @@ import java.util.*
 private val logger: KLogger = KotlinLogging.logger {}
 
 class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor> {
-    override val contentClass = ContentElement::class
+    override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = TemporalMetadataDescriptor::class
 
     /**
@@ -56,7 +56,7 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
     ): TemporalMetadataExtractor {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         logger.debug { "Creating new TemporalMetadataExtractor for field '${field.fieldName}' with parameters $parameters." }
-        return TemporalMetadataExtractor(field, input, persisting)
+        return TemporalMetadataExtractor(input, field, persisting)
     }
 
     /**

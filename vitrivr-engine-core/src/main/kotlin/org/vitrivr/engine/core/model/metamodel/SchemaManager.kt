@@ -2,6 +2,10 @@ package org.vitrivr.engine.core.model.metamodel
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
+import org.vitrivr.engine.core.config.IndexConfig
 import org.vitrivr.engine.core.config.SchemaConfig
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
@@ -10,9 +14,13 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.operators.ingest.ExporterFactory
 import org.vitrivr.engine.core.resolver.ResolverFactory
 import org.vitrivr.engine.core.util.extension.loadServiceForName
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardOpenOption
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
+import kotlin.system.exitProcess
 
 private val logger: KLogger = KotlinLogging.logger {}
 
@@ -36,6 +44,7 @@ class SchemaManager {
      *
      * @param config The [SchemaConfig] to load.
      */
+    @OptIn(ExperimentalSerializationApi::class)
     fun load(config: SchemaConfig) {
         /* Close existing connection (if exists). */
         if (this.schemas.containsKey(config.name)) {
@@ -61,6 +70,14 @@ class SchemaManager {
                 it.parameters,
                 (loadServiceForName<ResolverFactory>(it.resolver.factory) ?: throw IllegalArgumentException("Failed to find resolver factory implementation for '${it.resolver.factory}'.")).newResolver(it.resolver.parameters),
             )
+        }
+        config.extractionPipelines.map {
+            val indexConfig = IndexConfig.read(Paths.get(it.path))
+                ?: throw IllegalArgumentException("Failed to read pipeline configuration from '${it.path}'.")
+            if (indexConfig.schema != schema.name) {
+                throw IllegalArgumentException("Schema name in pipeline configuration '${indexConfig.schema}' does not match schema name '${schema.name}'.")
+            }
+            schema.addPipeline(it.name, indexConfig)
         }
 
         /* Cache and return connection. */

@@ -23,7 +23,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @version 1.0.0
  */
 class  FileMetadata : Analyser<ContentElement<*>, FileMetadataDescriptor> {
-    override val contentClass = ContentElement::class
+    override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = FileMetadataDescriptor::class
 
     /**
@@ -46,7 +46,7 @@ class  FileMetadata : Analyser<ContentElement<*>, FileMetadataDescriptor> {
     override fun newExtractor(field: Schema.Field<ContentElement<*>, FileMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): FileMetadataExtractor {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         logger.debug { "Creating new FileMetadataExtractor for field '${field.fieldName}' with parameters $parameters." }
-        return FileMetadataExtractor(field, input, persisting)
+        return FileMetadataExtractor(input, field, persisting)
     }
 
     /**

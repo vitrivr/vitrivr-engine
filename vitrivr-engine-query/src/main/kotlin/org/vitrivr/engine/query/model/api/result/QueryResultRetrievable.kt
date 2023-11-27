@@ -6,10 +6,11 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
 typealias RetrievableIdString = String
 
 @Serializable
-data class QueryResultRetrievable(val id: RetrievableIdString, val score: Float, val parts: List<RetrievableIdString>) {
+data class QueryResultRetrievable(val id: RetrievableIdString, val score: Float, val type: String, val parts: MutableList<RetrievableIdString>) {
     constructor(retrieved: Retrieved) : this(
         retrieved.id.toString(),
         if (retrieved is Retrieved.RetrievedWithScore) retrieved.score else 0f,
-        emptyList()
-    ) /* TODO: Extract parts. */
+        retrieved.type ?: "",
+        mutableListOf()
+    )
 }

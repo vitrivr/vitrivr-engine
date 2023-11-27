@@ -2,7 +2,7 @@ package org.vitrivr.engine.base.database.cottontail.retrievable
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.grpc.StatusException
+import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.basics.expression.Column
 import org.vitrivr.cottontail.client.language.basics.expression.List
 import org.vitrivr.cottontail.client.language.basics.expression.Literal
@@ -47,10 +47,12 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
      * @param id [RetrievableId]s to return.
      * @return A [Sequence] of all [Retrievable].
      */
-    override fun get(id: RetrievableId): Retrievable? {
+    override fun get(id: RetrievableId): Retrievable? = getBy(id, RETRIEVABLE_ID_COLUMN_NAME)
+
+    override fun getBy(id: UUID, columnName: String): Retrievable? {
         val query = Query(this.entityName).where(
             Compare(
-                Column(this.entityName.column(RETRIEVABLE_ID_COLUMN_NAME)),
+                Column(this.entityName.column(columnName)),
                 Compare.Operator.EQUAL,
                 Literal(id.toString())
             )
@@ -60,8 +62,8 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
                 if (it.hasNext()) {
                     val tuple = it.next()
                     val retrievableId = UUID.fromString(
-                        tuple.asString(RETRIEVABLE_ID_COLUMN_NAME)
-                            ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
+                        tuple.asString(columnName)
+                            ?: throw IllegalArgumentException("The provided tuple is missing the required field '${columnName}'.")
                     )
                     val type = tuple.asString(RETRIEVABLE_TYPE_COLUMN_NAME)
                     Retrieved.Default(retrievableId, type, false) /* TODO: Use UUID type once supported. */
@@ -69,7 +71,7 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
                     null
                 }
             }
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to retrieve descriptor $id due to exception." }
             null
         }
@@ -93,7 +95,7 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
         return try {
             val result = this.connection.client.query(query)
             result.next().asBoolean(0) ?: false
-        } catch (e: StatusException) {
+        } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to check for existence of retrievable $id due to exception." }
             false
         }

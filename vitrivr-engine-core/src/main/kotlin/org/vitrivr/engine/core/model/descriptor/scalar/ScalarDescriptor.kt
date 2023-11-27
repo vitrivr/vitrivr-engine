@@ -18,5 +18,5 @@ sealed interface ScalarDescriptor<T> : Descriptor {
      *
      * @return A [Map] of this [ScalarDescriptor]'s fields (without the IDs).
      */
-    override fun values(): Map<String, T?> = mapOf("value" to this.value)
+    override fun values(): List<Pair<String, T?>> = listOf("value" to this.value)
 }
