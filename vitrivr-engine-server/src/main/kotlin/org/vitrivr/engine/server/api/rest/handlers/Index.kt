@@ -18,6 +18,7 @@ private val logger: KLogger = KotlinLogging.logger {}
 /**
  *
  * @author Ralph Gasser
+ * @author Raphael
  * @version 1.0
  */
 @OpenApi(
@@ -72,4 +73,43 @@ fun executeIngest(ctx: Context, schema: Schema) {
         }
         basepath.deleteIfExists()
     }
+}
+
+/**
+ *
+ * @author Raphael
+ * @version 1.0
+ */
+@OpenApi(
+    path = "/api/{schema}/index/{id}",
+    methods = [HttpMethod.GET],
+    summary = "Indexes an item, adding it to the defined schema.",
+    operationId = "postExecuteIngest",
+    tags = ["Ingest"],
+    pathParams = [
+        OpenApiParam(
+            "schema",
+            type = String::class,
+            description = "The name of the schema to execute a query for.",
+            required = true
+        ), OpenApiParam(
+            "id",
+            type = String::class,
+            description = "The id querying the state.",
+            required = true
+        )
+    ],
+    responses = [
+        OpenApiResponse("200", [OpenApiContent(Any::class)]),
+        OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)])
+    ]
+)
+fun executeIngestStatus(ctx: Context, schema: Schema) {
+    val id = try {
+        UUID.fromString(ctx.pathParam("id"))
+    } catch (e: Exception) {
+        throw ErrorStatusException(400, "Invalid request: ${e.message}")
+    }
+    val status = schema.getExecutionServer().isPending(id)
+    ctx.json(mapOf("status" to status))
 }
