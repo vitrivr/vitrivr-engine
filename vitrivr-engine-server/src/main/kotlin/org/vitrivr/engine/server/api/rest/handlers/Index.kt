@@ -5,13 +5,11 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import io.javalin.util.FileUtil
-import org.slf4j.event.LoggingEvent
-import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.server.api.helper.IndexThreadPool
 import org.vitrivr.engine.server.api.rest.model.ErrorStatus
 import org.vitrivr.engine.server.api.rest.model.ErrorStatusException
 import java.nio.file.Path
+import java.util.*
 import kotlin.io.path.deleteIfExists
 
 
@@ -49,8 +47,9 @@ fun executeIngest(ctx: Context, schema: Schema) {
     }
     val filestream: MutableList<Path> = mutableListOf()
     // folder with threadId to avoid deleting files from other threads
-    val threadId = Thread.currentThread().hashCode().toString() + Thread.currentThread().id.toString()
-    val basepath = Path.of("upload/$threadId/")
+    val uuid = UUID.randomUUID();
+    val basepath = Path.of("upload/$uuid/")
+
     try {
         ctx.uploadedFiles("data").forEach { uploadedFile ->
             val path = Path.of("$basepath/${uploadedFile.filename()}")
@@ -60,22 +59,10 @@ fun executeIngest(ctx: Context, schema: Schema) {
         val stream = filestream.stream()
         val pipelineBuilder = pipelineName?.let { schema.getPipelineBuilder(it) }
             ?: throw ErrorStatusException(400, "Invalid request: Pipeline '$pipelineName' does not exist.")
-        // ASYNC UUID
         val pipeline = pipelineBuilder.getApiPipeline(stream)
-        val id = IndexThreadPool.addThreadAndStart(
-            threadId, Thread {
-                try {
 
-                    ExecutionServer().extract(pipeline)
-                    logger.debug { "Thread ${Thread.currentThread().id} finished" }
-
-                } catch (e: Exception) {
-                    throw ErrorStatusException(400, "Invalid request: ${e.message}")
-                }
-            }
-        )
-        val ids = IndexThreadPool.cleanThreadPool()
-        ctx.json(mapOf("id" to id, "cleaned ids" to ids))
+        schema.getExecutionServer().enqueueIndexJob(pipeline, uuid)
+        ctx.json(mapOf("id" to uuid))
 
     } catch (e: Exception) {
         throw ErrorStatusException(400, "Invalid request: ${e.message}")

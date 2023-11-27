@@ -39,7 +39,6 @@ fun main(args: Array<String>) {
     }
 
     /* Initialize retrieval runtime. */
-    val executionServer = ExecutionServer()
     val runtime = RetrievalRuntime()
 
     /* Prepare Javalin endpoint. */
@@ -85,7 +84,7 @@ fun main(args: Array<String>) {
     /* Prepare CLI endpoint. */
     val cli = Cli(manager)
     for (schema in manager.listSchemas()) {
-        cli.register(SchemaCommand(schema, executionServer))
+        cli.register(SchemaCommand(schema, schema.getExecutionServer()))
     }
 
     /* Start the Javalin and CLI. */

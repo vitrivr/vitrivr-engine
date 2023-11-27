@@ -99,7 +99,7 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
             val config = IndexConfig.read(Paths.get(IndexConfig.DEFAULT_PIPELINE_PATH)) ?: return
             val pipelineBuilder = PipelineBuilder.forConfig(this.schema, config)
             val pipeline = pipelineBuilder.getPipeline()
-            this.server.extract(pipeline)
+            schema.getExecutionServer().enqueueIndexJob(pipeline)
         }
     }
 }
