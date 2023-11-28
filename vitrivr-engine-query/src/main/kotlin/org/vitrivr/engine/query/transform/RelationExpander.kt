@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
+import org.vitrivr.engine.core.model.retrievable.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Transformer
@@ -25,7 +26,7 @@ class RelationExpander(
             return@flow
         }
 
-        val relations = if (incomingRelations.isNotEmpty()) {
+        val relations = (if (incomingRelations.isNotEmpty()) {
             retrievableReader.getConnections(emptyList(), incomingRelations, ids)
         } else {
             emptySequence()
@@ -33,7 +34,7 @@ class RelationExpander(
             retrievableReader.getConnections(ids, outgoingRelations, emptyList())
         } else {
             emptySequence()
-        }
+        }).toList()
 
         val newIds = relations.flatMap { listOf(it.first, it.third) } - ids
 
@@ -43,13 +44,13 @@ class RelationExpander(
             (inputRetrieved.map { Retrieved.PlusRelationship(it) } + newRetrievables.map { Retrieved.WithRelationship(it) }).associateBy { it.id }
 
         relations.forEach { relation ->
-            val subject = allRetrieved[relation.first]!! //TODO handling missing entries more gracefully?
+            val sub = allRetrieved[relation.first]!! //TODO handling missing entries more gracefully?
             val obj = allRetrieved[relation.third]!!
-            if (subject.relationships.containsKey(relation.second)) {
-                (subject.relationships[relation.second]!! as MutableList).add(obj)
-            } else {
-                (subject.relationships as MutableMap)[relation.second] = mutableListOf(obj)
-            }
+
+            val expandedRelation = Relationship(sub, relation.second, obj)
+
+            (sub.relationships as MutableSet).add(expandedRelation)
+            (obj.relationships as MutableSet).add(expandedRelation)
         }
 
         allRetrieved.values.forEach {

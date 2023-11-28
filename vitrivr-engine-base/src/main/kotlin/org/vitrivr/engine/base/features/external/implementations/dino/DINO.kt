@@ -28,27 +28,12 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @version 1.0.0
  */
 class DINO : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
-    companion object {
-        /**
-         * Static method to request the DINO feature descriptor for the given [ContentElement].
-         *
-         * @param content The [ContentElement] for which to request the DINO feature descriptor.
-         * @return A list of DINO feature descriptors.
-         */
-        fun requestDescriptor(content: ContentElement<*>): List<Float> {
-            return DINO().httpRequest(content)
-        }
 
-
-    }
-
-    override val contentClass = ImageContent::class
+    override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = FloatVectorDescriptor::class
 
     // Default values for external API
-    override val endpoint: String = "/extract/dino"
-    override val host: String = "localhost"
-    override val port: Int = 8888
+    private val endpoint: String = "http://localhost:8888/extract/dino" //TODO make configurable
 
     // Size and list for prototypical descriptor
     override val size = 384
@@ -62,9 +47,7 @@ class DINO : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
      * @return A list of DINO feature descriptors.
      */
     override fun requestDescriptor(content: ContentElement<*>): List<Float> {
-        val a = httpRequest(content)
-        print(a)
-        return a
+        return httpRequest(content, endpoint)
     }
 
     /**
@@ -84,7 +67,7 @@ class DINO : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
     ): Extractor<ImageContent, FloatVectorDescriptor> {
         require(field.analyser == this) { "" }
         logger.debug { "Creating new DINOExtractor for field '${field.fieldName}' with parameters $parameters." }
-        return DINOExtractor(input, field, persisting)
+        return DINOExtractor(input, field, persisting, this)
     }
 
     /**

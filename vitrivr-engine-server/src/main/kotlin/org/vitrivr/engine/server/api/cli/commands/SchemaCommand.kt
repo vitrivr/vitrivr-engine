@@ -59,7 +59,7 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
                         row {
                             cell(field.fieldName)
                             cell(field.analyser::class.java.simpleName)
-                            cell(field.analyser.contentClass.simpleName)
+                            cell(field.analyser.contentClasses.map { it.simpleName }.joinToString())
                             cell(field.analyser.descriptorClass.simpleName)
                             cell(this@SchemaCommand.schema.connection.description())
                             cell(field.getInitializer().isInitialized())
@@ -99,7 +99,7 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
             val config = IndexConfig.read(Paths.get(IndexConfig.DEFAULT_PIPELINE_PATH)) ?: return
             val pipelineBuilder = PipelineBuilder.forConfig(this.schema, config)
             val pipeline = pipelineBuilder.getPipeline()
-            this.server.extract(pipeline)
+            schema.getExecutionServer().enqueueIndexJob(pipeline)
         }
     }
 }

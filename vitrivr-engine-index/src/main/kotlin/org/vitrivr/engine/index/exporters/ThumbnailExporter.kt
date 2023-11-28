@@ -17,8 +17,6 @@ import org.vitrivr.engine.core.operators.ingest.Exporter
 import org.vitrivr.engine.core.operators.ingest.ExporterFactory
 import org.vitrivr.engine.core.source.file.MimeType
 
-private val logger: KLogger = KotlinLogging.logger {}
-
 /**
  * An [Exporter] that generates thumbnails from videos and images.
  *
@@ -26,6 +24,8 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @version 1.0.0
  */
 class ThumbnailExporter : ExporterFactory {
+
+    private val logger: KLogger = KotlinLogging.logger {}
 
     /**
      * Creates a new [Exporter] instance from this [ThumbnailExporter].

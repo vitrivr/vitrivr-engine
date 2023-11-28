@@ -23,7 +23,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @version 1.0.0
  */
 class  FileMetadata : Analyser<ContentElement<*>, FileMetadataDescriptor> {
-    override val contentClass = ContentElement::class
+    override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = FileMetadataDescriptor::class
 
     /**

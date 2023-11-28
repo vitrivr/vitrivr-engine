@@ -41,6 +41,6 @@ class AverageColorExtractor(input: Operator<Retrievable>, field: Schema.Field<Im
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
         check(retrievable is RetrievableWithContent) { "Incoming retrievable is not a retrievable with source. This is a programmer's error!" }
         val content = retrievable.content.filterIsInstance<ImageContent>()
-        return (this.field.analyser as AverageColor).analyse(content)
+        return (this.field.analyser as AverageColor).analyse(content).map { it.copy(retrievableId = retrievable.id) }
     }
 }
