@@ -5,5 +5,27 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
 
 @Serializable
 data class QueryResult(val retrievables: List<QueryResultRetrievable>) {
-    constructor(retrieved: Collection<Retrieved>) : this(retrieved.map { QueryResultRetrievable(it) })
+
+    companion object {
+
+        private fun fromRetrieved(retrieved: Collection<Retrieved>) : List<QueryResultRetrievable> {
+
+            val results = retrieved.map { QueryResultRetrievable(it) }.associateBy { it.id }
+
+            //map partOf relations the right way around
+            retrieved.forEach { retrieved: Retrieved ->
+                if (retrieved is Retrieved.RetrievedWithRelationship) {
+                    retrieved.relationships.filter { it.pred == "partOf" && it.sub.first == retrieved.id }.forEach {
+                        results[it.obj.first.toString()]?.parts?.add(retrieved.id.toString())
+                    }
+                }
+            }
+
+            return results.values.toList().sortedByDescending { it.score }
+
+        }
+
+    }
+
+    constructor(retrieved: Collection<Retrieved>) : this(fromRetrieved(retrieved))
 }

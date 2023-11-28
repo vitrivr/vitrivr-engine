@@ -25,7 +25,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @version 1.0.0
  */
 class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
-    override val contentClass = ImageContent::class
+    override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = FloatVectorDescriptor::class
 
     /**

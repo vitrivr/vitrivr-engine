@@ -14,7 +14,7 @@ import java.util.*
 import kotlin.reflect.KClass
 
 class OCRSearch : Analyser<ImageContent,StringDescriptor> {
-    override val contentClass = ImageContent::class
+    override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = StringDescriptor::class
     override fun prototype(): StringDescriptor = StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), "", true)
     override fun newRetrieverForContent(field: Schema.Field<ImageContent, StringDescriptor>, content: Collection<ImageContent>, context: QueryContext): Retriever<ImageContent, StringDescriptor> {
