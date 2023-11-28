@@ -91,6 +91,10 @@ class FixedDurationSegmenter : SegmenterFactory {
         /** Reference to the last [Source] encountered by this [FixedDurationSegmenter]. */
         private var lastSource: Source? = null
 
+        /** Tracks if the current source retrievable has already been persisted. */
+        private var sourceWritten = false
+
+
         /** [KLogger] instance. */
         private val logger: KLogger = KotlinLogging.logger {}
 
@@ -105,6 +109,7 @@ class FixedDurationSegmenter : SegmenterFactory {
                             }
                             this.lastSource = content.source
                             this.lastStartTime = 0
+                            this.sourceWritten = false
                             logger.info { "Starting to segment new source ${lastSource?.name} (${lastSource?.sourceId})" }
                         }
                         this.cache.add(content)
@@ -144,11 +149,13 @@ class FixedDurationSegmenter : SegmenterFactory {
                 override val source: Source = source
             }
 
-            /* Persist source retrievable and send it downstream, if it doesn't exist. */
-            if (!this.reader.exists(source.sourceId)) {
+            /* Persist source retrievable and send it downstream */
+            if (!this.sourceWritten) {
                 this.writer.add(sourceRetrievable)
                 downstream.send(sourceRetrievable)
+                this.sourceWritten = true
             }
+
 
             /* Drain cache. */
             val content = LinkedList<ContentElement<*>>()
