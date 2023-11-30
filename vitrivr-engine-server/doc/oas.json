@@ -1,0 +1,268 @@
+{
+  "openapi" : "3.0.3",
+  "info" : {
+    "title" : "vitrivr engine API",
+    "description" : "API for the vitrivr engine.",
+    "version" : "1.0.0"
+  },
+  "paths" : {
+    "/api/schema/list" : {
+      "get" : {
+        "tags" : [ "Schema Management" ],
+        "summary" : "Lists the names of all available schemas.",
+        "operationId" : "getListSchemas",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/{schema}/fetch/{exporter}/{retrievableId}" : {
+      "get" : {
+        "tags" : [ "Content" ],
+        "summary" : "Fetch previously exported data.",
+        "operationId" : "getPreview",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "image/jpeg" : { }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/{schema}/index" : {
+      "post" : {
+        "tags" : [ "Ingest" ],
+        "summary" : "Indexes an item, adding it to the defined schema.",
+        "operationId" : "postExecuteIngest",
+        "parameters" : [ {
+          "name" : "schema",
+          "in" : "path",
+          "description" : "The name of the schema to execute a query for.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/{schema}/index/{id}" : {
+      "get" : {
+        "tags" : [ "Ingest" ],
+        "summary" : "Indexes an item, adding it to the defined schema.",
+        "operationId" : "postExecuteIngest",
+        "parameters" : [ {
+          "name" : "schema",
+          "in" : "path",
+          "description" : "The name of the schema to execute a query for.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "id",
+          "in" : "path",
+          "description" : "The id querying the state.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/{schema}/query" : {
+      "post" : {
+        "tags" : [ "Retrieval" ],
+        "summary" : "Executes a query and returns the query's results.",
+        "operationId" : "postExecuteQuery",
+        "parameters" : [ {
+          "name" : "schema",
+          "in" : "path",
+          "description" : "The name of the schema to execute a query for.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QueryResult"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "QueryResult" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "retrievables" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/QueryResultRetrievable"
+            }
+          }
+        },
+        "required" : [ "retrievables" ]
+      },
+      "QueryResultRetrievable" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "score" : {
+            "type" : "number",
+            "format" : "float"
+          },
+          "type" : {
+            "type" : "string"
+          },
+          "parts" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "id", "score", "type", "parts" ]
+      },
+      "ErrorStatus" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "message" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "message" ]
+      }
+    },
+    "securitySchemes" : {
+      "CookieAuth" : {
+        "in" : "cookie",
+        "name" : "SESSIONID",
+        "type" : "apiKey"
+      }
+    }
+  },
+  "servers" : [ ],
+  "security" : [ ]
+}

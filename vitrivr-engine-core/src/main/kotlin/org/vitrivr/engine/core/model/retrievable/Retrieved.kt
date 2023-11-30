@@ -21,6 +21,8 @@ interface Retrieved : Retrievable {
 
     interface RetrievedWithRelationship : Retrieved, RetrievableWithRelationship
 
+    interface RetrievedWithProperties: Retrieved, RetrievableWithProperties
+
     data class Default(override val id: UUID, override val type: String?, override val transient: Boolean) : Retrieved
 
 
@@ -105,6 +107,14 @@ interface Retrieved : Retrievable {
             is RetrievedWithDistance -> DistancePlusScore(retrieved, score)
             else -> RetrievedPlusScore(retrieved, score)
         }
+
+        fun PlusProperties(retrieved: Retrieved, properties: Map<String, String> = mutableMapOf()) = when(retrieved) {
+            is RetrievedWithProperties -> retrieved
+
+            //TODO other combinations
+
+            else -> RetrievedPlusProperties(retrieved, properties)
+        }
     }
 
     data class RetrievedPlusScore(private val retrieved: Retrieved, override val score: Float) : Retrieved by retrieved, RetrievedWithScore
@@ -126,4 +136,13 @@ interface Retrieved : Retrievable {
         retrieved: RetrievedWithScore,
         override val relationships: Set<Relationship> = mutableSetOf()
     ) : RetrievedWithScore by retrieved, RetrievedWithRelationship
+
+    class RetrievedPlusProperties(
+        retrieved: Retrieved,
+        override val properties: Map<String, String> = mutableMapOf()
+    ) : Retrieved by retrieved, RetrievedWithProperties
+
+
+
+
 }
