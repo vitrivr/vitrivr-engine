@@ -5,7 +5,7 @@ import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.jakewharton.picnic.table
 import org.vitrivr.engine.core.config.IndexConfig
-import org.vitrivr.engine.core.config.pipeline.PipelineBuilder
+import org.vitrivr.engine.core.config.pipeline.ExtractionPipelineBuilder
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.database.Initializer
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -100,7 +100,7 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
     inner class Extract(private val schema: Schema, private val executor: ExecutionServer) : CliktCommand(name = "extract", help = "Extracts data from a source and stores it in the schema.") {
         override fun run() {
             val config = IndexConfig.read(Paths.get(IndexConfig.DEFAULT_PIPELINE_PATH)) ?: return
-            val pipelineBuilder = PipelineBuilder.forConfig(this.schema, config)
+            val pipelineBuilder = ExtractionPipelineBuilder.forConfig(this.schema, config)
             val pipeline = pipelineBuilder.getPipeline()
             val uuid = this.executor.extractAsync(pipeline)
             println("Started extraction job with UUID $uuid.")

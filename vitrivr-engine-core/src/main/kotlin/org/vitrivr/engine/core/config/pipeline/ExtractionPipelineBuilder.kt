@@ -5,6 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.config.IndexConfig
 import org.vitrivr.engine.core.config.IndexContextFactory
 import org.vitrivr.engine.core.config.operators.*
+import org.vitrivr.engine.core.config.pipeline.execution.IndexingPipeline
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.metamodel.Analyser
@@ -13,7 +14,6 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.*
 import org.vitrivr.engine.core.util.extension.loadServiceForName
-import java.io.ObjectInputFilter
 import java.util.stream.Stream
 
 private val logger: KLogger = KotlinLogging.logger {}
@@ -26,20 +26,20 @@ private val logger: KLogger = KotlinLogging.logger {}
  * Pipleine setup
  * Enumerator: Source -> Decoder: ContentElement<*> -> Transformer: ContentElement<*> -> Segmenter: Ingested -> Extractor: Ingested -> Exporter: Ingested
  */
-class PipelineBuilder(val schema: Schema, val config: IndexConfig) {
+class ExtractionPipelineBuilder(val schema: Schema, val config: IndexConfig) {
 
     companion object {
         /**
-         * Creates a new [PipelineBuilder] using the provided [Schema] and [IndexConfig].
+         * Creates a new [ExtractionPipelineBuilder] using the provided [Schema] and [IndexConfig].
          *
-         * @param schema The [Schema] to create a [PipelineBuilder] for.
-         * @param config The [IndexConfig] to create a [PipelineBuilder] for.
+         * @param schema The [Schema] to create a [ExtractionPipelineBuilder] for.
+         * @param config The [IndexConfig] to create a [ExtractionPipelineBuilder] for.
          */
-        fun forConfig(schema: Schema, config: IndexConfig) = PipelineBuilder(schema, config)
+        fun forConfig(schema: Schema, config: IndexConfig) = ExtractionPipelineBuilder(schema, config)
     }
 
-    /** List of leaf operators held by this [PipelineBuilder]. */
-    private var pipeline: Pipeline? = null
+    /** List of leaf operators held by this [ExtractionPipelineBuilder]. */
+    private var pipeline: IndexingPipeline? = null
     private val context: IndexContext
 
     init {
@@ -233,18 +233,18 @@ class PipelineBuilder(val schema: Schema, val config: IndexConfig) {
     }
 
     /**
-     * Returns the [Operator] pipeline constructed by this [PipelineBuilder].
+     * Returns the [Operator] pipeline constructed by this [ExtractionPipelineBuilder].
      *
      * @return [List] of leaf [Operator]s.
      */
-    fun getPipeline(): Pipeline {
-        this.pipeline = Pipeline()
+    fun getPipeline(): IndexingPipeline {
+        this.pipeline = IndexingPipeline()
         this.parseEnumerator(this.config.enumerator, context)
         return this.pipeline!!
     }
 
-    fun getApiPipeline(inputFiles: Stream<*>): Pipeline {
-        this.pipeline = Pipeline()
+    fun getApiPipeline(inputFiles: Stream<*>): IndexingPipeline {
+        this.pipeline = IndexingPipeline()
         this.parseApiEnumerator(this.config.enumerator, context, inputFiles)
         return this.pipeline!!
     }

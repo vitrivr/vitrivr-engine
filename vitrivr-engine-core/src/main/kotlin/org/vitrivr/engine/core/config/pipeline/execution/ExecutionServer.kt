@@ -1,10 +1,11 @@
 package org.vitrivr.engine.core.config.pipeline.execution
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.takeWhile
-import org.vitrivr.engine.core.config.pipeline.Pipeline
+import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.operators.ingest.AbstractSegmenter
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -72,12 +73,28 @@ class ExecutionServer {
     }
 
     /**
-     * Executes an extraction [Pipeline] in a blocking fashion, i.e., the call will block until the [Pipeline] has been executed.
+     * Executes an extraction [IndexingPipeline] in a blocking fashion, i.e., the call will block until the [IndexingPipeline] has been executed.
      *
-     * @param pipeline The [Pipeline] to execute.
+     * This is mainly for testing purposes!
+     *
+     * @param pipeline The [IndexingPipeline] to execute.
+     */
+    fun extract(pipeline: IndexingPipeline) {
+        val jobId = UUID.randomUUID()
+        val scope = CoroutineScope(this@ExecutionServer.dispatcher) + CoroutineName("index-job-$jobId")
+        runBlocking {
+            val jobs = pipeline.getLeaves().map { e -> scope.launch { e.toFlow(this).takeWhile { it != AbstractSegmenter.TerminalRetrievable }.collect() } }
+            jobs.forEach { it.join() }
+        }
+    }
+
+    /**
+     * Executes an [IndexingPipeline] in a blocking fashion, i.e., the call will block until the [IndexingPipeline] has been executed.
+     *
+     * @param pipeline The [IndexingPipeline] to execute.
      * @return [UUID] identifying the job.
      */
-    fun extractAsync(pipeline: Pipeline): UUID {
+    fun extractAsync(pipeline: IndexingPipeline): UUID {
         val jobId = UUID.randomUUID()
         val scope = CoroutineScope(this@ExecutionServer.dispatcher) + CoroutineName("index-job-$jobId")
         val job = scope.launch {
@@ -100,18 +117,28 @@ class ExecutionServer {
     }
 
     /**
-     * Executes an extraction [Pipeline] in a blocking fashion, i.e., the call will block until the [Pipeline] has been executed.
-     *
-     * This is mainly for testing purposes!
-     *
-     * @param pipeline The [Pipeline] to execute.
+     * Executes a [RetrievalPipeline] in a blocking fashion, i.e., the call will block until the [IndexingPipeline] has been executed.
+
+     * @param pipeline The [RetrievalPipeline] to execute.
+     * @return The resulting [List] of [Retrieved]
      */
-    fun extract(pipeline: Pipeline) {
+    fun query(pipeline: RetrievalPipeline): List<Retrieved> {
         val jobId = UUID.randomUUID()
-        val scope = CoroutineScope(this@ExecutionServer.dispatcher) + CoroutineName("index-job-$jobId")
-        runBlocking {
-            val jobs = pipeline.getLeaves().map { e -> scope.launch { e.toFlow(this).takeWhile { it != AbstractSegmenter.TerminalRetrievable }.collect() } }
-            jobs.forEach { it.join() }
-        }
+        val scope = CoroutineScope(this@ExecutionServer.dispatcher) + CoroutineName("query-job-$jobId")
+        TODO()
+    }
+
+    /**
+     * Executes an [RetrievalPipeline] in an asynchronous fashion, sending all results to the provided [SendChannel].
+     *
+     * @param pipeline The [RetrievalPipeline] to execute.
+     * @param into The [SendChannel] to send the results to.
+     * @return The [UUID] of the resulting [Job].
+     */
+    fun queryAsync(pipeline: RetrievalPipeline, into: SendChannel<Retrieved>): UUID {
+        val jobId = UUID.randomUUID()
+        val scope = CoroutineScope(this@ExecutionServer.dispatcher) + CoroutineName("query-job-$jobId")
+        TODO()
+        return jobId
     }
 }
