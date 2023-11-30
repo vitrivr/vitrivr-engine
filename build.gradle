@@ -5,6 +5,8 @@ plugins {
     id 'java-library'
     id 'idea'
     id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
+    id 'org.openapi.generator' version '5.2.0'
+    id "de.undercouch.download" version "5.4.0"
 }
 
 allprojects {
@@ -92,4 +94,34 @@ subprojects {
 		implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: version_kotlinx_coroutines
         implementation group: 'org.jetbrains.kotlinx', name:'kotlinx-serialization-json', version: '1.6.0'
     }
+}
+
+/* Define required variables. */
+def fullOAS = 'http://localhost:7070/swagger-docs'
+def oasFile = "${project.projectDir}/vitrivr-engine-server/doc/oas.json"
+
+openApiGenerate {
+    generateApiTests = false
+    generateModelTests = false
+    validateSpec = false
+    skipValidateSpec = true
+
+    generatorName = 'typescript-angular'
+    inputSpec = oasFile
+    outputDir = file("${project.projectDir}/openapi/doc").toString()
+    configOptions = [
+            npmName: '@vitrivr-engine/api',
+            ngVersion: '13.2.3',
+            snapshot: 'true',
+            enumPropertyNaming: 'original'
+    ]
+}
+
+/**
+ * Task to generate OAS. Requires backend to run on default port.
+ */
+tasks.register('generateOAS', Download) {
+    /* This requires a locally running backend */
+    src fullOAS
+    dest oasFile
 }
