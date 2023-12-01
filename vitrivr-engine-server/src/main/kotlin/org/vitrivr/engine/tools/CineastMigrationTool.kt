@@ -567,8 +567,9 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
         migrationTool.load_idmap()
 
         runBlocking {
-            migrationTool.migrateAllFeatures()
+            migrationTool.migrateFeature("skeletonpose")
         }
+
 
 
         println("Migration completed successfully.")

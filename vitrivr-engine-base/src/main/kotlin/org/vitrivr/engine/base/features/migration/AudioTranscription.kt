@@ -12,7 +12,7 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
-class DummyStringAnalyzer : Analyser<ContentElement<*>, StringDescriptor> {
+class AudioTranscription : Analyser<ContentElement<*>, StringDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = StringDescriptor::class
     override fun prototype() = StringDescriptor(id= UUID.randomUUID(), retrievableId = UUID.randomUUID(), transient = true, value = "")
