@@ -9,8 +9,8 @@ import io.javalin.openapi.plugin.OpenApiPluginConfiguration
 import io.javalin.openapi.plugin.SecurityComponentConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin
-import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
+import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.query.execution.RetrievalRuntime
 import org.vitrivr.engine.server.api.cli.Cli
 import org.vitrivr.engine.server.api.cli.commands.SchemaCommand
@@ -38,8 +38,10 @@ fun main(args: Array<String>) {
         manager.load(schema)
     }
 
+    /* Execution server singleton for this instance. */
+    val executor = ExecutionServer()
+
     /* Initialize retrieval runtime. */
-    val executionServer = ExecutionServer()
     val runtime = RetrievalRuntime()
 
     /* Prepare Javalin endpoint. */
@@ -75,7 +77,7 @@ fun main(args: Array<String>) {
             )
         )
     }.routes {
-        configureApiRoutes(config.api, manager, runtime)
+        configureApiRoutes(config.api, manager, runtime, executor)
     }.exception(ErrorStatusException::class.java) { e, ctx ->
         ctx.status(e.statusCode).json(ErrorStatus(e.message))
     }.exception(Exception::class.java) { e, ctx ->
@@ -85,7 +87,7 @@ fun main(args: Array<String>) {
     /* Prepare CLI endpoint. */
     val cli = Cli(manager)
     for (schema in manager.listSchemas()) {
-        cli.register(SchemaCommand(schema, executionServer))
+        cli.register(SchemaCommand(schema, executor))
     }
 
     /* Start the Javalin and CLI. */

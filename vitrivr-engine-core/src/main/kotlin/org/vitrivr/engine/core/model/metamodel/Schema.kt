@@ -3,8 +3,8 @@ package org.vitrivr.engine.core.model.metamodel
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.config.IndexConfig
-import org.vitrivr.engine.core.config.pipeline.Pipeline
-import org.vitrivr.engine.core.config.pipeline.PipelineBuilder
+import org.vitrivr.engine.core.config.pipeline.ExtractionPipelineBuilder
+import org.vitrivr.engine.core.config.pipeline.execution.IndexingPipeline
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.database.Connection
@@ -42,8 +42,8 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
     /** The [List] of [Exporter]s contained in this [Schema]. */
     private val exporters: MutableList<Schema.Exporter> = mutableListOf()
 
-    /** The [List] of [Pipeline]s contained in this [Schema]. */
-    private val extractionPipelines: MutableMap<String, PipelineBuilder> = mutableMapOf()
+    /** The [List] of [IndexingPipeline]s contained in this [Schema]. */
+    private val extractionPipelines: MutableMap<String, ExtractionPipelineBuilder> = mutableMapOf()
 
     /**
      * Adds a new [Field] to this [Schema].
@@ -79,7 +79,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
      * @param resolver The [Resolver] instance.
      */
     fun addPipeline(name: String, config: IndexConfig) {
-        this.extractionPipelines[name] = PipelineBuilder(this, config)
+        this.extractionPipelines[name] = ExtractionPipelineBuilder(this, config)
     }
 
     /**
@@ -114,7 +114,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
     fun getExporter(name: String) = this.exporters.firstOrNull { it.name == name }
 
 
-    fun getPipelineBuilder(key: String): PipelineBuilder = this.extractionPipelines[key]
+    fun getPipelineBuilder(key: String): ExtractionPipelineBuilder = this.extractionPipelines[key]
         ?: throw IllegalArgumentException("No pipeline with key '$key' found in schema '$name'.")
 
     /**
