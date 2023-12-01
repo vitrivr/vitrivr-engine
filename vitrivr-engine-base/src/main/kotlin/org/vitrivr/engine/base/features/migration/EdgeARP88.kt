@@ -12,10 +12,10 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
-class Dummy16FloatVectorAnalyzer : Analyser<ContentElement<*>, FloatVectorDescriptor> {
+class EdgeARP88 : Analyser<ContentElement<*>, FloatVectorDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = FloatVectorDescriptor::class
-    override fun prototype() = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(16) { 0.0f }, transient=true)
+    override fun prototype() = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(64) { 0.0f }, transient=true)
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, FloatVectorDescriptor> {
         TODO("Not yet implemented")
     }

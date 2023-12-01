@@ -12,7 +12,7 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
-class Dummy512FloatVectorAnalyzer : Analyser<ContentElement<*>, FloatVectorDescriptor> {
+class SURFMF25K512 : Analyser<ContentElement<*>, FloatVectorDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = FloatVectorDescriptor::class
     override fun prototype() = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(512) { 0.0f }, transient=true)
