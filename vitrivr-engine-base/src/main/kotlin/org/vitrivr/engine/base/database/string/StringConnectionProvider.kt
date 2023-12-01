@@ -4,6 +4,9 @@ import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
 import org.vitrivr.engine.core.model.Persistable
 import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.RasterDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.SkeletonDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import java.io.OutputStream
 import kotlin.reflect.KClass
@@ -18,6 +21,8 @@ class StringConnectionProvider(internal val targetStream: OutputStream = System.
     init {
         /* Register all providers known to this CottontailConnection. */
         this.register(FloatVectorDescriptor::class, StringWriterProvider<FloatVectorDescriptor>())
+        this.register(StringDescriptor::class, StringWriterProvider<StringDescriptor>())
+
     }
 
     override fun openConnection(schemaName: String, parameters: Map<String, String>): StringConnection = StringConnection(this, schemaName, stringify)

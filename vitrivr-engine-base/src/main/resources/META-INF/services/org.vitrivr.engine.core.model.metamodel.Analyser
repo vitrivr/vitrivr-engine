@@ -2,3 +2,17 @@ org.vitrivr.engine.base.features.averagecolor.AverageColor
 org.vitrivr.engine.base.features.external.implementations.dino.DINO
 org.vitrivr.engine.base.features.external.implementations.clip.CLIP
 org.vitrivr.engine.base.features.OCRSearch.OCRSearch
+org.vitrivr.engine.base.features.migration.DummyStringAnalyzer
+org.vitrivr.engine.base.features.migration.SkeletonPose
+org.vitrivr.engine.base.features.migration.Dummy3FloatVectorAnalyzer
+org.vitrivr.engine.base.features.migration.Dummy12FloatVectorAnalyzer
+org.vitrivr.engine.base.features.migration.Dummy15FloatVectorAnalyzer
+org.vitrivr.engine.base.features.migration.Dummy16FloatVectorAnalyzer
+org.vitrivr.engine.base.features.migration.Dummy64FloatVectorAnalyzer
+org.vitrivr.engine.base.features.migration.Dummy80FloatVectorAnalyzer
+org.vitrivr.engine.base.features.migration.Dummy192FloatVectorAnalyzer
+org.vitrivr.engine.base.features.migration.Dummy256FloatVectorAnalyzer
+org.vitrivr.engine.base.features.migration.Dummy512FloatVectorAnalyzer
+org.vitrivr.engine.base.features.migration.Dummy1536FloatVectorAnalyzer
+org.vitrivr.engine.base.features.migration.Dummy2048FloatVectorAnalyzer
+org.vitrivr.engine.base.features.migration.AverageColorRaster

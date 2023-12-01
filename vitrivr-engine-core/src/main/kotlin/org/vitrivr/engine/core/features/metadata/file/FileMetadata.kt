@@ -6,7 +6,6 @@ import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.FileMetadataDescriptor
-import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
@@ -29,7 +28,7 @@ class  FileMetadata : Analyser<ContentElement<*>, FileMetadataDescriptor> {
     /**
      * Generates a prototypical [FileMetadataDescriptor] for this [FileMetadata].
      *
-     * @return [FloatVectorDescriptor]
+     * @return [FileMetadataDescriptor]
      */
     override fun prototype() = FileMetadataDescriptor(UUID.randomUUID(), UUID.randomUUID(), "", 0, true)
 
