@@ -16,6 +16,7 @@ import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.OBJECT_ID_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.PREDICATE_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.RETRIEVABLE_ID_COLUMN_NAME
+import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.RETRIEVABLE_TYPE_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.SUBJECT_ID_COLUMN_NAME
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.retrievable.Retrievable
@@ -45,8 +46,8 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
      */
     override fun add(item: Retrievable): Boolean {
         val insert = Insert(this.entityName)
-            .any("retrievableId", item.id.toString())
-            .any("type", item.type)
+            .any(RETRIEVABLE_ID_COLUMN_NAME, item.id.toString())
+            .any(RETRIEVABLE_TYPE_COLUMN_NAME, item.type)
         return try {
             return this.connection.client.insert(insert).use {
                 it.hasNext()
@@ -65,11 +66,10 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
     override fun addAll(items: Iterable<Retrievable>): Boolean {
         /* Prepare insert query. */
         var size = 0
-        val insert = BatchInsert(this.entityName).columns("id").columns("type")
+        val insert = BatchInsert(this.entityName).columns(RETRIEVABLE_ID_COLUMN_NAME, RETRIEVABLE_TYPE_COLUMN_NAME)
         for (item in items) {
             size += 1
-            insert.any(item.id)
-            insert.any(item.type)
+            insert.any(item.id.toString(), item.type)
         }
 
         /* Insert values. */
@@ -113,6 +113,24 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
             false
         }
     }
+
+    override fun connectAll(subjects: Iterable<RetrievableId>, predicate: String, objects: Iterable<RetrievableId>): Boolean {
+        var size = 0
+        val insert = BatchInsert(this.relationshipEntityName).columns(SUBJECT_ID_COLUMN_NAME, PREDICATE_COLUMN_NAME, OBJECT_ID_COLUMN_NAME)
+        subjects.zip(objects).forEach { (subject, obj) ->
+            size += 1
+            insert.values(StringValue(subject.toString()), StringValue(predicate), StringValue(obj.toString()))
+        }
+
+        return try {
+            this.connection.client.insert(insert).use { it.hasNext() }
+            true
+        } catch (e: StatusRuntimeException) {
+            logger.error(e) { "Failed to establish connection due to exception." }
+            false
+        }
+    }
+
 
     /**
      * Severs the specified connection between two [Retrievable]s.

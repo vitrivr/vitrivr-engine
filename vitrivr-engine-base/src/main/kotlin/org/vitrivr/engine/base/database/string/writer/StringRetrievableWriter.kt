@@ -11,6 +11,10 @@ class StringRetrievableWriter(outputStream: OutputStream, stringify: (Persistabl
         TODO("Not yet implemented")
     }
 
+    override fun connectAll(subjects: Iterable<RetrievableId>, predicate: String, objects: Iterable<RetrievableId>): Boolean {
+        TODO("Not yet implemented")
+    }
+
     override fun disconnect(subject: RetrievableId, predicate: String, `object`: RetrievableId): Boolean {
         TODO("Not yet implemented")
     }
