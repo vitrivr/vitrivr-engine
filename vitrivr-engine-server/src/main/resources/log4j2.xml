@@ -33,15 +33,15 @@ Valid values for this attribute are "off", "trace", "debug", "info", "warn", "er
         <logger name="org" level="INFO" additivity="true">
         </logger>
         <!-- For all in current package, overwrites org -->
-        <logger name="org.vitrivr.engine.base.*" level="INFO" additivity="true">
+        <logger name="org.vitrivr.engine.base" level="DEBUG" additivity="true">
         </logger>
-        <logger name="org.vitrivr.engine.core.*" level="INFO" additivity="true">
+        <logger name="org.vitrivr.engine.core" level="DEBUG" additivity="true">
         </logger>
         <logger name="org.vitrivr.engine.index" level="DEBUG" additivity="true">
         </logger>
-        <logger name="org.vitrivr.engine.query.*" level="INFO" additivity="true">
+        <logger name="org.vitrivr.engine.query" level="DEBUG" additivity="true">
         </logger>
-        <logger name="org.vitrivr.engine.server.*" level="INFO" additivity="true">
+        <logger name="org.vitrivr.engine.server" level="DEBUG" additivity="true">
         </logger>
         <!-- Root is fall back config if no matching logger is found -->
         <Root level="TRACE">
