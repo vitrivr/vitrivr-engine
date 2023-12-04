@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.model.content.element.m3d
+package org.vitrivr.engine.m3d
 
 import org.joml.Vector3f
 

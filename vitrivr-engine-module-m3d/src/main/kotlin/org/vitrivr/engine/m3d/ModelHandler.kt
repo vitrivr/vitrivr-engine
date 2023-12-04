@@ -1,4 +1,4 @@
-package org.vitrivr.cineast.core.data.m3d.texturemodel
+package org.vitrivr.engine.m3d
 
 
 import org.apache.logging.log4j.LogManager
@@ -7,12 +7,7 @@ import org.lwjgl.assimp.*
 import org.lwjgl.assimp.Assimp.*
 
 import org.lwjgl.system.MemoryStack
-import org.vitrivr.engine.core.model.content.element.m3d.Material
-import org.vitrivr.engine.core.model.content.element.m3d.Mesh
-import org.vitrivr.engine.core.model.content.element.m3d.Model
-import org.vitrivr.engine.core.model.content.element.m3d.Texture
 import java.io.File
-import java.io.FileWriter
 import java.nio.IntBuffer
 import java.util.*
 import kotlin.collections.ArrayList
@@ -133,9 +128,9 @@ class ModelHandler {
         LOGGER.trace("Try instantiate Model")
         aiReleaseImport(aiScene)
 
-        val model = Model(modelId, materialList)
+        val `🎲` = Model(modelId, materialList)
         LOGGER.trace("Try return Model")
-        return model
+        return `🎲`
     }
 
     private fun processIndices(aiMesh: AIMesh): IntArray {

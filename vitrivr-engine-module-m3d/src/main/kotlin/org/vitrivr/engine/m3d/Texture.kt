@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.model.content.element.m3d
+package org.vitrivr.engine.m3d
 
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
