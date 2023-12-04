@@ -1,10 +1,10 @@
-package org.vitrivr.engine.core.model.content.element.m3d
+package org.vitrivr.engine.m3d
 
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.vitrivr.engine.core.model.content.element.m3d.util.MinimalBoundingBox
+import org.vitrivr.engine.m3d.util.MinimalBoundingBox
 import java.util.*
 
 /**
