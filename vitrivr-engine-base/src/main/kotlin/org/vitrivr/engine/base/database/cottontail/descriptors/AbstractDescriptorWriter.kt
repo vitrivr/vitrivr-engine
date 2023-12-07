@@ -8,7 +8,7 @@ import org.vitrivr.cottontail.client.language.basics.expression.Literal
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.client.language.dml.Delete
 import org.vitrivr.cottontail.core.database.Name
-import org.vitrivr.cottontail.core.values.StringValue
+import org.vitrivr.cottontail.core.values.UuidValue
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -37,7 +37,7 @@ abstract class AbstractDescriptorWriter<D : Descriptor>(final override val field
             Compare(
                 Column(this.entityName.column(CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME)),
                 Compare.Operator.EQUAL,
-                Literal(item.id.toString())
+                Literal(UuidValue(item.id))
             )
         )
 
@@ -59,7 +59,7 @@ abstract class AbstractDescriptorWriter<D : Descriptor>(final override val field
      * @return True on success, false otherwise.
      */
     override fun deleteAll(items: Iterable<D>): Boolean {
-        val ids = items.map { StringValue(it.id.toString()) }
+        val ids = items.map { UuidValue(it.id) }
         val delete = Delete(this.entityName).where(
             Compare(
                 Column(this.entityName.column(CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME)),

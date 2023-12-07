@@ -11,6 +11,7 @@ import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.client.language.dql.Query
 import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.values.StringValue
+import org.vitrivr.cottontail.core.values.UuidValue
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.OBJECT_ID_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.PREDICATE_COLUMN_NAME
@@ -54,19 +55,17 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
             Compare(
                 Column(this.entityName.column(columnName)),
                 Compare.Operator.EQUAL,
-                Literal(id.toString())
+                Literal(UuidValue(id))
             )
         )
         return try {
             this.connection.client.query(query).use {
                 if (it.hasNext()) {
                     val tuple = it.next()
-                    val retrievableId = UUID.fromString(
-                        tuple.asString(columnName)
-                            ?: throw IllegalArgumentException("The provided tuple is missing the required field '${columnName}'.")
-                    )
+                    val retrievableId = tuple.asUuidValue(columnName)?.value
+                        ?: throw IllegalArgumentException("The provided tuple is missing the required field '${columnName}'.")
                     val type = tuple.asString(RETRIEVABLE_TYPE_COLUMN_NAME)
-                    Retrieved.Default(retrievableId, type, false) /* TODO: Use UUID type once supported. */
+                    Retrieved.Default(retrievableId, type, false)
                 } else {
                     null
                 }
@@ -89,7 +88,7 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
                 Compare(
                     Column(this.entityName.column(RETRIEVABLE_ID_COLUMN_NAME)),
                     Compare.Operator.EQUAL,
-                    Literal(id.toString())
+                    Literal(UuidValue(id))
                 )
             )
         return try {
@@ -112,16 +111,14 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
             Compare(
                 Column(Name.ColumnName(RETRIEVABLE_ID_COLUMN_NAME)),
                 Compare.Operator.IN,
-                List(ids.map { StringValue(it.toString()) }.toTypedArray())
+                List(ids.map { UuidValue(it) }.toTypedArray())
             )
         )
         return this.connection.client.query(query).asSequence().map { tuple ->
-            val retrievableId = UUID.fromString(
-                tuple.asString(RETRIEVABLE_ID_COLUMN_NAME)
-                    ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
-            )
+            val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value
+                ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
             val type = tuple.asString(RETRIEVABLE_TYPE_COLUMN_NAME)
-            Retrieved.Default(retrievableId, type, false) /* TODO: Use UUID type once supported. */
+            Retrieved.Default(retrievableId, type, false)
         }
     }
 
@@ -133,12 +130,10 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
     override fun getAll(): Sequence<Retrievable> {
         val query = Query(this.entityName).select("*")
         return this.connection.client.query(query).asSequence().map { tuple ->
-            val retrievableId = UUID.fromString(
-                tuple.asString(RETRIEVABLE_ID_COLUMN_NAME)
-                    ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
-            )
+            val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value
+                ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
             val type = tuple.asString(RETRIEVABLE_TYPE_COLUMN_NAME)
-            Retrieved.Default(retrievableId, type, false) /* TODO: Use UUID type once supported. */
+            Retrieved.Default(retrievableId, type, false)
         }
     }
 
@@ -169,7 +164,7 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
                 Compare(
                     Column(Name.ColumnName(SUBJECT_ID_COLUMN_NAME)),
                     Compare.Operator.IN,
-                    List(subjectIds.map { StringValue(it.toString()) }.toTypedArray())
+                    List(subjectIds.map { UuidValue(it) }.toTypedArray())
                 )
             } else {
                 null
@@ -187,7 +182,7 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
                 Compare(
                     Column(Name.ColumnName(OBJECT_ID_COLUMN_NAME)),
                     Compare.Operator.IN,
-                    List(objectIds.map { StringValue(it.toString()) }.toTypedArray())
+                    List(objectIds.map { UuidValue(it) }.toTypedArray())
                 )
             } else {
                 null
@@ -207,14 +202,13 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
         }
 
         return this.connection.client.query(query).asSequence().map { tuple ->
-            val s = tuple.asString(SUBJECT_ID_COLUMN_NAME)
+            val s = tuple.asUuidValue(SUBJECT_ID_COLUMN_NAME)?.value
                 ?: throw IllegalArgumentException("The provided tuple is missing the required field '${SUBJECT_ID_COLUMN_NAME}'.")
-            val p = tuple.asString(PREDICATE_COLUMN_NAME)
+            val p = tuple.asStringValue(PREDICATE_COLUMN_NAME)?.value
                 ?: throw IllegalArgumentException("The provided tuple is missing the required field '${PREDICATE_COLUMN_NAME}'.")
-            val o = tuple.asString(OBJECT_ID_COLUMN_NAME)
+            val o = tuple.asUuidValue(OBJECT_ID_COLUMN_NAME)?.value
                 ?: throw IllegalArgumentException("The provided tuple is missing the required field '${OBJECT_ID_COLUMN_NAME}'.")
-
-            Triple(UUID.fromString(s), p, UUID.fromString(o))
+            Triple(s, p, o)
         }
 
     }

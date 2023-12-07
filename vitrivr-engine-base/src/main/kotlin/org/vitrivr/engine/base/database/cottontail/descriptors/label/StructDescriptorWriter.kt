@@ -9,7 +9,7 @@ import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.client.language.dml.BatchInsert
 import org.vitrivr.cottontail.client.language.dml.Insert
 import org.vitrivr.cottontail.client.language.dml.Update
-import org.vitrivr.cottontail.core.values.StringValue
+import org.vitrivr.cottontail.core.values.UuidValue
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.base.database.cottontail.descriptors.AbstractDescriptorWriter
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
@@ -33,8 +33,8 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
      */
     override fun add(item: StructDescriptor): Boolean {
         val insert = Insert(this.entityName).values(
-            CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME to StringValue(item.id.toString()),
-            CottontailConnection.RETRIEVABLE_ID_COLUMN_NAME to StringValue(item.retrievableId.toString()),
+            CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME to UuidValue(item.id),
+            CottontailConnection.RETRIEVABLE_ID_COLUMN_NAME to UuidValue(item.retrievableId ?: throw IllegalArgumentException("A struct descriptor must be associated with a retrievable ID.")),
         )
 
         /* Append fields. */
@@ -78,8 +78,8 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
             }
             val inserts: Array<Any?> = Array(values.size + 2) {
                 when (it) {
-                    0 -> item.id.toString()
-                    1 -> item.retrievableId.toString()
+                    0 -> item.id
+                    1 -> item.retrievableId
                     else -> values[it - 2].second
                 }
             }
@@ -109,7 +109,7 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
             Compare(
                 Column(this.entityName.column(CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME)),
                 Compare.Operator.EQUAL,
-                Literal(item.id.toString())
+                Literal(UuidValue(item.id))
             )
         )
 

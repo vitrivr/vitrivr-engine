@@ -18,7 +18,6 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.BooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
-import java.util.*
 
 /**
  * An [AbstractDescriptorReader] for [ScalarDescriptor]s.
@@ -57,8 +56,8 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
      * @return The resulting [FloatVectorDescriptor].
      */
     override fun tupleToDescriptor(tuple: Tuple): StringDescriptor = StringDescriptor(
-        UUID.fromString(tuple.asString(RETRIEVABLE_ID_COLUMN_NAME) ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")),
-        UUID.fromString(tuple.asString(DESCRIPTOR_ID_COLUMN_NAME) ?: throw IllegalArgumentException("The provided tuple is missing the required field '${DESCRIPTOR_ID_COLUMN_NAME}'.")),
+        tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'."),
+        tuple.asUuidValue(DESCRIPTOR_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${DESCRIPTOR_ID_COLUMN_NAME}'."),
         tuple.asString(DESCRIPTOR_COLUMN_NAME) ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'.") /* TODO: Use UUID once supported. */
     )
 }

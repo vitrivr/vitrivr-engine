@@ -16,7 +16,6 @@ import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithScore
-import java.util.*
 
 /**
  * An [AbstractDescriptorReader] for [FloatVectorDescriptor]s.
@@ -54,22 +53,22 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
             }
 
             this.connection.client.query(cottontailQuery).asSequence().mapNotNull {
-                val retrievableId = it.asString(RETRIEVABLE_ID_COLUMN_NAME) ?: return@mapNotNull null
+                val retrievableId = it.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value ?: return@mapNotNull null
                 val distance =
                     (it.asFloat(DISTANCE_COLUMN_NAME) ?: it.asDouble(DISTANCE_COLUMN_NAME)?.toFloat())?.let { f ->
                         if (f.isNaN()) Float.MAX_VALUE else f
                     } ?: return@mapNotNull null
-                if (query.withDescriptor) { /* TODO: Use UUID type once supported. */
+                if (query.withDescriptor) {
                     val descriptor = tupleToDescriptor(it)
                     Retrieved.WithDistanceAndDescriptor(
-                        UUID.fromString(retrievableId),
+                        retrievableId,
                         null,
                         distance,
                         listOf(descriptor),
                         false
                     )
                 } else {
-                    Retrieved.WithDistance(UUID.fromString(retrievableId), null, distance, false)
+                    Retrieved.WithDistance(retrievableId, null, distance, false)
                 }
             }
         }
@@ -84,14 +83,10 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
      * @return The resulting [VectorDescriptor].
      */
     override fun tupleToDescriptor(tuple: Tuple): VectorDescriptor<*> {
-        val descriptorId = UUID.fromString(
-            tuple.asString(DESCRIPTOR_ID_COLUMN_NAME)
+        val descriptorId = tuple.asUuidValue(DESCRIPTOR_ID_COLUMN_NAME)?.value
                 ?: throw IllegalArgumentException("The provided tuple is missing the required field '${DESCRIPTOR_ID_COLUMN_NAME}'.")
-        )
-        val retrievableId = UUID.fromString(
-            tuple.asString(RETRIEVABLE_ID_COLUMN_NAME)
+        val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value
                 ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
-        )
         return when (this.prototype) {
             is BooleanVectorDescriptor -> BooleanVectorDescriptor(
                 descriptorId,
