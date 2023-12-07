@@ -12,6 +12,7 @@ import org.vitrivr.cottontail.client.language.dml.Delete
 import org.vitrivr.cottontail.client.language.dml.Insert
 import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.values.StringValue
+import org.vitrivr.cottontail.core.values.UuidValue
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.OBJECT_ID_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.PREDICATE_COLUMN_NAME
@@ -46,8 +47,8 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
      */
     override fun add(item: Retrievable): Boolean {
         val insert = Insert(this.entityName)
-            .any(RETRIEVABLE_ID_COLUMN_NAME, item.id.toString())
-            .any(RETRIEVABLE_TYPE_COLUMN_NAME, item.type)
+            .value(RETRIEVABLE_ID_COLUMN_NAME, UuidValue(item.id))
+            .any(RETRIEVABLE_TYPE_COLUMN_NAME, item.type?.let { StringValue(it) })
         return try {
             return this.connection.client.insert(insert).use {
                 it.hasNext()
@@ -69,7 +70,7 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
         val insert = BatchInsert(this.entityName).columns(RETRIEVABLE_ID_COLUMN_NAME, RETRIEVABLE_TYPE_COLUMN_NAME)
         for (item in items) {
             size += 1
-            insert.any(item.id.toString(), item.type)
+            insert.any(item.id, item.type)
         }
 
         /* Insert values. */
@@ -100,9 +101,9 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
      */
     override fun connect(subject: RetrievableId, predicate: String, `object`: RetrievableId): Boolean {
         val insert = Insert(this.relationshipEntityName)
-            .value(SUBJECT_ID_COLUMN_NAME, StringValue(subject.toString()))
+            .value(SUBJECT_ID_COLUMN_NAME, UuidValue(subject))
             .value(PREDICATE_COLUMN_NAME, StringValue(predicate))
-            .value(OBJECT_ID_COLUMN_NAME, StringValue(`object`.toString()))
+            .value(OBJECT_ID_COLUMN_NAME, UuidValue(`object`))
 
         /* Insert values. */
         return try {
@@ -119,7 +120,7 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
         val insert = BatchInsert(this.relationshipEntityName).columns(SUBJECT_ID_COLUMN_NAME, PREDICATE_COLUMN_NAME, OBJECT_ID_COLUMN_NAME)
         subjects.zip(objects).forEach { (subject, obj) ->
             size += 1
-            insert.values(StringValue(subject.toString()), StringValue(predicate), StringValue(obj.toString()))
+            insert.values(UuidValue(subject), StringValue(predicate), UuidValue(obj))
         }
 
         return try {
@@ -145,8 +146,8 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
             And(
                 Compare(Column(PREDICATE_COLUMN_NAME), Compare.Operator.EQUAL, Literal(StringValue(predicate))),
                 And(
-                    Compare(Column(OBJECT_ID_COLUMN_NAME), Compare.Operator.EQUAL, Literal(StringValue(`object`.toString()))),
-                    Compare(Column(SUBJECT_ID_COLUMN_NAME), Compare.Operator.EQUAL, Literal(StringValue(subject.toString())))
+                    Compare(Column(OBJECT_ID_COLUMN_NAME), Compare.Operator.EQUAL, Literal(UuidValue(`object`))),
+                    Compare(Column(SUBJECT_ID_COLUMN_NAME), Compare.Operator.EQUAL, Literal(UuidValue(subject)))
                 )
             )
         )
@@ -172,7 +173,7 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
             Compare(
                 Column(this.entityName.column(RETRIEVABLE_ID_COLUMN_NAME)),
                 Compare.Operator.EQUAL,
-                Literal(item.id.toString())
+                Literal(UuidValue(item.id))
             )
         )
 
@@ -193,7 +194,7 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
      * @return True on success, false otherwise.
      */
     override fun deleteAll(items: Iterable<Retrievable>): Boolean {
-        val ids = items.map { StringValue(it.id.toString()) }
+        val ids = items.map { UuidValue(it.id) }
         val delete = Delete(this.entityName).where(
             Compare(
                 Column(this.entityName.column(RETRIEVABLE_ID_COLUMN_NAME)),

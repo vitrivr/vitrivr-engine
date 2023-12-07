@@ -4,14 +4,12 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.basics.expression.Column
-import org.vitrivr.cottontail.client.language.basics.expression.List
 import org.vitrivr.cottontail.client.language.basics.expression.Literal
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.client.language.dml.BatchInsert
-import org.vitrivr.cottontail.client.language.dml.Delete
 import org.vitrivr.cottontail.client.language.dml.Insert
 import org.vitrivr.cottontail.client.language.dml.Update
-import org.vitrivr.cottontail.core.values.StringValue
+import org.vitrivr.cottontail.core.values.UuidValue
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.DESCRIPTOR_ID_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.RETRIEVABLE_ID_COLUMN_NAME
@@ -39,8 +37,8 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
      */
     override fun add(item: VectorDescriptor<*>): Boolean {
         val insert = Insert(this.entityName).values(
-            DESCRIPTOR_ID_COLUMN_NAME to StringValue(item.id.toString()),
-            RETRIEVABLE_ID_COLUMN_NAME to StringValue(item.retrievableId.toString()),
+            DESCRIPTOR_ID_COLUMN_NAME to UuidValue(item.id.toString()),
+            RETRIEVABLE_ID_COLUMN_NAME to UuidValue(item.retrievableId ?: throw IllegalArgumentException("A vector descriptor must be associated with a retrievable ID.")),
             DESCRIPTOR_COLUMN_NAME to item.toValue()
         )
         return try {
@@ -65,7 +63,7 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
         val insert = BatchInsert(this.entityName).columns(DESCRIPTOR_ID_COLUMN_NAME, RETRIEVABLE_ID_COLUMN_NAME, DESCRIPTOR_COLUMN_NAME)
         for (item in items) {
             size += 1
-            insert.values(StringValue(item.id.toString()), StringValue(item.retrievableId.toString()), item.toValue())
+            insert.values(UuidValue(item.id), UuidValue(item.retrievableId ?: throw IllegalArgumentException("A vector descriptor must be associated with a retrievable ID.")), item.toValue())
         }
 
         /* Insert values. */
@@ -89,7 +87,7 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
             Compare(
                 Column(this.entityName.column(DESCRIPTOR_ID_COLUMN_NAME)),
                 Compare.Operator.EQUAL,
-                Literal(item.id.toString())
+                Literal(UuidValue(item.id))
             )
         ).values(DESCRIPTOR_COLUMN_NAME to item.toValue())
 
@@ -99,57 +97,6 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
             true
         } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to update descriptor due to exception." }
-            false
-        }
-    }
-
-    /**
-     * Deletes (writes) a [VectorDescriptor] using this [VectorDescriptorWriter].
-     *
-     * @param item A [VectorDescriptor]s to delete.
-     * @return True on success, false otherwise.
-     */
-    override fun delete(item: VectorDescriptor<*>): Boolean {
-        val delete = Delete(this.entityName).where(
-            Compare(
-                Column(this.entityName.column(DESCRIPTOR_ID_COLUMN_NAME)),
-                Compare.Operator.EQUAL,
-                Literal(item.id.toString())
-            )
-        )
-
-        /* Delete values. */
-        return try {
-            this.connection.client.delete(delete)
-            true
-        } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to delete descriptor due to exception." }
-            false
-        }
-    }
-
-    /**
-     * Deletes (writes) a [VectorDescriptor] using this [VectorDescriptorWriter].
-     *
-     * @param items A [Iterable] of [VectorDescriptor]s to delete.
-     * @return True on success, false otherwise.
-     */
-    override fun deleteAll(items: Iterable<VectorDescriptor<*>>): Boolean {
-        val ids = items.map { StringValue(it.id.toString()) }
-        val delete = Delete(this.entityName).where(
-            Compare(
-                Column(this.entityName.column(DESCRIPTOR_ID_COLUMN_NAME)),
-                Compare.Operator.IN,
-                List(ids.toTypedArray())
-            )
-        )
-
-        /* Delete values. */
-        return try {
-            this.connection.client.delete(delete)
-            true
-        } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to delete descriptor due to exception." }
             false
         }
     }

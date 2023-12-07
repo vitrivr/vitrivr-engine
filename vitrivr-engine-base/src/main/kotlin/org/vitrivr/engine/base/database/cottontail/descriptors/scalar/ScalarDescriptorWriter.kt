@@ -9,7 +9,7 @@ import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.client.language.dml.BatchInsert
 import org.vitrivr.cottontail.client.language.dml.Insert
 import org.vitrivr.cottontail.client.language.dml.Update
-import org.vitrivr.cottontail.core.values.StringValue
+import org.vitrivr.cottontail.core.values.UuidValue
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.DESCRIPTOR_ID_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companion.RETRIEVABLE_ID_COLUMN_NAME
@@ -40,8 +40,8 @@ class ScalarDescriptorWriter(field: Schema.Field<*, ScalarDescriptor<*>>, connec
      */
     override fun add(item: ScalarDescriptor<*>): Boolean {
         val insert = Insert(this.entityName).values(
-            DESCRIPTOR_ID_COLUMN_NAME to StringValue(item.id.toString()),
-            RETRIEVABLE_ID_COLUMN_NAME to StringValue(item.retrievableId.toString()),
+            DESCRIPTOR_ID_COLUMN_NAME to UuidValue(item.id),
+            RETRIEVABLE_ID_COLUMN_NAME to UuidValue(item.retrievableId ?: throw IllegalArgumentException("A scalar descriptor must be associated with a retrievable ID.")),
             DESCRIPTOR_COLUMN_NAME to item.toValue()
         )
         return try {
@@ -66,7 +66,7 @@ class ScalarDescriptorWriter(field: Schema.Field<*, ScalarDescriptor<*>>, connec
         val insert = BatchInsert(this.entityName).columns(DESCRIPTOR_ID_COLUMN_NAME, RETRIEVABLE_ID_COLUMN_NAME, DESCRIPTOR_COLUMN_NAME)
         for (item in items) {
             size += 1
-            insert.values(StringValue(item.id.toString()), StringValue(item.retrievableId.toString()), item.toValue())
+            insert.values(UuidValue(item.id.toString()), UuidValue(item.retrievableId ?: throw IllegalArgumentException("A scalar descriptor must be associated with a retrievable ID.")), item.toValue())
         }
 
         /* Insert values. */
@@ -91,7 +91,7 @@ class ScalarDescriptorWriter(field: Schema.Field<*, ScalarDescriptor<*>>, connec
             Compare(
                 Column(this.entityName.column(DESCRIPTOR_ID_COLUMN_NAME)),
                 Compare.Operator.EQUAL,
-                Literal(item.id.toString())
+                Literal(UuidValue(item.id))
             )
         ).values(DESCRIPTOR_COLUMN_NAME to item.toValue())
 

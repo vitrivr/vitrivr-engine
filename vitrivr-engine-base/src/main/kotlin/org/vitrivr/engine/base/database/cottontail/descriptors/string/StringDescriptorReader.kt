@@ -8,10 +8,10 @@ import org.vitrivr.engine.base.database.cottontail.CottontailConnection.Companio
 import org.vitrivr.engine.base.database.cottontail.descriptors.AbstractDescriptorReader
 import org.vitrivr.engine.base.database.cottontail.descriptors.DESCRIPTOR_COLUMN_NAME
 import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
-import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.string.TextQuery
+import org.vitrivr.engine.core.model.retrievable.Retrieved
 import java.util.*
 
 class StringDescriptorReader(field: Schema.Field<*, StringDescriptor>, connection: CottontailConnection) : AbstractDescriptorReader<StringDescriptor>(field, connection) {
@@ -35,19 +35,11 @@ class StringDescriptorReader(field: Schema.Field<*, StringDescriptor>, connectio
     }
 
     override fun tupleToDescriptor(tuple: Tuple): StringDescriptor {
-        val descriptorId = UUID.fromString(
-                tuple.asString(CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME)
-                        ?: throw IllegalArgumentException("The provided tuple is missing the required field '${DESCRIPTOR_ID_COLUMN_NAME}'.")
-        )
-        val retrievableId = UUID.fromString(
-                tuple.asString(RETRIEVABLE_ID_COLUMN_NAME)
-                        ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
-        )
-        return StringDescriptor(
-                descriptorId,
-                retrievableId,
-                tuple.asString(DESCRIPTOR_COLUMN_NAME)
-                        ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'.")
-        )
+        val descriptorId = tuple.asUuidValue(DESCRIPTOR_ID_COLUMN_NAME)?.value
+            ?: throw IllegalArgumentException("The provided tuple is missing the required field '${DESCRIPTOR_ID_COLUMN_NAME}'.")
+        val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value
+            ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
+        val value = tuple.asString(DESCRIPTOR_COLUMN_NAME) ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'.")
+        return StringDescriptor(descriptorId, retrievableId, value)
     }
 }

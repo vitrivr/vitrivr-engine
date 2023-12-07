@@ -10,7 +10,6 @@ import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.retrievable.Retrieved
-import java.lang.IllegalStateException
 import java.util.*
 import kotlin.reflect.full.primaryConstructor
 
@@ -59,8 +58,8 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
     override fun tupleToDescriptor(tuple: Tuple): StructDescriptor {
         val constructor = this.field.analyser.descriptorClass.primaryConstructor ?: throw IllegalStateException("Provided type ${this.field.analyser.descriptorClass} does not have a primary constructor.")
         val parameters: MutableList<Any?> = mutableListOf(
-            UUID.fromString(tuple.asString(CottontailConnection.RETRIEVABLE_ID_COLUMN_NAME) ?: throw IllegalArgumentException("The provided tuple is missing the required field '${CottontailConnection.RETRIEVABLE_ID_COLUMN_NAME}'.")),
-            UUID.fromString(tuple.asString(CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME) ?: throw IllegalArgumentException("The provided tuple is missing the required field '${CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME}'.")),
+            tuple.asUuidValue(CottontailConnection.RETRIEVABLE_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${CottontailConnection.RETRIEVABLE_ID_COLUMN_NAME}'."),
+            tuple.asUuidValue(CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME}'."),
         )
 
         /* Append dynamic parameters of struct. */
