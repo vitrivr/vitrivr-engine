@@ -33,11 +33,24 @@ class RetrievalRuntime {
                 OperatorType.RETRIEVER -> {
                     operationDescription as RetrieverDescription
 
+                    val inputDescription = informationNeed.inputs[operationDescription.input]
+                        ?: throw IllegalArgumentException("Input '${operationDescription.input}' for operation '$operationName' not found")
+
+                    if (operationDescription.field.isEmpty()) { //special case, handle pass-through
+
+                        if(inputDescription.type != InputType.ID) {
+                            throw IllegalArgumentException("Only inputs of type ID are supported for direct retrievable lookup")
+                        }
+
+                        operators[operationName] = RetrievedLookup(
+                            schema.connection.getRetrievableReader(), listOf(UUID.fromString((inputDescription as RetrievableIdInputData).id))
+                        )
+
+                    }
+
                     val field = schema[operationDescription.field]
                         ?: throw IllegalArgumentException("Retriever '${operationDescription.field}' not defined in schema")
 
-                    val inputDescription = informationNeed.inputs[operationDescription.input]
-                        ?: throw IllegalArgumentException("Input '${operationDescription.input}' for operation '$operationName' not found")
 
                     val retriever = when (inputDescription.type) {
                         InputType.VECTOR -> {
