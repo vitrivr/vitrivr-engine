@@ -30,17 +30,17 @@ private val logger: KLogger = KotlinLogging.logger {}
 internal class RetrievableInitializer(private val connection: CottontailConnection) : RetrievableInitializer {
 
     /** The [Name.EntityName] for this [RetrievableInitializer]. */
-    private val entityName: Name.EntityName = Name.EntityName(this.connection.schemaName, CottontailConnection.RETRIEVABLE_ENTITY_NAME)
+    private val entityName: Name.EntityName = Name.EntityName.create(this.connection.schemaName, CottontailConnection.RETRIEVABLE_ENTITY_NAME)
 
     /** The [Name.EntityName] of the relationship entity. */
-    private val relationshipEntityName: Name.EntityName = Name.EntityName(this.connection.schemaName, CottontailConnection.RELATIONSHIP_ENTITY_NAME)
+    private val relationshipEntityName: Name.EntityName = Name.EntityName.create(this.connection.schemaName, CottontailConnection.RELATIONSHIP_ENTITY_NAME)
 
     /**
      * Initializes the entity that is used to store [Retrievable]s in Cottontail DB.
      */
     override fun initialize() {
         /* Create schema. */
-        val createSchema = CreateSchema(this.entityName.schemaName).ifNotExists()
+        val createSchema = CreateSchema(this.entityName.schema).ifNotExists()
         try {
             this.connection.client.create(createSchema)
         } catch (e: StatusRuntimeException) {
@@ -79,7 +79,7 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
      * @return True if entity has been initialized, false otherwise.
      */
     override fun isInitialized(): Boolean = try {
-        this.connection.client.list(ListEntities(this.entityName.schemaName)).asSequence().any {
+        this.connection.client.list(ListEntities(this.entityName.schema)).asSequence().any {
             Name.EntityName.parse(it.asString(0)!!) == this.entityName
         }
     } catch (e: StatusRuntimeException) {

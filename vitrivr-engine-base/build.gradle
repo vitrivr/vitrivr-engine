@@ -7,7 +7,7 @@ dependencies {
     api project(':vitrivr-engine-core')
 
     /** Cottontail DB Client. */
-    implementation group: 'org.vitrivr', name: 'cottontaildb-client', version: '0.16.0-SNAPSHOT'
+    implementation group: 'org.vitrivr', name: 'cottontaildb-client', version: '0.16.0'
 
     /** gRPC and Protobuf. */
     implementation group: 'io.grpc', name: 'grpc-all', version: version_grpc

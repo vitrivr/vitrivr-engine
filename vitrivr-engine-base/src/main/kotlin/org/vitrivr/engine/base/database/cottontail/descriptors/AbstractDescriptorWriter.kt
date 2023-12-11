@@ -24,7 +24,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  */
 abstract class AbstractDescriptorWriter<D : Descriptor>(final override val field: Schema.Field<*, D>, protected val connection: CottontailConnection) : DescriptorWriter<D> {
     /** The [Name.EntityName] used by this [Descriptor]. */
-    protected val entityName: Name.EntityName = Name.EntityName(this.field.schema.name, "${CottontailConnection.DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
+    protected val entityName: Name.EntityName = Name.EntityName.create(this.field.schema.name, "${CottontailConnection.DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
 
     /**
      * Deletes (writes) a [Descriptor] of type [D] using this [AbstractDescriptorWriter].
