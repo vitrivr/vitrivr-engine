@@ -110,6 +110,8 @@ interface Retrieved : Retrievable {
 
         fun PlusProperties(retrieved: Retrieved, properties: Map<String, String> = mutableMapOf()) = when(retrieved) {
             is RetrievedWithProperties -> retrieved
+            is ScorePlusRelationship -> ScorePlusRelationshipPlusProperties(retrieved, properties)
+
 
             //TODO other combinations
 
@@ -132,10 +134,15 @@ interface Retrieved : Retrievable {
         override val relationships: Set<Relationship> = mutableSetOf()
     ) : Retrieved by retrieved, RetrievedWithRelationship
 
-    class ScorePlusRelationship(
+    open class ScorePlusRelationship(
         retrieved: RetrievedWithScore,
         override val relationships: Set<Relationship> = mutableSetOf()
     ) : RetrievedWithScore by retrieved, RetrievedWithRelationship
+
+    class ScorePlusRelationshipPlusProperties(
+        retrieved: ScorePlusRelationship,
+        override val properties: Map<String, String> = mutableMapOf()
+    ) : ScorePlusRelationship(retrieved, retrieved.relationships), RetrievedWithProperties
 
     class RetrievedPlusProperties(
         retrieved: Retrieved,
