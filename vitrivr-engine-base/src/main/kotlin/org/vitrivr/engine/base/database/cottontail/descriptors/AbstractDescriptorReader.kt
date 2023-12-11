@@ -88,14 +88,9 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
         }
     }
 
-    /**
-     * Returns all [Descriptor]s of type [D] that are contained in the provided [Iterable] of UUIDs as a [Sequence].
-     *
-     * @return [Sequence] of all [Descriptor]s.
-     */
-    override fun getAll(ids: Iterable<UUID>): Sequence<D> {
+    override fun getAllBy(ids: Iterable<UUID>, columnName: String): Sequence<D> {
         val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
-            .where(Compare(Column(this.entityName.column(CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME)), Compare.Operator.IN, org.vitrivr.cottontail.client.language.basics.expression.List(ids.map { UuidValue(it) }.toTypedArray())))
+            .where(Compare(Column(this.entityName.column(columnName)), Compare.Operator.IN, org.vitrivr.cottontail.client.language.basics.expression.List(ids.map { UuidValue(it) }.toTypedArray())))
         return try {
             val result = this.connection.client.query(query)
             result.asSequence().map { this.tupleToDescriptor(it) }
@@ -104,6 +99,13 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
             emptySequence()
         }
     }
+
+    /**
+     * Returns all [Descriptor]s of type [D] that are contained in the provided [Iterable] of UUIDs as a [Sequence].
+     *
+     * @return [Sequence] of all [Descriptor]s.
+     */
+    override fun getAll(ids: Iterable<UUID>): Sequence<D> = getAllBy(ids, CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME)
 
     /**
      * Returns the number of [Descriptor]s contained in the entity managed by this [AbstractDescriptorReader]
