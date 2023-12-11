@@ -87,6 +87,8 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
             )
         }
 
+        parameters.add(false) //add 'transient' flag to false, since the results were actually retrieved
+
         /* Call constructor. */
         return constructor.call(*parameters.toTypedArray())
     }
