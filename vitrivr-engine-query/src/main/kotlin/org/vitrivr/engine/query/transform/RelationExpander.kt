@@ -38,7 +38,7 @@ class RelationExpander(
 
         val newIds = relations.flatMap { listOf(it.first, it.third) } - ids
 
-        val newRetrievables = retrievableReader.getAll(newIds.toList())
+        val newRetrievables = if (newIds.isNotEmpty()) retrievableReader.getAll(newIds.toList()) else emptySequence()
 
         val allRetrieved =
             (inputRetrieved.map { Retrieved.PlusRelationship(it) } + newRetrievables.map { Retrieved.WithRelationship(it) }).associateBy { it.id }
