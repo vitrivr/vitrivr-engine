@@ -42,6 +42,14 @@ interface Reader<out T : Persistable> {
     fun getAll(ids: Iterable<UUID>): Sequence<T>
 
     /**
+     * Returns a [Sequence] of all [Persistable] accessible by this [Reader] whose [UUID] is contained in a specified columnName in the provided [Iterable].
+     *
+     * @param ids A [Iterable] of [UUID]s to return.
+     * @return [Sequence] of [Persistable] of type [T]
+     */
+    fun getAllBy(ids: Iterable<UUID>, columnName: String): Sequence<T>
+
+    /**
      * Returns a [Sequence] of all [Persistable] accessible by this [Reader].
      *
      * @return [Sequence] of [Persistable] of type [T]

@@ -106,10 +106,12 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
      * @param ids A [Iterable] of [RetrievableId]s to return.
      * @return A [Sequence] of all [Retrievable].
      */
-    override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrievable> {
+    override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrievable> = getAllBy(ids, RETRIEVABLE_ID_COLUMN_NAME)
+
+    override fun getAllBy(ids: Iterable<UUID>, columnName: String): Sequence<Retrievable> {
         val query = Query(this.entityName).select("*").where(
             Compare(
-                Column(Name.ColumnName(RETRIEVABLE_ID_COLUMN_NAME)),
+                Column(Name.ColumnName(columnName)),
                 Compare.Operator.IN,
                 List(ids.map { UuidValue(it) }.toTypedArray())
             )
