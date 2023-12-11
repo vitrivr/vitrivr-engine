@@ -28,13 +28,13 @@ class FieldLookup(
             return@flow
         }
 
-        val descriptors = reader.getAll(ids).filter { it.retrievableId != null }.associateBy { it.retrievableId!! }
+        val descriptors = reader.getAllBy(ids, "retrievableId").filter { it.retrievableId != null }.associateBy { it.retrievableId!! }
 
-        inputRetrieved.forEach {
+        inputRetrieved.forEach {retrieved ->
 
-            val withProperties = Retrieved.PlusProperties(it)
+            val descriptor = descriptors[retrieved.id]
 
-            val descriptor = descriptors[it.id]
+            val withProperties = Retrieved.PlusProperties(retrieved)
 
             if (descriptor != null) {
                 val values = descriptor.values().toMap()
