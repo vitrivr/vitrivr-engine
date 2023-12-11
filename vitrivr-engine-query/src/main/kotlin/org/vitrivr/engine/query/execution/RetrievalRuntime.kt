@@ -46,6 +46,8 @@ class RetrievalRuntime {
                             schema.connection.getRetrievableReader(), listOf(UUID.fromString((inputDescription as RetrievableIdInputData).id))
                         )
 
+                        return@forEach
+
                     }
 
                     val field = schema[operationDescription.field]
