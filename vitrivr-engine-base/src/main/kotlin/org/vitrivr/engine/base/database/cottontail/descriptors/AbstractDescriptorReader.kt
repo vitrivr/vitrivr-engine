@@ -27,7 +27,7 @@ private val logger: KLogger = KotlinLogging.logger {}
 abstract class AbstractDescriptorReader<D : Descriptor>(final override val field: Schema.Field<*, D>, protected val connection: CottontailConnection) : DescriptorReader<D> {
 
     /** The [Name.EntityName] used by this [Descriptor]. */
-    protected val entityName: Name.EntityName = Name.EntityName(this.field.schema.name, "${CottontailConnection.DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
+    protected val entityName: Name.EntityName = Name.EntityName.create(this.field.schema.name, "${CottontailConnection.DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
 
     /**
      * Returns a single [Descriptor]s of type [D] that has the provided [UUID].

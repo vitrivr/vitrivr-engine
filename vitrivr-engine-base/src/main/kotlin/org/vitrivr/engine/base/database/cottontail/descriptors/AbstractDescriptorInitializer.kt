@@ -17,7 +17,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  */
 abstract class AbstractDescriptorInitializer<D : Descriptor>(final override val field: Schema.Field<*, D>, protected val connection: CottontailConnection) : DescriptorInitializer<D> {
     /** The [Name.EntityName] used by this [Descriptor]. */
-    protected val entityName: Name.EntityName = Name.EntityName(this.field.schema.name, "${CottontailConnection.DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
+    protected val entityName: Name.EntityName = Name.EntityName.create(this.field.schema.name, "${CottontailConnection.DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
 
     /**
      * Checks if the schema for this [AbstractDescriptorInitializer] has been properly initialized.
@@ -25,7 +25,7 @@ abstract class AbstractDescriptorInitializer<D : Descriptor>(final override val 
      * @return True if entity has been initialized, false otherwise.
      */
     override fun isInitialized(): Boolean = try {
-        this.connection.client.list(ListEntities(this.entityName.schemaName)).asSequence().any {
+        this.connection.client.list(ListEntities(this.entityName.schema)).asSequence().any {
             Name.EntityName.parse(it.asString(0)!!) == this.entityName
         }
     } catch (e: StatusRuntimeException) {
