@@ -109,8 +109,8 @@ interface Retrieved : Retrievable {
         }
 
         fun PlusProperties(retrieved: Retrieved, properties: Map<String, String> = mutableMapOf()) = when(retrieved) {
-            is ScorePlusRelationship -> ScorePlusRelationshipPlusProperties(retrieved, properties)
             is RetrievedWithProperties -> retrieved
+            is ScorePlusRelationship -> ScorePlusRelationshipPlusProperties(retrieved, properties)
             is RetrievedWithRelationship -> RetrievedPlusRelationshipPlusProperties(retrieved, properties)
 
 
