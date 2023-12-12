@@ -2,8 +2,8 @@
   "openapi" : "3.0.3",
   "info" : {
     "title" : "vitrivr engine API",
-    "description" : "API for the vitrivr engine.",
-    "version" : "1.0.0"
+    "version" : "1.0.0",
+    "description" : "API for the vitrivr engine."
   },
   "paths" : {
     "/api/schema/list" : {
@@ -91,7 +91,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "object"
+                  "$ref" : "#/components/schemas/IngestStatus"
                 }
               }
             }
@@ -111,7 +111,7 @@
         "security" : [ ]
       }
     },
-    "/api/{schema}/index/{id}" : {
+    "/api/{schema}/index/{jobId}" : {
       "get" : {
         "tags" : [ "Ingest" ],
         "summary" : "Indexes an item, adding it to the defined schema.",
@@ -127,7 +127,7 @@
             "type" : "string"
           }
         }, {
-          "name" : "id",
+          "name" : "jobId",
           "in" : "path",
           "description" : "The id querying the state.",
           "required" : true,
@@ -143,7 +143,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "object"
+                  "$ref" : "#/components/schemas/IngestStatus"
                 }
               }
             }
@@ -179,6 +179,16 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/InformationNeedDescription"
+              }
+            }
+          },
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -208,6 +218,72 @@
   },
   "components" : {
     "schemas" : {
+      "ExecutionStatus" : {
+        "type" : "string",
+        "enum" : [ "UNKNOWN", "RUNNING", "FAILED", "COMPLETED" ]
+      },
+      "QueryContext" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "property" : {
+            "type" : "string"
+          }
+        }
+      },
+      "InformationNeedDescription" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "inputs" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/InputData"
+            }
+          },
+          "operations" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/OperatorDescription"
+            }
+          },
+          "output" : {
+            "type" : "string"
+          },
+          "context" : {
+            "$ref" : "#/components/schemas/QueryContext"
+          }
+        },
+        "required" : [ "inputs", "operations", "output", "context" ]
+      },
+      "InputData" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/InputType"
+          }
+        },
+        "required" : [ "type" ]
+      },
+      "InputType" : {
+        "type" : "string",
+        "enum" : [ "TEXT", "IMAGE", "VECTOR", "ID" ]
+      },
+      "OperatorDescription" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/OperatorType"
+          }
+        },
+        "required" : [ "type" ]
+      },
+      "OperatorType" : {
+        "type" : "string",
+        "enum" : [ "RETRIEVER", "TRANSFORMER", "AGGREGATOR" ]
+      },
       "QueryResult" : {
         "type" : "object",
         "additionalProperties" : false,
@@ -253,6 +329,23 @@
           }
         },
         "required" : [ "message" ]
+      },
+      "IngestStatus" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "jobId" : {
+            "type" : "string"
+          },
+          "executionStatus" : {
+            "$ref" : "#/components/schemas/ExecutionStatus"
+          },
+          "timestamp" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "jobId", "executionStatus", "timestamp" ]
       }
     },
     "securitySchemes" : {
