@@ -54,7 +54,7 @@ class TemporalSequenceAggregator(
                 }
 
                 //get all valid segments per source, sorted by time if available
-                val segments = source.relationships.asSequence().filter { it.pred == "partOf" && it.obj == source }
+                val segments = source.relationships.asSequence().filter { it.pred == "partOf" && it.obj.first == source.id }
                     .mapNotNull { retrievedMap[it.sub.first] }.filterIsInstance<Retrieved.RetrievedWithProperties>()
                     .filter { it.properties["start"]?.toLongOrNull() != null && it.properties["end"]?.toLongOrNull() != null }
                     .sortedBy { it.properties["start"]!!.toLong() }.toList()
@@ -168,6 +168,10 @@ class TemporalSequenceAggregator(
             val relationships = sequence.flatMap {
                 it.retrieved.map { r -> Relationship(r.id to null, "partOf", id to null) }
             }.toSet()
+
+            if (relationships.size < 2) {
+                return@forEach
+            }
 
             emit(
                 Retrieved.ScorePlusRelationship(

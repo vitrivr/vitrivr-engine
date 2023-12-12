@@ -98,6 +98,7 @@ interface Retrieved : Retrievable {
         fun PlusRelationship(retrieved: Retrieved, relationships: Set<Relationship> = mutableSetOf()) =
             when(retrieved) {
                 is RetrievedWithRelationship -> retrieved
+                is ScorePlusProperties -> ScorePlusRelationshipPlusProperties(retrieved, retrieved.properties, relationships)
                 is RetrievedWithScore -> ScorePlusRelationship(retrieved, relationships)
                 else -> RetrievedPlusRelationship(retrieved, relationships)
             }
@@ -110,8 +111,9 @@ interface Retrieved : Retrievable {
 
         fun PlusProperties(retrieved: Retrieved, properties: Map<String, String> = mutableMapOf()) = when(retrieved) {
             is RetrievedWithProperties -> retrieved
-            is ScorePlusRelationship -> ScorePlusRelationshipPlusProperties(retrieved, properties)
+            is ScorePlusRelationship -> ScorePlusRelationshipPlusProperties(retrieved, properties, retrieved.relationships)
             is RetrievedWithRelationship -> RetrievedPlusRelationshipPlusProperties(retrieved, properties)
+            is RetrievedWithScore -> ScorePlusProperties(retrieved)
 
 
             //TODO other combinations
@@ -133,27 +135,57 @@ interface Retrieved : Retrievable {
     open class RetrievedPlusRelationship(
         retrieved: Retrieved,
         override val relationships: Set<Relationship> = mutableSetOf()
-    ) : Retrieved by retrieved, RetrievedWithRelationship
+    ) : Retrieved by retrieved, RetrievedWithRelationship {
+        override fun toString(): String {
+            return "RetrievedPlusRelationship(relationships=$relationships)"
+        }
+    }
 
     class RetrievedPlusRelationshipPlusProperties(
         retrieved: RetrievedWithRelationship,
         override val properties: Map<String, String> = mutableMapOf()
-    ) : RetrievedPlusRelationship(retrieved, retrieved.relationships), RetrievedWithProperties
+    ) : RetrievedPlusRelationship(retrieved, retrieved.relationships), RetrievedWithProperties {
+        override fun toString(): String {
+            return "RetrievedPlusRelationshipPlusProperties(properties=$properties)"
+        }
+    }
 
     open class ScorePlusRelationship(
         retrieved: RetrievedWithScore,
         override val relationships: Set<Relationship> = mutableSetOf()
-    ) : RetrievedWithScore by retrieved, RetrievedWithRelationship
+    ) : RetrievedWithScore by retrieved, RetrievedWithRelationship {
+        override fun toString(): String {
+            return "ScorePlusRelationship(relationships=$relationships)"
+        }
+    }
 
     class ScorePlusRelationshipPlusProperties(
-        retrieved: ScorePlusRelationship,
+        retrieved: RetrievedWithScore,
+        override val properties: Map<String, String> = mutableMapOf(),
+        override val relationships: Set<Relationship> = mutableSetOf()
+    ) : RetrievedWithScore by retrieved, RetrievedWithRelationship, RetrievedWithProperties {
+        override fun toString(): String {
+            return "ScorePlusRelationshipPlusProperties(properties=$properties, relationships=$relationships)"
+        }
+    }
+
+    class ScorePlusProperties(
+        retrieved: RetrievedWithScore,
         override val properties: Map<String, String> = mutableMapOf()
-    ) : ScorePlusRelationship(retrieved, retrieved.relationships), RetrievedWithProperties
+    ): RetrievedWithScore by retrieved, RetrievedWithProperties {
+        override fun toString(): String {
+            return "ScorePlusProperties(properties=$properties)"
+        }
+    }
 
     class RetrievedPlusProperties(
         retrieved: Retrieved,
         override val properties: Map<String, String> = mutableMapOf()
-    ) : Retrieved by retrieved, RetrievedWithProperties
+    ) : Retrieved by retrieved, RetrievedWithProperties {
+        override fun toString(): String {
+            return "RetrievedPlusProperties(properties=$properties)"
+        }
+    }
 
 
 

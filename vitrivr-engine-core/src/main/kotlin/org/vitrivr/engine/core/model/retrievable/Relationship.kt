@@ -29,4 +29,9 @@ data class Relationship(
         return result
     }
 
+    override fun toString(): String {
+        return "Relationship(sub=(${sub.first}, ${sub.second?.javaClass?.simpleName}), pred='$pred', obj=(${obj.first}, ${sub.second?.javaClass?.simpleName}))"
+    }
+
+
 }
