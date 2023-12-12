@@ -9,6 +9,8 @@ import io.javalin.openapi.plugin.OpenApiPluginConfiguration
 import io.javalin.openapi.plugin.SecurityComponentConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin
+import io.javalin.plugin.bundled.CorsPlugin
+import io.javalin.plugin.bundled.CorsPluginConfig
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.query.execution.RetrievalRuntime
@@ -48,6 +50,7 @@ fun main(args: Array<String>) {
     val javalin = Javalin.create { c ->
         c.jsonMapper(KotlinxJsonMapper)
 
+
         /* Registers Open API plugin. */
         c.plugins.register(
             OpenApiPlugin(
@@ -66,6 +69,9 @@ fun main(args: Array<String>) {
             )
         )
         c.http.maxRequestSize = 1024 * 1024 * 1024 /* 1GB */
+
+        c.plugins.enableCors { u -> u.add(CorsPluginConfig::anyHost) }
+
 
         /* Registers Swagger Plugin. */
         c.plugins.register(
