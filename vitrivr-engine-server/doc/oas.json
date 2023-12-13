@@ -316,9 +316,15 @@
             "items" : {
               "type" : "string"
             }
+          },
+          "properties" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
           }
         },
-        "required" : [ "id", "score", "type", "parts" ]
+        "required" : [ "id", "score", "type", "parts", "properties" ]
       },
       "ErrorStatus" : {
         "type" : "object",
