@@ -12,4 +12,4 @@ import org.vitrivr.engine.core.model.query.Query
  * @author Ralph Gasser
  * @version 1.0.0
  */
-data class TextQuery(override val descriptor: StringDescriptor) : Query<StringDescriptor>
+data class TextQuery(override val descriptor: StringDescriptor, val limit: Long = Long.MAX_VALUE) : Query<StringDescriptor>

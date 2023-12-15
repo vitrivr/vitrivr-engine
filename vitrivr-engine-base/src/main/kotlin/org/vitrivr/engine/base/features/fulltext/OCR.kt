@@ -1,4 +1,4 @@
-package org.vitrivr.engine.base.features.ocr
+package org.vitrivr.engine.base.features.fulltext
 
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
@@ -31,7 +31,7 @@ class OCR : Analyser<ContentElement<*>, StringDescriptor> {
 
     override fun newRetrieverForDescriptors(field: Schema.Field<ContentElement<*>, StringDescriptor>, descriptors: Collection<StringDescriptor>, context: QueryContext): Retriever<ContentElement<*>, StringDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        return OCRRetriever(field, descriptors.first(), context)
+        return FulltextRetriever(field, descriptors.first(), context)
     }
 
     override fun newExtractor(field: Schema.Field<ContentElement<*>, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): Extractor<ContentElement<*>, StringDescriptor> {

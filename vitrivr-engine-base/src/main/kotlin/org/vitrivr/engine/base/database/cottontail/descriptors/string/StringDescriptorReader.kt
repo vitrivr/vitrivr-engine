@@ -29,7 +29,12 @@ class StringDescriptorReader(field: Schema.Field<*, StringDescriptor>, connectio
         val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName).select(RETRIEVABLE_ID_COLUMN_NAME)
 
         when (query) {
-            is TextQuery -> cottontailQuery.fulltext(DESCRIPTOR_COLUMN_NAME, query.descriptor.value, "score")
+            is TextQuery -> {
+                cottontailQuery.fulltext(DESCRIPTOR_COLUMN_NAME, query.descriptor.value, "score")
+                if (query.limit < Long.MAX_VALUE) {
+                    cottontailQuery.limit(query.limit)
+                }
+            }
             is BooleanQuery<StringDescriptor> -> cottontailQuery.where(Compare(Column(this.entityName.column(DESCRIPTOR_COLUMN_NAME)), query.operator(), Literal(query.descriptor.toValue())))
             else -> throw IllegalArgumentException("Query of typ ${query::class} is not supported by StringDescriptorReader.")
         }
