@@ -1,31 +1,23 @@
 plugins {
-    id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
     id 'maven-publish'
     id 'signing'
 }
 
 dependencies {
-    /* vitrivr core dependency. */
     api project(':vitrivr-engine-core')
-
-    /** Java CV (used for video decoding). */
-    implementation group: 'org.bytedeco', name: 'javacv-platform', version: version_javacv
-
-    /** ScrImage (used for image resizing). */
-    implementation group: 'com.sksamuel.scrimage', name: 'scrimage-core', version: version_scrimage
 }
 
-/* Publication of vitrivr engine index to Maven Central. */
+/* Publication of vitrivr engine query to Maven Central. */
 publishing {
     publications {
         mavenJava(MavenPublication) {
             groupId = 'org.vitrivr'
-            artifactId = 'vitrivr-engine-index'
+            artifactId = 'vitrivr-engine-plugin-features'
             version = System.getenv().getOrDefault("MAVEN_PUBLICATION_VERSION", version.toString())
             from components.java
             pom {
-                name = 'vitrivr Engine Core'
-                description = 'Default indexing and extraction components of the vitrivr multimedia retrieval engine.'
+                name = 'vitrivr Engine Base'
+                description = 'Shared based components of the vitrivr multimedia retrieval engine (e.g., database connection, features).'
                 url = 'https://github.com/vitrivr/vitrivr-engine/'
                 licenses {
                     license {
