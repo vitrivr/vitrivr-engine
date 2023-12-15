@@ -20,26 +20,18 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
  * @author Luca Rossetto
  * @version 1.0.0
  */
-class AverageColorRetriever(override val field: Schema.Field<ImageContent, FloatVectorDescriptor>, private val queryVector: FloatVectorDescriptor, private val queryContext: QueryContext) : Retriever<ImageContent, FloatVectorDescriptor> {
+class AverageColorRetriever(override val field: Schema.Field<ImageContent, FloatVectorDescriptor>, private val query: FloatVectorDescriptor, private val context: QueryContext) : Retriever<ImageContent, FloatVectorDescriptor> {
 
     companion object {
         private const val MAXIMUM_DISTANCE = 3f
         fun scoringFunction(retrieved: Retrieved.RetrievedWithDistance) : Float = 1f - (retrieved.distance / MAXIMUM_DISTANCE)
-
     }
 
     override fun toFlow(scope: CoroutineScope): Flow<Retrieved> {
-
-        val k = queryContext.getProperty(this.field.fieldName, "limit")?.toIntOrNull() ?: 1000 //TODO get limit
-        val returnDescriptor = queryContext.getProperty(this.field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
-
+        val k = this.context.getProperty(this.field.fieldName, "limit")?.toIntOrNull() ?: 1000 //TODO get limit
+        val returnDescriptor = this.context.getProperty(this.field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
         val reader = this.field.getReader()
-        val query = ProximityQuery(
-            descriptor = this.queryVector,
-            k = k,
-            distance = Distance.MANHATTAN,
-            withDescriptor = returnDescriptor
-        )
+        val query = ProximityQuery(descriptor = this.query, k = k, distance = Distance.MANHATTAN, withDescriptor = returnDescriptor)
         return flow {
             reader.getAll(query).forEach {
                 emit(
@@ -52,5 +44,4 @@ class AverageColorRetriever(override val field: Schema.Field<ImageContent, Float
             }
         }
     }
-
 }

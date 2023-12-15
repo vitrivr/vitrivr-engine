@@ -14,9 +14,9 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 
 data class StringDescriptor(
     override val id: DescriptorId,
-    override val retrievableId: RetrievableId,
+    override val retrievableId: RetrievableId?,
     override val value: String,
-    override val transient: Boolean = false,
+    override val transient: Boolean = false
 ) : ScalarDescriptor<String> {
     companion object {
         private val SCHEMA = listOf(FieldSchema("value", FieldType.STRING))

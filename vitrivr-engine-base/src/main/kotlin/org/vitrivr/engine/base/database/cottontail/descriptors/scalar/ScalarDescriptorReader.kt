@@ -44,9 +44,13 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
             .where(Compare(Column(this.entityName.column(DESCRIPTOR_COLUMN_NAME)), query.operator(), Literal(query.descriptor.toValue())))
 
         /* Execute query. */
-        return this.connection.client.query(cottontailQuery).asSequence().map {
+        return this.connection.client.query(cottontailQuery).asSequence().mapNotNull {
             val descriptor = this.tupleToDescriptor(it)
-            Retrieved.WithDescriptor(descriptor.retrievableId, null, listOf(descriptor), false)
+            if (descriptor.retrievableId != null) {
+                Retrieved.WithDescriptor(descriptor.retrievableId!!, null, listOf(descriptor), false)
+            } else {
+                null
+            }
         }
     }
 
