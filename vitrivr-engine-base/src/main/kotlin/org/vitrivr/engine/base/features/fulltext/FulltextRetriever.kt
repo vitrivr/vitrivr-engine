@@ -1,4 +1,4 @@
-package org.vitrivr.engine.base.features.ocr
+package org.vitrivr.engine.base.features.fulltext
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -12,15 +12,16 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 
 /**
- * [Retriever] implementation for the [OCR] analyser.
+ * An implementation of a [Retriever], that executes fulltext queries.
  *
- * @author Fynn Faber
+ * @author Ralph Gasser
  * @version 1.0.0
  */
-class OCRRetriever(override val field: Schema.Field<ContentElement<*>, StringDescriptor>, private val query: StringDescriptor, private val context: QueryContext) : Retriever<ContentElement<*>, StringDescriptor> {
+class FulltextRetriever(override val field: Schema.Field<ContentElement<*>, StringDescriptor>, private val query: StringDescriptor, private val context: QueryContext) : Retriever<ContentElement<*>, StringDescriptor> {
     override fun toFlow(scope: CoroutineScope): Flow<Retrieved> {
+        val limit = this.context.getProperty(this.field.fieldName, "limit")?.toLongOrNull() ?: Long.MAX_VALUE
         val reader = this.field.getReader()
-        val query = TextQuery(descriptor = this.query)
+        val query = TextQuery(descriptor = this.query, limit)
         return flow {
             reader.getAll(query).forEach {
                 emit(it)

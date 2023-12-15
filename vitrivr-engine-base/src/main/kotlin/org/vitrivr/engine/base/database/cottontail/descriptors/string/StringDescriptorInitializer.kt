@@ -4,8 +4,10 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.ddl.CreateEntity
+import org.vitrivr.cottontail.client.language.ddl.CreateIndex
 import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.types.Types
+import org.vitrivr.cottontail.grpc.CottontailGrpc
 import org.vitrivr.engine.base.database.cottontail.CottontailConnection
 import org.vitrivr.engine.base.database.cottontail.descriptors.AbstractDescriptorInitializer
 import org.vitrivr.engine.base.database.cottontail.descriptors.DESCRIPTOR_COLUMN_NAME
@@ -25,7 +27,7 @@ class StringDescriptorInitializer(field: Schema.Field<*, StringDescriptor>, conn
      * Initializes the Cottontail DB entity backing this [AbstractDescriptorInitializer].
      */
     override fun initialize() {
-        /* Prepare query. */
+        /* Prepare to create entity. */
         val create = CreateEntity(this.entityName)
             .column(Name.ColumnName(CottontailConnection.DESCRIPTOR_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = true, autoIncrement = false)
             .column(Name.ColumnName(CottontailConnection.RETRIEVABLE_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = false, autoIncrement = false)
@@ -34,8 +36,17 @@ class StringDescriptorInitializer(field: Schema.Field<*, StringDescriptor>, conn
         try {
             /* Try to create entity. */
             this.connection.client.create(create)
+
+            /* Create entity if necessary. */
+            if (this.field.parameters.containsKey("index")) {
+                val createIndex = CreateIndex(this.entityName, CottontailGrpc.IndexType.LUCENE)
+                    .column(this.entityName.column(DESCRIPTOR_COLUMN_NAME))
+                this.connection.client.create(createIndex)
+            }
         } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
         }
+
+
     }
 }
