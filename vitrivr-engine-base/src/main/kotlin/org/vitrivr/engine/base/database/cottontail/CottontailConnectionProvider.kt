@@ -2,6 +2,7 @@ package org.vitrivr.engine.base.database.cottontail
 
 import org.vitrivr.engine.base.database.cottontail.descriptors.label.StructDescriptorProvider
 import org.vitrivr.engine.base.database.cottontail.descriptors.scalar.ScalarDescriptorProvider
+import org.vitrivr.engine.base.database.cottontail.descriptors.string.StringDescriptorProvider
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
@@ -55,7 +56,9 @@ class CottontailConnectionProvider: ConnectionProvider {
         LongDescriptor::class to ScalarDescriptorProvider,
         FloatDescriptor::class to ScalarDescriptorProvider,
         DoubleDescriptor::class to ScalarDescriptorProvider,
-        StringDescriptor::class to ScalarDescriptorProvider,
+
+        /* String descriptor. */
+        StringDescriptor::class to StringDescriptorProvider,
 
         /* Vector descriptors. */
         BooleanVectorDescriptor::class to org.vitrivr.engine.base.database.cottontail.descriptors.vector.VectorDescriptorProvider,
@@ -69,9 +72,9 @@ class CottontailConnectionProvider: ConnectionProvider {
         FileMetadataDescriptor::class to StructDescriptorProvider,
         TemporalMetadataDescriptor::class to StructDescriptorProvider,
         Rectangle2DMetadataDescriptor::class to StructDescriptorProvider,
-            MediaDimensionsDescriptor::class to StructDescriptorProvider,
-            SkeletonDescriptor::class to StructDescriptorProvider,
-            RasterDescriptor::class to StructDescriptorProvider
+        MediaDimensionsDescriptor::class to StructDescriptorProvider,
+        SkeletonDescriptor::class to StructDescriptorProvider,
+        RasterDescriptor::class to StructDescriptorProvider
     )
 
     /**

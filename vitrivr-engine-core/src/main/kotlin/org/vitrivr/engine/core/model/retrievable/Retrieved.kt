@@ -3,7 +3,6 @@ package org.vitrivr.engine.core.model.retrievable
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.retrievable.decorators.*
 import java.util.*
-import javax.management.relation.Relation
 
 /**
  * A [Retrievable] that has been generated as part of the retrieval process.
@@ -34,30 +33,9 @@ interface Retrieved : Retrievable {
     ) : RetrievedWithDescriptor
 
 
-    data class WithScore(
-        override val id: UUID,
-        override val type: String?,
-        override val score: Float,
-        override val transient: Boolean
-    ) : RetrievedWithScore {
-        init {
-            require(this.score in 0.0f..1.0f) { "Score must be between 0.0 and 1.0." }
-        }
-    }
+    data class WithScore(override val id: UUID, override val type: String?, override val score: Float, override val transient: Boolean) : RetrievedWithScore
 
-
-    data class WithScoreAndDescriptor(
-        override val id: UUID,
-        override val type: String?,
-        override val score: Float,
-        override val descriptors: List<Descriptor>,
-        override val transient: Boolean
-    ) : RetrievedWithScore,
-        RetrievedWithDescriptor {
-        init {
-            require(this.score in 0.0f..1.0f) { "Score must be between 0.0 and 1.0." }
-        }
-    }
+    data class WithScoreAndDescriptor(override val id: UUID, override val type: String?, override val score: Float, override val descriptors: List<Descriptor>, override val transient: Boolean) : RetrievedWithScore, RetrievedWithDescriptor
 
 
     data class WithDistance(

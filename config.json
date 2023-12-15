@@ -1,7 +1,7 @@
 {
   "schemas": [
     {
-      "name": "vitrivr",
+      "name": "v3c12",
       "connection": {
         "database": "CottontailConnectionProvider",
         "parameters": {
@@ -38,6 +38,10 @@
         {
           "name": "dino",
           "factory": "DINO"
+        },
+        {
+          "name": "ocr",
+          "factory": "OCR"
         }
       ],
       "exporters": [
@@ -55,16 +59,7 @@
           }
         }
       ],
-      "extractionPipelines" : [
-        {
-          "name": "image",
-          "path": "./config-pipelines/image-pipeline.json"
-        },
-        {
-          "name": "video",
-          "path": "./config-pipelines/video-pipeline.json"
-        }
-      ]
+      "extractionPipelines": []
     },
     {
       "name": "VBSLHE",

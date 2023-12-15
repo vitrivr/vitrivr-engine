@@ -15,12 +15,15 @@ const val DESCRIPTOR_COLUMN_NAME = "descriptor"
 /** The column name used to describe a distance.*/
 const val DISTANCE_COLUMN_NAME = "distance"
 
+/** The column name used to describe a distance.*/
+const val SCORE_COLUMN_NAME = "score"
+
 /**
  * Extracts the [Compare.Operator] from this [BooleanQuery].
  *
  * @return [Compare.Operator] used for this [BooleanQuery]
  */
-internal fun BooleanQuery<ScalarDescriptor<*>>.operator() = when (this.comparison) {
+internal fun BooleanQuery<*>.operator() = when (this.comparison) {
     ComparisonOperator.EQ -> Compare.Operator.EQUAL
     ComparisonOperator.NEQ -> Compare.Operator.NOTEQUAL
     ComparisonOperator.LE -> Compare.Operator.LESS
