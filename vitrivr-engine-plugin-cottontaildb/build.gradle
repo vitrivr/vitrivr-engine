@@ -1,31 +1,34 @@
 plugins {
-    id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
     id 'maven-publish'
     id 'signing'
 }
 
-dependencies {
-    /* vitrivr core dependency. */
-    api project(':vitrivr-engine-core')
-
-    /** Java CV (used for video decoding). */
-    implementation group: 'org.bytedeco', name: 'javacv-platform', version: version_javacv
-
-    /** ScrImage (used for image resizing). */
-    implementation group: 'com.sksamuel.scrimage', name: 'scrimage-core', version: version_scrimage
+repositories {
+    mavenCentral()
 }
 
-/* Publication of vitrivr engine index to Maven Central. */
+dependencies {
+    api project(':vitrivr-engine-core')
+
+    /** Cottontail DB Client. */
+    implementation group: 'org.vitrivr', name: 'cottontaildb-client', version: '0.16.0'
+
+    /** gRPC and Protobuf. */
+    implementation group: 'io.grpc', name: 'grpc-all', version: version_grpc
+    implementation group: 'com.google.protobuf', name: 'protobuf-java', version: version_protobuf
+}
+
+/* Publication of vitrivr engine query to Maven Central. */
 publishing {
     publications {
         mavenJava(MavenPublication) {
             groupId = 'org.vitrivr'
-            artifactId = 'vitrivr-engine-index'
+            artifactId = 'vitrivr-engine-plugin-cottontaildb'
             version = System.getenv().getOrDefault("MAVEN_PUBLICATION_VERSION", version.toString())
             from components.java
             pom {
-                name = 'vitrivr Engine Core'
-                description = 'Default indexing and extraction components of the vitrivr multimedia retrieval engine.'
+                name = 'vitrivr Engine Cottontail DB Plugin'
+                description = 'A plugin that adds connectivity to the Cottontail DB vector database.'
                 url = 'https://github.com/vitrivr/vitrivr-engine/'
                 licenses {
                     license {
