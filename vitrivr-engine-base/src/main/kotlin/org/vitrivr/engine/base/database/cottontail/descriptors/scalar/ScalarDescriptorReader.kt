@@ -11,9 +11,7 @@ import org.vitrivr.engine.base.database.cottontail.descriptors.AbstractDescripto
 import org.vitrivr.engine.base.database.cottontail.descriptors.DESCRIPTOR_COLUMN_NAME
 import org.vitrivr.engine.base.database.cottontail.descriptors.operator
 import org.vitrivr.engine.base.database.cottontail.descriptors.toValue
-import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor
-import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
-import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
+import org.vitrivr.engine.core.model.descriptor.scalar.*
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.BooleanQuery
@@ -26,38 +24,48 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
  * @version 1.0.0
  */
 class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connection: CottontailConnection) : AbstractDescriptorReader<ScalarDescriptor<*>>(field, connection) {
+
+    /** Prototype [ScalarDescriptor] used to create new instances. */
+    private val prototype = this.field.analyser.prototype()
+
     /**
      * Executes the provided [Query] and returns a [Sequence] of [Retrieved.WithDescriptor]s that match it.
      *
      * @param query The [Query] to execute.
      */
-    override fun getAll(query: Query<ScalarDescriptor<*>>): Sequence<Retrieved> = when (query) {
-        is BooleanQuery<ScalarDescriptor<*>> -> {
-            val column = this.entityName.column(DESCRIPTOR_COLUMN_NAME)
-            val value = query.descriptor.toValue()
-            val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
-                .select(RETRIEVABLE_ID_COLUMN_NAME)
-                .select(DESCRIPTOR_ID_COLUMN_NAME)
-                .select(DESCRIPTOR_COLUMN_NAME)
-                .where(Compare(Column(column), query.operator(), Literal(value)))
-            this.connection.client.query(cottontailQuery).asSequence().map {
-                val descriptor = this.tupleToDescriptor(it)
-                Retrieved.WithDescriptor(descriptor.retrievableId, null, listOf(descriptor), false)
-            }
-        }
+    override fun getAll(query: Query<ScalarDescriptor<*>>): Sequence<Retrieved> {
+        require(query is BooleanQuery<ScalarDescriptor<*>>) { "Query of type ${query::class} is not supported by ScalarDescriptorReader." }
 
-        else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by FloatVectorDescriptorReader.")
+        /* Prepare query. */
+        val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
+            .select(RETRIEVABLE_ID_COLUMN_NAME)
+            .select(DESCRIPTOR_ID_COLUMN_NAME)
+            .select(DESCRIPTOR_COLUMN_NAME)
+            .where(Compare(Column(this.entityName.column(DESCRIPTOR_COLUMN_NAME)), query.operator(), Literal(query.descriptor.toValue())))
+
+        /* Execute query. */
+        return this.connection.client.query(cottontailQuery).asSequence().map {
+            val descriptor = this.tupleToDescriptor(it)
+            Retrieved.WithDescriptor(descriptor.retrievableId, null, listOf(descriptor), false)
+        }
     }
 
     /**
-     * Converts the provided [Tuple] to a [FloatVectorDescriptor].
+     * Converts the provided [Tuple] to a [ScalarDescriptor].
      *
      * @param tuple The [Tuple] to convert.
-     * @return The resulting [FloatVectorDescriptor].
+     * @return The resulting [ScalarDescriptor].
      */
-    override fun tupleToDescriptor(tuple: Tuple): StringDescriptor = StringDescriptor(
-        tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'."),
-        tuple.asUuidValue(DESCRIPTOR_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${DESCRIPTOR_ID_COLUMN_NAME}'."),
-        tuple.asString(DESCRIPTOR_COLUMN_NAME) ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'.") /* TODO: Use UUID once supported. */
-    )
+    override fun tupleToDescriptor(tuple: Tuple): ScalarDescriptor<*> {
+        val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
+        val descriptorId = tuple.asUuidValue(DESCRIPTOR_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${DESCRIPTOR_ID_COLUMN_NAME}'.")
+        return when (this.prototype) {
+            is BooleanDescriptor -> BooleanDescriptor(retrievableId, descriptorId, tuple.asBoolean(DESCRIPTOR_COLUMN_NAME) ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'."))
+            is DoubleDescriptor -> DoubleDescriptor(retrievableId, descriptorId, tuple.asDouble(DESCRIPTOR_COLUMN_NAME) ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'."))
+            is FloatDescriptor -> FloatDescriptor(retrievableId, descriptorId, tuple.asFloat(DESCRIPTOR_COLUMN_NAME) ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'."))
+            is IntDescriptor -> IntDescriptor(retrievableId, descriptorId, tuple.asInt(DESCRIPTOR_COLUMN_NAME) ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'."))
+            is LongDescriptor -> LongDescriptor(retrievableId, descriptorId, tuple.asLong(DESCRIPTOR_COLUMN_NAME) ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'."))
+            is StringDescriptor -> StringDescriptor(retrievableId, descriptorId, tuple.asString(DESCRIPTOR_COLUMN_NAME) ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'."))
+        }
+    }
 }
