@@ -8,9 +8,6 @@ dependencies {
     /* vitrivr core dependency. */
     api project(':vitrivr-engine-core')
 
-    /* vitrivr base dependency (for testin purposes only) */
-    implementation project(path: ':vitrivr-engine-base')
-
     /** Java CV (used for video decoding). */
     implementation group: 'org.bytedeco', name: 'javacv-platform', version: version_javacv
 

@@ -3,9 +3,11 @@ plugins {
 }
 
 dependencies {
+    /** vitrivr engine dependencies. */
     api project(':vitrivr-engine-index')
     api project(':vitrivr-engine-query')
-    api project(':vitrivr-engine-base') /* TODO: This dependency is not necessary and only here to facilitate easy testing. */
+    api project(':vitrivr-engine-plugin-features')                 /* TODO: This dependency is not necessary and only here to facilitate easy testing. */
+    api project(':vitrivr-engine-plugin-cottontaildb')             /* TODO: This dependency is not necessary and only here to facilitate easy testing. */
 
     /** Clikt & JLine */
     implementation group: 'com.github.ajalt.clikt', name: 'clikt', version: version_clikt

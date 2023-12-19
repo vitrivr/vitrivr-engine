@@ -1,7 +1,7 @@
 {
   "schemas": [
     {
-      "name": "vitrivr",
+      "name": "v3c12",
       "connection": {
         "database": "CottontailConnectionProvider",
         "parameters": {
@@ -38,6 +38,14 @@
         {
           "name": "dino",
           "factory": "DINO"
+        },
+        {
+          "name": "ocr",
+          "factory": "OCR"
+        },
+        {
+          "name": "whisperasr",
+          "factory": "ASR"
         }
       ],
       "exporters": [
@@ -55,16 +63,7 @@
           }
         }
       ],
-      "extractionPipelines" : [
-        {
-          "name": "image",
-          "path": "./config-pipelines/image-pipeline.json"
-        },
-        {
-          "name": "video",
-          "path": "./config-pipelines/video-pipeline.json"
-        }
-      ]
+      "extractionPipelines": []
     },
     {
       "name": "MVK",
