@@ -1,5 +1,7 @@
 package org.vitrivr.engine.base.features.external.implementations.clip
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -13,6 +15,9 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.proximity.Distance
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
+
+
+private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * [CLIPRetriever] implementation for external CLIP image feature retrieval.
