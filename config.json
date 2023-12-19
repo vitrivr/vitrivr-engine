@@ -67,7 +67,7 @@
       ]
     },
     {
-      "name": "VBSLHE",
+      "name": "MVK",
       "connection": {
         "database": "CottontailConnectionProvider",
         "parameters": {
@@ -114,51 +114,51 @@
       ]
     },
     {
-    "name": "MVK",
-    "connection": {
-      "database": "CottontailConnectionProvider",
-      "parameters": {
-        "host": "127.0.0.1",
-        "port": "1865"
-      }
-    },
-    "fields": [
-      {
-        "name": "averagecolor",
-        "factory": "AverageColor"
-      },
-      {
-        "name": "clip",
-        "factory": "CLIP"
-      },
-      {
-        "name": "dino",
-        "factory": "DINO"
-      },
-      {
-        "name": "file",
-        "factory": "FileMetadata"
-      },
-      {
-        "name": "time",
-        "factory": "TemporalMetadata"
-      }
-    ],
-    "exporters": [
-      {
-        "name": "thumbnail",
-        "factory": "ThumbnailExporter",
+      "name": "VBSLHE",
+      "connection": {
+        "database": "CottontailConnectionProvider",
         "parameters": {
-          "key": "ThumbnailExporter-value-schema"
+          "host": "127.0.0.1",
+          "port": "1865"
+        }
+      },
+      "fields": [
+        {
+          "name": "averagecolor",
+          "factory": "AverageColor"
         },
-        "resolver": {
-          "factory": "DiskResolver",
+        {
+          "name": "clip",
+          "factory": "CLIP"
+        },
+        {
+          "name": "dino",
+          "factory": "DINO"
+        },
+        {
+          "name": "file",
+          "factory": "FileMetadata"
+        },
+        {
+          "name": "time",
+          "factory": "TemporalMetadata"
+        }
+      ],
+      "exporters": [
+        {
+          "name": "thumbnail",
+          "factory": "ThumbnailExporter",
           "parameters": {
-            "key": "DiskResolver-value-schema"
+            "key": "ThumbnailExporter-value-schema"
+          },
+          "resolver": {
+            "factory": "DiskResolver",
+            "parameters": {
+              "key": "DiskResolver-value-schema"
+            }
           }
         }
-      }
-    ]
+      ]
     }
   ]
 }
