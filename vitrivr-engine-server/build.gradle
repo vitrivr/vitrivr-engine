@@ -1,5 +1,6 @@
 plugins {
     id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
+    id 'application'
 }
 
 dependencies {
@@ -26,4 +27,8 @@ dependencies {
 
     /* Kapt. */
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$version_javalin")
+}
+
+application {
+    mainClassName = 'org.vitrivr.engine.server.MainKt'
 }
