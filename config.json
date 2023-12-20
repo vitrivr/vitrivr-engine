@@ -1,7 +1,7 @@
 {
   "schemas": [
     {
-      "name": "vitrivr",
+      "name": "v3c12",
       "connection": {
         "database": "CottontailConnectionProvider",
         "parameters": {
@@ -38,6 +38,14 @@
         {
           "name": "dino",
           "factory": "DINO"
+        },
+        {
+          "name": "ocr",
+          "factory": "OCR"
+        },
+        {
+          "name": "whisperasr",
+          "factory": "ASR"
         }
       ],
       "exporters": [
@@ -55,14 +63,52 @@
           }
         }
       ],
-      "extractionPipelines" : [
+      "extractionPipelines": []
+    },
+    {
+      "name": "MVK",
+      "connection": {
+        "database": "CottontailConnectionProvider",
+        "parameters": {
+          "host": "127.0.0.1",
+          "port": "1865"
+        }
+      },
+      "fields": [
         {
-          "name": "image",
-          "path": "./config-pipelines/image-pipeline.json"
+          "name": "averagecolor",
+          "factory": "AverageColor"
         },
         {
-          "name": "video",
-          "path": "./config-pipelines/video-pipeline.json"
+          "name": "clip",
+          "factory": "CLIP"
+        },
+        {
+          "name": "dino",
+          "factory": "DINO"
+        },
+        {
+          "name": "file",
+          "factory": "FileMetadata"
+        },
+        {
+          "name": "time",
+          "factory": "TemporalMetadata"
+        }
+      ],
+      "exporters": [
+        {
+          "name": "thumbnail",
+          "factory": "ThumbnailExporter",
+          "parameters": {
+            "key": "ThumbnailExporter-value-schema"
+          },
+          "resolver": {
+            "factory": "DiskResolver",
+            "parameters": {
+              "key": "DiskResolver-value-schema"
+            }
+          }
         }
       ]
     },
@@ -112,53 +158,6 @@
           }
         }
       ]
-    },
-    {
-    "name": "MVK",
-    "connection": {
-      "database": "CottontailConnectionProvider",
-      "parameters": {
-        "host": "127.0.0.1",
-        "port": "1865"
-      }
-    },
-    "fields": [
-      {
-        "name": "averagecolor",
-        "factory": "AverageColor"
-      },
-      {
-        "name": "clip",
-        "factory": "CLIP"
-      },
-      {
-        "name": "dino",
-        "factory": "DINO"
-      },
-      {
-        "name": "file",
-        "factory": "FileMetadata"
-      },
-      {
-        "name": "time",
-        "factory": "TemporalMetadata"
-      }
-    ],
-    "exporters": [
-      {
-        "name": "thumbnail",
-        "factory": "ThumbnailExporter",
-        "parameters": {
-          "key": "ThumbnailExporter-value-schema"
-        },
-        "resolver": {
-          "factory": "DiskResolver",
-          "parameters": {
-            "key": "DiskResolver-value-schema"
-          }
-        }
-      }
-    ]
     }
   ]
 }

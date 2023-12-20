@@ -1,0 +1,2 @@
+org.vitrivr.engine.query.aggregate.TemporalSequenceAggregatorFactory
+org.vitrivr.engine.query.aggregate.WeightedScoreFusionFactory
