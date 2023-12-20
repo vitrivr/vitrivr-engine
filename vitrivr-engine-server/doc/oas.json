@@ -2,7 +2,7 @@
   "openapi" : "3.0.3",
   "info" : {
     "title" : "vitrivr engine API",
-    "version" : "1.0.0",
+    "version" : "1.0.0", 
     "description" : "API for the vitrivr engine."
   },
   "paths" : {
