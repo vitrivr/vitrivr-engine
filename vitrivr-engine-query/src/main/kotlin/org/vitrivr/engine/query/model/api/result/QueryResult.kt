@@ -13,10 +13,13 @@ data class QueryResult(val retrievables: List<QueryResultRetrievable>) {
             val results = retrieved.map { QueryResultRetrievable(it) }.associateBy { it.id }
 
             //map partOf relations the right way around
-            retrieved.forEach { retrieved: Retrieved ->
-                if (retrieved is Retrieved.RetrievedWithRelationship) {
-                    retrieved.relationships.filter { it.pred == "partOf" && it.sub.first == retrieved.id }.forEach {
-                        results[it.obj.first.toString()]?.parts?.add(retrieved.id.toString())
+            retrieved.forEach { r: Retrieved ->
+                if (r is Retrieved.RetrievedWithRelationship) {
+                    r.relationships.filter { it.pred == "partOf" && it.sub.first == r.id }.forEach {
+                        results[it.obj.first.toString()]?.parts?.add(r.id.toString())
+                    }
+                    r.relationships.filter { it.pred == "partOf" && it.obj.first == r.id }.forEach {
+                        results[r.id.toString()]?.parts?.add(it.sub.first.toString())
                     }
                 }
             }

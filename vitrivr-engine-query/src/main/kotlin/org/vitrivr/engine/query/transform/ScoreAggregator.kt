@@ -21,9 +21,9 @@ class ScoreAggregator(
 
     override fun toFlow(scope: CoroutineScope): Flow<Retrieved.RetrievedWithScore> =
         input.toFlow(scope).map { retrieved ->
-            when {
-                retrieved is Retrieved.RetrievedWithScore -> retrieved//pass through
-                retrieved is Retrieved.RetrievedWithRelationship -> { //aggregate
+            when (retrieved) {
+                is Retrieved.RetrievedWithScore -> retrieved//pass through
+                is Retrieved.RetrievedWithRelationship -> { //aggregate
 
                     val scores =
                         retrieved.relationships.filter { rel -> rel.pred in this.relationshps && rel.obj.first == retrieved.id }
@@ -44,7 +44,6 @@ class ScoreAggregator(
                 }
 
                 else -> Retrieved.PlusScore(retrieved, 0f)
-
             }
         }
 

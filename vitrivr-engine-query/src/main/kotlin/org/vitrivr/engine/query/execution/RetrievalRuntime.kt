@@ -7,7 +7,7 @@ import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.retrieve.Aggregator
+import org.vitrivr.engine.core.operators.retrieve.AggregatorFactory
 import org.vitrivr.engine.core.operators.retrieve.Transformer
 import org.vitrivr.engine.core.operators.retrieve.TransformerFactory
 import org.vitrivr.engine.core.util.extension.loadServiceForName
@@ -22,18 +22,6 @@ import org.vitrivr.engine.query.model.api.operator.TransformerDescription
 import java.util.*
 
 class RetrievalRuntime {
-//
-//    fun query(schema: Schema, informationNeed: PipelineInformationNeedDescription): List<Retrieved> {
-//        var inputs: Map<String, InputData> = informationNeed.inputs
-//
-//        val pipeline = schema.getPipeline(informationNeed.pipeline)
-//        pipeline.setApiEnumeratorSource(informationNeed.inputs)
-//        val outputOperator = pipeline.getOutputOperator(informationNeed.output)
-//        return runBlocking {
-//            outputOperator.toFlow(this).toList()
-//        }
-//    }
-
 
     fun query(schema: Schema, informationNeed: InformationNeedDescription): List<Retrieved> {
 
@@ -45,11 +33,26 @@ class RetrievalRuntime {
                 OperatorType.RETRIEVER -> {
                     operationDescription as RetrieverDescription
 
+                    val inputDescription = informationNeed.inputs[operationDescription.input]
+                        ?: throw IllegalArgumentException("Input '${operationDescription.input}' for operation '$operationName' not found")
+
+                    if (operationDescription.field.isEmpty()) { //special case, handle pass-through
+
+                        if(inputDescription.type != InputType.ID) {
+                            throw IllegalArgumentException("Only inputs of type ID are supported for direct retrievable lookup")
+                        }
+
+                        operators[operationName] = RetrievedLookup(
+                            schema.connection.getRetrievableReader(), listOf(UUID.fromString((inputDescription as RetrievableIdInputData).id))
+                        )
+
+                        return@forEach
+
+                    }
+
                     val field = schema[operationDescription.field]
                         ?: throw IllegalArgumentException("Retriever '${operationDescription.field}' not defined in schema")
 
-                    val inputDescription = informationNeed.inputs[operationDescription.input]
-                        ?: throw IllegalArgumentException("Input '${operationDescription.input}' for operation '$operationName' not found")
 
                     val retriever = when (inputDescription.type) {
                         InputType.VECTOR -> {
@@ -68,7 +71,8 @@ class RetrievalRuntime {
                             val id = UUID.fromString((inputDescription as RetrievableIdInputData).id)
 
                             val reader = field.getReader()
-                            val descriptor = reader.getBy(id, "retrievableId") ?: throw IllegalArgumentException("No retrievable with id '$id' present in ${field.fieldName}")
+                            val descriptor = reader.getBy(id, "retrievableId")
+                                ?: throw IllegalArgumentException("No retrievable with id '$id' present in ${field.fieldName}")
 
                             field.getRetrieverForDescriptor(descriptor, informationNeed.context)
 
@@ -97,9 +101,12 @@ class RetrievalRuntime {
                     val input = operators[operationDescription.input]
                         ?: throw IllegalArgumentException("Operator '${operationDescription.input}' not yet defined")
 
-                    val factory = loadServiceForName<TransformerFactory<Retrieved, Retrieved>>(operationDescription.transformerName + "Factory") ?: throw IllegalArgumentException("No factory found for '${operationDescription.transformerName}'")
+                    val factory =
+                        loadServiceForName<TransformerFactory<Retrieved, Retrieved>>(operationDescription.transformerName + "Factory")
+                            ?: throw IllegalArgumentException("No factory found for '${operationDescription.transformerName}'")
 
-                    val transformer: Transformer<Retrieved, Retrieved> = factory.newTransformer(input, schema, operationDescription.properties)
+                    val transformer: Transformer<Retrieved, Retrieved> =
+                        factory.newTransformer(input, schema, operationDescription.properties)
 
                     operators[operationName] = transformer
 
@@ -116,9 +123,14 @@ class RetrievalRuntime {
                         operators[it] ?: throw IllegalArgumentException("Operator '$it' not yet defined")
                     }
 
-                    val aggreagtor: Aggregator = TODO()
+                    val factory =
+                        loadServiceForName<AggregatorFactory<Retrieved, Retrieved>>(operationDescription.aggregatorName + "Factory")
+                            ?: throw IllegalArgumentException("No factory found for '${operationDescription.aggregatorName}'")
 
-                    operators[operationName] = aggreagtor
+
+                    val aggregator = factory.newAggregator(inputs, schema, operationDescription.properties)
+
+                    operators[operationName] = aggregator
                 }
             }
         }

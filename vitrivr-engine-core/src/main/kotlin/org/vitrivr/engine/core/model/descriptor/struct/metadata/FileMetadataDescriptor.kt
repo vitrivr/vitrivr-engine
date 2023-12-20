@@ -13,8 +13,8 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
  * @version 1.0.0
  */
 data class FileMetadataDescriptor(
-    override val id: DescriptorId,
     override val retrievableId: RetrievableId,
+    override val id: DescriptorId,
     val path: String,
     val size: Long,
     override val transient: Boolean = false

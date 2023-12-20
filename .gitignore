@@ -34,3 +34,4 @@ thumbnails/
 
 # OpenAPI generated code
 openapi
+thumbnails*
