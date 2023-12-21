@@ -75,7 +75,6 @@ class ThumbnailExporter : ExporterFactory {
                 val writer = when (mimeType) {
                     MimeType.JPEG,
                     MimeType.JPG -> JpegWriter()
-
                     MimeType.PNG -> PngWriter()
                     else -> throw IllegalArgumentException("Unsupported mime type $mimeType")
                 }

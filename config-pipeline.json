@@ -18,7 +18,7 @@
         "nextSegmenter": {
           "name": "FixedDurationSegmenter",
           "parameters": {
-            "duration": "1",
+            "duration": "5",
             "lookAheadTime": "1"
           },
           "aggregators": [

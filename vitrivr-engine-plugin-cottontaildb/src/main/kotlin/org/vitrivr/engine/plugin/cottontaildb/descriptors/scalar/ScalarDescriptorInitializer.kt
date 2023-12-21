@@ -29,9 +29,9 @@ class ScalarDescriptorInitializer<T : ScalarDescriptor<*>>(field: Schema.Field<*
 
         /* Prepare query. */
         val create = CreateEntity(this.entityName)
-            .column(Name.ColumnName(DESCRIPTOR_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = true, autoIncrement = false)
-            .column(Name.ColumnName(RETRIEVABLE_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = false, autoIncrement = false)
-            .column(Name.ColumnName(DESCRIPTOR_COLUMN_NAME), type, nullable = false, primaryKey = false, autoIncrement = false)
+            .column(Name.ColumnName.create(DESCRIPTOR_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = true, autoIncrement = false)
+            .column(Name.ColumnName.create(RETRIEVABLE_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = false, autoIncrement = false)
+            .column(Name.ColumnName.create(DESCRIPTOR_COLUMN_NAME), type, nullable = false, primaryKey = false, autoIncrement = false)
 
         try {
             /* Try to create entity. */

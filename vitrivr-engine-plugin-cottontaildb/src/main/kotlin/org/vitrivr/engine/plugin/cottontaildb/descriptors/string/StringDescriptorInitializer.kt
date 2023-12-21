@@ -31,9 +31,9 @@ class StringDescriptorInitializer(field: Schema.Field<*, StringDescriptor>, conn
     override fun initialize() {
         /* Prepare to create entity. */
         val create = CreateEntity(this.entityName)
-            .column(Name.ColumnName(DESCRIPTOR_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = true, autoIncrement = false)
-            .column(Name.ColumnName(RETRIEVABLE_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = false, autoIncrement = false)
-            .column(Name.ColumnName(DESCRIPTOR_COLUMN_NAME), Types.String, nullable = false, primaryKey = false, autoIncrement = false)
+            .column(Name.ColumnName.create(DESCRIPTOR_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = true, autoIncrement = false)
+            .column(Name.ColumnName.create(RETRIEVABLE_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = false, autoIncrement = false)
+            .column(Name.ColumnName.create(DESCRIPTOR_COLUMN_NAME), Types.String, nullable = false, primaryKey = false, autoIncrement = false)
 
         try {
             /* Try to create entity. */

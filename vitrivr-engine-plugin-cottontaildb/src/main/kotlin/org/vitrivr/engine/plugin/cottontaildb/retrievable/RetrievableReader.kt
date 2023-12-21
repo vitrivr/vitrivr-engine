@@ -106,7 +106,7 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
     override fun getAllBy(ids: Iterable<UUID>, columnName: String): Sequence<Retrievable> {
         val query = Query(this.entityName).select("*").where(
             Compare(
-                Column(Name.ColumnName(columnName)),
+                Column(Name.ColumnName.create(columnName)),
                 Compare.Operator.IN,
                 List(ids.map { UuidValue(it) }.toTypedArray())
             )
@@ -159,7 +159,7 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
         val filters = listOfNotNull(
             if (subjectIds.isNotEmpty()) {
                 Compare(
-                    Column(Name.ColumnName(SUBJECT_ID_COLUMN_NAME)),
+                    Column(Name.ColumnName.create(SUBJECT_ID_COLUMN_NAME)),
                     Compare.Operator.IN,
                     List(subjectIds.map { UuidValue(it) }.toTypedArray())
                 )
@@ -168,7 +168,7 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
             },
             if (predicates.isNotEmpty()) {
                 Compare(
-                    Column(Name.ColumnName(PREDICATE_COLUMN_NAME)),
+                    Column(Name.ColumnName.create(PREDICATE_COLUMN_NAME)),
                     Compare.Operator.IN,
                     List(predicates.map { StringValue(it) }.toTypedArray())
                 )
@@ -177,7 +177,7 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
             },
             if (objectIds.isNotEmpty()) {
                 Compare(
-                    Column(Name.ColumnName(OBJECT_ID_COLUMN_NAME)),
+                    Column(Name.ColumnName.create(OBJECT_ID_COLUMN_NAME)),
                     Compare.Operator.IN,
                     List(objectIds.map { UuidValue(it) }.toTypedArray())
                 )

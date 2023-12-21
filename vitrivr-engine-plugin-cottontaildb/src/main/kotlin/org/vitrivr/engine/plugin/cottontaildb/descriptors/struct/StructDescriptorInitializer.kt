@@ -29,8 +29,8 @@ class StructDescriptorInitializer(field: Schema.Field<*, StructDescriptor>, conn
     override fun initialize() {
         /* Prepare query. */
         val create = CreateEntity(this.entityName)
-            .column(Name.ColumnName(DESCRIPTOR_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = true, autoIncrement = false)
-            .column(Name.ColumnName(RETRIEVABLE_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = false, autoIncrement = false)
+            .column(Name.ColumnName.create(DESCRIPTOR_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = true, autoIncrement = false)
+            .column(Name.ColumnName.create(RETRIEVABLE_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = false, autoIncrement = false)
 
 
         for (field in this.field.analyser.prototype().schema()) {
@@ -46,7 +46,7 @@ class StructDescriptorInitializer(field: Schema.Field<*, StructDescriptor>, conn
                 FieldType.FLOAT -> if (vector) { Types.FloatVector(field.dimensions[0]) } else { Types.Float }
                 FieldType.DOUBLE -> if (vector) { Types.DoubleVector(field.dimensions[0]) } else { Types.Double }
             }
-            create.column(Name.ColumnName(field.name), type, nullable = field.nullable, primaryKey = false, autoIncrement = false)
+            create.column(Name.ColumnName.create(field.name), type, nullable = field.nullable, primaryKey = false, autoIncrement = false)
         }
 
         try {
