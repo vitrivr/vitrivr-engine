@@ -1,18 +1,13 @@
 package org.vitrivr.engine.tools
 
 import com.google.gson.Gson
-import com.google.gson.stream.JsonReader
 import com.google.gson.JsonParser
+import com.google.gson.stream.JsonReader
 import kotlinx.coroutines.*
-import java.io.FileReader
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
+import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.serializer
 import org.vitrivr.engine.core.config.SchemaConfig
 import org.vitrivr.engine.core.database.Initializer
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -21,21 +16,18 @@ import org.vitrivr.engine.core.model.descriptor.scalar.FloatDescriptor
 import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.RasterDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.SkeletonDescriptor
-import org.vitrivr.engine.core.model.descriptor.struct.metadata.FileMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.MediaDimensionsDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadataDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import java.io.File
+import java.io.FileReader
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.security.MessageDigest
-import java.util.*
-import kotlin.experimental.and
-import kotlin.experimental.or
 import kotlin.reflect.KClass
 
 
@@ -317,7 +309,7 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
             } catch (e: Exception) {
                 println("Could not find file ${mobject.path}, setting size to 0")
             }
-            val fileMetadataDescriptor = FileMetadataDescriptor(
+            val fileMetadataDescriptor = FileSourceMetadataDescriptor(
                     id = DescriptorId.randomUUID(),
                     retrievableId = objectRetrievable.id,
                     path = mobject.path,

@@ -16,8 +16,8 @@ data class MediaDimensionsDescriptor(
 
         companion object {
             private val SCHEMA = listOf(
-                    FieldSchema("width", FieldType.INT),
-                    FieldSchema("height", FieldType.INT),
+                FieldSchema("width", FieldType.INT),
+                FieldSchema("height", FieldType.INT),
             )
         }
 

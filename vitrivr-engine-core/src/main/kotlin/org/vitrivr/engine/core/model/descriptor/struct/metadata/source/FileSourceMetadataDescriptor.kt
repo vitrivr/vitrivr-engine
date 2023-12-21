@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.model.descriptor.struct.metadata
+package org.vitrivr.engine.core.model.descriptor.struct.metadata.source
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
@@ -12,7 +12,7 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
  * @author Ralph Gasser
  * @version 1.0.0
  */
-data class FileMetadataDescriptor(
+data class FileSourceMetadataDescriptor(
     override val retrievableId: RetrievableId,
     override val id: DescriptorId,
     val path: String,
@@ -35,9 +35,9 @@ data class FileMetadataDescriptor(
     override fun schema(): List<FieldSchema> = SCHEMA
 
     /**
-     * Returns the fields and its values of this [FileMetadataDescriptor] as a [Map].
+     * Returns the fields and its values of this [FileSourceMetadataDescriptor] as a [Map].
      *
-     * @return A [Map] of this [FileMetadataDescriptor]'s fields (without the IDs).
+     * @return A [Map] of this [FileSourceMetadataDescriptor]'s fields (without the IDs).
      */
     override fun values(): List<Pair<String, Any?>> = listOf(
         "path" to this.path,
