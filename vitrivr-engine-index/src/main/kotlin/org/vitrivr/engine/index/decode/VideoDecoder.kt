@@ -38,14 +38,15 @@ class VideoDecoder : DecoderFactory {
     override fun newOperator(input: Enumerator, context: IndexContext, parameters: Map<String, String>): Decoder {
         val video = parameters["video"]?.let { it.lowercase() == "true" } ?: true
         val audio = parameters["audio"]?.let { it.lowercase() == "true" } ?: true
-        return Instance(input, context, video, audio)
+        val keyFrames = parameters["keyFrames"]?.let { it.lowercase() == "true" } ?: false
+        return Instance(input, context, video, audio, keyFrames)
     }
 
 
     /**
      * The [Decoder] returned by this [VideoDecoder].
      */
-    private class Instance(override val input: Enumerator, private val context: IndexContext, private val video: Boolean = true, private val audio: Boolean = true) : Decoder {
+    private class Instance(override val input: Enumerator, private val context: IndexContext, private val video: Boolean = true, private val audio: Boolean = true, private val keyFrames: Boolean = false) : Decoder {
 
         /** [KLogger] instance. */
         private val logger: KLogger = KotlinLogging.logger {}
@@ -71,7 +72,7 @@ class VideoDecoder : DecoderFactory {
                             logger.info { "Start decoding source ${source.name} (${source.sourceId})" }
                             try {
                                 grabber.start()
-                                var frame = grabber.grabFrame(this@Instance.video, this@Instance.audio, true, false, true)
+                                var frame = grabber.grabFrame(this@Instance.audio, this@Instance.video, true, this@Instance.keyFrames, true)
                                 while (frame != null) {
                                     when (frame.type) {
                                         Frame.Type.VIDEO -> emitImageContent(frame, source, channel)
@@ -79,12 +80,14 @@ class VideoDecoder : DecoderFactory {
                                         //Frame.Type.SUBTITLE -> TODO
                                         else -> {}
                                     }
-                                    frame = grabber.grabFrame(this@Instance.video, this@Instance.audio, true, false, true)
+                                    frame = grabber.grabFrame(this@Instance.audio, this@Instance.video, true, this@Instance.keyFrames, true)
                                 }
                             } catch (exception: Exception) {
                                 logger.error(exception) { "An error occurred while decoding video from source $source. Skipping..." }
+                            } finally {
+                                grabber.stop()
+                                logger.info { "Finished decoding source ${source.name} (${source.sourceId})" }
                             }
-                            logger.info { "Finished decoding source ${source.name} (${source.sourceId})" }
                         }
                     }
                 }
