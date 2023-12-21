@@ -22,6 +22,7 @@ import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.operators.ingest.DecoderFactory
 import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.source.MediaType
+import org.vitrivr.engine.core.source.Metadata
 import org.vitrivr.engine.core.source.Source
 import java.nio.ShortBuffer
 
@@ -72,6 +73,16 @@ class VideoDecoder : DecoderFactory {
                             logger.info { "Start decoding source ${source.name} (${source.sourceId})" }
                             try {
                                 grabber.start()
+
+                                /* Extract and enrich source metadata. */
+                                source.metadata[Metadata.METADATA_KEY_VIDEO_FPS] = grabber.videoFrameRate
+                                source.metadata[Metadata.METADATA_KEY_IMAGE_WIDTH] = grabber.imageWidth
+                                source.metadata[Metadata.METADATA_KEY_IMAGE_HEIGHT] = grabber.imageHeight
+                                source.metadata[Metadata.METADATA_KEY_AUDIO_CHANNELS] = grabber.audioChannels
+                                source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLERATE] = grabber.sampleRate
+                                source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLESIZE] = grabber.sampleFormat
+
+                                /* Start extraction of frames. */
                                 var frame = grabber.grabFrame(this@Instance.audio, this@Instance.video, true, this@Instance.keyFrames, true)
                                 while (frame != null) {
                                     when (frame.type) {
@@ -121,9 +132,7 @@ class VideoDecoder : DecoderFactory {
             for ((c, s) in frame.samples.withIndex()) {
                 val normalizedSamples = when (s) {
                     is ShortBuffer -> s
-                    else -> {
-                        ShortBuffer.allocate(0)/* TODO: Cover other cases. */
-                    }
+                    else -> ShortBuffer.allocate(0)/* TODO: Cover other cases. */
                 }
                 val timestampNs: Long = frame.timestamp * 1000 // Convert microseconds to nanoseconds
                 val audio = this.context.contentFactory.newAudioContent(c, frame.sampleRate, normalizedSamples)
