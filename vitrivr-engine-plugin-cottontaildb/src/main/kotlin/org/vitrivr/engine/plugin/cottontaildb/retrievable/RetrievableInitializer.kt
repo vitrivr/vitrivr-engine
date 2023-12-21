@@ -44,8 +44,8 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
             /* Create retrievable entity. */
             this.connection.client.create(
                 CreateEntity(this.entityName)
-                    .column(Name.ColumnName(RETRIEVABLE_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = true, autoIncrement = false)
-                    .column(Name.ColumnName(RETRIEVABLE_TYPE_COLUMN_NAME), Types.String, nullable = true, primaryKey = false, autoIncrement = false)
+                    .column(Name.ColumnName.create(RETRIEVABLE_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = true, autoIncrement = false)
+                    .column(Name.ColumnName.create(RETRIEVABLE_TYPE_COLUMN_NAME), Types.String, nullable = true, primaryKey = false, autoIncrement = false)
                     .ifNotExists()
             )
 
@@ -62,9 +62,9 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
             /* Create relationship entity. */
             this.connection.client.create(
                 CreateEntity(this.relationshipEntityName)
-                    .column(Name.ColumnName(SUBJECT_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = false, autoIncrement = false)
-                    .column(Name.ColumnName(PREDICATE_COLUMN_NAME), Types.String, nullable = false, primaryKey = false, autoIncrement = false)
-                    .column(Name.ColumnName(OBJECT_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = false, autoIncrement = false)
+                    .column(Name.ColumnName.create(SUBJECT_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = false, autoIncrement = false)
+                    .column(Name.ColumnName.create(PREDICATE_COLUMN_NAME), Types.String, nullable = false, primaryKey = false, autoIncrement = false)
+                    .column(Name.ColumnName.create(OBJECT_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = false, autoIncrement = false)
                     .ifNotExists()
             )
 
