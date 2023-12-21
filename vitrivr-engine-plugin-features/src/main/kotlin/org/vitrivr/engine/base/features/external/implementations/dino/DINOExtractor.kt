@@ -1,17 +1,14 @@
 package org.vitrivr.engine.base.features.external.implementations.dino
 
 import org.vitrivr.engine.core.features.AbstractExtractor
-import org.vitrivr.engine.core.features.metadata.file.FileMetadataExtractor
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithContent
-import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithSource
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
-import org.vitrivr.engine.core.source.file.FileSource
 
 /**
  * [DINOExtractor] implementation of an [AbstractExtractor] for [DINO].
@@ -26,8 +23,6 @@ import org.vitrivr.engine.core.source.file.FileSource
 class DINOExtractor(input: Operator<Retrievable>, field: Schema.Field<ImageContent, FloatVectorDescriptor>, persisting: Boolean, private val dino: DINO) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, field, persisting) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
-     *
-     * [FileMetadataExtractor] implementation only works with [RetrievableWithSource] that contain a [FileSource].
      *
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,
