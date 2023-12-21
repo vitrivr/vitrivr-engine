@@ -23,7 +23,7 @@ import java.util.*
  * @version 1.0.0
  */
 class TemporalMetadataExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, persisting: Boolean = true) :
-    AbstractExtractor<ContentElement<*>, TemporalMetadataDescriptor>(input, field, persisting) {
+    AbstractExtractor<ContentElement<*>, TemporalMetadataDescriptor>(input, field, persisting, bufferSize = 1) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
