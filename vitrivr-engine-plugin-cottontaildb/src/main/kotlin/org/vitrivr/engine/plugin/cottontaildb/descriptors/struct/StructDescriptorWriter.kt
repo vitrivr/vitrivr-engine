@@ -9,13 +9,14 @@ import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.client.language.dml.BatchInsert
 import org.vitrivr.cottontail.client.language.dml.Insert
 import org.vitrivr.cottontail.client.language.dml.Update
-import org.vitrivr.cottontail.core.values.UuidValue
+import org.vitrivr.cottontail.core.values.*
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.plugin.cottontaildb.CottontailConnection
 import org.vitrivr.engine.plugin.cottontaildb.DESCRIPTOR_ID_COLUMN_NAME
 import org.vitrivr.engine.plugin.cottontaildb.RETRIEVABLE_ID_COLUMN_NAME
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorWriter
+import java.util.*
 
 private val logger: KLogger = KotlinLogging.logger {}
 
@@ -80,9 +81,21 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
             }
             val inserts: Array<Any?> = Array(values.size + 2) {
                 when (it) {
-                    0 -> item.id
-                    1 -> item.retrievableId
-                    else -> values[it - 2].second
+                    0 -> UuidValue(item.id)
+                    1 -> item.retrievableId?.let { v -> UuidValue(v) }
+                    else -> when (val v = values[it - 2].second) {
+                        null -> null
+                        is UUID -> UuidValue(v)
+                        is String -> StringValue(v)
+                        is Boolean -> BooleanValue(v)
+                        is Byte -> ByteValue(v)
+                        is Short -> ShortValue(v)
+                        is Int -> IntValue(v)
+                        is Long -> LongValue(v)
+                        is Float -> FloatValue(v)
+                        is Double -> DoubleValue(v)
+                        else -> throw IllegalArgumentException("Unsupported type ${v::class.simpleName} for struct descriptor.")
+                    }
                 }
             }
             insert.any(*inserts)
