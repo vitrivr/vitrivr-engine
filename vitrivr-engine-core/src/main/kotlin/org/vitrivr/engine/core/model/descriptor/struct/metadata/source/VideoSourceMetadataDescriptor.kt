@@ -14,8 +14,8 @@ import java.util.*
  * @version 1.0.0
  */
 class VideoSourceMetadataDescriptor(
-    override val retrievableId: RetrievableId,
     override val id: DescriptorId,
+    override val retrievableId: RetrievableId,
     val width: Int,
     val height: Int,
     val fps: Double,
