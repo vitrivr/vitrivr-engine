@@ -52,9 +52,6 @@ class VideoDecoder : DecoderFactory {
         /** [KLogger] instance. */
         private val logger: KLogger = KotlinLogging.logger {}
 
-        /** The [Java2DFrameConverter] used by this [VideoDecoder] instance. */
-        private val converter: Java2DFrameConverter by lazy { Java2DFrameConverter() }
-
         /**
          * Converts this [VideoDecoder] to a [Flow] of [Content] elements.
          *
@@ -113,7 +110,7 @@ class VideoDecoder : DecoderFactory {
          * @param source The [ProducerScope]'s to send [ContentElement] to.
          */
         private suspend fun emitImageContent(frame: Frame, source: Source, channel: ProducerScope<ContentElement<*>>) {
-            val image = this.context.contentFactory.newImageContent(this.converter.convert(frame))
+            val image = this.context.contentFactory.newImageContent(Java2DFrameConverter().convert(frame))
             val timestampNs: Long = frame.timestamp * 1000 // Convert microseconds to nanoseconds
             channel.send(object : ImageContent by image, SourcedContent.Temporal {
                 override val source: Source = source
