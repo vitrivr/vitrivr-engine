@@ -8,10 +8,11 @@ import org.vitrivr.engine.core.model.descriptor.scalar.*
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.RasterDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.SkeletonDescriptor
-import org.vitrivr.engine.core.model.descriptor.struct.metadata.FileMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.MediaDimensionsDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.Rectangle2DMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadataDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.scalar.ScalarDescriptorProvider
@@ -68,7 +69,8 @@ class CottontailConnectionProvider: ConnectionProvider {
 
         /* Struct descriptor. */
         LabelDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
-        FileMetadataDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
+        FileSourceMetadataDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
+        VideoSourceMetadataDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
         TemporalMetadataDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
         Rectangle2DMetadataDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
         MediaDimensionsDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,

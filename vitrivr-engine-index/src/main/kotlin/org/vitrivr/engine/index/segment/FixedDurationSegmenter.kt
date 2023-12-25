@@ -33,7 +33,7 @@ class FixedDurationSegmenter : SegmenterFactory {
             (parameters["duration"] as String? ?: throw IllegalArgumentException("'duration' must be specified")).toLong()
         )
         val lookAheadTime = Duration.ofSeconds(
-            (parameters["duration"] as String? ?: throw IllegalArgumentException("'lookAheadTime' must be specified")).toLong()
+            (parameters["lookAheadTime"] as String? ?: throw IllegalArgumentException("'lookAheadTime' must be specified")).toLong()
         )
         return Instance(input, context, duration, lookAheadTime)
     }

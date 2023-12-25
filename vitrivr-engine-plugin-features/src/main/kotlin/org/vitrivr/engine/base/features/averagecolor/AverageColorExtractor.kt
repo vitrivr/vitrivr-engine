@@ -1,7 +1,7 @@
 package org.vitrivr.engine.base.features.averagecolor
 
 import org.vitrivr.engine.core.features.AbstractExtractor
-import org.vitrivr.engine.core.features.metadata.file.FileMetadataExtractor
+import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataExtractor
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
@@ -25,7 +25,7 @@ class AverageColorExtractor(input: Operator<Retrievable>, field: Schema.Field<Im
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
-     * [FileMetadataExtractor] implementation only works with [RetrievableWithSource] that contain a [FileSource].
+     * [FileSourceMetadataExtractor] implementation only works with [RetrievableWithSource] that contain a [FileSource].
      *
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,
