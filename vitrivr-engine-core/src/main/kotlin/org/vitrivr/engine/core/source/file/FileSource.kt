@@ -14,7 +14,7 @@ import java.util.*
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 data class FileSource(
     override val sourceId: SourceId = UUID.randomUUID(),
@@ -22,7 +22,7 @@ data class FileSource(
     val mimeType: MimeType,
     override val name: String = path.fileName.toString(),
     override val timestamp: Long = System.currentTimeMillis(),
-    override val metadata: Map<String, Any> = emptyMap()
+    override val metadata: MutableMap<String, Any> = mutableMapOf()
 ): Source {
     override val type: MediaType
         get() = this.mimeType.mediaType

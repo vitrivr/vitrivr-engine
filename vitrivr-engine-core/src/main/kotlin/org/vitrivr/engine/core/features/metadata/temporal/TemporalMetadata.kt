@@ -4,9 +4,9 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
-import org.vitrivr.engine.core.features.metadata.file.FileMetadata
-import org.vitrivr.engine.core.features.metadata.file.FileMetadataExtractor
-import org.vitrivr.engine.core.features.metadata.file.FileMetadataRetriever
+import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadata
+import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataExtractor
+import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataRetriever
 import org.vitrivr.engine.core.model.content.decorators.TemporalContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadataDescriptor
@@ -31,16 +31,16 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
     override val descriptorClass = TemporalMetadataDescriptor::class
 
     /**
-     * Generates a prototypical [TemporalMetadataDescriptor] for this [FileMetadata].
+     * Generates a prototypical [TemporalMetadataDescriptor] for this [FileSourceMetadata].
      *
      * @return [FloatVectorDescriptor]
      */
     override fun prototype() = TemporalMetadataDescriptor(UUID.randomUUID(), UUID.randomUUID(), 0, 0, true)
 
     /**
-     * Generates and returns a new [FileMetadataExtractor] for the provided [Schema.Field].
+     * Generates and returns a new [FileSourceMetadataExtractor] for the provided [Schema.Field].
      *
-     * @param field The [Schema.Field] for which to create the [FileMetadataExtractor].
+     * @param field The [Schema.Field] for which to create the [FileSourceMetadataExtractor].
      * @param input The input [Operator]
      * @param context The [IndexContext]
      * @param persisting Whether the resulting [TemporalMetadataDescriptor]s should be persisted.
@@ -60,10 +60,10 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
     }
 
     /**
-     * Generates and returns a new [FileMetadataRetriever] for the provided [Schema.Field].
+     * Generates and returns a new [FileSourceMetadataRetriever] for the provided [Schema.Field].
      *
-     * @param field The [Schema.Field] for which to create the [FileMetadataRetriever].
-     * @param content The [List] of [ContentElement] to create [FileMetadataRetriever] for. This is usually empty.
+     * @param field The [Schema.Field] for which to create the [FileSourceMetadataRetriever].
+     * @param content The [List] of [ContentElement] to create [FileSourceMetadataRetriever] for. This is usually empty.
      * @param context The [QueryContext]
      */
     override fun newRetrieverForContent(
@@ -76,10 +76,10 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
     }
 
     /**
-     * Generates and returns a new [FileMetadataRetriever] for the provided [Schema.Field].
+     * Generates and returns a new [FileSourceMetadataRetriever] for the provided [Schema.Field].
      *
-     * @param field The [Schema.Field] for which to create the [FileMetadataRetriever].
-     * @param descriptors The [List] of [TemporalMetadataDescriptor] to create [FileMetadataRetriever] for. This is usually empty.
+     * @param field The [Schema.Field] for which to create the [FileSourceMetadataRetriever].
+     * @param descriptors The [List] of [TemporalMetadataDescriptor] to create [FileSourceMetadataRetriever] for. This is usually empty.
      * @param context The [QueryContext]
      * @return [TemporalMetadataRetriever]
      */

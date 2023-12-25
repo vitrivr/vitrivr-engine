@@ -1,7 +1,6 @@
 package org.vitrivr.engine.base.features.external.implementations.clip
 
 import org.vitrivr.engine.core.features.AbstractExtractor
-import org.vitrivr.engine.core.features.metadata.file.FileMetadataExtractor
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -9,10 +8,8 @@ import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithContent
-import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithSource
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
-import org.vitrivr.engine.core.source.file.FileSource
 
 /**
  * [CLIPExtractor] implementation of an [AbstractExtractor] for [CLIP].
@@ -27,8 +24,6 @@ import org.vitrivr.engine.core.source.file.FileSource
 class CLIPExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, persisting: Boolean = true, private val clip: CLIP) : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor>(input, field, persisting) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
-     *
-     * [FileMetadataExtractor] implementation only works with [RetrievableWithSource] that contain a [FileSource].
      *
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,

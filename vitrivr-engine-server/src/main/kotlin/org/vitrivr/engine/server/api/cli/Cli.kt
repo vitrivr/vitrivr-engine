@@ -1,8 +1,6 @@
 package org.vitrivr.engine.server.api.cli
 
-import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.core.NoOpCliktCommand
-import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.clikt.core.*
 import org.jline.reader.EndOfFileException
 import org.jline.reader.LineReaderBuilder
 import org.jline.reader.UserInterruptException
@@ -111,13 +109,29 @@ class Cli(private val manager: SchemaManager) {
         println()
     } catch (e: Exception) {
         when (e) {
-            is com.github.ajalt.clikt.core.PrintHelpMessage -> println(e.context?.command?.getFormattedHelp())
-            is com.github.ajalt.clikt.core.NoSuchSubcommand,
-            is com.github.ajalt.clikt.core.MissingArgument,
-            is com.github.ajalt.clikt.core.MissingOption,
-            is com.github.ajalt.clikt.core.BadParameterValue,
-            is com.github.ajalt.clikt.core.NoSuchOption,
-            is com.github.ajalt.clikt.core.UsageError -> println(e.localizedMessage)
+            is PrintHelpMessage -> println(e.context?.command?.getFormattedHelp())
+            is NoSuchSubcommand -> System.err.println("Command not found.")
+            is MissingArgument -> {
+                System.err.println("Missing argument:")
+                println(e.context?.command?.getFormattedHelp())
+            }
+
+            is MissingOption -> {
+                System.err.println("Missing option:")
+                println(e.context?.command?.getFormattedHelp())
+            }
+
+            is BadParameterValue -> {
+                System.err.println("Bad parameter value:")
+                println(e.context?.command?.getFormattedHelp())
+            }
+
+            is NoSuchOption -> {
+                System.err.println("No such option:")
+                println(e.context?.command?.getFormattedHelp())
+            }
+
+            is UsageError -> println(e.localizedMessage)
             else -> println(e.printStackTrace())
         }
     }
