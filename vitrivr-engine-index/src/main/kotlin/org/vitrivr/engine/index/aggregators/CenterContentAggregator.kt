@@ -14,6 +14,7 @@ import org.vitrivr.engine.core.operators.ingest.Segmenter
 /**
  * A [Aggregator] that returns the middle [ContentElement] of each type.
  *
+ * @author Luca Rossetto
  * @version 1.0.0
  */
 class CenterContentAggregator : AggregatorFactory {
@@ -37,9 +38,9 @@ class CenterContentAggregator : AggregatorFactory {
             val audioContent = content.filterIsInstance<AudioContent>()
             val textContent = content.filterIsInstance<TextContent>()
             return listOfNotNull(
-                imageContent.let { if (it.isNotEmpty()) it[it.size / 2] else null },
-                audioContent.let { if (it.isNotEmpty()) it[it.size / 2] else null },
-                textContent.let { if (it.isNotEmpty()) it[it.size / 2] else null }
+                imageContent.let { if (it.isNotEmpty()) it[Math.floorDiv(it.size, 2)] else null },
+                audioContent.let { if (it.isNotEmpty()) it[Math.floorDiv(it.size, 2)] else null },
+                textContent.let { if (it.isNotEmpty()) it[Math.floorDiv(it.size, 2)] else null }
             )
         }
     }
