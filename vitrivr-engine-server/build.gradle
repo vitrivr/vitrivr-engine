@@ -31,4 +31,5 @@ dependencies {
 
 application {
     mainClassName = 'org.vitrivr.engine.server.MainKt'
+    applicationDefaultJvmArgs = ["-Xms2G", "-Xmx8G"]
 }
