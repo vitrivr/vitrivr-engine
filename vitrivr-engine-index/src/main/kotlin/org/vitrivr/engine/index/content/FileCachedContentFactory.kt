@@ -97,7 +97,7 @@ class FileCachedContentFactory(private val basePath: Path) : ContentFactory {
         private val backing: FileBackedByteBuffer
 
         /** The type of the [BufferedImage]. */
-        private val type = bufferedImage.type
+        private val imageType = bufferedImage.type
 
         /** The width of the [BufferedImage] (is stored explicitly). */
         override val width = bufferedImage.width
@@ -111,7 +111,7 @@ class FileCachedContentFactory(private val basePath: Path) : ContentFactory {
                 val buf = this.backing.buffer.asIntBuffer()
                 val colors = IntArray(buf.remaining())
                 buf.get(colors)
-                val image = BufferedImage(width, height, type)
+                val image = BufferedImage(width, height, imageType)
                 image.setRGBArray(colors)
                 return image
             }
