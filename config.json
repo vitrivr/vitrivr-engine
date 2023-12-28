@@ -12,24 +12,19 @@
       "fields": [
         {
           "name": "averagecolor",
-          "factory": "AverageColor",
-          "parameters": {
-            "key": "AverageColor-value-schema"
-          }
+          "factory": "AverageColor"
         },
         {
           "name": "file",
-          "factory": "FileMetadata",
-          "parameters": {
-            "key": "FileMetadata-value-schema"
-          }
+          "factory": "FileSourceMetadata"
+        },
+        {
+          "name": "video",
+          "factory": "VideoSourceMetadata"
         },
         {
           "name": "time",
-          "factory": "TemporalMetadata",
-          "parameters": {
-            "key": "TemporalMetadata-value-schema"
-          }
+          "factory": "TemporalMetadata"
         },
         {
           "name": "clip",
@@ -52,14 +47,8 @@
         {
           "name": "thumbnail",
           "factory": "ThumbnailExporter",
-          "parameters": {
-            "key": "ThumbnailExporter-value-schema"
-          },
           "resolver": {
-            "factory": "DiskResolver",
-            "parameters": {
-              "key": "DiskResolver-value-schema"
-            }
+            "factory": "DiskResolver"
           }
         }
       ],
@@ -89,7 +78,11 @@
         },
         {
           "name": "file",
-          "factory": "FileMetadata"
+          "factory": "FileSourceMetadata"
+        },
+        {
+          "name": "video",
+          "factory": "VideoSourceMetadata"
         },
         {
           "name": "time",
@@ -136,7 +129,11 @@
         },
         {
           "name": "file",
-          "factory": "FileMetadata"
+          "factory": "FileSourceMetadata"
+        },
+        {
+          "name": "video",
+          "factory": "VideoSourceMetadata"
         },
         {
           "name": "time",
@@ -147,14 +144,8 @@
         {
           "name": "thumbnail",
           "factory": "ThumbnailExporter",
-          "parameters": {
-            "key": "ThumbnailExporter-value-schema"
-          },
           "resolver": {
-            "factory": "DiskResolver",
-            "parameters": {
-              "key": "DiskResolver-value-schema"
-            }
+            "factory": "DiskResolver"
           }
         }
       ]
