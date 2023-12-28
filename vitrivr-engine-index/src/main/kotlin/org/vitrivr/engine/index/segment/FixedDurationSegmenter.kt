@@ -85,7 +85,7 @@ class FixedDurationSegmenter : SegmenterFactory {
         /** Cache of [SourcedContent.Temporal] elements. */
         private val cache = LinkedList<ContentElement<*>>()
 
-        /** The last start timestamp encounterd by this [FixedDurationSegmenter]. */
+        /** The last start timestamp encountered by this [FixedDurationSegmenter]. */
         private var lastStartTime: Long = 0
 
         /** Reference to the last [Source] encountered by this [FixedDurationSegmenter]. */
