@@ -30,9 +30,7 @@ class CenterContentAggregator : AggregatorFactory {
      * The [Instance] returns by the [AggregatorFactory]
      */
     private class Instance(override val input: Operator<Retrievable>, context: IndexContext) : AbstractAggregator(input, context) {
-        override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> = content.groupBy {
-            it::class
-        }.mapNotNull { (_, elements) ->
+        override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> = content.groupBy { it.type }.mapNotNull { (_, elements) ->
             if (elements.isNotEmpty()) {
                 elements[Math.floorDiv(elements.size, 2)]
             } else {
