@@ -40,14 +40,24 @@ class VideoDecoder : DecoderFactory {
         val video = parameters["video"]?.let { it.lowercase() == "true" } ?: true
         val audio = parameters["audio"]?.let { it.lowercase() == "true" } ?: true
         val keyFrames = parameters["keyFrames"]?.let { it.lowercase() == "true" } ?: false
-        return Instance(input, context, video, audio, keyFrames)
+        val sampleVideo = parameters["sample.video"]?.toIntOrNull() ?: 1
+        val sampleAudio = parameters["sample.audio"]?.toIntOrNull() ?: 1
+        return Instance(input, context, video, audio, keyFrames, sampleVideo, sampleAudio)
     }
 
 
     /**
      * The [Decoder] returned by this [VideoDecoder].
      */
-    private class Instance(override val input: Enumerator, private val context: IndexContext, private val video: Boolean = true, private val audio: Boolean = true, private val keyFrames: Boolean = false) : Decoder {
+    private class Instance(
+        override val input: Enumerator,
+        private val context: IndexContext,
+        private val video: Boolean = true,
+        private val audio: Boolean = true,
+        private val keyFrames: Boolean = false,
+        private val sampleVideo: Int = 1,
+        private val sampleAudio: Int = 1,
+    ) : Decoder {
 
         /** [KLogger] instance. */
         private val logger: KLogger = KotlinLogging.logger {}
@@ -65,6 +75,8 @@ class VideoDecoder : DecoderFactory {
             return channelFlow {
                 val channel = this
                 input.collect { source ->
+                    var videoCounter = 0
+                    var audioCounter = 0
                     source.newInputStream().use { input ->
                         FFmpegFrameGrabber(input).use { grabber ->
                             logger.info { "Start decoding source ${source.name} (${source.sourceId})" }
@@ -83,9 +95,13 @@ class VideoDecoder : DecoderFactory {
                                 var frame = grabber.grabFrame(this@Instance.audio, this@Instance.video, true, this@Instance.keyFrames, true)
                                 while (frame != null) {
                                     when (frame.type) {
-                                        Frame.Type.VIDEO -> emitImageContent(frame, source, channel)
-                                        Frame.Type.AUDIO -> emitAudioContent(frame, source, channel)
-                                        //Frame.Type.SUBTITLE -> TODO
+                                        Frame.Type.VIDEO -> if ((videoCounter++) % this@Instance.sampleVideo == 0) {
+                                            emitImageContent(frame, source, channel)
+                                        }
+
+                                        Frame.Type.AUDIO -> if ((audioCounter++) % this@Instance.sampleAudio == 0) {
+                                            emitAudioContent(frame, source, channel)
+                                        }
                                         else -> {}
                                     }
                                     frame = grabber.grabFrame(this@Instance.audio, this@Instance.video, true, this@Instance.keyFrames, true)
@@ -110,7 +126,9 @@ class VideoDecoder : DecoderFactory {
          * @param source The [ProducerScope]'s to send [ContentElement] to.
          */
         private suspend fun emitImageContent(frame: Frame, source: Source, channel: ProducerScope<ContentElement<*>>) {
-            val image = this.context.contentFactory.newImageContent(Java2DFrameConverter().convert(frame))
+            val image = Java2DFrameConverter().use {
+                this.context.contentFactory.newImageContent(it.convert(frame))
+            }
             val timestampNs: Long = frame.timestamp * 1000 // Convert microseconds to nanoseconds
             channel.send(object : ImageContent by image, SourcedContent.Temporal {
                 override val source: Source = source
