@@ -68,7 +68,7 @@ class SchemaManager {
                 it.name,
                 loadServiceForName<ExporterFactory>(it.factory) ?: throw IllegalArgumentException("Failed to find exporter factory implementation for '${it.factory}'."),
                 it.parameters,
-                (loadServiceForName<ResolverFactory>(it.resolver.factory) ?: throw IllegalArgumentException("Failed to find resolver factory implementation for '${it.resolver.factory}'.")).newResolver(it.resolver.parameters),
+                (loadServiceForName<ResolverFactory>(it.resolver.factory) ?: throw IllegalArgumentException("Failed to find resolver factory implementation for '${it.resolver.factory}'.")).newResolver(schema, it.resolver.parameters),
             )
         }
         config.extractionPipelines.map {

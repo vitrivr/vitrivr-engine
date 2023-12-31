@@ -1,5 +1,6 @@
 package org.vitrivr.engine.index.resolvers
 
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.resolver.Resolvable
 import org.vitrivr.engine.core.resolver.Resolver
@@ -25,9 +26,9 @@ class DiskResolver : ResolverFactory {
      * @param parameters The parameters used to configure [Resolver]
      * @return [DiskResolver]
      */
-    override fun newResolver(parameters: Map<String, Any>): Resolver {
-        val location = Paths.get(parameters["location"] as? String ?: "./thumbnails")
-        val mimeType = MimeType.valueOf(parameters["mimeType"] as? String ?: "JPG")
+    override fun newResolver(schema: Schema, parameters: Map<String, String>): Resolver {
+        val location = Paths.get(parameters["location"] ?: "./thumbnails/${schema.name}")
+        val mimeType = MimeType.valueOf(parameters["mimeType"] ?: "JPG")
         return Instance(location, mimeType)
     }
 
