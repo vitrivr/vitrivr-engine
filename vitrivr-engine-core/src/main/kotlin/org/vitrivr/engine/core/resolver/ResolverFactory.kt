@@ -1,9 +1,10 @@
 package org.vitrivr.engine.core.resolver
 
+import org.vitrivr.engine.core.model.metamodel.Schema
+
 /**
  * A factory class for [Resolver]s.
  *
- * @author Fynn Faber
  * @version 1.0.0.
  */
 interface ResolverFactory {
@@ -11,8 +12,9 @@ interface ResolverFactory {
     /**
      * Generates a new [Resolver] instance using the provided [parameters].
      *
+     * @param schema The [Schema] on which the [Resolver] operates
      * @param parameters The parameters used to configure [Resolver]
      * @return [Resolver]
      */
-    fun newResolver(parameters: Map<String, Any>): Resolver
+    fun newResolver(schema: Schema, parameters: Map<String, String>): Resolver
 }
