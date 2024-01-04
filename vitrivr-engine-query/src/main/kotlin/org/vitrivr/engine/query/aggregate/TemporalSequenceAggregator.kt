@@ -54,10 +54,11 @@ class TemporalSequenceAggregator(
                 }
 
                 //get all valid segments per source, sorted by time if available
-                val segments = source.relationships.asSequence().filter { it.pred == "partOf" && it.obj.first == source.id }
-                    .mapNotNull { retrievedMap[it.sub.first] }.filterIsInstance<Retrieved.RetrievedWithProperties>()
-                    .filter { it.properties["start"]?.toLongOrNull() != null && it.properties["end"]?.toLongOrNull() != null }
-                    .sortedBy { it.properties["start"]!!.toLong() }.toList()
+                val segments =
+                    source.relationships.asSequence().filter { it.pred == "partOf" && it.obj.first == source.id }
+                        .mapNotNull { retrievedMap[it.sub.first] }.filterIsInstance<Retrieved.RetrievedWithProperties>()
+                        .filter { it.properties["start"]?.toLongOrNull() != null && it.properties["end"]?.toLongOrNull() != null }
+                        .sortedBy { it.properties["start"]!!.toLong() }.toList()
 
                 if (segments.isEmpty()) {
                     continue
@@ -132,8 +133,9 @@ class TemporalSequenceAggregator(
                     //find best match from next stage to grow sequence
                     for (nextStageId in ((startStageId + 1) until inputs.size)) {
 
-                        val maxStartTime = temporalSequence.last().end + MAX_TIME_BETWEEN_STAGES
-                        stages[nextStageId]?.filter { it.start <= maxStartTime }?.maxBy { it.score }?.let {
+                        val maxStartTime =
+                            temporalSequence.last().end + MAX_TIME_BETWEEN_STAGES
+                        stages[nextStageId]?.filter { it.start <= maxStartTime }?.maxByOrNull { it.score }?.let {
                             temporalSequence.add(it) //add highest scored sequence within range
                         }
 
