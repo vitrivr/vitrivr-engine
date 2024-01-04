@@ -1,7 +1,7 @@
 {
   "schemas": [
     {
-      "name": "v3c12",
+      "name": "V3C",
       "connection": {
         "database": "CottontailConnectionProvider",
         "parameters": {
