@@ -37,6 +37,11 @@ class TemporalSequenceAggregator(
             emit(it)
         }
 
+        //at least 2 inputs are required for a sequence
+        if (inputs.size < 2 || inputs.filter { it.isNotEmpty() }.size < 2) {
+            return@flow
+        }
+
         //start with temporal aggregation
 
         val continuousSequences = mutableMapOf<RetrievableId, MutableList<ContinuousSequence>>()
@@ -123,6 +128,11 @@ class TemporalSequenceAggregator(
 
             val stages = sequences.groupBy { it.stage }
 
+            //skip sequences that have only results for one 'stage'
+            if (stages.size < 2) {
+                continue
+            }
+
             //sequentially go over all stage indices to try and start sequences
             for (startStageId in inputs.indices) {
 
@@ -133,11 +143,13 @@ class TemporalSequenceAggregator(
                     //find best match from next stage to grow sequence
                     for (nextStageId in ((startStageId + 1) until inputs.size)) {
 
-                        val maxStartTime =
-                            temporalSequence.last().end + MAX_TIME_BETWEEN_STAGES
-                        stages[nextStageId]?.filter { it.start <= maxStartTime }?.maxByOrNull { it.score }?.let {
-                            temporalSequence.add(it) //add highest scored sequence within range
-                        }
+                        val maxStartTime = temporalSequence.last().end + MAX_TIME_BETWEEN_STAGES
+                        val minStartTime = temporalSequence.last().start
+
+                        stages[nextStageId]?.filter { it.start in minStartTime..maxStartTime }?.maxByOrNull { it.score }
+                            ?.let {
+                                temporalSequence.add(it) //add highest scored sequence within range
+                            }
 
                     }
 
