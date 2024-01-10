@@ -22,11 +22,10 @@ import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.operators.ingest.DecoderFactory
 import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.source.MediaType
+import org.vitrivr.engine.core.source.Metadata
 import org.vitrivr.engine.core.source.Source
 import java.nio.ShortBuffer
 
-/** [KLogger] instance. */
-private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * A [Decoder] that can decode [ImageContent] and [AudioContent] from a [Source] of [MediaType.VIDEO].
@@ -36,20 +35,32 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @version 1.0.0
  */
 class VideoDecoder : DecoderFactory {
+
     override fun newOperator(input: Enumerator, context: IndexContext, parameters: Map<String, String>): Decoder {
         val video = parameters["video"]?.let { it.lowercase() == "true" } ?: true
         val audio = parameters["audio"]?.let { it.lowercase() == "true" } ?: true
-        return Instance(input, context, video, audio)
+        val keyFrames = parameters["keyFrames"]?.let { it.lowercase() == "true" } ?: false
+        val sampleVideo = parameters["sample.video"]?.toIntOrNull() ?: 1
+        val sampleAudio = parameters["sample.audio"]?.toIntOrNull() ?: 1
+        return Instance(input, context, video, audio, keyFrames, sampleVideo, sampleAudio)
     }
 
 
     /**
      * The [Decoder] returned by this [VideoDecoder].
      */
-    private class Instance(override val input: Enumerator, private val context: IndexContext, private val video: Boolean = true, private val audio: Boolean = true) : Decoder {
+    private class Instance(
+        override val input: Enumerator,
+        private val context: IndexContext,
+        private val video: Boolean = true,
+        private val audio: Boolean = true,
+        private val keyFrames: Boolean = false,
+        private val sampleVideo: Int = 1,
+        private val sampleAudio: Int = 1,
+    ) : Decoder {
 
-        /** The [Java2DFrameConverter] used by this [VideoDecoder] instance. */
-        private val converter: Java2DFrameConverter by lazy { Java2DFrameConverter() }
+        /** [KLogger] instance. */
+        private val logger: KLogger = KotlinLogging.logger {}
 
         /**
          * Converts this [VideoDecoder] to a [Flow] of [Content] elements.
@@ -64,22 +75,42 @@ class VideoDecoder : DecoderFactory {
             return channelFlow {
                 val channel = this
                 input.collect { source ->
+                    var videoCounter = 0
+                    var audioCounter = 0
                     source.newInputStream().use { input ->
                         FFmpegFrameGrabber(input).use { grabber ->
+                            logger.info { "Start decoding source ${source.name} (${source.sourceId})" }
                             try {
                                 grabber.start()
-                                var frame = grabber.grabFrame(this@Instance.video, this@Instance.audio, true, false, true)
+
+                                /* Extract and enrich source metadata. */
+                                source.metadata[Metadata.METADATA_KEY_VIDEO_FPS] = grabber.videoFrameRate
+                                source.metadata[Metadata.METADATA_KEY_IMAGE_WIDTH] = grabber.imageWidth
+                                source.metadata[Metadata.METADATA_KEY_IMAGE_HEIGHT] = grabber.imageHeight
+                                source.metadata[Metadata.METADATA_KEY_AUDIO_CHANNELS] = grabber.audioChannels
+                                source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLERATE] = grabber.sampleRate
+                                source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLESIZE] = grabber.sampleFormat
+
+                                /* Start extraction of frames. */
+                                var frame = grabber.grabFrame(this@Instance.audio, this@Instance.video, true, this@Instance.keyFrames, true)
                                 while (frame != null) {
                                     when (frame.type) {
-                                        Frame.Type.VIDEO -> emitImageContent(frame, source, channel)
-                                        Frame.Type.AUDIO -> emitAudioContent(frame, source, channel)
-                                        //Frame.Type.SUBTITLE -> TODO
+                                        Frame.Type.VIDEO -> if ((videoCounter++) % this@Instance.sampleVideo == 0) {
+                                            emitImageContent(frame, source, channel)
+                                        }
+
+                                        Frame.Type.AUDIO -> if ((audioCounter++) % this@Instance.sampleAudio == 0) {
+                                            emitAudioContent(frame, source, channel)
+                                        }
                                         else -> {}
                                     }
-                                    frame = grabber.grabFrame(this@Instance.video, this@Instance.audio, true, false, true)
+                                    frame = grabber.grabFrame(this@Instance.audio, this@Instance.video, true, this@Instance.keyFrames, true)
                                 }
                             } catch (exception: Exception) {
                                 logger.error(exception) { "An error occurred while decoding video from source $source. Skipping..." }
+                            } finally {
+                                grabber.stop()
+                                logger.info { "Finished decoding source ${source.name} (${source.sourceId})" }
                             }
                         }
                     }
@@ -95,7 +126,9 @@ class VideoDecoder : DecoderFactory {
          * @param source The [ProducerScope]'s to send [ContentElement] to.
          */
         private suspend fun emitImageContent(frame: Frame, source: Source, channel: ProducerScope<ContentElement<*>>) {
-            val image = this.context.contentFactory.newImageContent(this.converter.convert(frame))
+            val image = Java2DFrameConverter().use {
+                this.context.contentFactory.newImageContent(it.convert(frame))
+            }
             val timestampNs: Long = frame.timestamp * 1000 // Convert microseconds to nanoseconds
             channel.send(object : ImageContent by image, SourcedContent.Temporal {
                 override val source: Source = source
@@ -114,9 +147,7 @@ class VideoDecoder : DecoderFactory {
             for ((c, s) in frame.samples.withIndex()) {
                 val normalizedSamples = when (s) {
                     is ShortBuffer -> s
-                    else -> {
-                        ShortBuffer.allocate(0)/* TODO: Cover other cases. */
-                    }
+                    else -> ShortBuffer.allocate(0)/* TODO: Cover other cases. */
                 }
                 val timestampNs: Long = frame.timestamp * 1000 // Convert microseconds to nanoseconds
                 val audio = this.context.contentFactory.newAudioContent(c, frame.sampleRate, normalizedSamples)

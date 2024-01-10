@@ -8,6 +8,4 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface StructDescriptor: Descriptor {
-
-}
+interface StructDescriptor : Descriptor

@@ -1,7 +1,7 @@
 package org.vitrivr.engine.core.features.metadata.temporal
 
 import org.vitrivr.engine.core.features.AbstractExtractor
-import org.vitrivr.engine.core.features.metadata.file.FileMetadataExtractor
+import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataExtractor
 import org.vitrivr.engine.core.model.content.decorators.TemporalContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -23,11 +23,11 @@ import java.util.*
  * @version 1.0.0
  */
 class TemporalMetadataExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, persisting: Boolean = true) :
-    AbstractExtractor<ContentElement<*>, TemporalMetadataDescriptor>(input, field, persisting) {
+    AbstractExtractor<ContentElement<*>, TemporalMetadataDescriptor>(input, field, persisting, bufferSize = 1) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
-     * [FileMetadataExtractor] implementation only works with [RetrievableWithSource] that contain a [FileSource].
+     * [FileSourceMetadataExtractor] implementation only works with [RetrievableWithSource] that contain a [FileSource].
      *
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,

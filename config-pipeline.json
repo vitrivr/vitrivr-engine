@@ -1,7 +1,10 @@
 {
   "context": {
     "contentFactory": "InMemoryContentFactory",
-    "resolverFactory": "DiskResolver"
+    "resolverFactory": "DiskResolver",
+    "parameters": {
+      "location": "/Volumes/V3C1/LHE/thumbnails"
+    }
   },
   "schema": "VBSLHE",
   "enumerator": {
@@ -13,24 +16,29 @@
     },
     "next": {
       "name": "VideoDecoder",
-      "nextTransformer": {
-        "name": "PassthroughTransformer",
-        "nextSegmenter": {
-          "name": "FixedDurationSegmenter",
-          "parameters": {
-            "duration": "1",
-            "lookAheadTime": "1"
-          },
-          "aggregators": [
-            {
-              "name": "AverageImageContentAggregator",
-              "nextExtractor": {
-                "fieldName": "averagecolor",
-                "nextExporter": {
-                  "name": "ThumbnailExporter",
-                  "exporterName": "thumbnail",
+      "parameters": {
+        "audio": "false",
+        "video": "true",
+        "sample.video": "10"
+      },
+      "nextSegmenter": {
+        "name": "FixedDurationSegmenter",
+        "parameters": {
+          "duration": "3",
+          "lookAheadTime": "1"
+        },
+        "aggregators": [
+          {
+            "name": "CenterContentAggregator",
+            "nextExtractor": {
+              "fieldName": "averagecolor",
+              "nextExporter": {
+                "name": "ThumbnailExporter",
+                "exporterName": "thumbnail",
+                "nextExtractor": {
+                  "fieldName": "file",
                   "nextExtractor": {
-                    "fieldName": "file",
+                    "fieldName": "video",
                     "nextExtractor": {
                       "fieldName": "time",
                       "nextExtractor": {
@@ -44,8 +52,8 @@
                 }
               }
             }
-          ]
-        }
+          }
+        ]
       }
     }
   }

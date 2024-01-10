@@ -15,8 +15,8 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 data class LongDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId,
-    override val transient: Boolean,
     override val value: Long,
+    override val transient: Boolean = false
 ): ScalarDescriptor<Long> {
     companion object {
         private val SCHEMA = listOf(FieldSchema("value", FieldType.LONG))

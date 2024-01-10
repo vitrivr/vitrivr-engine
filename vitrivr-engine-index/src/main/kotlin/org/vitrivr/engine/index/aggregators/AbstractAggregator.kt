@@ -32,7 +32,7 @@ abstract class AbstractAggregator(override val input: Operator<Retrievable>, pro
         if (it is RetrievableWithContent) {
             val content = this.aggregate(it.content)
             val descriptors: List<Descriptor> = (it as? RetrievableWithDescriptor)?.descriptors ?: emptyList()
-            val relationships = (it as? RetrievableWithRelationship)?.relationships ?: emptyMap()
+            val relationships = (it as? RetrievableWithRelationship)?.relationships ?: emptySet()
             Ingested(it.id, it.type, it.transient, content, descriptors, relationships)
         } else {
             it

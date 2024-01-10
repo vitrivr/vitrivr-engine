@@ -22,6 +22,9 @@ interface RetrievableWriter : Writer<Retrievable> {
      */
     fun connect(subject: RetrievableId, predicate: String, `object`: RetrievableId): Boolean
 
+
+    fun connectAll(subjects: Iterable<RetrievableId>, predicate: String, objects: Iterable<RetrievableId>): Boolean
+
     /**
      * Severs the specified connection between two [Retrievable]s.
      *

@@ -24,6 +24,7 @@ import org.vitrivr.engine.server.api.rest.model.ErrorStatusException
     pathParams = [
         OpenApiParam("schema", type = String::class, description = "The name of the schema to execute a query for.", required = true)
     ],
+    requestBody = OpenApiRequestBody([OpenApiContent(InformationNeedDescription::class)]),
     responses = [
         OpenApiResponse("200", [OpenApiContent(QueryResult::class)]),
         OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)])
