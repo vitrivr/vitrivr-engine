@@ -6,5 +6,5 @@ include 'vitrivr-engine-query'
 include 'vitrivr-engine-server'
 include 'vitrivr-engine-plugin-cottontaildb'
 include 'vitrivr-engine-plugin-features'
-include 'vitrivr-engine-module-m3d'
+include 'vitrivr-engine-plugin-m3d'
 
