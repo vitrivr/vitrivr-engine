@@ -14,7 +14,7 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
  */
 data class TemporalMetadataDescriptor(
     override val id: DescriptorId,
-    override val retrievableId: RetrievableId,
+    override val retrievableId: RetrievableId, //retrievable Id must come first, due to reflection
     val startNs: Long,
     val endNs: Long,
     override val transient: Boolean = false

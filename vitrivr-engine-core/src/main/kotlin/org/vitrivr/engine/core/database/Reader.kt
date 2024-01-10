@@ -14,12 +14,17 @@ import java.util.*
  */
 interface Reader<out T : Persistable> {
     /**
-     * Returns a  [Persistable] of type [T] that corresponds to the provided [UUID].
+     * Returns a [Persistable] of type [T] that corresponds to the provided [UUID].
      *
      * @param id The [UUID] to return.
      * @return [Sequence] of [Persistable] of type [T]
      */
     operator fun get(id: UUID): T?
+
+    /**
+     * Returns a [Persistable] of type [T] that corresponds to the provided [UUID] in a specified columnName.
+     */
+    fun getBy(id: UUID, columnName: String): T?
 
     /**
      * Checks if a [Persistable] of type [T] with the provided [UUID] exists.
@@ -35,6 +40,14 @@ interface Reader<out T : Persistable> {
      * @return [Sequence] of [Persistable] of type [T]
      */
     fun getAll(ids: Iterable<UUID>): Sequence<T>
+
+    /**
+     * Returns a [Sequence] of all [Persistable] accessible by this [Reader] whose [UUID] is contained in a specified columnName in the provided [Iterable].
+     *
+     * @param ids A [Iterable] of [UUID]s to return.
+     * @return [Sequence] of [Persistable] of type [T]
+     */
+    fun getAllBy(ids: Iterable<UUID>, columnName: String): Sequence<T>
 
     /**
      * Returns a [Sequence] of all [Persistable] accessible by this [Reader].

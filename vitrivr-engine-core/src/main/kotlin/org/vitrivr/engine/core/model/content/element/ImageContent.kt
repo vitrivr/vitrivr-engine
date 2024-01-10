@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.content.element
 
+import org.vitrivr.engine.core.model.content.ContentType
 import java.awt.image.BufferedImage
 
 /**
@@ -17,4 +18,8 @@ interface ImageContent: ContentElement<BufferedImage> {
     /** Height of the [BufferedImage] held by this [ContentElement]. */
     val height: Int
         get() = this.content.height
+
+    /** The [ContentType] of an [ImageContent] is always [ContentType.BITMAP_IMAGE]. */
+    override val type: ContentType
+        get() = ContentType.BITMAP_IMAGE
 }

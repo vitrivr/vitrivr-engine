@@ -13,7 +13,7 @@ enum class MediaType {
     /** A pure audio stream. */
     AUDIO,
 
-    /** A video(containing an image, audio, and potentially a textual stream). */
+    /** A video (containing an image, audio, and potentially a textual stream). */
     VIDEO,
 
     /** A 3D mesh. */

@@ -11,4 +11,4 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface Transformer<I : Retrieved, O : Retrieved> : Operator.Binary<I, O>
+interface Transformer<I : Retrieved, O : Retrieved> : Operator.Unary<I, O>

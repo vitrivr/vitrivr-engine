@@ -15,8 +15,8 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 data class FloatDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId,
-    override val transient: Boolean,
     override val value: Float,
+    override val transient: Boolean = false
 ): ScalarDescriptor<Float> {
     companion object {
         private val SCHEMA = listOf(FieldSchema("value", FieldType.FLOAT))

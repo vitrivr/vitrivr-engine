@@ -31,3 +31,7 @@ thumbnails/
 
 # DS_Store files
 .DS_Store
+
+# OpenAPI generated code
+openapi
+thumbnails*

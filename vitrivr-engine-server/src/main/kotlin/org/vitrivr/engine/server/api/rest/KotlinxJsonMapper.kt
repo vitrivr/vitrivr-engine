@@ -23,7 +23,7 @@ object KotlinxJsonMapper : JsonMapper {
             null
         } catch (e: IllegalStateException) {
             null
-        } ?: fallbackMapper.readValue(json, object : TypeReference<T>() {})
+        } ?: fallbackMapper.readValue(json, fallbackMapper.typeFactory.constructType(targetType))
 
     }
 

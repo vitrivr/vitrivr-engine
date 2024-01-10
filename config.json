@@ -1,7 +1,7 @@
 {
   "schemas": [
     {
-      "name": "vitrivr",
+      "name": "V3C",
       "connection": {
         "database": "CottontailConnectionProvider",
         "parameters": {
@@ -12,24 +12,81 @@
       "fields": [
         {
           "name": "averagecolor",
-          "factory": "AverageColor",
-          "parameters": {
-            "key": "AverageColor-value-schema"
-          }
+          "factory": "AverageColor"
         },
         {
           "name": "file",
-          "factory": "FileMetadata",
-          "parameters": {
-            "key": "FileMetadata-value-schema"
-          }
+          "factory": "FileSourceMetadata"
+        },
+        {
+          "name": "video",
+          "factory": "VideoSourceMetadata"
         },
         {
           "name": "time",
-          "factory": "TemporalMetadata",
-          "parameters": {
-            "key": "TemporalMetadata-value-schema"
+          "factory": "TemporalMetadata"
+        },
+        {
+          "name": "clip",
+          "factory": "CLIP"
+        },
+        {
+          "name": "dino",
+          "factory": "DINO"
+        },
+        {
+          "name": "ocr",
+          "factory": "OCR"
+        },
+        {
+          "name": "whisperasr",
+          "factory": "ASR"
+        }
+      ],
+      "exporters": [
+        {
+          "name": "thumbnail",
+          "factory": "ThumbnailExporter",
+          "resolver": {
+            "factory": "DiskResolver"
           }
+        }
+      ],
+      "extractionPipelines": []
+    },
+    {
+      "name": "MVK",
+      "connection": {
+        "database": "CottontailConnectionProvider",
+        "parameters": {
+          "host": "127.0.0.1",
+          "port": "1865"
+        }
+      },
+      "fields": [
+        {
+          "name": "averagecolor",
+          "factory": "AverageColor"
+        },
+        {
+          "name": "clip",
+          "factory": "CLIP"
+        },
+        {
+          "name": "dino",
+          "factory": "DINO"
+        },
+        {
+          "name": "file",
+          "factory": "FileSourceMetadata"
+        },
+        {
+          "name": "video",
+          "factory": "VideoSourceMetadata"
+        },
+        {
+          "name": "time",
+          "factory": "TemporalMetadata"
         }
       ],
       "exporters": [
@@ -64,7 +121,7 @@
         },
         {
           "name": "clip",
-          "factory": "CLIPImage"
+          "factory": "CLIP"
         },
         {
           "name": "dino",
@@ -72,7 +129,11 @@
         },
         {
           "name": "file",
-          "factory": "FileMetadata"
+          "factory": "FileSourceMetadata"
+        },
+        {
+          "name": "video",
+          "factory": "VideoSourceMetadata"
         },
         {
           "name": "time",
@@ -83,14 +144,8 @@
         {
           "name": "thumbnail",
           "factory": "ThumbnailExporter",
-          "parameters": {
-            "key": "ThumbnailExporter-value-schema"
-          },
           "resolver": {
-            "factory": "DiskResolver",
-            "parameters": {
-              "key": "DiskResolver-value-schema"
-            }
+            "factory": "DiskResolver"
           }
         }
       ]

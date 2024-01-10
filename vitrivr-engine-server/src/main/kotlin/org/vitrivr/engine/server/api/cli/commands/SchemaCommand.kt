@@ -3,12 +3,16 @@ package org.vitrivr.engine.server.api.cli.commands
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.clikt.parameters.options.convert
+import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.option
 import com.jakewharton.picnic.table
+import org.vitrivr.engine.core.config.IndexConfig
+import org.vitrivr.engine.core.config.pipeline.ExtractionPipelineBuilder
+import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.database.Initializer
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.index.config.IndexConfig
-import org.vitrivr.engine.index.config.PipelineBuilder
-import org.vitrivr.engine.index.execution.ExecutionServer
+import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
@@ -59,7 +63,7 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
                         row {
                             cell(field.fieldName)
                             cell(field.analyser::class.java.simpleName)
-                            cell(field.analyser.contentClass.simpleName)
+                            cell(field.analyser.contentClasses.map { it.simpleName }.joinToString())
                             cell(field.analyser.descriptorClass.simpleName)
                             cell(this@SchemaCommand.schema.connection.description())
                             cell(field.getInitializer().isInitialized())
@@ -94,12 +98,34 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
         }
     }
 
-    inner class Extract(private val schema: Schema, private val server: ExecutionServer) : CliktCommand(name = "extract", help = "Extracts data from a source and stores it in the schema.") {
+    /**
+     * [CliktCommand] to start an extraction job.
+     */
+    inner class Extract(private val schema: Schema, private val executor: ExecutionServer) : CliktCommand(name = "extract", help = "Extracts data from a source and stores it in the schema.") {
+
+        /** Path to the configuration file. */
+        private val input: Path by option("-c", "--config", help = "Path to the extraction configuration.").convert { Paths.get(it) }.default(Paths.get(IndexConfig.DEFAULT_PIPELINE_PATH))
+
         override fun run() {
-            val config = IndexConfig.read(Paths.get(IndexConfig.DEFAULT_PIPELINE_PATH)) ?: return
-            val pipelineBuilder = PipelineBuilder.forConfig(this.schema, config)
+            /* Read configuration file. */
+            val config = try {
+                IndexConfig.read(this.input)
+            } catch (e: Exception) {
+                System.err.println("Failed to read extraction configuration due to error: ${e.message}")
+                return
+            }
+
+            /* Check if configuration is valid. */
+            if (config == null) {
+                println("Failed to read extraction configuration. No extraction is being started.")
+                return
+            }
+
+            /* Instantiate pipeline and start extraction. */
+            val pipelineBuilder = ExtractionPipelineBuilder.forConfig(this.schema, config)
             val pipeline = pipelineBuilder.getPipeline()
-            this.server.extract(pipeline)
+            val uuid = this.executor.extractAsync(pipeline)
+            println("Started extraction job with UUID $uuid.")
         }
     }
 }

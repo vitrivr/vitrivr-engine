@@ -1,11 +1,14 @@
 plugins {
     id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
+    id 'application'
 }
 
 dependencies {
+    /** vitrivr engine dependencies. */
     api project(':vitrivr-engine-index')
     api project(':vitrivr-engine-query')
-    api project(':vitrivr-engine-base') /* TODO: This dependency is not necessary and only here to facilitate easy testing. */
+    api project(':vitrivr-engine-plugin-features')                 /* TODO: This dependency is not necessary and only here to facilitate easy testing. */
+    api project(':vitrivr-engine-plugin-cottontaildb')             /* TODO: This dependency is not necessary and only here to facilitate easy testing. */
 
     /** Clikt & JLine */
     implementation group: 'com.github.ajalt.clikt', name: 'clikt', version: version_clikt
@@ -24,4 +27,9 @@ dependencies {
 
     /* Kapt. */
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$version_javalin")
+}
+
+application {
+    mainClassName = 'org.vitrivr.engine.server.MainKt'
+    applicationDefaultJvmArgs = ["-Xms2G", "-Xmx8G"]
 }
