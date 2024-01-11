@@ -15,7 +15,7 @@ import java.util.*
 class DominantColor : Analyser<ContentElement<*>, StringDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = StringDescriptor::class
-    override fun prototype() = StringDescriptor(id= UUID.randomUUID(), retrievableId = UUID.randomUUID(), transient = true, value = "")
+    override fun prototype(field: Schema.Field<*,*>) = StringDescriptor(id= UUID.randomUUID(), retrievableId = UUID.randomUUID(), transient = true, value = "")
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, StringDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, StringDescriptor> {
         TODO("Not yet implemented")
     }

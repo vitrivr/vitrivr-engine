@@ -28,9 +28,10 @@ class VideoSourceMetadata : Analyser<ContentElement<*>, VideoSourceMetadataDescr
     /**
      * Generates a prototypical [FileSourceMetadataDescriptor] for this [FileSourceMetadata].
      *
+     * @param field The [Schema.Field] to create the prototype for.
      * @return [FileSourceMetadataDescriptor]
      */
-    override fun prototype() = VideoSourceMetadataDescriptor.PROTOTYPE
+    override fun prototype(field: Schema.Field<*, *>) = VideoSourceMetadataDescriptor.PROTOTYPE
 
     /**
      * Generates and returns a new [FileSourceMetadataExtractor] for the provided [Schema.Field].
