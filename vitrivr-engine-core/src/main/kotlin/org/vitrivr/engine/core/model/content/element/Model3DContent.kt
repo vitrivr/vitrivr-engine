@@ -1,6 +1,6 @@
 package org.vitrivr.engine.core.model.content.element
 
-import org.vitrivr.engine.core.model.content.element.m3d.Model
+import org.vitrivr.engine.core.model.mesh.Model3D
 
 /**
  * A 3D [ContentElement].
@@ -8,5 +8,4 @@ import org.vitrivr.engine.core.model.content.element.m3d.Model
  * @author Rahel Arnold
  * @version 1.0.0
  */
-interface M3dContent: ContentElement<Model> {
-}
+interface Model3DContent: ContentElement<Model3D>

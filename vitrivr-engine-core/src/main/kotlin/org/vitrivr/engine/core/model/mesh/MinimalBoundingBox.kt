@@ -1,4 +1,4 @@
-package org.vitrivr.engine.m3d.util
+package org.vitrivr.engine.core.model.mesh
 
 import org.joml.Vector3f
 
@@ -223,12 +223,5 @@ open class MinimalBoundingBox {
             changed = true
         }
         return changed
-    }
-
-    /**
-     * Release all resources.
-     */
-    fun close() {
-        // Perform cleanup if needed
     }
 }

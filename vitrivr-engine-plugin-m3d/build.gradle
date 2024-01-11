@@ -23,9 +23,15 @@ switch (org.gradle.internal.os.OperatingSystem.current()) {
 }
 
 dependencies {
+    api project(':vitrivr-engine-core')
 
-    /** JOGL and JOML dependencies for 3D model support. */
-    api "org.joml:joml:${version_joml}"
+    /* Apache Commons Math. */
+    api group: "org.apache.commons", name: "commons-math3", version: version_commonsmath3
+
+    /** JOML dependencies for 3D mesh support. */
+    api group: 'org.joml', name: 'joml', version: version_joml
+
+    /* JOGL dependency for 3D rendering support. */
     api "org.jogamp.gluegen:gluegen-rt:${version_jogl}"
     api "org.jogamp.jogl:jogl-all:${version_jogl}"
     api "org.jogamp.jogl:jogl-all:${version_jogl}:natives-windows-amd64"
