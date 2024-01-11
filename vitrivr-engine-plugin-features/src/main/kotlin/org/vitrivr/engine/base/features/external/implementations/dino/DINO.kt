@@ -53,9 +53,10 @@ class DINO : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
     /**
      * Generates a prototypical [FloatVectorDescriptor] for this [DINO].
      *
+     * @param field [Schema.Field] to create the prototype for.
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype() = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), featureList, true)
+    override fun prototype(field: Schema.Field<*,*>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), featureList, true)
 
 
     override fun newExtractor(

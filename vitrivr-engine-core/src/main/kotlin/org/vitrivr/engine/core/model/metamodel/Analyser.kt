@@ -4,7 +4,9 @@ import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.content.element.Model3DContent
 import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -29,13 +31,13 @@ interface Analyser<C: ContentElement<*>, D: Descriptor> {
     val descriptorClass: KClass<D>
 
     /**
-     * Generates a specimen of the [Descriptor] produced / consumed by this [Analyser].
+     * Generates a specimen of the [Descriptor] produced / consumed by this [Analyser] given the provided [Schema.Field]
      *
      * This is a required operation.
      *
      * @return A [Descriptor] specimen of type [D].
      */
-    fun prototype(): D
+    fun prototype(field: Schema.Field<*, *>): D
 
     /**
      * Generates and returns a new [Extractor] instance for this [Analyser].

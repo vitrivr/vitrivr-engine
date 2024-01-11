@@ -33,9 +33,10 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
     /**
      * Generates a prototypical [TemporalMetadataDescriptor] for this [FileSourceMetadata].
      *
+     * @param field The [Schema.Field] to create the prototype for.
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype() = TemporalMetadataDescriptor(UUID.randomUUID(), UUID.randomUUID(), 0, 0, true)
+    override fun prototype(field: Schema.Field<*, *>) = TemporalMetadataDescriptor(UUID.randomUUID(), UUID.randomUUID(), 0, 0, true)
 
     /**
      * Generates and returns a new [FileSourceMetadataExtractor] for the provided [Schema.Field].

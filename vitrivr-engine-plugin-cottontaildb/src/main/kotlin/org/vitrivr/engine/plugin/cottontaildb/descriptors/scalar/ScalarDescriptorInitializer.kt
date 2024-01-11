@@ -25,7 +25,7 @@ class ScalarDescriptorInitializer<T : ScalarDescriptor<*>>(field: Schema.Field<*
      */
     override fun initialize() {
         /* Determine type based on prototype for Schema.Field. */
-        val type = this.field.analyser.prototype().toType()
+        val type = this.field.analyser.prototype(this.field).toType()
 
         /* Prepare query. */
         val create = CreateEntity(this.entityName)

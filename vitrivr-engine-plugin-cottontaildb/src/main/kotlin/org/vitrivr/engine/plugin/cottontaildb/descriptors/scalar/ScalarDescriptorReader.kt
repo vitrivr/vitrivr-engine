@@ -21,7 +21,7 @@ import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorRead
 class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connection: CottontailConnection) : AbstractDescriptorReader<ScalarDescriptor<*>>(field, connection) {
 
     /** Prototype [ScalarDescriptor] used to create new instances. */
-    private val prototype = this.field.analyser.prototype()
+    private val prototype = this.field.analyser.prototype(this.field)
 
     /**
      * Executes the provided [Query] and returns a [Sequence] of [Retrieved.WithDescriptor]s that match it.

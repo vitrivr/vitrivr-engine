@@ -15,7 +15,7 @@ import java.util.*
 class  MediaDimensions : Analyser<ContentElement<*>, MediaDimensionsDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = MediaDimensionsDescriptor::class
-    override fun prototype() = MediaDimensionsDescriptor(UUID.randomUUID(), UUID.randomUUID(), 0, 0, true)
+    override fun prototype(field: Schema.Field<*,*>) = MediaDimensionsDescriptor(UUID.randomUUID(), UUID.randomUUID(), 0, 0, true)
 
 
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, MediaDimensionsDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, MediaDimensionsDescriptor> {

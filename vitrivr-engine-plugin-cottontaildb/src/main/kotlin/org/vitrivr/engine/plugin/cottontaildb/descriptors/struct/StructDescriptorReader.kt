@@ -26,7 +26,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
     /** An internal [Map] that maps field name to Cottontail DB [Types]. */
     private val fieldMap = mutableListOf<Pair<String, Types<*>>>()
     init {
-        val prototype = this.field.analyser.prototype()
+        val prototype = this.field.analyser.prototype(this.field)
         for (f in prototype.schema()) {
             require(f.dimensions.size <= 1) { "Cottontail DB currently doesn't support tensor types."}
             val vector = f.dimensions.size == 1
