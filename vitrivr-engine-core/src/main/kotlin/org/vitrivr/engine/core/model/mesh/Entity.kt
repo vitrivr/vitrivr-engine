@@ -1,4 +1,4 @@
-package org.vitrivr.engine.m3d
+package org.vitrivr.engine.core.model.mesh
 
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
@@ -6,7 +6,7 @@ import org.joml.Quaternionf
 import org.joml.Vector3f
 
 /**
- * An Entity in the context of a [Model] describes a position and scale of a model in the scene.
+ * An Entity in the context of a [Model3D] describes a position and scale of a model in the scene.
  * The Entity is composed of a model matrix that is used to transform the model in the scene.
  * The model matrix is calculated from the position, rotation and scale of the entity.
  * The Entity influences how the model is rendered in the scene.
@@ -111,7 +111,6 @@ class Entity(
      * @param y Y coordinate of position.
      * @param z Z coordinate of position.
      */
-    @Suppress("unused")
     fun setPosition(x: Float, y: Float, z: Float) {
         this.position.set(x, y, z)
     }

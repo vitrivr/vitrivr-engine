@@ -1,4 +1,4 @@
-package org.vitrivr.engine.m3d
+package org.vitrivr.engine.model3d
 
 
 import org.apache.logging.log4j.LogManager
@@ -7,15 +7,14 @@ import org.lwjgl.assimp.*
 import org.lwjgl.assimp.Assimp.*
 
 import org.lwjgl.system.MemoryStack
+import org.vitrivr.engine.core.model.mesh.*
 import java.io.File
 import java.nio.IntBuffer
 import java.util.*
 import kotlin.collections.ArrayList
 
-
 class ModelHandler {
     private val LOGGER = LogManager.getLogger()
-
 
     /**
      * Loads a model from a file. Generates all the standard flags for Assimp. For more details see <a href="https://javadoc.lwjgl.org/org/lwjgl/assimp/Assimp.html">Assimp</a>.
@@ -84,7 +83,7 @@ class ModelHandler {
      * @param modelPath Path to the model file.
      * @return Model object.
      */
-    fun loadModel(modelId: String, modelPath: String): Model {
+    fun loadModel(modelId: String, modelPath: String): Model3D {
         LOGGER.trace("Try loading file {} from {}", modelId, modelPath)
 
         val aiScene = loadAIScene(modelId, modelPath)
@@ -104,7 +103,7 @@ class ModelHandler {
 
         val numMeshes = aiScene.mNumMeshes()
         val aiMeshes = aiScene.mMeshes()
-        val defaultMaterial = Material()
+        val defaultMaterial = Material(mutableListOf(), )
         for (ic in 0 until numMeshes) {
             LOGGER.trace("Try create AI Mesh {}", ic)
             val aiMesh = AIMesh.create(aiMeshes?.get(ic) ?: continue)
@@ -117,10 +116,10 @@ class ModelHandler {
                 defaultMaterial
             }
             LOGGER.trace("Try add Material to Mesh")
-            material.addMesh(mesh)
+            material.meshes.add(mesh)
         }
 
-        if (defaultMaterial.myMeshes.isNotEmpty()) {
+        if (defaultMaterial.meshes.isNotEmpty()) {
             LOGGER.trace("Try add default Material")
             materialList.add(defaultMaterial)
         }
@@ -128,7 +127,7 @@ class ModelHandler {
         LOGGER.trace("Try instantiate Model")
         aiReleaseImport(aiScene)
 
-        val `🎲` = Model(modelId, materialList)
+        val `🎲` = Model3D(modelId, materials = materialList)
         LOGGER.trace("Try return Model")
         return `🎲`
     }
@@ -158,7 +157,7 @@ class ModelHandler {
             //** Diffuse color if no texture is present
             val result = aiGetMaterialColor(aiMaterial, AI_MATKEY_COLOR_DIFFUSE, aiTextureType_NONE, 0, color)
             if (result == aiReturn_SUCCESS) {
-                material.myDiffuseColor = Vector4f(color.r(), color.g(), color.b(), color.a())
+                material.diffuseColor = Vector4f(color.r(), color.g(), color.b(), color.a())
             }
 
             //** Try load texture
@@ -169,8 +168,8 @@ class ModelHandler {
             val texturePath = aiTexturePath.dataString()
             //TODO: Warning
             if (texturePath.isNotEmpty()) {
-                material.myTexture = Texture(File(modelDir + File.separator + File(texturePath).toPath()))
-                material.myDiffuseColor = Material.DEFAULT_COLOR
+                material.texture = Texture(File(modelDir + File.separator + File(texturePath).toPath()))
+                material.diffuseColor = Material.DEFAULT_COLOR
             }
 
             return material
@@ -190,7 +189,7 @@ class ModelHandler {
             textCoords = FloatArray(numElements)
         }
         LOGGER.trace("End processing mesh")
-        return Mesh(vertices, normals, textCoords, indices)
+        return Mesh.of(vertices, normals,textCoords, indices)
     }
 
     private fun processNormals(aiMesh: AIMesh): FloatArray? {
@@ -293,6 +292,4 @@ class ModelHandler {
             }
         }
     }
-
-
 }
