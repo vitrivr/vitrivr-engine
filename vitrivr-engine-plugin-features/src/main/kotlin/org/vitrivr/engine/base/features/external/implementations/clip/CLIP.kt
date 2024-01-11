@@ -9,6 +9,7 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
+import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
@@ -90,10 +91,10 @@ class CLIP : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
     }
 
     /**
-     * Generates and returns a new [Retriever] instance for this [DINO].
+     * Generates and returns a new [Retriever] instance for this [CLIP].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
-     * @param content An array of [Content] elements to use with the [Retriever]
+     * @param content An array of [ContentElement]s to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      *
      * @return A new [Retriever] instance for this [Analyser]
@@ -111,7 +112,7 @@ class CLIP : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
      * Generates and returns a new [Retriever] instance for this [CLIP].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
-     * @param descriptors An array of [Descriptor] elements to use with the [Retriever]
+     * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      *
      * @return A new [Retriever] instance for this [Analyser]
