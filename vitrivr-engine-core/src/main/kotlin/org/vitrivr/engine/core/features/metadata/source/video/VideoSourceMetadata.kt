@@ -16,7 +16,7 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
 /**
- * Implementation of the [VideoSourceMetadata] [Analyser], which derives metadata information from [Retr]
+ * Implementation of the [VideoSourceMetadata] [Analyser], which derives metadata information from a [Retrievable].
  *
  * @author Ralph Gasser
  * @version 1.0.0
