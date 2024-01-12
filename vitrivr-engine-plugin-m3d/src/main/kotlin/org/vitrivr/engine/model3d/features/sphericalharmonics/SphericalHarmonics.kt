@@ -147,7 +147,7 @@ class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
                     }
                     val list: MutableList<Complex> = descriptors[r]
 
-                    var result: Complex = Complex(0.0)
+                    var result = Complex(0.0)
 
                     /* Calculate the projections at radius r for l and m (i.e. the integral ∫f(ϑ,ϼ)Zlm(ϑ,ϼ)dϴdϑ). */
                     var theta = 0.0
@@ -158,7 +158,7 @@ class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
                             val y = ((r + 1) * FastMath.cos(theta)).toInt() + R
                             val z = ((r + 1) * FastMath.sin(theta) * FastMath.sin(phi)).toInt() + R
 
-                            if (grid.isVisible(x, y, z)) {
+                            if (grid[x, y, z]) {
                                 result = result.add(fkt.value(theta, phi).conjugate().multiply(increment * increment))
                             }
                             phi += increment
