@@ -14,7 +14,11 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 class ModelHandler {
-    private val LOGGER = LogManager.getLogger()
+
+
+    companion object {
+        private val LOGGER = LogManager.getLogger()
+    }
 
     /**
      * Loads a model from a file. Generates all the standard flags for Assimp. For more details see <a href="https://javadoc.lwjgl.org/org/lwjgl/assimp/Assimp.html">Assimp</a>.
