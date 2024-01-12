@@ -11,6 +11,14 @@ import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithSourc
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.source.file.FileSource
+import org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics.Companion.CAP_PARAMETER_DEFAULT
+import org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics.Companion.CAP_PARAMETER_NAME
+import org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics.Companion.GRID_SIZE_PARAMETER_DEFAULT
+import org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics.Companion.GRID_SIZE_PARAMETER_NAME
+import org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics.Companion.MAXL_PARAMETER_DEFAULT
+import org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics.Companion.MAXL_PARAMETER_NAME
+import org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics.Companion.MINL_PARAMETER_DEFAULT
+import org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics.Companion.MINL_PARAMETER_NAME
 
 /**
  * Implementation of an [AbstractExtractor], which derives leverages spherical harmonics for meshes as proposed in [1].
@@ -28,13 +36,16 @@ class SphericalHarmonicsExtractor(
 ) : AbstractExtractor<Model3DContent, FloatVectorDescriptor>(input, field, persisting) {
 
     /** The grid size for rasterization [SphericalHarmonicsFunction]. */
-    private val gridSize = this.field.parameters["grid_size"]?.toIntOrNull() ?: 64
+    private val gridSize = this.field.parameters[GRID_SIZE_PARAMETER_NAME]?.toIntOrNull() ?: GRID_SIZE_PARAMETER_DEFAULT
+
+    /** The maximum radius to obtain [SphericalHarmonicsFunction] values for. */
+    private val cap = this.field.parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
 
     /** The maxL parameter used for the [SphericalHarmonicsFunction].. */
-    private val minL = this.field.parameters["min_l"]?.toIntOrNull() ?: 0
+    private val minL = this.field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
 
     /** The maxL parameter used for the [SphericalHarmonicsFunction]. */
-    private val maxL = this.field.parameters["max_l"]?.toIntOrNull() ?: 4
+    private val maxL = this.field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
 
     init {
         require(this.minL < this.maxL) { "Parameter mismatch: min_l must be smaller than max_l. "}
@@ -60,6 +71,6 @@ class SphericalHarmonicsExtractor(
         check(retrievable is RetrievableWithContent) { "Incoming retrievable is not a retrievable with source. This is a programmer's error!" }
         val content = retrievable.content.filterIsInstance<Model3DContent>()
         val analyser = (this.field.analyser as SphericalHarmonics)
-        return content.flatMap { c -> c.content.getMaterials().flatMap { mat -> mat.meshes.map { mesh -> analyser.analyse(mesh, this.minL, this.maxL, this.gridSize) } } }
+        return content.flatMap { c -> c.content.getMaterials().flatMap { mat -> mat.meshes.map { mesh -> analyser.analyse(mesh, this.gridSize, this.minL, this.maxL, this.cap) } } }
     }
 }

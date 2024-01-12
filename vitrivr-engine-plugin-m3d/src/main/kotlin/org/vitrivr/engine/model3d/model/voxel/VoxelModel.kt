@@ -11,7 +11,7 @@ import kotlin.math.ceil
  * @author Ralph Gasser
  * @version 1.0.0
  */
-data class VoxelModel constructor(
+data class VoxelModel(
     /** The size of the voxel grid in X direction. */
     val sizeX: Int,
 
@@ -24,7 +24,7 @@ data class VoxelModel constructor(
     /** Determines the size of a single voxel. */
     val resolution: Float
 ) {
-    /** The total length ot the voxel grid (i.e. the number of voxels in the grid). */
+    /** The total length ot the voxel grid (i.e., the number of voxels in the grid). */
     val length: Int = this.sizeX * this.sizeY * this.sizeZ
 
     /**
@@ -32,7 +32,8 @@ data class VoxelModel constructor(
      *
      * Important:  Transformation into world coordinates are based on this center!
      */
-    private val center = Vector3f(0f, 0f, 0f)
+    var center = Vector3f(0f, 0f, 0f)
+        private set
 
     /**
      * Number of visible voxels in the grid.
@@ -121,9 +122,9 @@ data class VoxelModel constructor(
      */
     fun getVoxelCenter(x: Int, y: Int, z: Int): Vector3f {
         return Vector3f(
-            (x - this.sizeX / 2) * this.resolution + center.x,
-            (y - this.sizeY / 2) * this.resolution + center.y,
-            (z - this.sizeZ / 2) * this.resolution + center.z
+            (x - this.sizeX / 2) * this.resolution + this.center.x,
+            (y - this.sizeY / 2) * this.resolution + this.center.y,
+            (z - this.sizeZ / 2) * this.resolution + this.center.z
         )
     }
 
@@ -137,12 +138,12 @@ data class VoxelModel constructor(
      * @throws ArrayIndexOutOfBoundsException If one of the three indices is larger than the grid.
      */
     fun toggleVoxel(visible: Boolean, x: Int, y: Int, z: Int) {
-        if (visible && voxelGrid[x][y][z] == Voxel.INVISIBLE) {
-            voxelGrid[x][y][z] = Voxel.VISIBLE
+        if (visible && this.voxelGrid[x][y][z] == Voxel.INVISIBLE) {
+            this.voxelGrid[x][y][z] = Voxel.VISIBLE
             this.invisible -= 1
             this.visible += 1
-        } else if (!visible && voxelGrid[x][y][z] == Voxel.VISIBLE) {
-            voxelGrid[x][y][z] = Voxel.INVISIBLE
+        } else if (!visible && this.voxelGrid[x][y][z] == Voxel.VISIBLE) {
+            this.voxelGrid[x][y][z] = Voxel.INVISIBLE
             this.invisible += 1
             this.visible -= 1
         }
