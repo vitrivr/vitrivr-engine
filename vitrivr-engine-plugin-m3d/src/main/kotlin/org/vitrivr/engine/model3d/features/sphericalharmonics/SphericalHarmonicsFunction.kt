@@ -63,11 +63,11 @@ class SphericalHarmonicsFunction(l: Int, m: Int) {
         /**
          * Calculates and returns the number of coefficients that are expected for all spherical harmonics up to max_l.
          *
-         * @param max_l The maximum harmonic to consider.
+         * @param maxL The maximum harmonic to consider.
          */
-        fun numberOfCoefficients(max_l: Int, onesided: Boolean): Int {
+        fun numberOfCoefficients(maxL: Int, onesided: Boolean): Int {
             var number = 0
-            for (l in 0..max_l) {
+            for (l in 0..maxL) {
                 if (onesided) {
                     for (m in 0..l) {
                         number += 1

@@ -34,13 +34,39 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @version 1.0.0
  */
 class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
+    companion object {
+        /** Name of the grid_size parameter; determines size of voxel grid for rasterization. */
+        const val GRID_SIZE_PARAMETER_NAME = "grid_size"
+
+        /** Default value of the grid_size parameter. */
+        const val GRID_SIZE_PARAMETER_DEFAULT = 64
+
+        /** Name of the cap parameter; determines maximum radius to obtain spherical harmonics for. */
+        const val CAP_PARAMETER_NAME = "cap"
+
+        /** Default value of the cap parameter. */
+        const val CAP_PARAMETER_DEFAULT = 10
+
+        /** Name of the min_l parameter; determines minimum l to obtain spherical harmonics for. */
+        const val MINL_PARAMETER_NAME = "min_l"
+
+        /**  Default value of the min_l parameter. */
+        const val MINL_PARAMETER_DEFAULT = 0
+
+        /** Name of the max_l parameter; determines maximum l to obtain spherical harmonics for. */
+        const val MAXL_PARAMETER_NAME = "max_l"
+
+        /**  Default value of the max_l parameter. */
+        const val MAXL_PARAMETER_DEFAULT = 4
+    }
+
     override val contentClasses: Set<KClass<out ContentElement<*>>> = setOf(Model3DContent::class)
     override val descriptorClass: KClass<FloatVectorDescriptor> = FloatVectorDescriptor::class
     override fun prototype(field: Schema.Field<*,*>): FloatVectorDescriptor {
-        val gridSize = field.parameters["grid_size"]?.toIntOrNull() ?: 64
-        val cap = field.parameters["cap"]?.toIntOrNull() ?: 10
-        val minL = field.parameters["min_l"]?.toIntOrNull() ?: 0
-        val maxL = field.parameters["max_l"]?.toIntOrNull() ?: 4
+        val gridSize = field.parameters[GRID_SIZE_PARAMETER_NAME]?.toIntOrNull() ?: GRID_SIZE_PARAMETER_DEFAULT
+        val cap = field.parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
+        val minL = field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
+        val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
         val numberOfCoefficients: Int = SphericalHarmonicsFunction.numberOfCoefficients(maxL, true) - SphericalHarmonicsFunction.numberOfCoefficients(minL - 1, true)
         val vectorSize = ((gridSize / 2) - cap) * numberOfCoefficients
         return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), FloatArray(vectorSize).toList(), true)
@@ -49,10 +75,11 @@ class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
     override fun newRetrieverForContent(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, content: Collection<Model3DContent>, context: QueryContext): Retriever<Model3DContent, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         val mesh = content.first().content.getMaterials().first().meshes.first()
-        val gridSize = field.parameters["grid_size"]?.toIntOrNull() ?: 64
-        val minL = field.parameters["min_l"]?.toIntOrNull() ?: 0
-        val maxL = field.parameters["max_l"]?.toIntOrNull() ?: 4
-        val descriptor = this.analyse(mesh, minL, maxL, gridSize)
+        val gridSize = field.parameters[GRID_SIZE_PARAMETER_NAME]?.toIntOrNull() ?: GRID_SIZE_PARAMETER_DEFAULT
+        val cap = field.parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
+        val minL = field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
+        val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
+        val descriptor = this.analyse(mesh, gridSize, cap, minL, maxL)
         return SphericalHarmonicsRetriever(field, descriptor, context)
     }
 
@@ -85,11 +112,15 @@ class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
      * Now for l = 0 to l = 4 (m = -l to +l), the projection of the function f(x,y,z) onto the SphericalHarmonic function Zlm (i.e. the integral  ∫f(ϑ,ϼ)Zlm(ϑ,ϼ)dϴdϑ) is calculated. This is done for all of the seven radii. This yields 25 descriptors per radius which results in a feature vector of 7 * 25 entries.
      *
      * Depending on the model, the first components may be 0.0 because the surface of the sphere defined by the radius only touches empty space (i.e the hollow interior of the model).
+     *
+     * @param gridSize The grid size for rasterization of [Mesh]
+     * @param cap The maximum radius to obtain [SphericalHarmonics] function value for.
+     * @param minL The minimum L parameter to obtain [SphericalHarmonics] function value for.
+     * @param maxL The maximum L parameter to obtain [SphericalHarmonics] function value for.
      */
-    fun analyse(mesh: Mesh, minL: Int, maxL: Int, gridSize: Int): FloatVectorDescriptor {
+    fun analyse(mesh: Mesh, gridSize: Int, cap: Int, minL: Int, maxL: Int): FloatVectorDescriptor {
         val voxelizer = Voxelizer(2.0f / gridSize)
         val increment = 0.1 /* Increment of the angles during calculation of the descriptors. */
-        val cap = 10 /* Cap on R (i.e., radii up to R-cap are considered). */
         val R: Int = gridSize / 2
         val numberOfCoefficients: Int = SphericalHarmonicsFunction.numberOfCoefficients(maxL, true) - SphericalHarmonicsFunction.numberOfCoefficients(minL - 1, true)
 
