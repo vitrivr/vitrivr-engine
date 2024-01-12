@@ -93,34 +93,34 @@ class Voxelizer(private val resolution: Float) {
                 for (enclosing in enclosings) {
                     /* Perform vertex-tests. */
                     if (this@Voxelizer.vertextTest(vertices[0], enclosing)) {
-                        grid.toggleVoxel(true, enclosing.first.x, enclosing.first.y, enclosing.first.z)
+                        grid[enclosing.first.x, enclosing.first.y, enclosing.first.z] = true
                         continue
                     }
                     if (this@Voxelizer.vertextTest(vertices[1], enclosing)) {
-                        grid.toggleVoxel(true, enclosing.first.x, enclosing.first.y, enclosing.first.z)
+                        grid[enclosing.first.x, enclosing.first.y, enclosing.first.z] = true
                         continue
                     }
                     if (this@Voxelizer.vertextTest(vertices[2], enclosing)) {
-                        grid.toggleVoxel(true, enclosing.first.x, enclosing.first.y, enclosing.first.z)
+                        grid[enclosing.first.x, enclosing.first.y, enclosing.first.z] = true
                         continue
                     }
                     /* Perform edge-tests. */
                     if (this@Voxelizer.edgeTest(vertices[0], vertices[1], enclosing)) {
-                        grid.toggleVoxel(true, enclosing.first.x, enclosing.first.y, enclosing.first.z)
+                        grid[enclosing.first.x, enclosing.first.y, enclosing.first.z] = true
                         continue
                     }
                     if (this@Voxelizer.edgeTest(vertices[1], vertices[2], enclosing)) {
-                        grid.toggleVoxel(true, enclosing.first.x, enclosing.first.y, enclosing.first.z)
+                        grid[enclosing.first.x, enclosing.first.y, enclosing.first.z] = true
                         continue
                     }
                     if (this@Voxelizer.edgeTest(vertices[2], vertices[0], enclosing)) {
-                        grid.toggleVoxel(true, enclosing.first.x, enclosing.first.y, enclosing.first.z)
+                        grid[enclosing.first.x, enclosing.first.y, enclosing.first.z] = true
                         continue
                     }
 
                     /* Perform plane-tests. */
                     if (this@Voxelizer.planeTest(vertices[0], vertices[1], vertices[2], enclosing)) {
-                        grid.toggleVoxel(true, enclosing.first.x, enclosing.first.y, enclosing.first.z)
+                        grid[enclosing.first.x, enclosing.first.y, enclosing.first.z] = true
                     }
                 }
             }

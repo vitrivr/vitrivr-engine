@@ -3,10 +3,11 @@ package org.vitrivr.engine.model3d.model.voxel
 import org.joml.Vector3f
 import org.joml.Vector3fc
 import org.joml.Vector3i
+import java.util.BitSet
 import kotlin.math.ceil
 
 /**
- * This class represents a [Voxel] model, i.e., a 3-dimensional grid of 3D pixels (called Voxels).
+ * This class represents a [VoxelModel], i.e., a 3-dimensional grid of 3D pixels (called Voxels).
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -50,13 +51,7 @@ data class VoxelModel(
     /**
      * Array holding the actual voxels.
      */
-    private val voxelGrid: Array<Array<Array<Voxel>>> = Array(this.sizeX) {
-        Array(this.sizeY) {
-            Array(this.sizeZ) {
-                Voxel.INVISIBLE
-            }
-        }
-    }
+    private val voxelGrid = BitSet(this.sizeX * this.sizeY * this.sizeZ)
 
     val gridCenter: Vector3fc
         get() = this.center
@@ -93,22 +88,29 @@ data class VoxelModel(
      * @param x x position of the Voxel.
      * @param y y position of the Voxel.
      * @param z z position of the Voxel.
-     * @throws ArrayIndexOutOfBoundsException If one of the three indices is larger than the grid.
      */
-    fun get(x: Int, y: Int, z: Int): Voxel {
-        return this.voxelGrid[x][y][z]
+    operator fun get(x: Int, y: Int, z: Int): Boolean {
+        val index = coordinatesToIndex(x, y, z)
+        return this.voxelGrid[index]
     }
 
     /**
-     * Returns true, if the Voxel at the specified position is visible and false otherwise.
+     * Toggles the Voxel at the specified position.
      *
      * @param x x position of the Voxel.
      * @param y y position of the Voxel.
      * @param z z position of the Voxel.
-     * @throws ArrayIndexOutOfBoundsException If one of the three indices is larger than the grid.
+     * @param visible If true, the new Voxel position will become visible.
      */
-    fun isVisible(x: Int, y: Int, z: Int): Boolean {
-        return this.voxelGrid[x][y][z] == Voxel.VISIBLE
+    operator fun set(x: Int, y: Int, z: Int, visible: Boolean) {
+        val index = coordinatesToIndex(x, y, z)
+        if (visible && !this.voxelGrid[index]) {
+            this.invisible -= 1
+            this.visible += 1
+        } else if (!visible && this.voxelGrid[index]) {
+            this.invisible += 1
+            this.visible -= 1
+        }
     }
 
     /**
@@ -129,27 +131,6 @@ data class VoxelModel(
     }
 
     /**
-     * Toggles the Voxel at the specified position.
-     *
-     * @param visible If true, the new Voxel position will become visible.
-     * @param x       x position of the Voxel.
-     * @param y       y position of the Voxel.
-     * @param z       z position of the Voxel.
-     * @throws ArrayIndexOutOfBoundsException If one of the three indices is larger than the grid.
-     */
-    fun toggleVoxel(visible: Boolean, x: Int, y: Int, z: Int) {
-        if (visible && this.voxelGrid[x][y][z] == Voxel.INVISIBLE) {
-            this.voxelGrid[x][y][z] = Voxel.VISIBLE
-            this.invisible -= 1
-            this.visible += 1
-        } else if (!visible && this.voxelGrid[x][y][z] == Voxel.VISIBLE) {
-            this.voxelGrid[x][y][z] = Voxel.INVISIBLE
-            this.invisible += 1
-            this.visible -= 1
-        }
-    }
-
-    /**
      * Converts the VoxelGrid into a string that can be read by Matlab (e.g. for 3D scatter plots). The array contains the coordinates of all visible voxels.
      *
      * @return String
@@ -160,7 +141,8 @@ data class VoxelModel(
         for (x in 0 until this.sizeX) {
             for (y in 0 until this.sizeY) {
                 for (z in 0 until this.sizeZ) {
-                    if (voxelGrid[x][y][z] == Voxel.VISIBLE) {
+                    val index = (z * this.sizeZ * this.sizeY) + (this.sizeY * y) + x
+                    if (!voxelGrid[index]) {
                         buffer.append(String.format("%d %d %d; ", x, y, z))
                     }
                 }
@@ -171,10 +153,17 @@ data class VoxelModel(
     }
 
     /**
-     * Represents a single [Voxel] in a [VoxelModel] which can either can be visible or invisible.
+     * Converts 3D coordinates (x, y, z) to a linear index.
+     *
+     * @param x position of the Voxel.
+     * @param y position of the Voxel.
+     * @param z position of the Voxel.
+     * @return Linear bit index.
      */
-    enum class Voxel {
-        VISIBLE,
-        INVISIBLE
+    private fun coordinatesToIndex( x: Int, y: Int, z: Int): Int {
+        require(x < this.sizeX) { "X-coordinate $x is out of bounds for size ${this.sizeX}." }
+        require(y < this.sizeY) { "X-coordinate $x is out of bounds for size ${this.sizeY}." }
+        require(z < this.sizeZ) { "X-coordinate $x is out of bounds for size ${this.sizeZ}." }
+        return (z * this.sizeZ * this.sizeY) + (this.sizeY * y) + x
     }
 }
