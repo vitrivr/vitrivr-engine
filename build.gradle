@@ -86,8 +86,8 @@ subprojects {
         implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: version_caffeine
 
         /* Logging */
-        implementation group: 'io.github.oshai', name: 'kotlin-logging-jvm', version: version_kotlinlogging
         implementation group: 'org.slf4j', name: 'slf4j-api', version: version_slf4j
+        implementation group: 'io.github.oshai', name: 'kotlin-logging-jvm', version: version_kotlinlogging
         implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: version_log4j2
         implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: version_log4j2
         implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j2-impl', version: version_log4j2
