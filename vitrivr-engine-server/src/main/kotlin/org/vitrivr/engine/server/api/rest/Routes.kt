@@ -49,7 +49,6 @@ fun configureApiRoutes(config: ApiConfig, manager: SchemaManager, retrievalRunti
                         path("{exporter}") {
                             path("{retrievable}") {
                                 post { ctx ->
-
                                     fetchExportData(ctx, schema)
                                 }
                             }
