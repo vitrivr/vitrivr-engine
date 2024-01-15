@@ -1,7 +1,7 @@
 {
   "schemas": [
     {
-      "name": "v3c12",
+      "name": "v3c",
       "connection": {
         "database": "CottontailConnectionProvider",
         "parameters": {
@@ -28,11 +28,17 @@
         },
         {
           "name": "clip",
-          "factory": "CLIP"
+          "factory": "CLIP",
+          "parameters": {
+            "host": "http://localhost:8888/"
+          }
         },
         {
           "name": "dino",
-          "factory": "DINO"
+          "factory": "DINO",
+          "parameters": {
+            "host": "http://localhost:8888/"
+          }
         },
         {
           "name": "ocr",
