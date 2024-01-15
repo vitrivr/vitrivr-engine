@@ -90,6 +90,6 @@ class DINO : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
      * @return A list of CLIP feature descriptors.
      */
     override fun analyse(content: ImageContent, hostname: String): FloatVectorDescriptor {
-        return FloatVectorDescriptor(UUID.randomUUID(), null, httpRequest(content, "$hostname/extract/dino"), true)
+        return FloatVectorDescriptor(UUID.randomUUID(), null, httpRequest(content, "${hostname.removeSuffix("/")}/extract/dino"), true)
     }
 }

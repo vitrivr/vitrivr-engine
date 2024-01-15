@@ -91,8 +91,8 @@ class CLIP : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
      * @return A list of CLIP feature descriptors.
      */
     override fun analyse(content: ContentElement<*>, hostname: String): FloatVectorDescriptor = when (content) {
-        is ImageContent -> FloatVectorDescriptor(UUID.randomUUID(), null, httpRequest(content, "$hostname/extract/clip_image"), true)
-        is TextContent -> FloatVectorDescriptor(UUID.randomUUID(), null, httpRequest(content, "$hostname/extract/clip_text"), true)
+        is ImageContent -> FloatVectorDescriptor(UUID.randomUUID(), null, httpRequest(content, "${hostname.removeSuffix("/")}/extract/clip_image"), true)
+        is TextContent -> FloatVectorDescriptor(UUID.randomUUID(), null, httpRequest(content, "${hostname.removeSuffix("/")}/extract/clip_text"), true)
         else -> throw IllegalArgumentException("Content '$content' not supported")
     }
 }
