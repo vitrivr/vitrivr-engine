@@ -1,5 +1,7 @@
 package org.vitrivr.engine.base.features.external.implementations.clip
 
+import org.vitrivr.engine.base.features.external.ExternalAnalyser.Companion.HOST_PARAMETER_DEFAULT
+import org.vitrivr.engine.base.features.external.ExternalAnalyser.Companion.HOST_PARAMETER_NAME
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -19,9 +21,13 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @param persisting Flag indicating whether the descriptors should be persisted.
  *
  * @author Rahel Arnold
- * @version 1.0.0
+ * @version 1.1.0
  */
-class CLIPExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, persisting: Boolean = true, private val clip: CLIP) : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor>(input, field, persisting) {
+class CLIPExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, persisting: Boolean = true) : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor>(input, field, persisting) {
+
+    /** The host of the external [CLIP] service. */
+    private val host: String = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
+
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
@@ -39,6 +45,6 @@ class CLIPExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentEle
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
         check(retrievable is RetrievableWithContent) { "Incoming retrievable is not a retrievable with content. This is a programmer's error!" }
         val content = retrievable.content.filterIsInstance<ImageContent>()
-        return content.map { c -> FloatVectorDescriptor(retrievableId = retrievable.id, vector = clip.requestDescriptor(c), transient = !this.persisting) }
+        return content.map { c -> (this.field.analyser as CLIP).analyse(c, this.host).copy(retrievableId = retrievable.id, transient = !this.persisting) }
     }
 }
