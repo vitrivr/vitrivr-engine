@@ -37,6 +37,11 @@ class TemporalSequenceAggregator(
             emit(it)
         }
 
+        //at least 2 inputs are required for a sequence
+        if (inputs.size < 2 || inputs.filter { it.isNotEmpty() }.size < 2) {
+            return@flow
+        }
+
         //start with temporal aggregation
 
         val continuousSequences = mutableMapOf<RetrievableId, MutableList<ContinuousSequence>>()
@@ -54,10 +59,11 @@ class TemporalSequenceAggregator(
                 }
 
                 //get all valid segments per source, sorted by time if available
-                val segments = source.relationships.asSequence().filter { it.pred == "partOf" && it.obj.first == source.id }
-                    .mapNotNull { retrievedMap[it.sub.first] }.filterIsInstance<Retrieved.RetrievedWithProperties>()
-                    .filter { it.properties["start"]?.toLongOrNull() != null && it.properties["end"]?.toLongOrNull() != null }
-                    .sortedBy { it.properties["start"]!!.toLong() }.toList()
+                val segments =
+                    source.relationships.asSequence().filter { it.pred == "partOf" && it.obj.first == source.id }
+                        .mapNotNull { retrievedMap[it.sub.first] }.filterIsInstance<Retrieved.RetrievedWithProperties>()
+                        .filter { it.properties["start"]?.toLongOrNull() != null && it.properties["end"]?.toLongOrNull() != null }
+                        .sortedBy { it.properties["start"]!!.toLong() }.toList()
 
                 if (segments.isEmpty()) {
                     continue
@@ -122,6 +128,11 @@ class TemporalSequenceAggregator(
 
             val stages = sequences.groupBy { it.stage }
 
+            //skip sequences that have only results for one 'stage'
+            if (stages.size < 2) {
+                continue
+            }
+
             //sequentially go over all stage indices to try and start sequences
             for (startStageId in inputs.indices) {
 
@@ -133,9 +144,12 @@ class TemporalSequenceAggregator(
                     for (nextStageId in ((startStageId + 1) until inputs.size)) {
 
                         val maxStartTime = temporalSequence.last().end + MAX_TIME_BETWEEN_STAGES
-                        stages[nextStageId]?.filter { it.start <= maxStartTime }?.maxBy { it.score }?.let {
-                            temporalSequence.add(it) //add highest scored sequence within range
-                        }
+                        val minStartTime = temporalSequence.last().start
+
+                        stages[nextStageId]?.filter { it.start in minStartTime..maxStartTime }?.maxByOrNull { it.score }
+                            ?.let {
+                                temporalSequence.add(it) //add highest scored sequence within range
+                            }
 
                     }
 

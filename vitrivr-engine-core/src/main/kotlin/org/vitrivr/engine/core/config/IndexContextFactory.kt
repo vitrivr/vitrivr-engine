@@ -18,6 +18,6 @@ object IndexContextFactory {
         val resolverFactory = loadServiceForName<ResolverFactory>(contextConfig.resolverFactory) ?: throw IllegalArgumentException("Failed to find resolver implementation for name '${contextConfig.resolverFactory}'.")
 
         /* Return new context. */
-        return IndexContext(schema, contentFactory, resolverFactory.newResolver(contextConfig.parameters))
+        return IndexContext(schema, contentFactory, resolverFactory.newResolver(schema, contextConfig.parameters))
     }
 }
