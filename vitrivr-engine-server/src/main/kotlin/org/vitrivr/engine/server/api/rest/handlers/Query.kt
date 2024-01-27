@@ -1,14 +1,19 @@
 package org.vitrivr.engine.server.api.rest.handlers
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
 import io.javalin.openapi.*
+import kotlinx.serialization.json.Json
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.query.execution.RetrievalRuntime
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
 import org.vitrivr.engine.query.model.api.result.QueryResult
 import org.vitrivr.engine.server.api.rest.model.ErrorStatus
 import org.vitrivr.engine.server.api.rest.model.ErrorStatusException
+
+private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  *
@@ -36,6 +41,9 @@ fun executeQuery(ctx: Context, schema: Schema, runtime: RetrievalRuntime) {
     } catch (e: Exception) {
         throw ErrorStatusException(400, "Invalid request: ${e.message}")
     }
+    logger.info { "received request for ${schema.name}: ${Json.encodeToString(InformationNeedDescription.serializer(), informationNeed)}" }
     val results = runtime.query(schema, informationNeed)
-    ctx.json(QueryResult(results))
+    val queryResult = QueryResult(results)
+    logger.info { "returning results for ${schema.name}: ${Json.encodeToString(QueryResult.serializer(), queryResult)}" }
+    ctx.json(queryResult)
 }
