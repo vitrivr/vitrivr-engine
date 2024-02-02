@@ -13,14 +13,23 @@ import org.vitrivr.engine.core.model.metamodel.Analyser
  * @see [Analyser]
  *
  * @author Rahel Arnold
- * @version 1.0.0
+ * @version 1.1.0
  */
 abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor> : Analyser<T, U> {
+    companion object {
+        /** Name of the grid_size parameter; determines size of voxel grid for rasterization. */
+        const val HOST_PARAMETER_NAME = "host"
+
+        /** Default value of the grid_size parameter. */
+        const val HOST_PARAMETER_DEFAULT = "http://localhost:8888/"
+    }
+
     /**
-     * Requests the external feature descriptor for the given [ContentElement].
+     * Analyses a [ContentElement] using this [ExternalAnalyser] and returns a list of [Descriptor]s.
      *
      * @param content The [ContentElement] for which to request the external feature descriptor.
-     * @return A list of external feature descriptors.
+     * @param hostname The hostname of the external feature descriptor service.
+     * @return A list of external feature [Descriptor] of type [U]
      */
-    abstract fun requestDescriptor(content: ContentElement<*>): List<*>
+    abstract fun analyse(content: T, hostname: String = HOST_PARAMETER_DEFAULT): U
 }

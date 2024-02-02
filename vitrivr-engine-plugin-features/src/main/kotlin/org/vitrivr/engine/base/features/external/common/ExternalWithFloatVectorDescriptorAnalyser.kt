@@ -25,17 +25,6 @@ import java.util.*
  * @version 1.0.0
  */
 abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> : ExternalAnalyser<C, FloatVectorDescriptor>() {
-
-    /**
-     * Size of the feature vector.
-     */
-    abstract val size: Int
-
-    /**
-     * Default feature list initialized with zeros.
-     */
-    abstract val featureList: List<Float>
-
     /**
      * Executes an API request to the given [url] with the specified [requestBody] and returns the response as a list of floats.
      *
@@ -94,29 +83,6 @@ abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> 
             connection.disconnect()
         }
         return emptyList()
-    }
-
-    abstract override fun requestDescriptor(content: ContentElement<*>): List<Float>
-
-    /**
-     * Processes a collection of [ContentElement] items and generates a [List] of [FloatVectorDescriptor].
-     *
-     * @param content The collection of [ContentElement] items to process.
-     * @return [List] of [FloatVectorDescriptor].
-     */
-    fun processContent(content: Collection<*>): List<FloatVectorDescriptor> {
-        val resultList = mutableListOf<FloatVectorDescriptor>()
-
-        for (item in content) {
-            val featureVector = requestDescriptor(item as ContentElement<*>)
-
-            val descriptor = FloatVectorDescriptor(
-                UUID.randomUUID(), null, featureVector, true
-            )
-
-            resultList.add(descriptor)
-        }
-        return resultList
     }
 
     fun httpRequest(content: ContentElement<*>, url: String): List<Float> {
