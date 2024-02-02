@@ -5,7 +5,8 @@ plugins {
 }
 
 dependencies {
-
+    /** JOML dependencies for 3D mesh support. */
+    implementation group: 'org.joml', name: 'joml', version: version_joml
 }
 
 /* Publication of vitrivr engine core to Maven Central. */

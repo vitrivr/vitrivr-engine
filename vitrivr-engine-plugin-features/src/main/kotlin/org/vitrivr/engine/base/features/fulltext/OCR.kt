@@ -22,7 +22,7 @@ import java.util.*
 class OCR : Analyser<ContentElement<*>, StringDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = StringDescriptor::class
-    override fun prototype(): StringDescriptor = StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), "", true)
+    override fun prototype(field: Schema.Field<*,*>): StringDescriptor = StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), "", true)
 
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, StringDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, StringDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
