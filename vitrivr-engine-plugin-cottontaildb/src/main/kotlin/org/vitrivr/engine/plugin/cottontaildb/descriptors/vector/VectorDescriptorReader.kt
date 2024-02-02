@@ -21,7 +21,7 @@ import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorRead
 internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>>, connection: CottontailConnection) : AbstractDescriptorReader<VectorDescriptor<*>>(field, connection) {
 
     /** The [VectorDescriptor] prototype handled by this [VectorDescriptorReader]. */
-    private val prototype: VectorDescriptor<*> = this.field.analyser.prototype()
+    private val prototype: VectorDescriptor<*> = this.field.analyser.prototype(this.field)
 
     /**
      * Executes the provided [Query] and returns a [Sequence] of [RetrievableWithScore]s that match it.
