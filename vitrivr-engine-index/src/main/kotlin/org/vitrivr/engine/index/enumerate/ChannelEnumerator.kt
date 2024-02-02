@@ -15,7 +15,7 @@ class ChannelEnumerator : EnumeratorFactory{
         return Instance(context)
     }
 
-    private class Instance(private val context: IndexContext) : Enumerator {
+     class Instance(private val context: IndexContext) : Enumerator {
 
         private var producer: ProducerScope<Source>? = null
         override fun toFlow(scope: CoroutineScope): Flow<Source> = channelFlow<Source> {
