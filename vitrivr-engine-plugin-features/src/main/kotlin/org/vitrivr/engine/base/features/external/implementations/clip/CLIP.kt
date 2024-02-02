@@ -29,7 +29,7 @@ class CLIP : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
      *
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype() = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(512) { 0.0f }, true)
+    override fun prototype(field: Schema.Field<*, *>): FloatVectorDescriptor = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(512) { 0.0f }, true)
 
     /**
      * Generates and returns a new [Extractor] instance for this [CLIP].
