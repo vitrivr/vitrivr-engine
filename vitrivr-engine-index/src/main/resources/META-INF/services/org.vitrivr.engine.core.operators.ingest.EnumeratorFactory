@@ -1,3 +1,3 @@
 org.vitrivr.engine.index.enumerate.FileSystemEnumerator
 org.vitrivr.engine.index.enumerate.ApiEnumerator
-org.vitrivr.engine.index.enumerate.ChannelEnumerator
+org.vitrivr.engine.index.enumerate.ListEnumerator
