@@ -30,7 +30,7 @@ class ListEnumerator : EnumeratorFactory {
     /**
      * The [Enumerator] returned by this [FileSystemEnumerator].
      */
-    private class Instance(private val context: IndexContext) : Enumerator {
+    class Instance(private val context: IndexContext) : Enumerator {
 
         /** List of [Source]s that should be enumerated. */
         private val list: LinkedList<Source> = LinkedList()
