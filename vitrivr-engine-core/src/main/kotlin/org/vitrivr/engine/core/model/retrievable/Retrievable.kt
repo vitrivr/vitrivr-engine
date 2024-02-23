@@ -31,5 +31,9 @@ interface Retrievable : Persistable {
      */
     fun <T : RetrievableAttribute> filteredAttributes(c: Class<T>): Collection<T>
 
+    fun <T : RetrievableAttribute> filteredAttribute(c: Class<T>): T?
+
     fun addAttribute(attribute: RetrievableAttribute)
+
+    fun <T : RetrievableAttribute> removeAttributes(c: Class<T>)
 }

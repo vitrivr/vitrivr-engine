@@ -9,7 +9,7 @@ import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadata
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithContent
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAttribute
 import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithSource
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -32,7 +32,7 @@ class TemporalMetadataExtractor(input: Operator<Retrievable>, field: Schema.Fiel
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,
      */
-    override fun matches(retrievable: Retrievable): Boolean = retrievable is RetrievableWithContent
+    override fun matches(retrievable: Retrievable): Boolean = retrievable.filteredAttribute(ContentAttribute::class.java) != null
 
     /**
      * Internal method to perform extraction on [Retrievable].
@@ -41,8 +41,8 @@ class TemporalMetadataExtractor(input: Operator<Retrievable>, field: Schema.Fiel
      * @return List of resulting [Descriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<TemporalMetadataDescriptor> {
-        check(retrievable is RetrievableWithContent) { "Incoming retrievable is not a retrievable with source. This is a programmer's error!" }
-        val descriptors = retrievable.content.filterIsInstance<TemporalContent>().map { c ->
+        val content = retrievable.filteredAttributes(ContentAttribute::class.java).map { it.content }
+        val descriptors = content.filterIsInstance<TemporalContent>().map { c ->
             when (c) {
                 is TemporalContent.Timepoint -> TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, c.timepointNs, c.timepointNs, !persisting)
                 is TemporalContent.TimeSpan -> TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, c.startNs, c.endNs, !persisting)

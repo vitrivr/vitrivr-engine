@@ -17,8 +17,8 @@ class FieldLookup(
     private val reader: DescriptorReader<*>,
     private val keys: Collection<String>
 
-) : Transformer<Retrieved, Retrieved.RetrievedWithProperties> {
-    override fun toFlow(scope: CoroutineScope): Flow<Retrieved.RetrievedWithProperties> = flow {
+) : Transformer {
+    override fun toFlow(scope: CoroutineScope): Flow<Retrieved> = flow {
 
         val inputRetrieved = input.toFlow(scope).toList()
 
