@@ -13,7 +13,7 @@ import java.util.*
 
 class TemporalSequenceAggregator(
     override val inputs: List<Operator<Retrieved>>
-) : Aggregator<Retrieved, Retrieved> {
+) : Aggregator {
 
     companion object {
         const val PADDING_TIME = 1_000_000_000 //1 second in ns

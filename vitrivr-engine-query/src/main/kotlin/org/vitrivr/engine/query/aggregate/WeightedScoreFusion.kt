@@ -14,15 +14,12 @@ import org.vitrivr.engine.core.operators.retrieve.Aggregator
 class WeightedScoreFusion(
     override val inputs: List<Operator<Retrieved>>,
     weights: List<Float>
-) : Aggregator<Retrieved, Retrieved> {
+) : Aggregator {
 
-    private val weights: List<Float>
-    init {
-        this.weights = when {
-            weights.size > inputs.size -> weights.subList(0, inputs.size - 1)
-            weights.size < inputs.size -> weights + List(inputs.size - weights.size) {1f}
-            else -> weights
-        }
+    private val weights: List<Float> = when {
+        weights.size > inputs.size -> weights.subList(0, inputs.size - 1)
+        weights.size < inputs.size -> weights + List(inputs.size - weights.size) {1f}
+        else -> weights
     }
 
     private val weightsSum = this.weights.sum()
