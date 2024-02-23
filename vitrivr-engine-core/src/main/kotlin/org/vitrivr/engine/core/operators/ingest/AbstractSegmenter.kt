@@ -10,6 +10,7 @@ import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.retrievable.AbstractRetrievable
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
@@ -43,22 +44,7 @@ abstract class AbstractSegmenter(override val input: Operator<ContentElement<*>>
     /**
      * A special [Ingested] that can be used to signal the termination of an ingest pipeline.
      */
-    object TerminalRetrievable : Retrievable {
-        override val id: RetrievableId = UUID(0L, 0L)
-        override val type: String? = null
-        override val attributes: Collection<RetrievableAttribute>
-            get() = emptySet()
-
-        override fun <T : RetrievableAttribute> filteredAttributes(c: Class<T>): Collection<T> = emptySet()
-
-        override fun <T : RetrievableAttribute> filteredAttribute(c: Class<T>): T? = null
-
-        override fun addAttribute(attribute: RetrievableAttribute) {}
-
-        override fun removeAttributes(c: Class<RetrievableAttribute>) {}
-
-        override val transient: Boolean = true
-    }
+    object TerminalRetrievable : AbstractRetrievable(UUID(0L, 0L), null, true) { }
 
     /**
      * Implements the [AbstractSegmenter]'s [toFlow] method. Uses a shared channel flow for downstream communication
