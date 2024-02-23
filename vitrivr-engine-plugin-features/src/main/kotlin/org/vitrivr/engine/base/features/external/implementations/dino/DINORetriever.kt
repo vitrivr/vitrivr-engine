@@ -12,6 +12,8 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.proximity.Distance
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 
 /**
  * [DINORetriever] implementation for external DINO feature retrieval.
@@ -32,7 +34,10 @@ class DINORetriever(
 ) : AbstractRetriever<ImageContent, FloatVectorDescriptor>(field, query, context) {
 
     companion object {
-        fun scoringFunction(retrieved: Retrieved.RetrievedWithDistance): Float = 1f - retrieved.distance
+        fun scoringFunction(retrieved: Retrieved): Float {
+            val distance = retrieved.filteredAttribute(DistanceAttribute::class.java)?.distance ?: return 0f
+            return 1f - distance
+        }
     }
 
     override fun toFlow(scope: CoroutineScope): Flow<Retrieved> {
@@ -48,12 +53,9 @@ class DINORetriever(
         )
         return flow {
             reader.getAll(query).forEach {
+                it.addAttribute(ScoreAttribute(CLIPRetriever.scoringFunction(it)))
                 emit(
-                    if (it is Retrieved.RetrievedWithDistance) {
-                        Retrieved.PlusScore(it, scoringFunction(it))
-                    } else {
-                        it
-                    }
+                    it
                 )
             }
         }

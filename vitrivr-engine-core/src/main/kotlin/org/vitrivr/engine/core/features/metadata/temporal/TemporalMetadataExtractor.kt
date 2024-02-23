@@ -1,7 +1,6 @@
 package org.vitrivr.engine.core.features.metadata.temporal
 
 import org.vitrivr.engine.core.features.AbstractExtractor
-import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataExtractor
 import org.vitrivr.engine.core.model.content.decorators.TemporalContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -10,10 +9,8 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.ContentAttribute
-import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithSource
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
-import org.vitrivr.engine.core.source.file.FileSource
 import java.util.*
 
 /**
@@ -24,14 +21,7 @@ import java.util.*
  */
 class TemporalMetadataExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, persisting: Boolean = true) :
     AbstractExtractor<ContentElement<*>, TemporalMetadataDescriptor>(input, field, persisting, bufferSize = 1) {
-    /**
-     * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
-     *
-     * [FileSourceMetadataExtractor] implementation only works with [RetrievableWithSource] that contain a [FileSource].
-     *
-     * @param retrievable The [Retrievable] to check.
-     * @return True on match, false otherwise,
-     */
+
     override fun matches(retrievable: Retrievable): Boolean = retrievable.filteredAttribute(ContentAttribute::class.java) != null
 
     /**
