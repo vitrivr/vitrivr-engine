@@ -8,7 +8,8 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
-import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithScore
+import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
 import org.vitrivr.engine.plugin.cottontaildb.*
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorReader
 
@@ -24,7 +25,7 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
     private val prototype: VectorDescriptor<*> = this.field.analyser.prototype(this.field)
 
     /**
-     * Executes the provided [Query] and returns a [Sequence] of [RetrievableWithScore]s that match it.
+     * Executes the provided [Query] and returns a [Sequence] of [Retrieved]s that match it.
      *
      * @param query The [Query] to execute.
      */
@@ -52,18 +53,15 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
                     (it.asFloat(DISTANCE_COLUMN_NAME) ?: it.asDouble(DISTANCE_COLUMN_NAME)?.toFloat())?.let { f ->
                         if (f.isNaN()) Float.MAX_VALUE else f
                     } ?: return@mapNotNull null
+                val retrieved = Retrieved(retrievableId, null, false)
+                retrieved.addAttribute(DistanceAttribute(distance))
                 if (query.withDescriptor) {
                     val descriptor = tupleToDescriptor(it)
-                    Retrieved.WithDistanceAndDescriptor(
-                        retrievableId,
-                        null,
-                        distance,
-                        listOf(descriptor),
-                        false
+                    retrieved.addAttribute(
+                        DescriptorAttribute(descriptor)
                     )
-                } else {
-                    Retrieved.WithDistance(retrievableId, null, distance, false)
                 }
+                retrieved
             }
         }
 
