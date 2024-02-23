@@ -13,6 +13,7 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.operators.Operator
 import java.util.*
 import java.util.concurrent.locks.StampedLock
@@ -45,6 +46,17 @@ abstract class AbstractSegmenter(override val input: Operator<ContentElement<*>>
     object TerminalRetrievable : Retrievable {
         override val id: RetrievableId = UUID(0L, 0L)
         override val type: String? = null
+        override val attributes: Collection<RetrievableAttribute>
+            get() = emptySet()
+
+        override fun <T : RetrievableAttribute> filteredAttributes(c: Class<T>): Collection<T> = emptySet()
+
+        override fun <T : RetrievableAttribute> filteredAttribute(c: Class<T>): T? = null
+
+        override fun addAttribute(attribute: RetrievableAttribute) {}
+
+        override fun removeAttributes(c: Class<RetrievableAttribute>) {}
+
         override val transient: Boolean = true
     }
 

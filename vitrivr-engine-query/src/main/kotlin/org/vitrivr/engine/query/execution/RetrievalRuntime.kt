@@ -105,7 +105,7 @@ class RetrievalRuntime {
                         loadServiceForName<TransformerFactory<Retrieved, Retrieved>>(operationDescription.transformerName + "Factory")
                             ?: throw IllegalArgumentException("No factory found for '${operationDescription.transformerName}'")
 
-                    val transformer: Transformer<Retrieved, Retrieved> =
+                    val transformer: Transformer =
                         factory.newTransformer(input, schema, operationDescription.properties)
 
                     operators[operationName] = transformer

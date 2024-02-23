@@ -11,7 +11,7 @@ class ScoreAggregator(
     override val input: Operator<Retrieved>,
     private val aggregationMode: AggregationMode = AggregationMode.MAX,
     val relationshps: Set<String> = setOf("partOf")
-) : Transformer<Retrieved, Retrieved.RetrievedWithScore> {
+) : Transformer {
 
     enum class AggregationMode {
         MAX,
@@ -19,7 +19,7 @@ class ScoreAggregator(
         MIN
     }
 
-    override fun toFlow(scope: CoroutineScope): Flow<Retrieved.RetrievedWithScore> =
+    override fun toFlow(scope: CoroutineScope): Flow<Retrieved> =
         input.toFlow(scope).map { retrieved ->
             when (retrieved) {
                 is Retrieved.RetrievedWithScore -> retrieved//pass through

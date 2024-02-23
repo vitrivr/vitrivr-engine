@@ -11,7 +11,7 @@ class WeightedScoreFusionFactory : AggregatorFactory<Retrieved, Retrieved> {
         inputs: List<Operator<Retrieved>>,
         schema: Schema,
         properties: Map<String, String>
-    ): Aggregator<Retrieved, Retrieved> {
+    ): Aggregator {
         val weights = properties["weights"]?.split(",")?.mapNotNull { s -> s.trim().toFloatOrNull() } ?: emptyList()
         return WeightedScoreFusion(inputs, weights)
     }

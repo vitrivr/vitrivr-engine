@@ -19,8 +19,8 @@ class RelationExpander(
     private val incomingRelations: List<String>,
     private val outgoingRelations: List<String>,
     private val retrievableReader: RetrievableReader
-) : Transformer<Retrieved, Retrieved.RetrievedWithRelationship> {
-    override fun toFlow(scope: CoroutineScope): Flow<Retrieved.RetrievedWithRelationship> = flow {
+) : Transformer {
+    override fun toFlow(scope: CoroutineScope): Flow<Retrieved> = flow {
 
         val inputRetrieved = input.toFlow(scope).toList()
 

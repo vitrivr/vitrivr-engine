@@ -5,9 +5,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
-import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Aggregator
 
@@ -44,7 +44,7 @@ class WeightedScoreFusion(
                 return@flow
             }
 
-            val scoreMap = mutableMapOf<RetrievableId, MutableList<Pair<Int, Retrievable>>>()
+            val scoreMap = mutableMapOf<RetrievableId, MutableList<Pair<Int, Retrieved>>>()
 
             for ((index, retrieveds) in inputs.withIndex()) {
 
@@ -62,18 +62,15 @@ class WeightedScoreFusion(
 
             for((_, retrieveds) in scoreMap) {
 
-                val score = retrieveds.map { ((it.second as? Retrieved.RetrievedWithScore)?.score ?: 0f) * weights[it.first] }.sum() / weightsSum
+                val score = retrieveds.map { ((it.second.filteredAttribute(ScoreAttribute::class.java))?.score ?: 0f) * weights[it.first] }.sum() / weightsSum
 
                 val first = retrieveds.first().second
 
 
-                //TODO better merging with type/attribute preservation
-                val retrieved = Retrieved.WithScore(
-                    first.id,
-                    first.type,
-                    score,
-                    false
-                )
+                //make a copy and override score
+                val retrieved = first.copy()
+                retrieved.filteredAttribute(ScoreAttribute::class.java)
+                retrieved.addAttribute(ScoreAttribute(score))
 
                 emit(retrieved)
 
