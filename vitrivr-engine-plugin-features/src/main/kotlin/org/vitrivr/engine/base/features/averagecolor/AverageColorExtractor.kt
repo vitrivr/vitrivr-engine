@@ -2,11 +2,13 @@ package org.vitrivr.engine.base.features.averagecolor
 
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataExtractor
+import org.vitrivr.engine.core.model.content.ContentType
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAttribute
 import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithSource
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -29,7 +31,7 @@ class AverageColorExtractor(input: Operator<Retrievable>, field: Schema.Field<Im
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,
      */
-    override fun matches(retrievable: Retrievable): Boolean = retrievable is RetrievableWithContent
+    override fun matches(retrievable: Retrievable): Boolean = retrievable.filteredAttributes(ContentAttribute::class.java).any { it.type == ContentType.BITMAP_IMAGE }
 
     /**
      * Internal method to perform extraction on [Retrievable].
@@ -38,8 +40,8 @@ class AverageColorExtractor(input: Operator<Retrievable>, field: Schema.Field<Im
      * @return List of resulting [Descriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
-        check(retrievable is RetrievableWithContent) { "Incoming retrievable is not a retrievable with source. This is a programmer's error!" }
-        val content = retrievable.content.filterIsInstance<ImageContent>()
+//        check(retrievable is RetrievableWithContent) { "Incoming retrievable is not a retrievable with source. This is a programmer's error!" }
+        val content = retrievable.filteredAttributes(ContentAttribute::class.java).map { it.content }.filterIsInstance<ImageContent>()
         return (this.field.analyser as AverageColor).analyse(content).map { it.copy(retrievableId = retrievable.id) }
     }
 }

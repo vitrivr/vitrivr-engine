@@ -13,6 +13,10 @@ import java.util.*
  */
 data class Retrieved(override val id: UUID, override val type: String?, override val transient: Boolean) : Retrievable {
 
+    constructor(retrievable: Retrievable) : this(retrievable.id, retrievable.type, retrievable.transient) {
+        retrievable.attributes.forEach { this.addAttribute(it) }
+    }
+
     private val attributeSet = mutableSetOf<RetrievableAttribute>()
     override val attributes: Collection<RetrievableAttribute>
         get() = this.attributeSet

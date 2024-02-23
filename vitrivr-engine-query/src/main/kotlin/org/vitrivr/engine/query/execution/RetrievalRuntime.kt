@@ -102,7 +102,7 @@ class RetrievalRuntime {
                         ?: throw IllegalArgumentException("Operator '${operationDescription.input}' not yet defined")
 
                     val factory =
-                        loadServiceForName<TransformerFactory<Retrieved, Retrieved>>(operationDescription.transformerName + "Factory")
+                        loadServiceForName<TransformerFactory>(operationDescription.transformerName + "Factory")
                             ?: throw IllegalArgumentException("No factory found for '${operationDescription.transformerName}'")
 
                     val transformer: Transformer =
