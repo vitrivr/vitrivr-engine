@@ -4,6 +4,8 @@ import org.vitrivr.engine.core.model.retrievable.Relationship
 
 class RelationshipAttribute(relationships: Collection<Relationship>) : MergingRetrievableAttribute {
 
+    constructor(relationship: Relationship) : this(setOf(relationship))
+
     val relationships = relationships.toSet()
     override fun merge(other: MergingRetrievableAttribute): RelationshipAttribute = RelationshipAttribute(this.relationships + (other as RelationshipAttribute).relationships)
     override fun equals(other: Any?): Boolean {

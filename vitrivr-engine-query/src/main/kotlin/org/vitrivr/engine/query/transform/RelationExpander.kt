@@ -9,10 +9,9 @@ import kotlinx.coroutines.flow.toList
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.model.retrievable.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.model.retrievable.attributes.RelationshipAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Transformer
-
-private val logger: KLogger = KotlinLogging.logger {}
 
 class RelationExpander(
     override val input: Operator<Retrieved>,
@@ -20,6 +19,9 @@ class RelationExpander(
     private val outgoingRelations: List<String>,
     private val retrievableReader: RetrievableReader
 ) : Transformer {
+
+    private val logger: KLogger = KotlinLogging.logger {}
+
     override fun toFlow(scope: CoroutineScope): Flow<Retrieved> = flow {
 
         val inputRetrieved = input.toFlow(scope).toList()
@@ -44,24 +46,23 @@ class RelationExpander(
 
         val newRetrievables = if (newIds.isNotEmpty()) retrievableReader.getAll(newIds.toList()) else emptySequence()
 
-        val allRetrieved =
-            (inputRetrieved.map { Retrieved.PlusRelationship(it) } + newRetrievables.map { Retrieved.WithRelationship(it) }).associateBy { it.id }
+        val allRetrieved = (inputRetrieved + newRetrievables.map { Retrieved(it) }).associateBy { it.id }
 
-        // TODO: error on VBSLHE dataset
-        // TODO: Undefined relationship (e8431942-6fb4-45de-8a35-a417e89c68fe, partOf, 51e5b405-2fe7-4f30-a39a-c1892e9a0372)
+
         for (relation in relations) {
             val sub = allRetrieved[relation.first]
             val obj = allRetrieved[relation.third]
-            if (sub == null || obj ==null) {
+            if (sub == null || obj == null) {
                 logger.error { "Undefined relationship ${relation}" }
                 continue
             }
 
 
             val expandedRelation = Relationship(sub, relation.second, obj)
+            val attribute = RelationshipAttribute(expandedRelation)
 
-            (sub.relationships as MutableSet).add(expandedRelation)
-            (obj.relationships as MutableSet).add(expandedRelation)
+            sub.addAttribute(attribute)
+            obj.addAttribute(attribute)
         }
 
 
