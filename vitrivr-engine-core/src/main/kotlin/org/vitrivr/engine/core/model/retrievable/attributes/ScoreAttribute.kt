@@ -4,6 +4,8 @@ import kotlin.math.max
 
 data class ScoreAttribute(val score: Float) : MergingRetrievableAttribute {
 
+    constructor(score: Double) : this(score.toFloat())
+
     init {
         require(score in 0f..1f) { "Score '$score' outside of valid range (0, 1)" }
     }

@@ -60,7 +60,7 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
                     val retrievableId = tuple.asUuidValue(columnName)?.value
                         ?: throw IllegalArgumentException("The provided tuple is missing the required field '${columnName}'.")
                     val type = tuple.asString(RETRIEVABLE_TYPE_COLUMN_NAME)
-                    Retrieved.Default(retrievableId, type, false)
+                    Retrieved(retrievableId, type, false)
                 } else {
                     null
                 }
@@ -115,7 +115,7 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
             val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value
                 ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
             val type = tuple.asString(RETRIEVABLE_TYPE_COLUMN_NAME)
-            Retrieved.Default(retrievableId, type, false)
+            Retrieved(retrievableId, type, false)
         }
     }
 
@@ -130,7 +130,7 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
             val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value
                 ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
             val type = tuple.asString(RETRIEVABLE_TYPE_COLUMN_NAME)
-            Retrieved.Default(retrievableId, type, false)
+            Retrieved(retrievableId, type, false)
         }
     }
 
