@@ -24,11 +24,11 @@ class ScoreAggregator(
     override fun toFlow(scope: CoroutineScope): Flow<Retrieved> =
         input.toFlow(scope).map { retrieved ->
 
-            if (retrieved.filteredAttribute(ScoreAttribute::class.java) != null) { //pass through if score is already set
+            if (retrieved.filteredAttribute<ScoreAttribute>() != null) { //pass through if score is already set
                 return@map retrieved
             }
 
-            val relationships = retrieved.filteredAttribute(RelationshipAttribute::class.java)?.relationships ?: emptySet()
+            val relationships = retrieved.filteredAttribute<RelationshipAttribute>()?.relationships ?: emptySet()
 
             if (relationships.isNotEmpty()) {
 

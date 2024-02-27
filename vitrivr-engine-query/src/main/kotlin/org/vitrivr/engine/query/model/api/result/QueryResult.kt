@@ -15,7 +15,7 @@ data class QueryResult(val retrievables: List<QueryResultRetrievable>) {
 
             //map partOf relations the right way around
             retrieved.forEach { r: Retrieved ->
-                val relationships = r.filteredAttribute(RelationshipAttribute::class.java)?.relationships
+                val relationships = r.filteredAttribute<RelationshipAttribute>()?.relationships
                 if (relationships != null) {
                     relationships.filter { it.pred == "partOf" && it.sub.first == r.id }.forEach {
                         results[it.obj.first.toString()]?.parts?.add(r.id.toString())

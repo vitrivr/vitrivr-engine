@@ -58,14 +58,14 @@ class TemporalSequenceAggregator(
             for (source in sources) {
 
                 val relationships =
-                    source.filteredAttribute(RelationshipAttribute::class.java)?.relationships ?: continue
+                    source.filteredAttribute<RelationshipAttribute>()?.relationships ?: continue
 
                 //get all valid segments per source, sorted by time if available
                 val segments =
                     relationships.asSequence().filter { it.pred == "partOf" && it.obj.first == source.id }
                         .mapNotNull { retrievedMap[it.sub.first] }.map {
                             val properties =
-                                it.filteredAttribute(PropertyAttribute::class.java)?.properties ?: emptyMap()
+                                it.filteredAttribute<PropertyAttribute>()?.properties ?: emptyMap()
                             it to properties
                         }
                         .filter { it.second["start"]?.toLongOrNull() != null && it.second["end"]?.toLongOrNull() != null }
@@ -81,7 +81,7 @@ class TemporalSequenceAggregator(
 
                 for (segment in segments) {
 
-                    val properties = segment.filteredAttribute(PropertyAttribute::class.java)!!.properties
+                    val properties = segment.filteredAttribute<PropertyAttribute>()!!.properties
 
                     val startTime = properties["start"]!!.toLong()
 
@@ -113,11 +113,11 @@ class TemporalSequenceAggregator(
                 for (sequence in sequences) {
 
                     val start = sequence.first()
-                        .filteredAttribute(PropertyAttribute::class.java)!!.properties["start"]!!.toLong()
+                        .filteredAttribute<PropertyAttribute>()!!.properties["start"]!!.toLong()
                     val end =
-                        sequence.last().filteredAttribute(PropertyAttribute::class.java)!!.properties["end"]!!.toLong()
+                        sequence.last().filteredAttribute<PropertyAttribute>()!!.properties["end"]!!.toLong()
                     val score =
-                        sequence.maxOfOrNull { (it.filteredAttribute(ScoreAttribute::class.java))?.score ?: 0f } ?: 0f
+                        sequence.maxOfOrNull { (it.filteredAttribute<ScoreAttribute>())?.score ?: 0f } ?: 0f
 
                     continuousSequences[source.id]!!.add(
                         ContinuousSequence(

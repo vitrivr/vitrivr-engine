@@ -35,7 +35,7 @@ class CLIPRetriever(
 
     companion object {
         fun scoringFunction(retrieved: Retrieved): Float {
-            val distance = retrieved.filteredAttribute(DistanceAttribute::class.java)?.distance ?: return 0f
+            val distance = retrieved.filteredAttribute<DistanceAttribute>()?.distance ?: return 0f
             return 1f - distance
         }
     }
