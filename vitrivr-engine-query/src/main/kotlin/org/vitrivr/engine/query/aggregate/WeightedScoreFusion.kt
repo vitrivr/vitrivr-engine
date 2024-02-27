@@ -62,14 +62,14 @@ class WeightedScoreFusion(
 
             for((_, retrieveds) in scoreMap) {
 
-                val score = retrieveds.map { ((it.second.filteredAttribute(ScoreAttribute::class.java))?.score ?: 0f) * weights[it.first] }.sum() / weightsSum
+                val score = retrieveds.map { ((it.second.filteredAttribute<ScoreAttribute>())?.score ?: 0f) * weights[it.first] }.sum() / weightsSum
 
                 val first = retrieveds.first().second
 
 
                 //make a copy and override score
                 val retrieved = first.copy()
-                retrieved.filteredAttribute(ScoreAttribute::class.java)
+                retrieved.filteredAttribute<ScoreAttribute>()
                 retrieved.addAttribute(ScoreAttribute(score))
 
                 emit(retrieved)

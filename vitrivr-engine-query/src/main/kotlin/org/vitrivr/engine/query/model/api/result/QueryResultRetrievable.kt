@@ -11,9 +11,9 @@ typealias RetrievableIdString = String
 data class QueryResultRetrievable(val id: RetrievableIdString, val score: Float, val type: String, val parts: MutableList<RetrievableIdString>, val properties: Map<String, String>) {
     constructor(retrieved: Retrieved) : this(
         retrieved.id.toString(),
-        retrieved.filteredAttribute(ScoreAttribute::class.java)?.score ?: 0f,
+        retrieved.filteredAttribute<ScoreAttribute>()?.score ?: 0f,
         retrieved.type ?: "",
         mutableListOf(),
-        retrieved.filteredAttributes(PropertyAttribute::class.java).firstOrNull()?.properties ?: emptyMap()
+        retrieved.filteredAttributes<PropertyAttribute>().firstOrNull()?.properties ?: emptyMap()
     )
 }
