@@ -14,11 +14,14 @@ abstract class AbstractRetrievable(override val id: UUID, override val type: Str
     override val attributes: Collection<RetrievableAttribute>
         get() = this.attributeSet
 
-    override fun <T : RetrievableAttribute> filteredAttributes(c: Class<T>): Collection<T> =
-        this.attributeSet.filterIsInstance(c)
+    override fun <T : RetrievableAttribute> filteredAttributes(c: Class<T>): Collection<T> = this.attributeSet.filterIsInstance(c)
+
+    inline fun <reified T : RetrievableAttribute> filteredAttributes(): Collection<T> = filteredAttributes(T::class.java)
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : RetrievableAttribute> filteredAttribute(c: Class<T>): T? = attributeSet.firstOrNull { c.isInstance(it) } as? T
+
+    inline fun <reified T : RetrievableAttribute> filteredAttribute(): T? = filteredAttribute(T::class.java)
 
     override fun addAttribute(attribute: RetrievableAttribute) {
         if (this.attributeSet.contains(attribute)) {
