@@ -2,12 +2,13 @@ package org.vitrivr.engine.model3d.features.sphericalharmonics
 
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataExtractor
+import org.vitrivr.engine.core.model.content.ContentType
 import org.vitrivr.engine.core.model.content.element.Model3DContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithContent
-import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithSource
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAttribute
+
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.source.file.FileSource
@@ -59,7 +60,7 @@ class SphericalHarmonicsExtractor(
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,
      */
-    override fun matches(retrievable: Retrievable): Boolean = retrievable is RetrievableWithContent
+    override fun matches(retrievable: Retrievable): Boolean = retrievable.filteredAttributes(ContentAttribute::class.java).any { it.type == ContentType.MESH }
 
     /**
      * Internal method to perform extraction on [Retrievable].
@@ -68,8 +69,7 @@ class SphericalHarmonicsExtractor(
      * @return List of resulting [FloatVectorDescriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
-        check(retrievable is RetrievableWithContent) { "Incoming retrievable is not a retrievable with source. This is a programmer's error!" }
-        val content = retrievable.content.filterIsInstance<Model3DContent>()
+        val content = retrievable.filteredAttributes(ContentAttribute::class.java).map { it.content }.filterIsInstance<Model3DContent>()
         val analyser = (this.field.analyser as SphericalHarmonics)
         return content.flatMap { c -> c.content.getMaterials().flatMap { mat -> mat.meshes.map { mesh -> analyser.analyse(mesh, this.gridSize, this.minL, this.maxL, this.cap) } } }
     }
