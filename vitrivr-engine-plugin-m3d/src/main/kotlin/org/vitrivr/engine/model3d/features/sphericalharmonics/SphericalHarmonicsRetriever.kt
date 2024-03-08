@@ -10,6 +10,8 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.proximity.Distance
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 
 /**
@@ -24,7 +26,10 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
 class SphericalHarmonicsRetriever(override val field: Schema.Field<Model3DContent, FloatVectorDescriptor>, private val query: FloatVectorDescriptor, private val context: QueryContext) : Retriever<Model3DContent, FloatVectorDescriptor> {
     companion object {
         private const val MAXIMUM_DISTANCE = 1.0f
-        fun scoringFunction(retrieved: Retrieved.RetrievedWithDistance) : Float = 1f - (retrieved.distance / MAXIMUM_DISTANCE)
+        fun scoringFunction(retrieved: Retrieved) : Float {
+            val distance = retrieved.filteredAttribute<DistanceAttribute>()?.distance ?: return 0f
+            return 1f - (distance / MAXIMUM_DISTANCE)
+        }
     }
 
     override fun toFlow(scope: CoroutineScope): Flow<Retrieved> {
@@ -34,13 +39,8 @@ class SphericalHarmonicsRetriever(override val field: Schema.Field<Model3DConten
         val query = ProximityQuery(descriptor = this.query, k = k, distance = Distance.EUCLIDEAN, withDescriptor = returnDescriptor)
         return flow {
             reader.getAll(query).forEach {
-                emit(
-                    if (it is Retrieved.RetrievedWithDistance) {
-                        Retrieved.PlusScore(it, scoringFunction(it))
-                    } else {
-                        it
-                    }
-                )
+                it.addAttribute(ScoreAttribute(scoringFunction(it)))
+                emit(it)
             }
         }
     }
