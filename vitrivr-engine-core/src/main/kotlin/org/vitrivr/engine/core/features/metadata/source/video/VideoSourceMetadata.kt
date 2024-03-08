@@ -16,7 +16,7 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
 /**
- * Implementation of the [VideoSourceMetadata] [Analyser], which derives metadata information from [Retr]
+ * Implementation of the [VideoSourceMetadata] [Analyser], which derives metadata information from a [Retrievable].
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -28,9 +28,10 @@ class VideoSourceMetadata : Analyser<ContentElement<*>, VideoSourceMetadataDescr
     /**
      * Generates a prototypical [FileSourceMetadataDescriptor] for this [FileSourceMetadata].
      *
+     * @param field The [Schema.Field] to create the prototype for.
      * @return [FileSourceMetadataDescriptor]
      */
-    override fun prototype() = VideoSourceMetadataDescriptor.PROTOTYPE
+    override fun prototype(field: Schema.Field<*, *>) = VideoSourceMetadataDescriptor.PROTOTYPE
 
     /**
      * Generates and returns a new [FileSourceMetadataExtractor] for the provided [Schema.Field].

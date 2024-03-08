@@ -15,7 +15,7 @@ import java.util.*
 class CLD : Analyser<ContentElement<*>, FloatVectorDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = FloatVectorDescriptor::class
-    override fun prototype() = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(12) { 0.0f }, transient=true)
+    override fun prototype(field: Schema.Field<*,*>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(12) { 0.0f }, transient=true)
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, FloatVectorDescriptor> {
         TODO("Not yet implemented")
     }

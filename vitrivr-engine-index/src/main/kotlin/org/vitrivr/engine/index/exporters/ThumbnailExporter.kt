@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.map
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithContent
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Exporter
 import org.vitrivr.engine.core.operators.ingest.ExporterFactory
@@ -68,26 +68,26 @@ class ThumbnailExporter : ExporterFactory {
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).map { retrievable ->
             val resolvable = this.context.resolver.resolve(retrievable.id)
-            if (resolvable != null && retrievable is RetrievableWithContent) {
+            val content = retrievable.filteredAttributes(ContentAttribute::class.java).map { it.content }.filterIsInstance<ImageContent>().firstOrNull()
+            if (resolvable != null && content != null) {
                 val writer = when (mimeType) {
                     MimeType.JPEG,
                     MimeType.JPG -> JpegWriter()
                     MimeType.PNG -> PngWriter()
                     else -> throw IllegalArgumentException("Unsupported mime type $mimeType")
                 }
-                val content = retrievable.content.filterIsInstance<ImageContent>().firstOrNull()
-                if (content != null) {
-                    val imgBytes = ImmutableImage.fromAwt(content.content).let {
-                        if (it.width > it.height) {
-                            it.scaleToWidth(maxResolution)
-                        } else {
-                            it.scaleToHeight(maxResolution)
-                        }
-                    }.bytes(writer)
+
+                val imgBytes = ImmutableImage.fromAwt(content.content).let {
+                    if (it.width > it.height) {
+                        it.scaleToWidth(maxResolution)
+                    } else {
+                        it.scaleToHeight(maxResolution)
+                    }
+                }.bytes(writer)
                     resolvable.openOutputStream().use {
                         it.write(imgBytes)
                     }
-                }
+
             }
             retrievable
         }

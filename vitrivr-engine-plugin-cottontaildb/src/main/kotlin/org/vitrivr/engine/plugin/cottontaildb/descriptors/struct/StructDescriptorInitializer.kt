@@ -33,7 +33,7 @@ class StructDescriptorInitializer(field: Schema.Field<*, StructDescriptor>, conn
             .column(Name.ColumnName.create(RETRIEVABLE_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = false, autoIncrement = false)
 
 
-        for (field in this.field.analyser.prototype().schema()) {
+        for (field in this.field.analyser.prototype(this.field).schema()) {
             require(field.dimensions.size <= 1) { "Cottontail DB currently doesn't support tensor types."}
             val vector = field.dimensions.size == 1
             val type = when (field.type) {

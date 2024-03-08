@@ -15,7 +15,7 @@ import java.util.*
 class VideoFPS : Analyser<ContentElement<*>, FloatDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = FloatDescriptor::class
-    override fun prototype() = FloatDescriptor(UUID.randomUUID(), UUID.randomUUID(),transient = true, value=.0f)
+    override fun prototype(field: Schema.Field<*,*>) = FloatDescriptor(UUID.randomUUID(), UUID.randomUUID(),transient = true, value=.0f)
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FloatDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, FloatDescriptor> {
         TODO("Not yet implemented")
     }

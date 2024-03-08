@@ -15,7 +15,7 @@ import java.util.*
 class AverageColorRaster: Analyser<ContentElement<*>, RasterDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = RasterDescriptor::class
-    override fun prototype(): RasterDescriptor = RasterDescriptor(id= UUID.randomUUID(), retrievableId = UUID.randomUUID(), hist = List(15) { 0.0f }, raster = List(64) { 0.0f }, transient = true) // should transient be false? what is transient?
+    override fun prototype(field: Schema.Field<*,*>): RasterDescriptor = RasterDescriptor(id= UUID.randomUUID(), retrievableId = UUID.randomUUID(), hist = List(15) { 0.0f }, raster = List(64) { 0.0f }, transient = true) // should transient be false? what is transient?
 
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, RasterDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, RasterDescriptor> {
         TODO("Not yet implemented")

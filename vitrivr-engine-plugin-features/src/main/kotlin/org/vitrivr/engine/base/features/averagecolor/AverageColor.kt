@@ -31,10 +31,11 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
     /**
      * Generates a prototypical [FloatVectorDescriptor] for this [AverageColor].
      *
+     * @param field [Schema.Field] to create the prototype for.
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype() =
-        FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), listOf(0.0f, 0.0f, 0.0f), true)
+    override fun prototype(field: Schema.Field<*, *>)
+        = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), listOf(0.0f, 0.0f, 0.0f), true)
 
     /**
      *

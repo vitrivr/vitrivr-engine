@@ -19,7 +19,7 @@ import kotlin.reflect.KClass
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 interface Analyser<C: ContentElement<*>, D: Descriptor> {
     /** The [KClass]es of the [ContentElement] accepted by this [Analyser].  */
@@ -29,13 +29,13 @@ interface Analyser<C: ContentElement<*>, D: Descriptor> {
     val descriptorClass: KClass<D>
 
     /**
-     * Generates a specimen of the [Descriptor] produced / consumed by this [Analyser].
+     * Generates a specimen of the [Descriptor] produced / consumed by this [Analyser] given the provided [Schema.Field]
+     * This is a required operation!
      *
-     * This is a required operation.
-     *
+     * @param field The [Schema.Field] to create prototype for. Mainly used to support [Analyser]s with descriptors that depend on the [Schema.Field] configuration.ß
      * @return A [Descriptor] specimen of type [D].
      */
-    fun prototype(): D
+    fun prototype(field: Schema.Field<*, *>): D
 
     /**
      * Generates and returns a new [Extractor] instance for this [Analyser].

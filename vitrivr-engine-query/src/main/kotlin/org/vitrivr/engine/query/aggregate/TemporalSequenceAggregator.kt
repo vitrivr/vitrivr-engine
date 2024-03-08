@@ -7,13 +7,16 @@ import kotlinx.coroutines.flow.toList
 import org.vitrivr.engine.core.model.retrievable.Relationship
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.model.retrievable.attributes.PropertyAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.RelationshipAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Aggregator
 import java.util.*
 
 class TemporalSequenceAggregator(
     override val inputs: List<Operator<Retrieved>>
-) : Aggregator<Retrieved, Retrieved> {
+) : Aggregator {
 
     companion object {
         const val PADDING_TIME = 1_000_000_000 //1 second in ns
@@ -37,6 +40,11 @@ class TemporalSequenceAggregator(
             emit(it)
         }
 
+        //at least 2 inputs are required for a sequence
+        if (inputs.size < 2 || inputs.filter { it.isNotEmpty() }.size < 2) {
+            return@flow
+        }
+
         //start with temporal aggregation
 
         val continuousSequences = mutableMapOf<RetrievableId, MutableList<ContinuousSequence>>()
@@ -49,28 +57,33 @@ class TemporalSequenceAggregator(
 
             for (source in sources) {
 
-                if (source !is Retrieved.RetrievedWithRelationship) {
-                    continue
-                }
+                val relationships =
+                    source.filteredAttribute<RelationshipAttribute>()?.relationships ?: continue
 
                 //get all valid segments per source, sorted by time if available
                 val segments =
-                    source.relationships.asSequence().filter { it.pred == "partOf" && it.obj.first == source.id }
-                        .mapNotNull { retrievedMap[it.sub.first] }.filterIsInstance<Retrieved.RetrievedWithProperties>()
-                        .filter { it.properties["start"]?.toLongOrNull() != null && it.properties["end"]?.toLongOrNull() != null }
-                        .sortedBy { it.properties["start"]!!.toLong() }.toList()
+                    relationships.asSequence().filter { it.pred == "partOf" && it.obj.first == source.id }
+                        .mapNotNull { retrievedMap[it.sub.first] }.map {
+                            val properties =
+                                it.filteredAttribute<PropertyAttribute>()?.properties ?: emptyMap()
+                            it to properties
+                        }
+                        .filter { it.second["start"]?.toLongOrNull() != null && it.second["end"]?.toLongOrNull() != null }
+                        .sortedBy { it.second["start"]!!.toLong() }.map { it.first }.toList()
 
                 if (segments.isEmpty()) {
                     continue
                 }
 
-                val sequences = mutableListOf<MutableList<Retrieved.RetrievedWithProperties>>()
-                var currentSequence = mutableListOf<Retrieved.RetrievedWithProperties>()
+                val sequences = mutableListOf<MutableList<Retrieved>>()
+                var currentSequence = mutableListOf<Retrieved>()
                 var lastEndTime = -1L
 
                 for (segment in segments) {
 
-                    val startTime = segment.properties["start"]!!.toLong()
+                    val properties = segment.filteredAttribute<PropertyAttribute>()!!.properties
+
+                    val startTime = properties["start"]!!.toLong()
 
                     //if gap between end of last sequence and start of current segment is larger than padding, start new sequence
                     if ((lastEndTime + PADDING_TIME) > startTime) {
@@ -82,7 +95,7 @@ class TemporalSequenceAggregator(
 
                     currentSequence.add(segment)
 
-                    lastEndTime = segment.properties["end"]!!.toLong()
+                    lastEndTime = properties["end"]!!.toLong()
                 }
 
                 if (currentSequence.isNotEmpty()) {
@@ -99,9 +112,12 @@ class TemporalSequenceAggregator(
 
                 for (sequence in sequences) {
 
-                    val start = sequence.first().properties["start"]!!.toLong()
-                    val end = sequence.last().properties["end"]!!.toLong()
-                    val score = sequence.maxOfOrNull { (it as? Retrieved.RetrievedWithScore)?.score ?: 0f } ?: 0f
+                    val start = sequence.first()
+                        .filteredAttribute<PropertyAttribute>()!!.properties["start"]!!.toLong()
+                    val end =
+                        sequence.last().filteredAttribute<PropertyAttribute>()!!.properties["end"]!!.toLong()
+                    val score =
+                        sequence.maxOfOrNull { (it.filteredAttribute<ScoreAttribute>())?.score ?: 0f } ?: 0f
 
                     continuousSequences[source.id]!!.add(
                         ContinuousSequence(
@@ -123,6 +139,11 @@ class TemporalSequenceAggregator(
 
             val stages = sequences.groupBy { it.stage }
 
+            //skip sequences that have only results for one 'stage'
+            if (stages.size < 2) {
+                continue
+            }
+
             //sequentially go over all stage indices to try and start sequences
             for (startStageId in inputs.indices) {
 
@@ -133,11 +154,13 @@ class TemporalSequenceAggregator(
                     //find best match from next stage to grow sequence
                     for (nextStageId in ((startStageId + 1) until inputs.size)) {
 
-                        val maxStartTime =
-                            temporalSequence.last().end + MAX_TIME_BETWEEN_STAGES
-                        stages[nextStageId]?.filter { it.start <= maxStartTime }?.maxByOrNull { it.score }?.let {
-                            temporalSequence.add(it) //add highest scored sequence within range
-                        }
+                        val maxStartTime = temporalSequence.last().end + MAX_TIME_BETWEEN_STAGES
+                        val minStartTime = temporalSequence.last().start
+
+                        stages[nextStageId]?.filter { it.start in minStartTime..maxStartTime }?.maxByOrNull { it.score }
+                            ?.let {
+                                temporalSequence.add(it) //add highest scored sequence within range
+                            }
 
                     }
 
@@ -160,13 +183,6 @@ class TemporalSequenceAggregator(
             val score = sequence.maxOf { it.score }
             val id = UUID.randomUUID()
 
-            val retrieved = Retrieved.RetrievedPlusScore(
-                Retrieved.Default(
-                    id, "temporalSequence", true
-                ),
-                score
-            )
-
             val relationships = sequence.flatMap {
                 it.retrieved.map { r -> Relationship(r.id to null, "partOf", id to null) }
             }.toSet()
@@ -175,11 +191,14 @@ class TemporalSequenceAggregator(
                 return@forEach
             }
 
-            emit(
-                Retrieved.ScorePlusRelationship(
-                    retrieved, relationships
-                )
+            val retrieved = Retrieved(
+                id, "temporalSequence", true
             )
+
+            retrieved.addAttribute(ScoreAttribute(score))
+            retrieved.addAttribute(RelationshipAttribute(relationships))
+
+            emit(retrieved)
         }
 
     }

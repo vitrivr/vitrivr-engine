@@ -11,7 +11,7 @@ class TemporalSequenceAggregatorFactory : AggregatorFactory<Retrieved, Retrieved
         inputs: List<Operator<Retrieved>>,
         schema: Schema,
         properties: Map<String, String>
-    ): Aggregator<Retrieved, Retrieved> {
+    ): Aggregator {
         return TemporalSequenceAggregator(
             inputs
         )
