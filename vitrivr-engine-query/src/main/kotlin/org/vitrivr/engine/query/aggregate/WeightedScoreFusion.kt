@@ -5,24 +5,21 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
-import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Aggregator
 
 class WeightedScoreFusion(
     override val inputs: List<Operator<Retrieved>>,
     weights: List<Float>
-) : Aggregator<Retrieved, Retrieved> {
+) : Aggregator {
 
-    private val weights: List<Float>
-    init {
-        this.weights = when {
-            weights.size > inputs.size -> weights.subList(0, inputs.size - 1)
-            weights.size < inputs.size -> weights + List(inputs.size - weights.size) {1f}
-            else -> weights
-        }
+    private val weights: List<Float> = when {
+        weights.size > inputs.size -> weights.subList(0, inputs.size - 1)
+        weights.size < inputs.size -> weights + List(inputs.size - weights.size) {1f}
+        else -> weights
     }
 
     private val weightsSum = this.weights.sum()
@@ -47,7 +44,7 @@ class WeightedScoreFusion(
                 return@flow
             }
 
-            val scoreMap = mutableMapOf<RetrievableId, MutableList<Pair<Int, Retrievable>>>()
+            val scoreMap = mutableMapOf<RetrievableId, MutableList<Pair<Int, Retrieved>>>()
 
             for ((index, retrieveds) in inputs.withIndex()) {
 
@@ -65,18 +62,15 @@ class WeightedScoreFusion(
 
             for((_, retrieveds) in scoreMap) {
 
-                val score = retrieveds.map { ((it.second as? Retrieved.RetrievedWithScore)?.score ?: 0f) * weights[it.first] }.sum() / weightsSum
+                val score = retrieveds.map { ((it.second.filteredAttribute<ScoreAttribute>())?.score ?: 0f) * weights[it.first] }.sum() / weightsSum
 
                 val first = retrieveds.first().second
 
 
-                //TODO better merging with type/attribute preservation
-                val retrieved = Retrieved.WithScore(
-                    first.id,
-                    first.type,
-                    score,
-                    false
-                )
+                //make a copy and override score
+                val retrieved = first.copy()
+                retrieved.filteredAttribute<ScoreAttribute>()
+                retrieved.addAttribute(ScoreAttribute(score))
 
                 emit(retrieved)
 
