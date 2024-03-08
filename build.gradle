@@ -53,21 +53,25 @@ subprojects {
     apply plugin: 'kotlin-kapt'
 
     /* Java Version */
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 
     tasks.withType(KotlinCompile).configureEach {
         kotlinOptions {
-            jvmTarget = "17"
+            jvmTarget = "21"
         }
     }
-	
-	kotlin {
-        jvmToolchain(17)
+
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
+    }
+
+    kotlin {
+        jvmToolchain(21)
     }
 
     java {
-        toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+        toolchain.languageVersion.set(JavaLanguageVersion.of(21))
         withJavadocJar()
         withSourcesJar()
     }
@@ -82,8 +86,8 @@ subprojects {
         implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: version_caffeine
 
         /* Logging */
-        implementation group: 'io.github.oshai', name: 'kotlin-logging-jvm', version: version_kotlinlogging
         implementation group: 'org.slf4j', name: 'slf4j-api', version: version_slf4j
+        implementation group: 'io.github.oshai', name: 'kotlin-logging-jvm', version: version_kotlinlogging
         implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: version_log4j2
         implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: version_log4j2
         implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j2-impl', version: version_log4j2
@@ -92,7 +96,13 @@ subprojects {
         implementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: version_kotlin
         implementation group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: version_kotlin
 		implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: version_kotlinx_coroutines
-        implementation group: 'org.jetbrains.kotlinx', name:'kotlinx-serialization-json', version: '1.6.0'
+        implementation group: 'org.jetbrains.kotlinx', name:'kotlinx-serialization-json', version: version_kotlinx_serialization
+
+        /* JUnit 5 */
+        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: version_junit
+        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: version_junit
+        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: version_junit
+        testImplementation group: 'org.junit.platform', name: 'junit-platform-commons', version: version_junit_platform
     }
 }
 
@@ -108,11 +118,27 @@ openApiGenerate {
 
     generatorName = 'typescript-angular'
     inputSpec = oasFile
-    outputDir = file("${project.projectDir}/openapi/doc").toString()
+    outputDir = file("${project.projectDir}/openapi/doc/ts").toString()
     configOptions = [
             npmName: '@vitrivr-engine/api',
             ngVersion: '13.2.3',
             snapshot: 'true',
+            enumPropertyNaming: 'original'
+    ]
+}
+
+
+openApiGenerate {
+    generateApiTests = false
+    generateModelTests = false
+    validateSpec = false
+    skipValidateSpec = true
+
+    generatorName = 'kotlin'
+    inputSpec = oasFile
+    outputDir = file("${project.projectDir}/openapi/doc/kotlin").toString()
+    configOptions = [
+            npmName: '@vitrivr-engine/api',
             enumPropertyNaming: 'original'
     ]
 }

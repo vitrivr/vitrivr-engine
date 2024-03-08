@@ -7,7 +7,7 @@ import org.vitrivr.engine.core.operators.retrieve.TransformerFactory
 
 class FieldLookupFactory(
 
-) : TransformerFactory<Retrieved, Retrieved.RetrievedWithProperties> {
+) : TransformerFactory {
     override fun newTransformer(
         input: Operator<Retrieved>,
         schema: Schema,

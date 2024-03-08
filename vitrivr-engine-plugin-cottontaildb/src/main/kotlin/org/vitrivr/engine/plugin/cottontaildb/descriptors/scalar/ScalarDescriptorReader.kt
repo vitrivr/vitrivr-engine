@@ -9,6 +9,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.BooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAttribute
 import org.vitrivr.engine.plugin.cottontaildb.*
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorReader
 
@@ -21,10 +22,10 @@ import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorRead
 class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connection: CottontailConnection) : AbstractDescriptorReader<ScalarDescriptor<*>>(field, connection) {
 
     /** Prototype [ScalarDescriptor] used to create new instances. */
-    private val prototype = this.field.analyser.prototype()
+    private val prototype = this.field.analyser.prototype(this.field)
 
     /**
-     * Executes the provided [Query] and returns a [Sequence] of [Retrieved.WithDescriptor]s that match it.
+     * Executes the provided [Query] and returns a [Sequence] of [Retrieved]s that match it.
      *
      * @param query The [Query] to execute.
      */
@@ -42,7 +43,9 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
         return this.connection.client.query(cottontailQuery).asSequence().mapNotNull {
             val descriptor = this.tupleToDescriptor(it)
             if (descriptor.retrievableId != null) {
-                Retrieved.WithDescriptor(descriptor.retrievableId!!, null, listOf(descriptor), false)
+                val retrieved = Retrieved(descriptor.retrievableId!!, null, false)
+                retrieved.addAttribute(DescriptorAttribute(descriptor))
+                retrieved
             } else {
                 null
             }

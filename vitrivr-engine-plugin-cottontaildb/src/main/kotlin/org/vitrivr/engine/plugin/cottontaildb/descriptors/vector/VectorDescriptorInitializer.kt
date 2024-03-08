@@ -25,7 +25,7 @@ internal class VectorDescriptorInitializer(field: Schema.Field<*, VectorDescript
      * Initializes the Cottontail DB entity backing this [AbstractDescriptorInitializer].
      */
     override fun initialize() {
-        val type = this.field.analyser.prototype().toType()
+        val type = this.field.analyser.prototype(this.field).toType()
         val create = CreateEntity(this.entityName)
             .column(Name.ColumnName.create(DESCRIPTOR_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = true, autoIncrement = false)
             .column(Name.ColumnName.create(RETRIEVABLE_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = false, autoIncrement = false)

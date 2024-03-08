@@ -6,12 +6,12 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Transformer
 import org.vitrivr.engine.core.operators.retrieve.TransformerFactory
 
-class RelationExpanderFactory : TransformerFactory<Retrieved, Retrieved.RetrievedWithRelationship> {
+class RelationExpanderFactory : TransformerFactory {
     override fun newTransformer(
         input: Operator<Retrieved>,
         schema: Schema,
         properties: Map<String, String>
-    ): Transformer<Retrieved, Retrieved.RetrievedWithRelationship> {
+    ): Transformer {
 
         val retrievableReader = schema.connection.getRetrievableReader()
         val incomingRelations = properties["incoming"]?.split(",")?.map { s -> s.trim() } ?: emptyList()

@@ -11,8 +11,9 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.RetrievableId
-import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithSource
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.RelationshipAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.*
 import org.vitrivr.engine.core.source.Source
@@ -142,12 +143,9 @@ class FixedDurationSegmenter : SegmenterFactory {
             require(source != null) { "Last source is null. This is a programmer's error!" }
 
             /* Generate source content. */
-            val sourceRetrievable = object : RetrievableWithSource {
-                override val id: RetrievableId = source.sourceId
-                override val type: String = "source"
-                override val transient: Boolean = false
-                override val source: Source = source
-            }
+            val sourceRetrievable = Ingested(source.sourceId, "source", false)
+
+            sourceRetrievable.addAttribute(SourceAttribute(source))
 
             /* Persist source retrievable and send it downstream */
             if (!this.sourceWritten) {
@@ -170,8 +168,9 @@ class FixedDurationSegmenter : SegmenterFactory {
             }
 
             /* Prepare retrievable. */
-            val retrievable = Ingested(UUID.randomUUID(), "segment", false, content, emptyList())
-            retrievable.relationships.add(Relationship(retrievable, "partOf", sourceRetrievable))
+            val retrievable = Ingested(UUID.randomUUID(), "segment", false)
+            content.forEach { retrievable.addAttribute(ContentAttribute(it)) }
+            retrievable.addAttribute(RelationshipAttribute(Relationship(retrievable, "partOf", sourceRetrievable)))
 
             /* Persist retrievable and relationship. */
             this.writer.add(retrievable)

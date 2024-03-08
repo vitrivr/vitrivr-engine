@@ -6,12 +6,12 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Transformer
 import org.vitrivr.engine.core.operators.retrieve.TransformerFactory
 
-class ScoreAggregatorFactory : TransformerFactory<Retrieved, Retrieved.RetrievedWithScore> {
+class ScoreAggregatorFactory : TransformerFactory {
     override fun newTransformer(
         input: Operator<Retrieved>,
         schema: Schema,
         properties: Map<String, String>
-    ): Transformer<Retrieved, Retrieved.RetrievedWithScore> {
+    ): Transformer {
 
         val aggregation = properties["aggregation"]?.uppercase()?.let {
             try {
