@@ -116,24 +116,6 @@ openApiGenerate {
     validateSpec = false
     skipValidateSpec = true
 
-    generatorName = 'typescript-angular'
-    inputSpec = oasFile
-    outputDir = file("${project.projectDir}/openapi/doc/ts").toString()
-    configOptions = [
-            npmName: '@vitrivr-engine/api',
-            ngVersion: '13.2.3',
-            snapshot: 'true',
-            enumPropertyNaming: 'original'
-    ]
-}
-
-
-openApiGenerate {
-    generateApiTests = false
-    generateModelTests = false
-    validateSpec = false
-    skipValidateSpec = true
-
     generatorName = 'kotlin'
     inputSpec = oasFile
     outputDir = file("${project.projectDir}/openapi/doc/kotlin").toString()
