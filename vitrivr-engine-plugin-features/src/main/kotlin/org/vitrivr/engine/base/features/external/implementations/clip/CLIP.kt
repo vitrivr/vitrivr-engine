@@ -7,6 +7,7 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
+import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
@@ -15,10 +16,10 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
 /**
- * Implementation of the [CLIP] [ExternalWithFloatVectorDescriptorAnalyser], which derives the CLIP feature from an [ImageContent] or [TextContent] as [FloatVectorDescriptor].
+ * Implementation of the [CLIP] [ExternalAnalyser], which derives the CLIP feature from an [ImageContent] or [TextContent] as [FloatVectorDescriptor].
  *
  * @author Rahel Arnold
- * @version 1.1.0
+ * @version 1.0.0
  */
 class CLIP : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
     override val contentClasses = setOf(ImageContent::class, TextContent::class)
@@ -29,7 +30,7 @@ class CLIP : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
      *
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>): FloatVectorDescriptor = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(512) { 0.0f }, true)
+    override fun prototype(field: Schema.Field<*,*>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(512) { 0.0f }, true)
 
     /**
      * Generates and returns a new [Extractor] instance for this [CLIP].
@@ -91,8 +92,8 @@ class CLIP : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
      * @return A list of CLIP feature descriptors.
      */
     override fun analyse(content: ContentElement<*>, hostname: String): FloatVectorDescriptor = when (content) {
-        is ImageContent -> FloatVectorDescriptor(UUID.randomUUID(), null, httpRequest(content, "${hostname.removeSuffix("/")}/extract/clip_image"), true)
-        is TextContent -> FloatVectorDescriptor(UUID.randomUUID(), null, httpRequest(content, "${hostname.removeSuffix("/")}/extract/clip_text"), true)
+        is ImageContent -> FloatVectorDescriptor(UUID.randomUUID(), null, httpRequest(content, "$hostname/extract/clip_image"), true)
+        is TextContent -> FloatVectorDescriptor(UUID.randomUUID(), null, httpRequest(content, "$hostname/extract/clip_text"), true)
         else -> throw IllegalArgumentException("Content '$content' not supported")
     }
 }

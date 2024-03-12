@@ -5,21 +5,16 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
 import io.javalin.openapi.*
-import kotlinx.serialization.json.Json
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.query.execution.RetrievalRuntime
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
 import org.vitrivr.engine.query.model.api.result.QueryResult
 import org.vitrivr.engine.server.api.rest.model.ErrorStatus
 import org.vitrivr.engine.server.api.rest.model.ErrorStatusException
+import kotlin.time.measureTime
 
 private val logger: KLogger = KotlinLogging.logger {}
 
-/**
- *
- * @author Ralph Gasser
- * @version 1.0
- */
 @OpenApi(
     path = "/api/{schema}/query",
     methods = [HttpMethod.POST],
@@ -36,14 +31,14 @@ private val logger: KLogger = KotlinLogging.logger {}
     ]
 )
 fun executeQuery(ctx: Context, schema: Schema, runtime: RetrievalRuntime) {
-    val informationNeed = try {
-        ctx.bodyAsClass<InformationNeedDescription>()
-    } catch (e: Exception) {
-        throw ErrorStatusException(400, "Invalid request: ${e.message}")
+    val duration = measureTime {
+        val informationNeed = try {
+            ctx.bodyAsClass<InformationNeedDescription>()
+        } catch (e: Exception) {
+            throw ErrorStatusException(400, "Invalid request: ${e.message}")
+        }
+        val results = runtime.query(schema, informationNeed)
+        ctx.json(QueryResult(results))
     }
-    logger.info { "received request for ${schema.name}: ${Json.encodeToString(InformationNeedDescription.serializer(), informationNeed)}" }
-    val results = runtime.query(schema, informationNeed)
-    val queryResult = QueryResult(results)
-    logger.info { "returning results for ${schema.name}: ${Json.encodeToString(QueryResult.serializer(), queryResult)}" }
-    ctx.json(queryResult)
+    logger.info { "Executing ${ctx.req().pathInfo} took $duration." }
 }
