@@ -58,7 +58,7 @@ class MeshDecoder : DecoderFactory {
             try {
                 val handler = ModelHandler()
                 val model = source.newInputStream().use {
-                    this.context.contentFactory.newModel3DContent(handler.loadModel(source.sourceId.toString(), source.name.substringAfterLast(".")))
+                    this.context.contentFactory.newMeshContent(handler.loadModel(source.sourceId.toString(), source.name.substringAfterLast(".")))
                 }
                 MeshDecoderWithSource(model, source)
             } catch (e: IOException) {

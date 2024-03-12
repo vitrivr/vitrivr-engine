@@ -15,5 +15,5 @@ interface ContentFactory {
 
     fun newTextContent(text: String): TextContent
 
-    fun newModel3DContent(model3D: Model3D): Model3DContent
+    fun newMeshContent(model3D: Model3D): Model3DContent
 }
