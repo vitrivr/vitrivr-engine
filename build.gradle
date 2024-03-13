@@ -107,7 +107,7 @@ subprojects {
 }
 
 /* Define required variables. */
-def fullOAS = 'http://localhost:7070/swagger-docs'
+def fullOAS = 'http://localhost:7070/openapi.json'
 def oasFile = "${project.projectDir}/vitrivr-engine-server/doc/oas.json"
 
 openApiGenerate {
