@@ -1,0 +1,44 @@
+{
+  "schemas": [{
+    "name": "sandbox",
+    "connection": {
+      "database": "CottontailConnectionProvider",
+      "parameters": {
+        "Host": "127.0.0.1",
+        "port": "1865"
+      }
+    },
+    "fields": [
+      {
+        "name": "averagecolor",
+        "factory": "AverageColor"
+      },
+      {
+        "name": "file",
+        "factory": "FileSourceMetadata"
+      }
+    ],
+    "exporters": [
+      {
+        "name": "thumbnail",
+        "factory": "ThumbnailExporter",
+        "resolver": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "./thumbnails/sandbox"
+          }
+        },
+        "parameters": {
+          "maxSideResolution": "400",
+          "mimeType": "JPG"
+        }
+      }
+    ],
+    "extractionPipelines": [
+      {
+        "name": "sandboxpipeline",
+        "path": "./sandbox-pipeline.json"
+      }
+    ]
+  }]
+}
