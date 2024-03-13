@@ -79,9 +79,6 @@ dependencies {
 
 }
 
-dependencies {
-    api project(':vitrivr-engine-core')
-}
 
 /* Publication of vitrivr engine query to Maven Central. */
 publishing {
