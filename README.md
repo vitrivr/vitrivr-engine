@@ -312,6 +312,22 @@ is as follows:
 Let's create a new file `sandbox-pipeline.json` right next to the `sandbox-config.json` in the root of the project.
 This file will contain the [`IndexConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/IndexConfig.kt).
 
+In order to address (reference) our schema, we reference it in our index config and provide a _context_ as well as an _enumerator_:
+
+```json
+{
+  "schema": "sandbox",
+  "context": {
+    
+  },
+  "enumerator": {
+    
+  }
+}
+```
+
+#### Index Context Configuration
+
 
 
 #### Complete Sandbox Configuration
