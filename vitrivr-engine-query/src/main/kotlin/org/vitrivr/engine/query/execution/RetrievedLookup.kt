@@ -15,7 +15,7 @@ class RetrievedLookup(
     override fun toFlow(scope: CoroutineScope): Flow<Retrieved> {
 
         return this.retrievableReader.getAll(ids).map {
-            Retrieved.Default(it.id, it.type, false)
+            Retrieved(it.id, it.type, false)
         }.asFlow()
 
     }

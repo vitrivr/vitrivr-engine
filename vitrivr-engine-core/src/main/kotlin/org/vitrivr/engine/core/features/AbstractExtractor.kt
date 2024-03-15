@@ -9,7 +9,7 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithDescriptor
+import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import java.util.*
@@ -46,10 +46,8 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final ov
                 val descriptors = extract(retrievable)
 
                 /* Append descriptor. */
-                if (retrievable is RetrievableWithDescriptor.Mutable) {
-                    for (d in descriptors) {
-                        retrievable.addDescriptor(d)
-                    }
+                for (d in descriptors) {
+                    retrievable.addAttribute(DescriptorAttribute(d))
                 }
 
                 /* Persist descriptor. */

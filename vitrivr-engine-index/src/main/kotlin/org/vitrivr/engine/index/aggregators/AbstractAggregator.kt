@@ -5,12 +5,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithContent
-import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithDescriptor
-import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithRelationship
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Aggregator
 
@@ -29,11 +26,12 @@ abstract class AbstractAggregator(override val input: Operator<Retrievable>, pro
      *  @param scope [CoroutineScope] to use for the [Flow].
      */
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).map {
-        if (it is RetrievableWithContent) {
-            val content = this.aggregate(it.content)
-            val descriptors: List<Descriptor> = (it as? RetrievableWithDescriptor)?.descriptors ?: emptyList()
-            val relationships = (it as? RetrievableWithRelationship)?.relationships ?: emptySet()
-            Ingested(it.id, it.type, it.transient, content, descriptors, relationships)
+        val content = it.filteredAttributes(ContentAttribute::class.java).map { a -> a.content }
+        if (content.isNotEmpty()) {
+            val aggregated = this.aggregate(content)
+            it.removeAttributes(ContentAttribute::class.java)
+            aggregated.forEach { c -> it.addAttribute(ContentAttribute(c)) }
+            it
         } else {
             it
         }
