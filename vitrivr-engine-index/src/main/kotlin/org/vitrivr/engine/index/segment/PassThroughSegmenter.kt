@@ -9,8 +9,9 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.RetrievableId
-import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithSource
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.RelationshipAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.*
 import org.vitrivr.engine.core.source.Source
@@ -54,30 +55,33 @@ class PassThroughSegmenter : SegmenterFactory {
          * @param downstream The [ProducerScope] to hand [Ingested] to the downstream pipeline.
          */
         override suspend fun segment(upstream: Flow<ContentElement<*>>, downstream: ProducerScope<Retrievable>) {
-            var sourceRetrievable: RetrievableWithSource? = null
+            var sourceRetrievable: Retrievable? = null
+            var retrievableSource: Source? = null
             upstream.collect {
                 /* Retrievable for data source. */
                 if (it is SourcedContent) {
-                    if (it.source != sourceRetrievable?.source) {
-                        val source = this.createRetrievableForSource(it.source)
-                        downstream.send(source)
-                        sourceRetrievable = source
+                    if (it.source != retrievableSource) {
+                        sourceRetrievable = this.createRetrievableForSource(it.source)
+                        downstream.send(sourceRetrievable!!)
+                        retrievableSource = it.source
                     }
 
                     /* Prepare retrievable (with relationship). */
-                    val retrievable = Ingested(UUID.randomUUID(), "segment", false, content = listOf(it))
+                    val retrievable = Ingested(UUID.randomUUID(), "segment", false)
+                    retrievable.addAttribute(ContentAttribute(it))
                     this.writer.add(retrievable)
 
                     /* Connect retrievable to source. */
                     sourceRetrievable?.let { source ->
-                        retrievable.relationships.add(Relationship(retrievable, "partOf", source))
+                        retrievable.addAttribute(RelationshipAttribute(Relationship(retrievable, "partOf", source)))
                         this.writer.connect(retrievable.id, "partOf", source.id)
                     }
 
                     /* Send retrievable downstream. */
                     downstream.send(retrievable)
                 } else {
-                    val retrievable = Ingested(UUID.randomUUID(), "segment", false, content = listOf(it))
+                    val retrievable = Ingested(UUID.randomUUID(), "segment", false)
+                    retrievable.addAttribute(ContentAttribute(it))
 
                     /* Persist retrievable. */
                     this.writer.add(retrievable)
@@ -98,13 +102,10 @@ class PassThroughSegmenter : SegmenterFactory {
          *
          * @param source The [Source] to create [Retrievable] for.
          */
-        private fun createRetrievableForSource(source: Source): RetrievableWithSource {
-            val result = object : RetrievableWithSource {
-                override val id: RetrievableId = source.sourceId
-                override val type: String = "source"
-                override val transient: Boolean = false
-                override val source: Source = source
-            }
+        private fun createRetrievableForSource(source: Source): Retrievable {
+            val result = Ingested(source.sourceId, "source", false)
+
+            result.addAttribute(SourceAttribute(source))
 
             /* Persist retrievable. */
             this.writer.add(result)

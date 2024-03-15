@@ -53,12 +53,12 @@ subprojects {
     apply plugin: 'kotlin-kapt'
 
     /* Java Version */
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 
     tasks.withType(KotlinCompile).configureEach {
         kotlinOptions {
-            jvmTarget = "17"
+            jvmTarget = "21"
         }
     }
 
@@ -67,11 +67,11 @@ subprojects {
     }
 
     kotlin {
-        jvmToolchain(17)
+        jvmToolchain(21)
     }
 
     java {
-        toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+        toolchain.languageVersion.set(JavaLanguageVersion.of(21))
         withJavadocJar()
         withSourcesJar()
     }
@@ -118,11 +118,27 @@ openApiGenerate {
 
     generatorName = 'typescript-angular'
     inputSpec = oasFile
-    outputDir = file("${project.projectDir}/openapi/doc").toString()
+    outputDir = file("${project.projectDir}/openapi/doc/ts").toString()
     configOptions = [
             npmName: '@vitrivr-engine/api',
             ngVersion: '13.2.3',
             snapshot: 'true',
+            enumPropertyNaming: 'original'
+    ]
+}
+
+
+openApiGenerate {
+    generateApiTests = false
+    generateModelTests = false
+    validateSpec = false
+    skipValidateSpec = true
+
+    generatorName = 'kotlin'
+    inputSpec = oasFile
+    outputDir = file("${project.projectDir}/openapi/doc/kotlin").toString()
+    configOptions = [
+            npmName: '@vitrivr-engine/api',
             enumPropertyNaming: 'original'
     ]
 }
