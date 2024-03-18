@@ -328,9 +328,289 @@ In order to address (reference) our schema, we reference it in our index config 
 
 #### Index Context Configuration
 
+_NOTE: THIS SECTION REQUIRES REVIEW_
+
+An [`ContextConfig](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ContextConfig.kt)
+is used to specify the _context_, additional information to the media data.
+
+
+```json
+{
+    "contentFactory": "InMemoryContentFactory",
+    "resolverFactory": "DiskResolver",
+    "parameters": {
+      "location": "path/to/thumbnails"
+    }
+}
+```
+
+The example index pipeline configuration then, with the path adjusted to the one we used in our configuration,
+looks as follows:
+
+```json
+{
+  "schema": "sandbox",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverFactory": "DiskResolver",
+    "parameters": {
+      "location": "./thumbnails/sandbox"
+    }
+  },
+  "enumerator": {
+
+  }
+}
+```
+
+#### Index Enumerator Configuration
+
+The _enumerator_ enumerates the content to index and provides it to the indexing pipeline.
+It is described with a [`EnumeratorConfig](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/operators/EnumeratorConfig.kt).
+
+```json
+{
+  "name": "EnumeratorClass",
+  "api": true,
+  "parameters": {
+    "key": "value"
+  },
+  "next": {}
+}
+```
+
+Currently implemented enumerators are found [in the index module](/vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/enumerate),
+of which we will use the [`FileSystemEnumerator`](/vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/enumerate/FileSystemEnumerator.kt).
+The configuration **requires** the parameter `path`, the path to the folder containing multimedia content
+and the parameter `mediaTypes`, which is a semicolon (`;`) separated list of [`MediaType`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/source/MediaType.kt)s.
+Essentially, for still images, use `IMAGE` and for videos `VIDEO`.
+Additional parameters are `skip` (how many files should be skipped), `limit` (how many files should at max be enumerated over)
+and `depth` (the depth to traverse the file system, `0` stands for current folder only, `1` for sub-folders, `2` for sub-sub-folders, ...).
+Let's assume we do have in the root project a folder `sandbox-media`, with two sub-folders `imgs` and `vids`:
+
+```
+/sandbox-media
+  |
+  - /imgs
+    |
+    - img1.png
+    |
+    - img2.png
+  |
+  - /vids
+    |
+    - vid1.mp4
+```
+
+For an image only ingestion, we could set-up the configuration as follows (`skip` and `limit` have sensible default values of `0` and `Integer.MAX_VALUE`, respectively):
+
+```json
+{
+    "name": "FileSystemEnumerator",
+    "api": true,
+    "parameters": {
+      "path": "./sandbox-media/imgs",
+      "mediaTypes": "IMAGE",
+      "depth": 0
+    },
+    "next": {}
+}
+```
+
+This results in the following index pipeline config:
+
+```json
+{
+  "schema": "sandbox",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverFactory": "DiskResolver",
+    "parameters": {
+      "location": "./thumbnails/sandbox"
+    }
+  },
+  "enumerator": {
+    "name": "FileSystemEnumerator",
+    "api": true,
+    "parameters": {
+      "path": "./sandbox-media/imgs",
+      "mediaTypes": "IMAGE",
+      "depth": 0
+    },
+    "next": {}
+  }
+}
+```
+
+The `next` property is a _decoder_ configuration, which will be addressed in the next section.
+
+#### Index Next / Decoder Configuration
+
+The [`DecoderConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/operators/DecoderConfig.kt)
+describes how the media content is decoded.
+
+```json
+{
+  "name": "DecoderClass",
+  "parameters": {
+    "key": "value"
+  },
+  "nextTransformer": {},
+  "nextSegmenter": {}
+}
+```
+Note that either a _transformer_ **or** a _segmenter_ can be configured as next.
+
+Available decodes can be found [in the index module](/vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/decode).
+Since we work with images in this tutorial, we require the [`ImageDecoder`](/vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/decode/ImageDecoder.kt):
+
+```json
+{
+  "name": "ImageDecoder",
+  "nextSegmenter": {}
+}
+```
+
+Resulting in the following index pipeline configuration:
+
+```json
+{
+  "schema": "sandbox",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverFactory": "DiskResolver",
+    "parameters": {
+      "location": "./thumbnails/sandbox"
+    }
+  },
+  "enumerator": {
+    "name": "FileSystemEnumerator",
+    "api": true,
+    "parameters": {
+      "path": "./sandbox-media/imgs",
+      "mediaTypes": "IMAGE",
+      "depth": 0
+    },
+    "next": {
+      "name": "ImageDecoder",
+      "nextSegmenter": {}
+    }
+  }
+}
+```
+
+#### Index Transformer and Segmenter Configuration
+
+_Transformers_ can be chained, if so desired, whereas a _segmenter_ is required in order to proceed with the
+index pipeline.
+The [`TransformerConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/operators/TransformerConfig.kt) is similarly
+to the previously shown [`DecoderConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/operators/DecoderConfig.kt).
+The [`SegmenterConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/operators/SegmenterConfig.kt)
+is as follows:
+
+```json
+{
+  "name": "SegmenterClass",
+  "parameters": {
+    "key": "value"
+  },
+  "aggregators": []
+}
+```
+
+Both, _transformers_ and _segmenters_ can be found in the index module [transformer package](/vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/transform)
+and [segmenter package](/vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/segment).
+There exists a `PassThroughSegmenter` and `PassThroughTransformer` which do nothing but pass through.
+We will directly use the `PassThroughSegmenter` to further build our index pipeline config:
+
+```json
+{
+  "schema": "sandbox",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverFactory": "DiskResolver",
+    "parameters": {
+      "location": "./thumbnails/sandbox"
+    }
+  },
+  "enumerator": {
+    "name": "FileSystemEnumerator",
+    "api": true,
+    "parameters": {
+      "path": "./sandbox-media/imgs",
+      "mediaTypes": "IMAGE",
+      "depth": 0
+    },
+    "next": {
+      "name": "ImageDecoder",
+      "nextSegmenter": {
+        "name": "PassThroughSegmenter",
+        "aggregators": []
+      }
+    }
+  }
+}
+```
+
+#### Index Aggregator Config
+
+The [`AggregatorConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/operators/AggregatorConfig.kt)
+describes the configuration of one single aggregator:
+
+```json
+{
+  "name": "AggregatorClass",
+  "parameters": {
+    "key": "value"
+  },
+  "nextExtractor": {},
+  "nextExporter": {}
+}
+```
+
+An aggregator can only be followed by **either** an exporter **or** an extractor
+
+The available aggregators can be seen in the [aggregator package](/vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/aggregators).
+
+For the sake of this tutorial, we will use the simple
+[`AllContentAggregator`](/vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/aggregators/AllContentAggregator.kt),
+as we do not want to have the images aggregator in any way.
+
+```json
+{
+  "name": "AllContentAggregator",
+  "nextExtractor": {}
+}
+```
+
+Extractors and exporters can be chained as required and are interchangeable.
+
+#### Index Extractor Configuration
+
+The [`ExtractorConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/operators/ExtractorConfig.kt)
+describes an extractor.
+An _extractor_ extracts descriptors from the content, thus, requires a field.
+
+```json
+{
+  "fieldName": "uniqueFieldNameFromConfig",
+  "factoryName": "FactoryClassName",
+  "parameters": {},
+  "nextExtractor": {},
+  "nextExporter": {}
+}
+```
+
+
+
+#### Index Exporter Configuration
+
 
 
 #### Complete Sandbox Configuration
+
+After following above's guide on how to build your _schema_ config and your _index pipeline_ config,
+the files should be similar as follows.
 
 The schema config:
 
