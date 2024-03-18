@@ -37,7 +37,7 @@ class FieldLookup(
             val descriptor = descriptors[retrieved.id]
 
             if (descriptor != null) {
-                val values = descriptor.values().toMap().mapValues { it.toString() }
+                val values = descriptor.values().toMap().filterKeys { it in keys }.mapValues { it.toString() }
                 val attribute = PropertyAttribute(values)
                 retrieved.addAttribute(attribute)
             }
