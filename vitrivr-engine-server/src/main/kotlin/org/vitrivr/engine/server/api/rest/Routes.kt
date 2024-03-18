@@ -33,10 +33,10 @@ fun configureApiRoutes(config: ApiConfig, manager: SchemaManager, retrievalRunti
         for (schema in manager.listSchemas()) {
             path(schema.name) {
                 if (config.index) {
-                    post("index") { ctx -> executeIngest(ctx, schema, executor) }
-                    path("index") {
-                        get("{id}") { ctx -> executeIngestStatus(ctx, executor) }
+                    path("index") { // This is a more specific path, hence it has to be registered earlier
+                        get("{jobId}") { ctx -> executeIngestStatus(ctx, executor) }
                     }
+                    post("index") { ctx -> executeIngest(ctx, schema, executor) }
                 }
 
                 if (config.retrieval) {

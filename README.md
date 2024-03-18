@@ -51,11 +51,17 @@ Create a config file `sandbox-config.json` with one named schema in it:
 }
 ```
 
-#### Database
+#### Schema Database
 
 The database is also a rather important component of the system. 
 This guide assumes a running [CottontailDB](https://github.com/vitrivr/cottontaildb)
 instance on the same machine on the default port `1865`.
+
+---
+**NOTE this requires [Cottontail d03add](https://github.com/vitrivr/cottontaildb/commit/d03add3ddcae8fea446cf2bd1542ea509c8ffe25) or newer**
+
+---
+
 We address the database with the [`ConnectionConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ConnectionConfig.kt):
 
 ```json
@@ -85,7 +91,7 @@ We add the cottontail connection to the schema's connection property:
 }
 ```
 
-#### Analyser
+#### Schema Analyser
 
 The [`Analyser`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/metamodel/Analyser.kt)
 performs analysis to derive a [`Descriptor`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/descriptor/Descriptor.kt).
@@ -93,7 +99,7 @@ In other words, the _analyser_ produces a _descriptor_ which represents the medi
 However, this is only for _indexing_ / _ingestion_. During _querying_ / _retrieval_ time, 
 the _analyser_ queries the underlying storage layer to perform a query on said _descriptors_.
 
-#### Field Configuration
+#### Schema Field Configuration
 
 A schema consists of unique-named _fields_, that have to be backed by an [`Analyser`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/metamodel/Analyser.kt),
 essentially representing a specific [`Descriptor`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/descriptor/Descriptor.kt).
@@ -159,7 +165,7 @@ configuration file:
 }
 ```
 
-#### Exporter Configuration
+#### Schema Exporter Configuration
 
 In the context of images and videos, having thumbnails is desirable, which can be generated
 during ingestion with the configuration of an _exporter_.
@@ -385,11 +391,11 @@ The configuration **requires** the parameter `path`, the path to the folder cont
 and the parameter `mediaTypes`, which is a semicolon (`;`) separated list of [`MediaType`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/source/MediaType.kt)s.
 Essentially, for still images, use `IMAGE` and for videos `VIDEO`.
 Additional parameters are `skip` (how many files should be skipped), `limit` (how many files should at max be enumerated over)
-and `depth` (the depth to traverse the file system, `0` stands for current folder only, `1` for sub-folders, `2` for sub-sub-folders, ...).
-Let's assume we do have in the root project a folder `sandbox-media`, with two sub-folders `imgs` and `vids`:
+and `depth` (the depth to traverse the file system, `1` stands for current folder only, `2` for sub-folders, `3` for sub-sub-folders, ...).
+Let's assume we do have in the root project a folder `sandbox`, with two sub-folders `imgs` and `vids`:
 
 ```
-/sandbox-media
+/sandbox
   |
   - /imgs
     |
@@ -409,9 +415,9 @@ For an image only ingestion, we could set-up the configuration as follows (`skip
     "name": "FileSystemEnumerator",
     "api": true,
     "parameters": {
-      "path": "./sandbox-media/imgs",
+      "path": "./sandbox/imgs",
       "mediaTypes": "IMAGE",
-      "depth": 0
+      "depth": "1"
     },
     "next": {}
 }
@@ -433,9 +439,9 @@ This results in the following index pipeline config:
     "name": "FileSystemEnumerator",
     "api": true,
     "parameters": {
-      "path": "./sandbox-media/imgs",
+      "path": "./sandbox/imgs",
       "mediaTypes": "IMAGE",
-      "depth": 0
+      "depth": "0"
     },
     "next": {}
   }
@@ -489,7 +495,7 @@ Resulting in the following index pipeline configuration:
     "parameters": {
       "path": "./sandbox-media/imgs",
       "mediaTypes": "IMAGE",
-      "depth": 0
+      "depth": "1"
     },
     "next": {
       "name": "ImageDecoder",
@@ -539,7 +545,7 @@ We will directly use the `PassThroughSegmenter` to further build our index pipel
     "parameters": {
       "path": "./sandbox-media/imgs",
       "mediaTypes": "IMAGE",
-      "depth": 0
+      "depth": "1"
     },
     "next": {
       "name": "ImageDecoder",
@@ -601,9 +607,107 @@ An _extractor_ extracts descriptors from the content, thus, requires a field.
 }
 ```
 
+The [features packages](/vitrivr-engine-plugin-features/src/main/kotlin/org/vitrivr/engine/base/) provide some extractors,
+such as the [`AverageColor`](vitrivr-engine-plugin-features/src/main/kotlin/org/vitrivr/engine/base/features/averagecolor/AverageColor.kt).
+In this example, we use the _AverageColor_ extractor by the field name, that we initially set in [the schema configuration](#schema-exporter-configuration).
 
+```json
+{
+  "fieldName": "averagecolor"
+}
+```
+
+In our [schema configuration](#schema-exporter-configuration), we also added the `file` named _FileSourceMetadata_, also simply by specifying the `fieldName`.
 
 #### Index Exporter Configuration
+
+An _exporter_ exports information during the ingestion that is derived from the input, for instance thumbnails.
+
+The generic [`ExporterConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/operators/ExporterConfig.kt) describes such exporters:
+
+```json
+{
+  "name": "exporterName",
+  "exporterName": "ExporterClass",
+  "factoryName": "FactoryClass",
+  "parameters": {
+    "key": "value"
+  },
+  "nextExporter": {},
+  "nextExtractor": {}
+}
+```
+
+Please keep in mind that the `name` property relates to the class name of the exporter and the `exporterName` to the `name` property set in [the schema configuration](#schema-exporter-configuration).
+
+Either the _next_ extractor or exporter are to be defined by the config as well (exclusive or).
+
+One such example is the [`ThumbnailExporter`](vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/exporters/ThumbnailExporter.kt), which can be configured as such:
+
+```json
+{
+  "name": "ThumbnailExporter",
+  "exporterName": "thumbnail",
+  "factoryName": "ThumbnailExporter",
+  "parameters": {
+    "maxSideResolution": "400",
+    "mimeType": "JPG"
+  }
+}
+```
+
+We set the larger of the two sides to 400 pixel and the thumbnail's mime type to JPG.
+
+All in all, our final pipeline configuration looks as follows:
+
+```json
+{
+  "schema": "sandbox",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverFactory": "DiskResolver",
+    "parameters": {
+      "location": "./thumbnails/sandbox"
+    }
+  },
+  "enumerator": {
+    "name": "FileSystemEnumerator",
+    "api": true,
+    "parameters": {
+      "path": "./sandbox/imgs",
+      "mediaTypes": "IMAGE;VIDEO",
+      "depth": "1"
+    },
+    "next": {
+      "name": "ImageDecoder",
+      "nextSegmenter": {
+        "name": "PassThroughSegmenter",
+        "aggregators": [
+          {
+            "name": "AllContentAggregator",
+            "nextExtractor": {
+              "fieldName": "averagecolor",
+              "nextExporter": {
+                "name": "ThumbnailExporter",
+                "exporterName": "thumbnail",
+                "factoryName": "ThumbnailExporter",
+                "parameters": {
+                  "maxSideResolution": "400",
+                  "mimeType": "JPG"
+                },
+                "nextExtractor": {
+                  "fieldName": "file"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+
+```
 
 
 
@@ -664,6 +768,88 @@ The schema config:
 
 The pipeline config:
 
+```json
+{
+  "schema": "sandbox",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverFactory": "DiskResolver",
+    "parameters": {
+      "location": "./thumbnails/sandbox"
+    }
+  },
+  "enumerator": {
+    "name": "FileSystemEnumerator",
+    "api": true,
+    "parameters": {
+      "path": "./sandbox/imgs",
+      "mediaTypes": "IMAGE;VIDEO",
+      "depth": "0"
+    },
+    "next": {
+      "name": "ImageDecoder",
+      "nextSegmenter": {
+        "name": "PassThroughSegmenter",
+        "aggregators": [
+          {
+            "name": "AllContentAggregator",
+            "nextExtractor": {
+              "fieldName": "averagecolor",
+              "nextExporter": {
+                "name": "ThumbnailExporter",
+                "exporterName": "thumbnail",
+                "factoryName": "ThumbnailExporter",
+                "parameters": {
+                  "maxSideResolution": "400",
+                  "mimeType": "JPG"
+                },
+                "nextExtractor": {
+                  "fieldName": "file"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+
+```
+
+---
+
+#### Starting the indexing pipeline
+
+To start the actual pipeline, we start [the server module](/vitrivr-engine-server)'s [`Main`](vitrivr-engine-server/src/main/kotlin/org/vitrivr/engine/server/Main.kt)
+with the path to the schema configuration as argument.
+
+For this to work you either build the stack or you use an IDE.
+
+1. Then, when the server is running, we have to first initialise the database (since our schema is named `sandbox`):
+
+```
+sandbox init
+```
+
+2. The extraction is started via the CLI by calling:
+```
+sandbox extract -c sandbox-pipeline.json
+```
+
+Which should result in logging messages that confirm the usage of our ThumbnailExporter (including its parameters) and the message:
+```
+Started extraction job with UUID <uuid>
+```
+
+3. The server (by default) provides an [OpenAPI swagger ui](http://localhost:7070/swagger-ui) with which the job status can be queried.
+The same can be achieved by this cURL command, where `<uuid>` is the UUID printed above (and again, we have named our schema `sandbox`, hence the sandbox path:
+
+```bash
+curl -X 'GET' \
+  'http://localhost:7070/api/sandbox/index/<uuid>' \
+  -H 'accept: application/json'
+```
 
 ### Querying / Retrieval
 
