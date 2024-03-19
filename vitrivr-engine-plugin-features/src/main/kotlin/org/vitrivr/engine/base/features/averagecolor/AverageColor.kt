@@ -16,8 +16,6 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.util.extension.getRGBArray
 import java.util.*
 
-private val logger: KLogger = KotlinLogging.logger {}
-
 /**
  * Implementation of the [AverageColor] [Analyser], which derives the average color from an [ImageContent] as [FloatVectorDescriptor].
  *
@@ -25,6 +23,9 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @version 1.0.0
  */
 class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
+
+    private val logger: KLogger = KotlinLogging.logger {}
+
     override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = FloatVectorDescriptor::class
 
@@ -83,6 +84,7 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return [List] of [FloatVectorDescriptor]s.
      */
     fun analyse(content: Collection<ImageContent>): List<FloatVectorDescriptor> = content.map {
+        logger.trace{"Analysing"}
         val color = MutableRGBFloatColorContainer()
         val rgb = it.content.getRGBArray()
         rgb.forEach { c -> color += RGBByteColorContainer.fromRGB(c) }

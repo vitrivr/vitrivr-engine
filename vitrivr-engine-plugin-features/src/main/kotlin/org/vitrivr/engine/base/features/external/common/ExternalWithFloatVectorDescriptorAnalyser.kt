@@ -1,5 +1,7 @@
 package org.vitrivr.engine.base.features.external.common
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
@@ -25,6 +27,9 @@ import java.util.*
  * @version 1.0.0
  */
 abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> : ExternalAnalyser<C, FloatVectorDescriptor>() {
+
+    private val logger: KLogger = KotlinLogging.logger {}
+
     /**
      * Executes an API request to the given [url] with the specified [requestBody] and returns the response as a list of floats.
      *
@@ -42,6 +47,8 @@ abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> 
             connection.doOutput = true
             connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
 
+            logger.debug { "Initialised external API request" }
+
             // Write the request body to the output stream
             val outputStream: OutputStream = connection.outputStream
             val writer = BufferedWriter(OutputStreamWriter(outputStream))
@@ -50,16 +57,22 @@ abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> 
             writer.close()
             outputStream.close()
 
+            logger.debug { "Wrote request: $requestBody" }
+
             // Get the response code (optional, but useful for error handling)
             val responseCode = connection.responseCode
+
+            logger.debug{"Received response code: $responseCode"}
 
             // Read the response as a JSON string
             val responseJson = if (responseCode == HttpURLConnection.HTTP_OK) {
                 val inputStream = BufferedReader(InputStreamReader(connection.inputStream))
                 val response = inputStream.readLine()
                 inputStream.close()
+                logger.trace { "Received $response" }
                 response
             } else {
+                logger.warn { "Non OK response" }
                 null
             }
 
@@ -70,17 +83,23 @@ abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> 
                     Json.decodeFromString(ListSerializer(Float.serializer()), responseJson)
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    logger.catching(e)
+                    logger.warn { "Exception during json decode. Sending empty list" }
                     emptyList()
                 }
             } else {
+                logger.warn { "No response. Sending empty list" }
                 emptyList()
             }
 
         } catch (e: Exception) {
             e.printStackTrace()
+            logger.catching(e)
+            logger.error { "An error occurred during external API call, $e" }
             // TODO Handle exceptions as needed
         } finally {
             connection.disconnect()
+            logger.trace { "Disconnected" }
         }
         return emptyList()
     }

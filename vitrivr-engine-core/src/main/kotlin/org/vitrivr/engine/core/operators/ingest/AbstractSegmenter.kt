@@ -1,5 +1,7 @@
 package org.vitrivr.engine.core.operators.ingest
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel.Factory.RENDEZVOUS
@@ -29,6 +31,8 @@ import java.util.concurrent.locks.StampedLock
  */
 abstract class AbstractSegmenter(override val input: Operator<ContentElement<*>>, val context: IndexContext) : Segmenter {
 
+    protected val logger: KLogger = KotlinLogging.logger {  }
+
     /** The [SharedFlow] returned by this [AbstractSegmenter]'s [toFlow] method. Is created lazily. */
     private var sharedFlow: SharedFlow<Retrievable>? = null
 
@@ -55,13 +59,16 @@ abstract class AbstractSegmenter(override val input: Operator<ContentElement<*>>
      * @return A [SharedFlow]
      */
     final override fun toFlow(scope: CoroutineScope): SharedFlow<Retrievable> {
+        logger.trace { "Initialising flow..." }
         val stamp = this.lock.writeLock()
         try {
             if (this.sharedFlow != null) return this.sharedFlow!!
             this.sharedFlow = channelFlow {
                 val input = this@AbstractSegmenter.input.toFlow(scope).onCompletion {
+                    logger.trace { "Signalling end of pipeline" }
                     send(TerminalRetrievable)
                 }
+                logger.trace { "Segmenting $input" }
                 this@AbstractSegmenter.segment(input, this)
             }.buffer(capacity = RENDEZVOUS, onBufferOverflow = BufferOverflow.SUSPEND).shareIn(CoroutineScope(scope.coroutineContext), SharingStarted.Lazily, 0)
             return this.sharedFlow!!
