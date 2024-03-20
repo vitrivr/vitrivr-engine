@@ -3,10 +3,13 @@ package org.vitrivr.engine.plugin.cottontaildb
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.core.types.Types
 import org.vitrivr.cottontail.core.values.*
+import org.vitrivr.engine.core.model.descriptor.FieldType
 import org.vitrivr.engine.core.model.descriptor.scalar.*
 import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
-import org.vitrivr.engine.core.model.query.bool.BooleanQuery
+import org.vitrivr.engine.core.model.query.bool.ScalarBooleanQuery
+import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
+import org.vitrivr.engine.core.model.query.bool.StructSimpleBooleanQuery
 
 /** The name of the retrievable entity. */
 const val RETRIEVABLE_ENTITY_NAME = "retrievable"
@@ -45,11 +48,11 @@ const val DISTANCE_COLUMN_NAME = "distance"
 const val SCORE_COLUMN_NAME = "score"
 
 /**
- * Extracts the [Compare.Operator] from this [BooleanQuery].
+ * Extracts the [Compare.Operator] from this [ScalarBooleanQuery].
  *
- * @return [Compare.Operator] used for this [BooleanQuery]
+ * @return [Compare.Operator] used for this [ScalarBooleanQuery]
  */
-internal fun BooleanQuery<*>.operator() = when (this.comparison) {
+internal fun SimpleBooleanQuery<*>.operator() = when (this.comparison) {
     ComparisonOperator.EQ -> Compare.Operator.EQUAL
     ComparisonOperator.NEQ -> Compare.Operator.NOTEQUAL
     ComparisonOperator.LE -> Compare.Operator.LESS
@@ -70,6 +73,17 @@ internal fun ScalarDescriptor<*>.toValue(): PublicValue = when (this) {
     is IntDescriptor -> IntValue(this.value)
     is LongDescriptor -> LongValue(this.value)
     is StringDescriptor -> StringValue(this.value)
+}
+
+internal fun StructSimpleBooleanQuery<*,*>.toValue(): PublicValue = when(this.fieldAndValueType){
+    FieldType.STRING -> StringValue(this.value as String)
+    FieldType.BOOLEAN -> BooleanValue(this.value as Boolean)
+    FieldType.BYTE -> ByteValue(this.value as Byte)
+    FieldType.SHORT -> ShortValue(this.value as Short)
+    FieldType.INT -> IntValue(this.value as Int)
+    FieldType.LONG -> LongValue(this.value as Long)
+    FieldType.FLOAT -> FloatValue(this.value as Float)
+    FieldType.DOUBLE -> DoubleValue(this.value as Double)
 }
 
 /**
