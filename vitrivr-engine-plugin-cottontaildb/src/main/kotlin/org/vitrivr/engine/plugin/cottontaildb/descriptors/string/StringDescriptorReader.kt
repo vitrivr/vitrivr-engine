@@ -7,7 +7,7 @@ import org.vitrivr.cottontail.core.tuple.Tuple
 import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.bool.BooleanQuery
+import org.vitrivr.engine.core.model.query.bool.ScalarBooleanQuery
 import org.vitrivr.engine.core.model.query.string.TextQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
@@ -34,7 +34,7 @@ class StringDescriptorReader(field: Schema.Field<*, StringDescriptor>, connectio
                     cottontailQuery.limit(query.limit)
                 }
             }
-            is BooleanQuery<StringDescriptor> -> cottontailQuery.where(Compare(Column(this.entityName.column(DESCRIPTOR_COLUMN_NAME)), query.operator(), Literal(query.descriptor.toValue())))
+            is ScalarBooleanQuery<StringDescriptor> -> cottontailQuery.where(Compare(Column(this.entityName.column(DESCRIPTOR_COLUMN_NAME)), query.operator(), Literal(query.descriptor.toValue())))
             else -> throw IllegalArgumentException("Query of typ ${query::class} is not supported by StringDescriptorReader.")
         }
 

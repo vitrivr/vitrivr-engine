@@ -1,5 +1,8 @@
 package org.vitrivr.engine.plugin.cottontaildb.descriptors.struct
 
+import org.vitrivr.cottontail.client.language.basics.expression.Column
+import org.vitrivr.cottontail.client.language.basics.expression.Literal
+import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.core.tuple.Tuple
 import org.vitrivr.cottontail.core.types.Types
 import org.vitrivr.engine.core.model.descriptor.FieldType
@@ -7,10 +10,10 @@ import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.bool.StructSimpleBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
-import org.vitrivr.engine.plugin.cottontaildb.CottontailConnection
-import org.vitrivr.engine.plugin.cottontaildb.DESCRIPTOR_ID_COLUMN_NAME
-import org.vitrivr.engine.plugin.cottontaildb.RETRIEVABLE_ID_COLUMN_NAME
+import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAttribute
+import org.vitrivr.engine.plugin.cottontaildb.*
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorReader
 import java.util.*
 import kotlin.reflect.full.primaryConstructor
@@ -49,7 +52,34 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
      *
      * @param query The [Query] to execute.
      */
-    override fun getAll(query: Query<StructDescriptor>): Sequence<Retrieved> = throw UnsupportedOperationException("Query of type ${query::class} is not supported by StructDescriptorReader.")
+    override fun getAll(query: Query<StructDescriptor>): Sequence<Retrieved> = when(query) {
+        is StructSimpleBooleanQuery<StructDescriptor,*> -> {
+            val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
+                .select(RETRIEVABLE_ID_COLUMN_NAME)
+                .select(DESCRIPTOR_ID_COLUMN_NAME)
+                .select(DESCRIPTOR_COLUMN_NAME)
+                .where(Compare(
+                    Column(this.entityName.column(DESCRIPTOR_COLUMN_NAME)),
+                    query.operator(),
+                    Literal(query.toValue())
+                ))
+
+            /** Execute query */
+            this.connection.client.query(cottontailQuery).asSequence().mapNotNull {
+                val descriptor = this.tupleToDescriptor(it)
+                if(descriptor.retrievableId != null){
+                    val retrieved = Retrieved(descriptor.retrievableId!!, null, false)
+                    retrieved.addAttribute(DescriptorAttribute(descriptor))
+                    retrieved
+                }else{
+                    null
+                }
+            }
+        }
+        else -> {
+            throw UnsupportedOperationException("Query of type ${query::class} is not supported by StructDescriptorReader.")
+        }
+    }
 
     /**
      * Converts the provided [Tuple] to a [StructDescriptor].

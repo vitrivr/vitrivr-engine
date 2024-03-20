@@ -7,7 +7,7 @@ import org.vitrivr.cottontail.core.tuple.Tuple
 import org.vitrivr.engine.core.model.descriptor.scalar.*
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.bool.BooleanQuery
+import org.vitrivr.engine.core.model.query.bool.ScalarBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAttribute
 import org.vitrivr.engine.plugin.cottontaildb.*
@@ -30,7 +30,7 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
      * @param query The [Query] to execute.
      */
     override fun getAll(query: Query<ScalarDescriptor<*>>): Sequence<Retrieved> {
-        require(query is BooleanQuery<ScalarDescriptor<*>>) { "Query of type ${query::class} is not supported by ScalarDescriptorReader." }
+        require(query is ScalarBooleanQuery<ScalarDescriptor<*>>) { "Query of type ${query::class} is not supported by ScalarDescriptorReader." }
 
         /* Prepare query. */
         val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
