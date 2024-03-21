@@ -18,4 +18,17 @@ data class StructSimpleBooleanQuery<T : StructDescriptor,V>(
     val value: V,
     override val descriptor: T,
     override val comparison: ComparisonOperator,
-) : SimpleBooleanQuery<T>
+) : SimpleBooleanQuery<T>{
+    init{
+        when(fieldAndValueType){
+            FieldType.STRING -> require(value is String){"The value has to match the field type ($fieldAndValueType), but was ${value!!::class}"}
+            FieldType.BOOLEAN -> require(value is Boolean){"The value has to match the field type ($fieldAndValueType), but was ${value!!::class}"}
+            FieldType.BYTE -> require(value is Byte){"The value has to match the field type ($fieldAndValueType), but was ${value!!::class}"}
+            FieldType.SHORT -> require(value is Short){"The value has to match the field type ($fieldAndValueType), but was ${value!!::class}"}
+            FieldType.INT -> require(value is Int){"The value has to match the field type ($fieldAndValueType), but was ${value!!::class}"}
+            FieldType.LONG -> require(value is Long){"The value has to match the field type ($fieldAndValueType), but was ${value!!::class}"}
+            FieldType.FLOAT -> require(value is Float){"The value has to match the field type ($fieldAndValueType), but was ${value!!::class}"}
+            FieldType.DOUBLE -> require(value is Double){"The value has to match the field type ($fieldAndValueType), but was ${value!!::class}"}
+        }
+    }
+}

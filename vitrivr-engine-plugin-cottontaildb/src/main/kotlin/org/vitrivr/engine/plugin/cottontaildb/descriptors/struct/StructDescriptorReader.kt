@@ -57,9 +57,9 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
             val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
                 .select(RETRIEVABLE_ID_COLUMN_NAME)
                 .select(DESCRIPTOR_ID_COLUMN_NAME)
-                .select(DESCRIPTOR_COLUMN_NAME)
+                .select(query.fieldName)
                 .where(Compare(
-                    Column(this.entityName.column(DESCRIPTOR_COLUMN_NAME)),
+                    Column(this.entityName.column(query.fieldName)),
                     query.operator(),
                     Literal(query.toValue())
                 ))

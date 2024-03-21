@@ -22,10 +22,14 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final override val input: Operator<Retrievable>, final override val field: Schema.Field<C, D>, final override val persisting: Boolean = true, private val bufferSize: Int = 100) :
+abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(
+    final override val input: Operator<Retrievable>,
+    final override val field: Schema.Field<C, D>,
+    final override val persisting: Boolean = true,
+    private val bufferSize: Int = 100) :
     Extractor<C, D> {
 
-        protected val logger: KLogger = KotlinLogging.logger{}
+        protected val logger: KLogger = KotlinLogging.logger {}
 
     /**
      * A default [Extractor] implementation. It executes the following steps:
