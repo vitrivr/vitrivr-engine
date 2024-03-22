@@ -19,11 +19,11 @@ data class SimpleBooleanQuery<T : Value<*>>(
     val comparison: ComparisonOperator = ComparisonOperator.EQ,
 
     /**
-     * The name of the field that should be compared.
+     * The name of the attribute that should be compared.
      *
-     * Typically, this is pre-determined by the analyser. However, in some cases, this must be specified (e.g., when using struct fields).
+     * Typically, this is pre-determined by the analyser. However, in some cases, this must be specified (e.g., when querying struct fields).
      */
-    val field: String? = null,
+    val attributeName: String? = null,
 
     /** The number of results that should be returned by this [SimpleBooleanQuery]. */
     val limit: Long = Long.MAX_VALUE
