@@ -1,4 +1,6 @@
-package org.vitrivr.engine.core.model.query.proximity
+package org.vitrivr.engine.core.model.query.basics
+
+import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 
 /**
  * Enumeration of [Distance] functions supported by [ProximityQuery].
@@ -9,5 +11,5 @@ package org.vitrivr.engine.core.model.query.proximity
 enum class Distance {
     MANHATTAN,
     EUCLIDEAN,
-    COSINE
+    COSINE;
 }

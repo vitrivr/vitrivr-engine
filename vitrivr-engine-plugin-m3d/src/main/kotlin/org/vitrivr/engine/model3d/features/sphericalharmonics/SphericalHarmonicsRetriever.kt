@@ -7,7 +7,7 @@ import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.Model3DContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.query.proximity.Distance
+import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
@@ -36,7 +36,7 @@ class SphericalHarmonicsRetriever(override val field: Schema.Field<Model3DConten
         val k = this.context.getProperty(this.field.fieldName, "limit")?.toIntOrNull() ?: 1000 //TODO get limit
         val returnDescriptor = this.context.getProperty(this.field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
         val reader = this.field.getReader()
-        val query = ProximityQuery(descriptor = this.query, k = k, distance = Distance.EUCLIDEAN, withDescriptor = returnDescriptor)
+        val query = ProximityQuery(value = this.query.vector, k = k, distance = Distance.EUCLIDEAN, fetchVector = returnDescriptor)
         return flow {
             reader.getAll(query).forEach {
                 it.addAttribute(ScoreAttribute(scoringFunction(it)))

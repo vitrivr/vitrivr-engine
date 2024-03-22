@@ -6,9 +6,9 @@ import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.ddl.CreateEntity
 import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.types.Types
-import org.vitrivr.engine.core.model.descriptor.FieldType
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.plugin.cottontaildb.CottontailConnection
 import org.vitrivr.engine.plugin.cottontaildb.DESCRIPTOR_ID_COLUMN_NAME
 import org.vitrivr.engine.plugin.cottontaildb.RETRIEVABLE_ID_COLUMN_NAME
@@ -37,14 +37,38 @@ class StructDescriptorInitializer(field: Schema.Field<*, StructDescriptor>, conn
             require(field.dimensions.size <= 1) { "Cottontail DB currently doesn't support tensor types."}
             val vector = field.dimensions.size == 1
             val type = when (field.type) {
-                FieldType.STRING -> Types.String
-                FieldType.BYTE -> Types.Byte
-                FieldType.SHORT -> Types.Short
-                FieldType.BOOLEAN -> if (vector) { Types.BooleanVector(field.dimensions[0]) } else { Types.Boolean }
-                FieldType.INT -> if (vector) { Types.IntVector(field.dimensions[0]) } else { Types.Int }
-                FieldType.LONG -> if (vector) { Types.LongVector(field.dimensions[0]) } else { Types.Long }
-                FieldType.FLOAT -> if (vector) { Types.FloatVector(field.dimensions[0]) } else { Types.Float }
-                FieldType.DOUBLE -> if (vector) { Types.DoubleVector(field.dimensions[0]) } else { Types.Double }
+                Type.STRING -> Types.String
+                Type.BYTE -> Types.Byte
+                Type.SHORT -> Types.Short
+                Type.BOOLEAN -> if (vector) {
+                    Types.BooleanVector(field.dimensions[0])
+                } else {
+                    Types.Boolean
+                }
+
+                Type.INT -> if (vector) {
+                    Types.IntVector(field.dimensions[0])
+                } else {
+                    Types.Int
+                }
+
+                Type.LONG -> if (vector) {
+                    Types.LongVector(field.dimensions[0])
+                } else {
+                    Types.Long
+                }
+
+                Type.FLOAT -> if (vector) {
+                    Types.FloatVector(field.dimensions[0])
+                } else {
+                    Types.Float
+                }
+
+                Type.DOUBLE -> if (vector) {
+                    Types.DoubleVector(field.dimensions[0])
+                } else {
+                    Types.Double
+                }
             }
             create.column(Name.ColumnName.create(field.name), type, nullable = field.nullable, primaryKey = false, autoIncrement = false)
         }

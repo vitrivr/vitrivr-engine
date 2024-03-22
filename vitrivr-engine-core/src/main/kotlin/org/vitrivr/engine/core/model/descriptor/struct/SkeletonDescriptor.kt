@@ -2,16 +2,17 @@ package org.vitrivr.engine.core.model.descriptor.struct
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
-import org.vitrivr.engine.core.model.descriptor.FieldType
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.types.Type
+import org.vitrivr.engine.core.model.types.Value
 
 data class SkeletonDescriptor(
-        override val id: DescriptorId,
-        override val retrievableId: RetrievableId,
-        val person: Int,
-        val skeleton: List<Float>,
-        val weights: List<Float>,
-        override val transient: Boolean = false
+    override val id: DescriptorId,
+    override val retrievableId: RetrievableId,
+    val person: Int,
+    val skeleton: List<Value.Float>,
+    val weights: List<Value.Float>,
+    override val transient: Boolean = false
 ) : StructDescriptor {
 
     /**
@@ -20,9 +21,9 @@ data class SkeletonDescriptor(
      * @return [List] of [FieldSchema]
      */
     override fun schema(): List<FieldSchema> = listOf(
-            FieldSchema("person", FieldType.INT),
-            FieldSchema("skeleton", FieldType.FLOAT, intArrayOf(this.skeleton.size)),
-            FieldSchema("weights", FieldType.FLOAT, intArrayOf(this.weights.size))
+        FieldSchema("person", Type.INT),
+        FieldSchema("skeleton", Type.FLOAT, intArrayOf(this.skeleton.size)),
+        FieldSchema("weights", Type.FLOAT, intArrayOf(this.weights.size))
     )
 
     override fun values(): List<Pair<String, Any?>> = listOf(

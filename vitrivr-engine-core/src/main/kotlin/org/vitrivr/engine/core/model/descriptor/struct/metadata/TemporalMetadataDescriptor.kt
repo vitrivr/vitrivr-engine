@@ -2,12 +2,12 @@ package org.vitrivr.engine.core.model.descriptor.struct.metadata
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
-import org.vitrivr.engine.core.model.descriptor.FieldType
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.types.Type
 
 /**
- * A [StructDescriptor] used to store temporal metadata about a [Retrievable].
+ * A [StructDescriptor] used to store temporal metadata.
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -22,8 +22,8 @@ data class TemporalMetadataDescriptor(
 
     companion object {
         private val SCHEMA = listOf(
-            FieldSchema("start", FieldType.LONG),
-            FieldSchema("end", FieldType.LONG),
+            FieldSchema("start", Type.LONG),
+            FieldSchema("end", Type.LONG),
         )
     }
 
