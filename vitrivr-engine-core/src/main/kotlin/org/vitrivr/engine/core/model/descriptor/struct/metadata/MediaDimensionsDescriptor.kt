@@ -2,9 +2,9 @@ package org.vitrivr.engine.core.model.descriptor.struct.metadata
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
-import org.vitrivr.engine.core.model.descriptor.FieldType
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.types.Type
 
 data class MediaDimensionsDescriptor(
         override val id: DescriptorId,
@@ -16,8 +16,8 @@ data class MediaDimensionsDescriptor(
 
         companion object {
             private val SCHEMA = listOf(
-                FieldSchema("width", FieldType.INT),
-                FieldSchema("height", FieldType.INT),
+                FieldSchema("width", Type.INT),
+                FieldSchema("height", Type.INT),
             )
         }
 

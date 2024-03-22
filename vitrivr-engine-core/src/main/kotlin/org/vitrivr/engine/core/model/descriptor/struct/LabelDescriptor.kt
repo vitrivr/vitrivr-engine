@@ -2,8 +2,9 @@ package org.vitrivr.engine.core.model.descriptor.struct
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
-import org.vitrivr.engine.core.model.descriptor.FieldType
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.types.Type
+import org.vitrivr.engine.core.model.types.Value
 
 /**
  * A [StructDescriptor] used to store a string label and a confidence for that label.
@@ -14,14 +15,14 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 data class LabelDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId,
-    val label: String,
-    val confidence: Float,
+    val label: Value.String,
+    val confidence: Value.Float,
     override val transient: Boolean = false
 ) : StructDescriptor {
     companion object {
         private val SCHEMA = listOf(
-            FieldSchema("label", FieldType.STRING),
-            FieldSchema("confidence", FieldType.FLOAT),
+            FieldSchema("label", Type.STRING),
+            FieldSchema("confidence", Type.FLOAT),
         )
     }
 

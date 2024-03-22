@@ -2,8 +2,9 @@ package org.vitrivr.engine.core.model.descriptor.scalar
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
-import org.vitrivr.engine.core.model.descriptor.FieldType
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.types.Type
+import org.vitrivr.engine.core.model.types.Value
 
 /**
  * A [ScalarDescriptor] using a [String] value.
@@ -15,11 +16,11 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 data class StringDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId?,
-    override val value: String,
+    override val value: Value.String,
     override val transient: Boolean = false
-) : ScalarDescriptor<String> {
+) : ScalarDescriptor<Value.String> {
     companion object {
-        private val SCHEMA = listOf(FieldSchema("value", FieldType.STRING))
+        private val SCHEMA = listOf(FieldSchema("value", Type.STRING))
     }
 
     /**

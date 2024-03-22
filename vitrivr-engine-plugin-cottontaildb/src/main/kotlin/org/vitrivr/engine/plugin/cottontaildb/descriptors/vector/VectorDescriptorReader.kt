@@ -10,6 +10,7 @@ import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
+import org.vitrivr.engine.core.model.types.toValue
 import org.vitrivr.engine.plugin.cottontaildb.*
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorReader
 
@@ -17,7 +18,7 @@ import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorRead
  * An [AbstractDescriptorReader] for [FloatVectorDescriptor]s.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>>, connection: CottontailConnection) : AbstractDescriptorReader<VectorDescriptor<*>>(field, connection) {
 
@@ -29,20 +30,20 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
      *
      * @param query The [Query] to execute.
      */
-    override fun getAll(query: Query<VectorDescriptor<*>>): Sequence<Retrieved> = when (query) {
-        is ProximityQuery<VectorDescriptor<*>> -> {
+    override fun getAll(query: Query): Sequence<Retrieved> = when (query) {
+        is ProximityQuery<*> -> {
             val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
                 .select(RETRIEVABLE_ID_COLUMN_NAME)
                 .distance(
                     DESCRIPTOR_COLUMN_NAME,
-                    query.descriptor.toValue(),
+                    query.value.toCottontailValue(),
                     Distances.valueOf(query.distance.toString()),
                     DISTANCE_COLUMN_NAME
                 )
                 .order(DISTANCE_COLUMN_NAME, Direction.valueOf(query.order.name))
                 .limit(query.k.toLong())
 
-            if (query.withDescriptor) {
+            if (query.fetchVector) {
                 cottontailQuery.select(DESCRIPTOR_COLUMN_NAME)
                 cottontailQuery.select(DESCRIPTOR_ID_COLUMN_NAME)
             }
@@ -55,11 +56,9 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
                     } ?: return@mapNotNull null
                 val retrieved = Retrieved(retrievableId, null, false)
                 retrieved.addAttribute(DistanceAttribute(distance))
-                if (query.withDescriptor) {
+                if (query.fetchVector) {
                     val descriptor = tupleToDescriptor(it)
-                    retrieved.addAttribute(
-                        DescriptorAttribute(descriptor)
-                    )
+                    retrieved.addAttribute(DescriptorAttribute(descriptor))
                 }
                 retrieved
             }
@@ -83,35 +82,35 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
             is BooleanVectorDescriptor -> BooleanVectorDescriptor(
                 descriptorId,
                 retrievableId,
-                tuple.asBooleanVector(DESCRIPTOR_COLUMN_NAME)?.toList()
+                tuple.asBooleanVector(DESCRIPTOR_COLUMN_NAME)?.map { it.toValue() }
                     ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'.")
             )
 
             is FloatVectorDescriptor -> FloatVectorDescriptor(
                 descriptorId,
                 retrievableId,
-                tuple.asFloatVector(DESCRIPTOR_COLUMN_NAME)?.toList()
+                tuple.asFloatVector(DESCRIPTOR_COLUMN_NAME)?.map { it.toValue() }
                     ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'.")
             )
 
             is DoubleVectorDescriptor -> DoubleVectorDescriptor(
                 descriptorId,
                 retrievableId,
-                tuple.asDoubleVector(DESCRIPTOR_COLUMN_NAME)?.toList()
+                tuple.asDoubleVector(DESCRIPTOR_COLUMN_NAME)?.map { it.toValue() }
                     ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'.")
             )
 
             is IntVectorDescriptor -> IntVectorDescriptor(
                 descriptorId,
                 retrievableId,
-                tuple.asIntVector(DESCRIPTOR_COLUMN_NAME)?.toList()
+                tuple.asIntVector(DESCRIPTOR_COLUMN_NAME)?.map { it.toValue() }
                     ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'.")
             )
 
             is LongVectorDescriptor -> LongVectorDescriptor(
                 descriptorId,
                 retrievableId,
-                tuple.asLongVector(DESCRIPTOR_COLUMN_NAME)?.toList()
+                tuple.asLongVector(DESCRIPTOR_COLUMN_NAME)?.map { it.toValue() }
                     ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'.")
             )
         }

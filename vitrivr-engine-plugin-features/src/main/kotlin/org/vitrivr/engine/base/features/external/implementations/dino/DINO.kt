@@ -1,7 +1,5 @@
 package org.vitrivr.engine.base.features.external.implementations.dino
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.base.features.external.ExternalAnalyser
 import org.vitrivr.engine.base.features.external.common.ExternalWithFloatVectorDescriptorAnalyser
 import org.vitrivr.engine.core.context.IndexContext
@@ -9,18 +7,16 @@ import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
-import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
-
-private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * Implementation of the [DINO] [ExternalAnalyser], which derives the DINO feature from an [ImageContent] as [FloatVectorDescriptor].
@@ -38,7 +34,7 @@ class DINO : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
      *
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype(field: Schema.Field<*,*>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(384) { 0.0f }, true)
+    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(384) { Value.Float(0.0f) }, true)
 
     /**
      * Generates and returns a new [Extractor] instance for this [DINO].
