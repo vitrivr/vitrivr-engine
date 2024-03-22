@@ -6,6 +6,7 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.AggregatorFactory
 import org.vitrivr.engine.core.operators.retrieve.Transformer
@@ -57,25 +58,16 @@ class RetrievalRuntime {
                     val retriever = when (inputDescription.type) {
                         InputType.VECTOR -> {
                             inputDescription as VectorInputData
-
-                            val descriptor = FloatVectorDescriptor(
-                                transient = true,
-                                vector = inputDescription.data
-                            )
-
+                            val descriptor = FloatVectorDescriptor(transient = true, vector = inputDescription.data.map { Value.Float(it) })
                             field.getRetrieverForDescriptor(descriptor, informationNeed.context)
                         }
 
                         InputType.ID -> {
-
                             val id = UUID.fromString((inputDescription as RetrievableIdInputData).id)
-
                             val reader = field.getReader()
                             val descriptor = reader.getBy(id, "retrievableId")
                                 ?: throw IllegalArgumentException("No retrievable with id '$id' present in ${field.fieldName}")
-
                             field.getRetrieverForDescriptor(descriptor, informationNeed.context)
-
                         }
 
                         else -> {

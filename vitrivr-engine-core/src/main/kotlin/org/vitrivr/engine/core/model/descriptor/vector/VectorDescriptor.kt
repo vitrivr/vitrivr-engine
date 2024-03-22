@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.model.descriptor.vector
 
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor
+import org.vitrivr.engine.core.model.types.Value
 
 /**
  * A [Descriptor] that uses a [List] (vector) of values [T] of some sort.
@@ -10,7 +11,7 @@ import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor
  * @author Ralph Gasser
  * @version 1.0.0
  */
-sealed interface VectorDescriptor<T> : Descriptor {
+sealed interface VectorDescriptor<T : Value<*>> : Descriptor {
     /** The size of this [VectorDescriptor]. */
     val dimensionality: Int
         get() = this.vector.size

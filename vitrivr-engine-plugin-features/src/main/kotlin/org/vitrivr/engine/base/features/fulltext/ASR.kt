@@ -8,6 +8,7 @@ import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
@@ -22,7 +23,7 @@ import java.util.*
 class ASR : Analyser<ContentElement<*>, StringDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = StringDescriptor::class
-    override fun prototype(field: Schema.Field<*,*>): StringDescriptor = StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), "", true)
+    override fun prototype(field: Schema.Field<*, *>): StringDescriptor = StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(""), true)
 
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, StringDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, StringDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
@@ -40,7 +41,7 @@ class ASR : Analyser<ContentElement<*>, StringDescriptor> {
 
     fun analyse(content: Collection<ContentElement<*>>): List<StringDescriptor> = content.map {
         when (it) {
-            is TextContent -> StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), it.content, true)
+            is TextContent -> StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(it.content), true)
             else -> throw UnsupportedOperationException("OCR does not allow for data extraction from non-textual content.")
         }
     }
