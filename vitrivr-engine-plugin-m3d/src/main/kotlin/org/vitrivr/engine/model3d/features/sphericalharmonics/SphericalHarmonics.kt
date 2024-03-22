@@ -13,6 +13,7 @@ import org.vitrivr.engine.core.model.mesh.Mesh
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.core.util.math.MathHelper
@@ -69,7 +70,7 @@ class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
         val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
         val numberOfCoefficients: Int = SphericalHarmonicsFunction.numberOfCoefficients(maxL, true) - SphericalHarmonicsFunction.numberOfCoefficients(minL - 1, true)
         val vectorSize = ((gridSize / 2) - cap) * numberOfCoefficients
-        return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), FloatArray(vectorSize).toList(), true)
+        return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Array<Value.Float>(vectorSize){_ -> Value.of(0f) as Value.Float}.toList(), true)
     }
 
     override fun newRetrieverForContent(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, content: Collection<Model3DContent>, context: QueryContext): Retriever<Model3DContent, FloatVectorDescriptor> {
