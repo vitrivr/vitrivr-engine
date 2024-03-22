@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.model.query.proximity
 
 import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor
 import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.query.basics.SortOrder
 import org.vitrivr.engine.core.model.types.Value
 
@@ -33,9 +34,9 @@ data class ProximityQuery<T : Value<*>>(
     val fetchVector: Boolean = false,
 
     /**
-     * The name of the field that should be compared.
+     * The name of the attribute that should be compared.
      *
-     * Typically, this is pre-determined by the analyser. However, in some cases, this must be specified (e.g., when using struct fields).
+     * Typically, this is pre-determined by the analyser. However, in some cases, this must be specified (e.g., when querying struct fields).
      */
-    val field: String? = null,
+    val attributeName: String? = null
 ) : Query
