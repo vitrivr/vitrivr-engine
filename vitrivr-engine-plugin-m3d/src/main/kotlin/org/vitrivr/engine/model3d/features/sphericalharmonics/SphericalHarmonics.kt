@@ -13,6 +13,7 @@ import org.vitrivr.engine.core.model.mesh.Mesh
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.core.util.math.MathHelper
@@ -69,7 +70,7 @@ class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
         val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
         val numberOfCoefficients: Int = SphericalHarmonicsFunction.numberOfCoefficients(maxL, true) - SphericalHarmonicsFunction.numberOfCoefficients(minL - 1, true)
         val vectorSize = ((gridSize / 2) - cap) * numberOfCoefficients
-        return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), FloatArray(vectorSize).toList(), true)
+        return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(vectorSize){Value.Float(0f)}, true)
     }
 
     override fun newRetrieverForContent(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, content: Collection<Model3DContent>, context: QueryContext): Retriever<Model3DContent, FloatVectorDescriptor> {
@@ -125,7 +126,7 @@ class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
         val numberOfCoefficients: Int = SphericalHarmonicsFunction.numberOfCoefficients(maxL, true) - SphericalHarmonicsFunction.numberOfCoefficients(minL - 1, true)
 
         /* Prepares an empty array for the feature vector. */
-        val feature = FloatArray((R - cap) * numberOfCoefficients)
+        val feature = Array((R - cap) * numberOfCoefficients){ _ -> Value.Float(0f)}
 
         /* Voxelizes the grid from the mesh. If the resulting grid is invisible, the method returns immediately. */
         val grid: VoxelModel = voxelizer.voxelize(mesh, gridSize + 1, gridSize + 1, gridSize + 1)
@@ -175,7 +176,7 @@ class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
         var index = 0
         for (radius in descriptors) {
             for (descriptor in radius) {
-                feature[index++] = descriptor.abs().toFloat()
+                feature[index++] = Value.Float(descriptor.abs().toFloat())
             }
         }
 

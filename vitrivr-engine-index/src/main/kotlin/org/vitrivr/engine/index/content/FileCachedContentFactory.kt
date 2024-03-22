@@ -5,9 +5,12 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.content.ContentFactory
 import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.model.content.element.ImageContent
+import org.vitrivr.engine.core.model.content.element.Model3DContent
 import org.vitrivr.engine.core.model.content.element.TextContent
+import org.vitrivr.engine.core.model.mesh.Model3D
 import org.vitrivr.engine.core.util.extension.getRGBArray
 import org.vitrivr.engine.core.util.extension.setRGBArray
+import java.awt.SystemColor.text
 import java.awt.image.BufferedImage
 import java.io.IOException
 import java.lang.ref.PhantomReference
@@ -171,4 +174,7 @@ class FileCachedContentFactory(private val basePath: Path) : ContentFactory {
     }
 
     override fun newTextContent(text: String): TextContent = FileBackedTextContent(text)
+    override fun newMeshContent(model3D: Model3D): Model3DContent {
+        TODO("Not yet implemented")
+    }
 }

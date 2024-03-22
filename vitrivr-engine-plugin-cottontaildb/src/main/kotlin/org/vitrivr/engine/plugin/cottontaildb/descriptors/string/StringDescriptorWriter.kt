@@ -36,7 +36,7 @@ class StringDescriptorWriter(field: Schema.Field<*, StringDescriptor>, connectio
         val insert = Insert(this.entityName).values(
             DESCRIPTOR_ID_COLUMN_NAME to UuidValue(item.id),
             RETRIEVABLE_ID_COLUMN_NAME to UuidValue(item.retrievableId ?: throw IllegalArgumentException("A string descriptor must be associated with a retrievable ID.")),
-            DESCRIPTOR_COLUMN_NAME to item.toValue()
+            DESCRIPTOR_COLUMN_NAME to item.toCottontailValue()
         )
         return try {
             this.connection.client.insert(insert).use {
@@ -60,7 +60,7 @@ class StringDescriptorWriter(field: Schema.Field<*, StringDescriptor>, connectio
         val insert = BatchInsert(this.entityName).columns(DESCRIPTOR_ID_COLUMN_NAME, RETRIEVABLE_ID_COLUMN_NAME, DESCRIPTOR_COLUMN_NAME)
         for (item in items) {
             size += 1
-            insert.values(UuidValue(item.id.toString()), UuidValue(item.retrievableId ?: throw IllegalArgumentException("A string descriptor must be associated with a retrievable ID.")), item.toValue())
+            insert.values(UuidValue(item.id.toString()), UuidValue(item.retrievableId ?: throw IllegalArgumentException("A string descriptor must be associated with a retrievable ID.")), item.toCottontailValue())
         }
 
         /* Insert values. */
@@ -87,7 +87,7 @@ class StringDescriptorWriter(field: Schema.Field<*, StringDescriptor>, connectio
                 Compare.Operator.EQUAL,
                 Literal(UuidValue(item.id))
             )
-        ).values(DESCRIPTOR_COLUMN_NAME to item.toValue())
+        ).values(DESCRIPTOR_COLUMN_NAME to item.toCottontailValue())
 
         /* Updates values. */
         return try {
