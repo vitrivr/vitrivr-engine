@@ -46,14 +46,17 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
         val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName).select(RETRIEVABLE_ID_COLUMN_NAME)
         when (query) {
             is SimpleFulltextQuery -> {
-                require(query.attributeName != null) { "Fulltext query on a struct field requires specification of a field name." }
+                require(query.attributeName != null) { "Fulltext query on a struct field requires specification of a field's attribute name." }
                 cottontailQuery.fulltext(query.attributeName!!, query.value.value, SCORE_COLUMN_NAME)
                 if (query.limit < Long.MAX_VALUE) {
                     cottontailQuery.limit(query.limit)
                 }
             }
 
-            is SimpleBooleanQuery<*> -> cottontailQuery.where(Compare(Column(this.entityName.column(query.attributeName!!)), query.operator(), Literal(query.value.toCottontailValue())))
+            is SimpleBooleanQuery<*> -> {
+                require(query.attributeName != null){"Boolean query on a struct field requires specification of a field's attribute name."}
+                cottontailQuery.where(Compare(Column(this.entityName.column(query.attributeName!!)), query.operator(), Literal(query.value.toCottontailValue())))
+            }
             else -> throw IllegalArgumentException("Query of typ ${query::class} is not supported by StringDescriptorReader.")
         }
 
