@@ -2,9 +2,9 @@ package org.vitrivr.engine.core.model.descriptor.struct.metadata.source
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
-import org.vitrivr.engine.core.model.descriptor.FieldType
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.types.Type
 
 /**
  * A [StructDescriptor] used to store metadata about a file.
@@ -22,8 +22,8 @@ data class FileSourceMetadataDescriptor(
 
     companion object {
         private val SCHEMA = listOf(
-            FieldSchema("path", FieldType.STRING),
-            FieldSchema("size", FieldType.LONG),
+            FieldSchema("path", Type.STRING),
+            FieldSchema("size", Type.LONG),
         )
     }
 

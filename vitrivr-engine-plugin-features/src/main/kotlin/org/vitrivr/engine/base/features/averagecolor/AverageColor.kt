@@ -12,6 +12,7 @@ import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.util.extension.getRGBArray
 import java.util.*
@@ -34,8 +35,7 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param field [Schema.Field] to create the prototype for.
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>)
-        = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), listOf(0.0f, 0.0f, 0.0f), true)
+    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), listOf(Value.Float(0.0f), Value.Float(0.0f), Value.Float(0.0f)), true)
 
     /**
      *
@@ -89,6 +89,6 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
 
         /* Generate descriptor. */
         val averageColor = RGBFloatColorContainer(color.red / rgb.size, color.green / rgb.size, color.blue / rgb.size)
-        FloatVectorDescriptor(UUID.randomUUID(), null, averageColor.toList(), true)
+        FloatVectorDescriptor(UUID.randomUUID(), null, averageColor.toValueList(), true)
     }
 }

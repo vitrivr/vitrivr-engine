@@ -38,21 +38,13 @@ class AverageColorRetriever(
 
     override fun toFlow(scope: CoroutineScope): Flow<Retrieved> {
         val k = this.context.getProperty(this.field.fieldName, "limit")?.toIntOrNull() ?: 1000 //TODO get limit
-        val returnDescriptor =
-            this.context.getProperty(this.field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+        val returnDescriptor = this.context.getProperty(this.field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
         val reader = this.field.getReader()
-        val query = ProximityQuery(
-            descriptor = this.query,
-            k = k,
-            distance = Distance.MANHATTAN,
-            withDescriptor = returnDescriptor
-        )
+        val query = ProximityQuery(value = this.query.vector, k = k, distance = Distance.MANHATTAN, fetchVector = returnDescriptor)
         return flow {
             reader.getAll(query).forEach {
                 it.addAttribute(ScoreAttribute(scoringFunction(it)))
-                emit(
-                    it
-                )
+                emit(it)
             }
         }
     }

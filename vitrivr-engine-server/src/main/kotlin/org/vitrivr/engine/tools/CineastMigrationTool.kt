@@ -25,6 +25,7 @@ import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.types.Value
 import java.io.File
 import java.io.FileReader
 import java.nio.file.Files
@@ -140,7 +141,7 @@ data class CineastVectorFeature(override val id: String, val feature: List<Float
         return FloatVectorDescriptor(
             id = DescriptorId.randomUUID(),
             retrievableId = RetrievableId.fromString(idmap[id]),
-            vector = feature,
+            vector = feature.map { Value.Float(it) },
             transient = false
         )
     }
@@ -157,7 +158,7 @@ data class CineastStringFeature(override val id: String, val feature: String) : 
             id = DescriptorId.randomUUID(),
             retrievableId = RetrievableId.fromString(idmap[id])
                 ?: throw IllegalArgumentException("Could not find retrievable id for id $id"),
-            value = feature,
+            value = Value.String(feature),
             transient = false
         )
     }
@@ -179,8 +180,8 @@ data class CineastSkeletonPoseFeature(
             id = DescriptorId.randomUUID(),
             retrievableId = RetrievableId.fromString(idmap[id]),
             person = person,
-            skeleton = skeleton,
-            weights = weights,
+            skeleton = skeleton.map { Value.Float(it) },
+            weights = weights.map { Value.Float(it) },
             transient = false
         )
     }
@@ -197,8 +198,8 @@ data class CineastRasterFeature(override val id: String, val hist: List<Float>, 
         return RasterDescriptor(
             id = DescriptorId.randomUUID(),
             retrievableId = RetrievableId.fromString(idmap[id]),
-            hist = hist,
-            raster = raster
+            hist = hist.map { Value.Float(it) },
+            raster = raster.map { Value.Float(it) },
         )
     }
 }
@@ -398,7 +399,7 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                     id = DescriptorId.randomUUID(),
                     retrievableId = RetrievableId.fromString(retrievableId)
                         ?: throw IllegalArgumentException("Could not find retrievable id for object ${mobjectmetadata.objectid}"),
-                    value = fps,
+                    value = Value.Float(fps),
                     transient = false
                 )
                 videofpswriter.add(fpsDescriptor)
@@ -412,7 +413,7 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                     id = DescriptorId.randomUUID(),
                     retrievableId = RetrievableId.fromString(retrievableId)
                         ?: throw IllegalArgumentException("Could not find retrievable id for object ${mobjectmetadata.objectid}"),
-                    value = duration,
+                    value = Value.Float(duration),
                     transient = false
                 )
                 videodurationwriter.add(durationDescriptor)
@@ -498,7 +499,7 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                     val dominantColorDescriptor = StringDescriptor(
                         id = DescriptorId.randomUUID(),
                         retrievableId = retrievableId,
-                        value = color,
+                        value = Value.String(color),
                         transient = false
                     )
                     dominantcolordescriptors.add(dominantColorDescriptor)
