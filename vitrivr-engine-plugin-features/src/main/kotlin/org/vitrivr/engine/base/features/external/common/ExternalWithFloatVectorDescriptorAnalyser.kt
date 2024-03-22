@@ -8,6 +8,7 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
+import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.util.extension.toDataURL
 import java.io.*
 import java.net.HttpURLConnection
@@ -32,7 +33,7 @@ abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> 
      * @param requestBody The body of the API request.
      * @return A list of floats representing the API response.
      */
-    private fun executeApiRequest(url: String, requestBody: String): List<Float> {
+    private fun executeApiRequest(url: String, requestBody: String): List<Value.Float> {
         // Create an HttpURLConnection
         val connection = URL(url).openConnection() as HttpURLConnection
 
@@ -67,7 +68,7 @@ abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> 
             // Parse the JSON string to List<Float> using Gson
             return if (responseJson != null) {
                 try {
-                    Json.decodeFromString(ListSerializer(Float.serializer()), responseJson)
+                    Json.decodeFromString(ListSerializer(Float.serializer()), responseJson).map { Value.Float(it) }
                 } catch (e: Exception) {
                     e.printStackTrace()
                     emptyList()
@@ -85,7 +86,7 @@ abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> 
         return emptyList()
     }
 
-    fun httpRequest(content: ContentElement<*>, url: String): List<Float> {
+    fun httpRequest(content: ContentElement<*>, url: String): List<Value.Float> {
         val base64 = when (content) {
             is TextContent -> encodeTextToBase64(content.content)
             is ImageContent -> content.content.toDataURL()

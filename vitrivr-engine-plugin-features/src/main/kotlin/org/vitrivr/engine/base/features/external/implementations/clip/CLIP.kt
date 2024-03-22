@@ -1,5 +1,6 @@
 package org.vitrivr.engine.base.features.external.implementations.clip
 
+import org.vitrivr.engine.base.features.external.ExternalAnalyser
 import org.vitrivr.engine.base.features.external.common.ExternalWithFloatVectorDescriptorAnalyser
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
@@ -7,9 +8,9 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
@@ -19,7 +20,7 @@ import java.util.*
  * Implementation of the [CLIP] [ExternalAnalyser], which derives the CLIP feature from an [ImageContent] or [TextContent] as [FloatVectorDescriptor].
  *
  * @author Rahel Arnold
- * @version 1.0.0
+ * @version 1.1.0
  */
 class CLIP : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
     override val contentClasses = setOf(ImageContent::class, TextContent::class)
@@ -30,7 +31,7 @@ class CLIP : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
      *
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype(field: Schema.Field<*,*>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(512) { 0.0f }, true)
+    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(512) { Value.Float(0.0f) }, true)
 
     /**
      * Generates and returns a new [Extractor] instance for this [CLIP].

@@ -35,7 +35,7 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
         val insert = Insert(this.entityName).values(
             DESCRIPTOR_ID_COLUMN_NAME to UuidValue(item.id.toString()),
             RETRIEVABLE_ID_COLUMN_NAME to UuidValue(item.retrievableId ?: throw IllegalArgumentException("A vector descriptor must be associated with a retrievable ID.")),
-            DESCRIPTOR_COLUMN_NAME to item.toValue()
+            DESCRIPTOR_COLUMN_NAME to item.toCottontailValue()
         )
         return try {
             this.connection.client.insert(insert).use {
@@ -59,7 +59,7 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
         val insert = BatchInsert(this.entityName).columns(DESCRIPTOR_ID_COLUMN_NAME, RETRIEVABLE_ID_COLUMN_NAME, DESCRIPTOR_COLUMN_NAME)
         for (item in items) {
             size += 1
-            insert.values(UuidValue(item.id), UuidValue(item.retrievableId ?: throw IllegalArgumentException("A vector descriptor must be associated with a retrievable ID.")), item.toValue())
+            insert.values(UuidValue(item.id), UuidValue(item.retrievableId ?: throw IllegalArgumentException("A vector descriptor must be associated with a retrievable ID.")), item.toCottontailValue())
         }
 
         /* Insert values. */
@@ -85,7 +85,7 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
                 Compare.Operator.EQUAL,
                 Literal(UuidValue(item.id))
             )
-        ).values(DESCRIPTOR_COLUMN_NAME to item.toValue())
+        ).values(DESCRIPTOR_COLUMN_NAME to item.toCottontailValue())
 
         /* Delete values. */
         return try {

@@ -2,9 +2,9 @@ package org.vitrivr.engine.core.model.descriptor.struct.metadata.source
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
-import org.vitrivr.engine.core.model.descriptor.FieldType
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.types.Type
 import java.util.*
 
 /**
@@ -28,12 +28,12 @@ class VideoSourceMetadataDescriptor(
     companion object {
         /** The field schema associated with a [VideoSourceMetadataDescriptor]. */
         private val SCHEMA = listOf(
-            FieldSchema("width", FieldType.INT),
-            FieldSchema("height", FieldType.INT),
-            FieldSchema("fps", FieldType.DOUBLE),
-            FieldSchema("channels", FieldType.INT),
-            FieldSchema("sampleRate", FieldType.INT),
-            FieldSchema("sampleSize", FieldType.INT),
+            FieldSchema("width", Type.INT),
+            FieldSchema("height", Type.INT),
+            FieldSchema("fps", Type.DOUBLE),
+            FieldSchema("channels", Type.INT),
+            FieldSchema("sampleRate", Type.INT),
+            FieldSchema("sampleSize", Type.INT),
         )
 
         /** The prototype [VideoSourceMetadataDescriptor]. */

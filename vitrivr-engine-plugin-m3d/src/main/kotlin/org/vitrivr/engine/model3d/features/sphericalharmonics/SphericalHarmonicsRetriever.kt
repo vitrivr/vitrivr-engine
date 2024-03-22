@@ -36,7 +36,7 @@ class SphericalHarmonicsRetriever(override val field: Schema.Field<Model3DConten
         val k = this.context.getProperty(this.field.fieldName, "limit")?.toIntOrNull() ?: 1000 //TODO get limit
         val returnDescriptor = this.context.getProperty(this.field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
         val reader = this.field.getReader()
-        val query = ProximityQuery(descriptor = this.query, k = k, distance = Distance.EUCLIDEAN, withDescriptor = returnDescriptor)
+        val query = ProximityQuery(value = this.query.vector, k = k, distance = Distance.EUCLIDEAN, fetchVector = returnDescriptor)
         return flow {
             reader.getAll(query).forEach {
                 it.addAttribute(ScoreAttribute(scoringFunction(it)))

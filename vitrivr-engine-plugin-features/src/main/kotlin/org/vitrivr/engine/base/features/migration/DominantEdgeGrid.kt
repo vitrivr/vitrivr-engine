@@ -7,6 +7,7 @@ import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
@@ -15,7 +16,7 @@ import java.util.*
 class DominantEdgeGrid : Analyser<ContentElement<*>, FloatVectorDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = FloatVectorDescriptor::class
-    override fun prototype(field: Schema.Field<*,*>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(64) { 0.0f }, transient=true)
+    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(64) { Value.Float(0.0f) }, transient = true)
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, FloatVectorDescriptor> {
         TODO("Not yet implemented")
     }
