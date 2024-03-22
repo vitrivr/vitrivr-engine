@@ -25,7 +25,7 @@ interface DescriptorReader<D : Descriptor> : Reader<D> {
      * Returns a [Sequence] of all [Descriptor]s accessible by this [DescriptorReader] that match the given [Query].
      *
      * @param query The [Query] that should be executed.
-     * @return [Sequence] of [Retrieved] of type [D]
+     * @return [Sequence] of [Retrieved].
      */
-    fun getAll(query: Query<D>): Sequence<Retrieved>
+    fun getAll(query: Query): Sequence<Retrieved>
 }

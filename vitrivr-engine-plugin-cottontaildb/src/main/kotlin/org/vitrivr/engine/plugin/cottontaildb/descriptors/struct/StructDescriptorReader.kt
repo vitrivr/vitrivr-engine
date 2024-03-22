@@ -5,14 +5,14 @@ import org.vitrivr.cottontail.client.language.basics.expression.Literal
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.core.tuple.Tuple
 import org.vitrivr.cottontail.core.types.Types
-import org.vitrivr.engine.core.model.descriptor.FieldType
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.bool.StructSimpleBooleanQuery
+import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
+import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
-import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.plugin.cottontaildb.*
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorReader
 import java.util.*
@@ -22,7 +22,7 @@ import kotlin.reflect.full.primaryConstructor
  * An [AbstractDescriptorReader] for [LabelDescriptor]s.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connection: CottontailConnection) : AbstractDescriptorReader<StructDescriptor>(field, connection) {
 
@@ -32,52 +32,41 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
         val prototype = this.field.analyser.prototype(this.field)
         for (f in prototype.schema()) {
             require(f.dimensions.size <= 1) { "Cottontail DB currently doesn't support tensor types."}
-            val vector = f.dimensions.size == 1
-            val type = when (f.type) {
-                FieldType.STRING -> Types.String
-                FieldType.BYTE -> Types.Byte
-                FieldType.SHORT -> Types.Short
-                FieldType.BOOLEAN -> if (vector) { Types.BooleanVector(f.dimensions[0]) } else { Types.Boolean }
-                FieldType.INT -> if (vector) { Types.IntVector(f.dimensions[0]) } else { Types.Int }
-                FieldType.LONG -> if (vector) { Types.LongVector(f.dimensions[0]) } else { Types.Long }
-                FieldType.FLOAT -> if (vector) { Types.FloatVector(f.dimensions[0]) } else { Types.Float }
-                FieldType.DOUBLE -> if (vector) { Types.DoubleVector(f.dimensions[0]) } else { Types.Double }
-            }
-            this.fieldMap.add(f.name to type)
+            this.fieldMap.add(f.name to f.toCottontailType())
         }
     }
 
     /**
-     * Executes the provided [Query] and returns a [Sequence] of [Retrieved.WithDescriptor]s that match it.
+     * Executes the provided [Query] and returns a [Sequence] of [Retrieved]s that match it.
      *
      * @param query The [Query] to execute.
      */
-    override fun getAll(query: Query<StructDescriptor>): Sequence<Retrieved> = when(query) {
-        is StructSimpleBooleanQuery<StructDescriptor,*> -> {
-            val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
-                .select(RETRIEVABLE_ID_COLUMN_NAME)
-                .select(DESCRIPTOR_ID_COLUMN_NAME)
-                .select(query.fieldName)
-                .where(Compare(
-                    Column(this.entityName.column(query.fieldName)),
-                    query.operator(),
-                    Literal(query.toValue())
-                ))
-
-            /** Execute query */
-            this.connection.client.query(cottontailQuery).asSequence().mapNotNull {
-                val descriptor = this.tupleToDescriptor(it)
-                if(descriptor.retrievableId != null){
-                    val retrieved = Retrieved(descriptor.retrievableId!!, null, false)
-                    retrieved.addAttribute(DescriptorAttribute(descriptor))
-                    retrieved
-                }else{
-                    null
+    override fun getAll(query: Query): Sequence<Retrieved> {
+        /* Prepare query. */
+        val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName).select(RETRIEVABLE_ID_COLUMN_NAME)
+        when (query) {
+            is SimpleFulltextQuery -> {
+                require(query.attributeName != null) { "Fulltext query on a struct field requires specification of a field's attribute name." }
+                cottontailQuery.fulltext(query.attributeName!!, query.value.value, SCORE_COLUMN_NAME)
+                if (query.limit < Long.MAX_VALUE) {
+                    cottontailQuery.limit(query.limit)
                 }
             }
+
+            is SimpleBooleanQuery<*> -> {
+                require(query.attributeName != null){"Boolean query on a struct field requires specification of a field's attribute name."}
+                cottontailQuery.where(Compare(Column(this.entityName.column(query.attributeName!!)), query.operator(), Literal(query.value.toCottontailValue())))
+            }
+            else -> throw IllegalArgumentException("Query of typ ${query::class} is not supported by StringDescriptorReader.")
         }
-        else -> {
-            throw UnsupportedOperationException("Query of type ${query::class} is not supported by StructDescriptorReader.")
+
+        /* Execute query. */
+        return this.connection.client.query(cottontailQuery).asSequence().map { tuple ->
+            val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
+            val score = tuple.asDouble(SCORE_COLUMN_NAME) ?: 0.0
+            val retrieved = Retrieved(retrievableId, null, false)
+            retrieved.addAttribute(ScoreAttribute(score))
+            retrieved
         }
     }
 

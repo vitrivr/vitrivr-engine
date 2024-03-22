@@ -8,7 +8,7 @@ import org.vitrivr.engine.core.features.AbstractRetriever
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.query.proximity.Distance
+import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
@@ -42,21 +42,13 @@ class CLIPRetriever(
 
     override fun toFlow(scope: CoroutineScope): Flow<Retrieved> {
         val k = context.getProperty(field.fieldName, "limit")?.toIntOrNull() ?: 1000 //TODO get limit
-        val returnDescriptor =
-            context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+        val returnDescriptor = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
         val reader = field.getReader()
-        val query = ProximityQuery(
-            descriptor = this@CLIPRetriever.query,
-            k = k,
-            distance = Distance.COSINE,
-            withDescriptor = returnDescriptor
-        )
+        val query = ProximityQuery(value = this@CLIPRetriever.query.vector, k = k, distance = Distance.COSINE, fetchVector = returnDescriptor)
         return flow {
             reader.getAll(query).forEach {
                 it.addAttribute(ScoreAttribute(scoringFunction(it)))
-                emit(
-                    it
-                )
+                emit(it)
             }
         }
     }

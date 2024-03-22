@@ -1,6 +1,7 @@
 package org.vitrivr.engine.core.model.descriptor.scalar
 
 import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.types.Value
 
 /**
  * A [Descriptor] with a scalar value [T].
@@ -8,7 +9,7 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
  * @author Ralph Gasser
  * @version 1.0.0
  */
-sealed interface ScalarDescriptor<T> : Descriptor {
+sealed interface ScalarDescriptor<T : Value<*>> : Descriptor {
 
     /** The [Value] held by this [ScalarDescriptor]. */
     val value: T

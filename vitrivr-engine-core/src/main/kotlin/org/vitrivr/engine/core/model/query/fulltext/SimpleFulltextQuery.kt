@@ -1,22 +1,19 @@
-package org.vitrivr.engine.core.model.query.bool
+package org.vitrivr.engine.core.model.query.fulltext
 
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
+import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.types.Value
 
+
 /**
- * A [SimpleBooleanQuery] that compares a field to a [Value] of type [T] using the given [ComparisonOperator].
- *
+ * A [SimpleFulltextQuery] that uses a [Value.String] to execute fulltext search on the underlying field.
  *
  * @author Ralph Gasser
  * @version 2.0.0
  */
-data class SimpleBooleanQuery<T : Value<*>>(
-    /** The [Value] being used; specifies both the query field and the comparison value. */
-    val value: T,
-
-    /** The [ComparisonOperator] to employ. */
-    val comparison: ComparisonOperator = ComparisonOperator.EQ,
+data class SimpleFulltextQuery(
+    /** The [Value] being used for the query. */
+    val value: Value.String,
 
     /**
      * The name of the attribute that should be compared.
