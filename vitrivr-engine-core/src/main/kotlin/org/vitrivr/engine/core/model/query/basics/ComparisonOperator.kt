@@ -17,15 +17,23 @@ enum class ComparisonOperator(val value: String) {
     LEQ("<="),
     GEQ(">=");
 
-    fun fromString(str: String):ComparisonOperator{
-        return when(str){
-            "=" -> EQ
-            "!=" -> NEQ
-            "<" -> LE
-            ">" -> GR
-            "<=" -> LEQ
-            ">=" -> GEQ
-            else -> throw IllegalArgumentException("Cannot parse '$str' as a comparison operator.")
+    companion object{
+        /**
+         * Resolves a [ComparisonOperator] from the given [String].
+         *
+         * @param str The [String] which should be one of the [ComparisonOperator]
+         * @throws IllegalArgumentException In case the given string is not one of the defined ones.
+         */
+        fun fromString(str: String):ComparisonOperator{
+            return when(str){
+                "=" -> EQ
+                "!=" -> NEQ
+                "<" -> LE
+                ">" -> GR
+                "<=" -> LEQ
+                ">=" -> GEQ
+                else -> throw IllegalArgumentException("Cannot parse '$str' as a comparison operator.")
+            }
         }
     }
 }
