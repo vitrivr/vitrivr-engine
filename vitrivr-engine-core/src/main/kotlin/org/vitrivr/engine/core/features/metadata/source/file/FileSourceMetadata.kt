@@ -8,6 +8,8 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Retriever
@@ -53,31 +55,23 @@ class FileSourceMetadata : Analyser<ContentElement<*>, FileSourceMetadataDescrip
      * Generates and returns a new [FileSourceMetadataRetriever] for the provided [Schema.Field].
      *
      * @param field The [Schema.Field] for which to create the [FileSourceMetadataRetriever].
-     * @param content The [List] of [ContentElement] to create [FileSourceMetadataRetriever] for. This is usually empty.
+     * @param query The [Query] to create [FileSourceMetadataRetriever] for.
      * @param context The [QueryContext]
      *
      * @return [FileSourceMetadataRetriever]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): FileSourceMetadataRetriever {
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, FileSourceMetadataDescriptor> {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
-        return FileSourceMetadataRetriever(field, context)
+        require(query is SimpleBooleanQuery<*>) { "Query is not a Query." }
+        return FileSourceMetadataRetriever(field, query, context)
     }
 
     /**
-     * Generates and returns a new [FileSourceMetadataRetriever] for the provided [Schema.Field].
+     * [FileSourceMetadataRetriever] Cannot derive a [FileSourceMetadataRetriever] from content.
      *
-     * @param field The [Schema.Field] for which to create the [FileSourceMetadataRetriever].
-     * @param descriptors The [List] of [FileSourceMetadataDescriptor] to create [FileSourceMetadataRetriever] for. This is usually empty.
-     * @param context The [QueryContext]
-     *
-     * @return [FileSourceMetadataRetriever]
+     * This method will always throw an [UnsupportedOperationException
      */
-    override fun newRetrieverForDescriptors(
-        field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>,
-        descriptors: Collection<FileSourceMetadataDescriptor>,
-        context: QueryContext
-    ): Retriever<ContentElement<*>, FileSourceMetadataDescriptor> {
-        require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
-        return FileSourceMetadataRetriever(field, context)
+    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): FileSourceMetadataRetriever {
+        throw UnsupportedOperationException("FileSourceMetadata does not support the creation of a Retriever instance from content.")
     }
 }

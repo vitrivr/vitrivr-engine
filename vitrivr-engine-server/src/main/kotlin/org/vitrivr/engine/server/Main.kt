@@ -9,11 +9,9 @@ import io.javalin.openapi.plugin.OpenApiPluginConfiguration
 import io.javalin.openapi.plugin.SecurityComponentConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin
-import io.javalin.plugin.bundled.CorsPlugin
 import io.javalin.plugin.bundled.CorsPluginConfig
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
-import org.vitrivr.engine.query.execution.RetrievalRuntime
 import org.vitrivr.engine.server.api.cli.Cli
 import org.vitrivr.engine.server.api.cli.commands.SchemaCommand
 import org.vitrivr.engine.server.api.rest.KotlinxJsonMapper
@@ -42,9 +40,6 @@ fun main(args: Array<String>) {
 
     /* Execution server singleton for this instance. */
     val executor = ExecutionServer()
-
-    /* Initialize retrieval runtime. */
-    val runtime = RetrievalRuntime()
 
     /* Prepare Javalin endpoint. */
     val javalin = Javalin.create { c ->
@@ -83,7 +78,7 @@ fun main(args: Array<String>) {
             )
         )
     }.routes {
-        configureApiRoutes(config.api, manager, runtime, executor)
+        configureApiRoutes(config.api, manager, executor)
     }.exception(ErrorStatusException::class.java) { e, ctx ->
         ctx.status(e.statusCode).json(ErrorStatus(e.message))
     }.exception(Exception::class.java) { e, ctx ->
