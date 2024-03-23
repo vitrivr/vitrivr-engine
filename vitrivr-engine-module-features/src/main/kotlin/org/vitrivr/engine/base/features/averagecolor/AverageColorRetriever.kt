@@ -1,17 +1,15 @@
 package org.vitrivr.engine.base.features.averagecolor
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
+import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 
 /**
@@ -24,8 +22,7 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
  */
 class AverageColorRetriever(
     override val field: Schema.Field<ImageContent, FloatVectorDescriptor>,
-    private val query: FloatVectorDescriptor,
-    private val context: QueryContext
+    private val query: ProximityQuery<Value.Float>
 ) : Retriever<ImageContent, FloatVectorDescriptor> {
 
     companion object {
@@ -36,16 +33,11 @@ class AverageColorRetriever(
         }
     }
 
-    override fun toFlow(scope: CoroutineScope): Flow<Retrieved> {
-        val k = this.context.getProperty(this.field.fieldName, "limit")?.toIntOrNull() ?: 1000 //TODO get limit
-        val returnDescriptor = this.context.getProperty(this.field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
-        val reader = this.field.getReader()
-        val query = ProximityQuery(value = this.query.vector, k = k, distance = Distance.MANHATTAN, fetchVector = returnDescriptor)
-        return flow {
-            reader.getAll(query).forEach {
-                it.addAttribute(ScoreAttribute(scoringFunction(it)))
-                emit(it)
-            }
+    override fun toFlow(scope: CoroutineScope) = flow {
+        val reader = this@AverageColorRetriever.field.getReader()
+        reader.getAll(this@AverageColorRetriever.query).forEach {
+            it.addAttribute(ScoreAttribute(scoringFunction(it)))
+            emit(it)
         }
     }
 }

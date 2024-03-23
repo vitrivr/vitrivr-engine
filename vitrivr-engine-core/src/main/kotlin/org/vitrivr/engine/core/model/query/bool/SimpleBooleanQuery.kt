@@ -1,6 +1,5 @@
 package org.vitrivr.engine.core.model.query.bool
 
-import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
 import org.vitrivr.engine.core.model.types.Value
 
@@ -26,5 +25,5 @@ data class SimpleBooleanQuery<T : Value<*>>(
     val attributeName: String? = null,
 
     /** The number of results that should be returned by this [SimpleBooleanQuery]. */
-    val limit: Long = Long.MAX_VALUE
-) : Query
+    override val limit: Long = Long.MAX_VALUE
+) : BooleanQuery

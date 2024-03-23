@@ -9,6 +9,8 @@ import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
@@ -59,6 +61,23 @@ class CLIP : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
      * Generates and returns a new [Retriever] instance for this [CLIP].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
+     * @param query The [Query] to use with the [Retriever]
+     * @param context The [QueryContext] to use with the [Retriever]
+     *
+     * @return A new [Retriever] instance for this [CLIP]
+     * @throws [UnsupportedOperationException], if this [CLIP] does not support the creation of an [Retriever] instance.
+     */
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, query: Query, context: QueryContext): CLIPRetriever {
+        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
+        require(query is ProximityQuery<*> && query.value.first() is Value.Float) { "The query is not a ProximityQuery<Value.Float>." }
+        @Suppress("UNCHECKED_CAST")
+        return CLIPRetriever(field, query as ProximityQuery<Value.Float>, context)
+    }
+
+    /**
+     * Generates and returns a new [Retriever] instance for this [CLIP].
+     *
+     * @param field The [Schema.Field] to create an [Retriever] for.
      * @param content An array of [ContentElement] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      *
@@ -67,22 +86,14 @@ class CLIP : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
      */
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, FloatVectorDescriptor> {
         val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
-        return this.newRetrieverForDescriptors(field, content.map { this.analyse(it, host) }, context)
-    }
 
-    /**
-     * Generates and returns a new [Retriever] instance for this [CLIP].
-     *
-     * @param field The [Schema.Field] to create an [Retriever] for.
-     * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
-     * @param context The [QueryContext] to use with the [Retriever]
-     *
-     * @return A new [Retriever] instance for this [CLIP]
-     * @throws [UnsupportedOperationException], if this [CLIP] does not support the creation of an [Retriever] instance.
-     */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): Retriever<ContentElement<*>, FloatVectorDescriptor> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        return CLIPRetriever(field, descriptors.first(), context)
+        /* Prepare query parameters. */
+        val vector = analyse(content.first(), host)
+        val k = context.getProperty(field.fieldName, "limit")?.toIntOrNull() ?: 1000
+        val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+
+        /* Return retriever. */
+        return this.newRetrieverForQuery(field, ProximityQuery(value = vector.vector, k = k, fetchVector = fetchVector), context)
     }
 
     /**

@@ -5,7 +5,9 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.flow.toList
 import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.AbstractSegmenter
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -119,26 +121,47 @@ class ExecutionServer {
     /**
      * Executes a [RetrievalPipeline] in a blocking fashion, i.e., the call will block until the [IndexingPipeline] has been executed.
 
-     * @param pipeline The [RetrievalPipeline] to execute.
+     * @param query The [Operator] to execute.
      * @return The resulting [List] of [Retrieved]
      */
-    fun query(pipeline: RetrievalPipeline): List<Retrieved> {
+    fun query(query: Operator<Retrieved>): List<Retrieved> {
         val jobId = UUID.randomUUID()
         val scope = CoroutineScope(this@ExecutionServer.dispatcher) + CoroutineName("query-job-$jobId")
-        TODO()
+        val results = LinkedList<Retrieved>()
+        runBlocking {
+            val job = scope.launch {
+                query.toFlow(scope).toList(results)
+            }
+            job.join()
+        }
+        return results
     }
 
     /**
      * Executes an [RetrievalPipeline] in an asynchronous fashion, sending all results to the provided [SendChannel].
      *
-     * @param pipeline The [RetrievalPipeline] to execute.
+     * @param query The [Operator] to execute.
      * @param into The [SendChannel] to send the results to.
      * @return The [UUID] of the resulting [Job].
      */
-    fun queryAsync(pipeline: RetrievalPipeline, into: SendChannel<Retrieved>): UUID {
+    fun queryAsync(query: Operator<Retrieved>, into: SendChannel<Retrieved>): UUID {
         val jobId = UUID.randomUUID()
         val scope = CoroutineScope(this@ExecutionServer.dispatcher) + CoroutineName("query-job-$jobId")
-        TODO()
+        scope.launch {
+            try {
+                val job = this.launch { query.toFlow(scope).collect { into.send(it) } }
+                this@ExecutionServer.jobHistory.add(Triple(jobId, ExecutionStatus.COMPLETED, System.currentTimeMillis()))
+                job.join()
+            } catch (e: Throwable) {
+                this@ExecutionServer.jobHistory.add(Triple(jobId, ExecutionStatus.FAILED, System.currentTimeMillis()))
+            } finally {
+                this@ExecutionServer.jobs.remove(jobId)
+                if (this@ExecutionServer.jobHistory.size > 100) {
+                    this@ExecutionServer.jobHistory.removeFirst()
+                }
+            }
+
+        }
         return jobId
     }
 }
