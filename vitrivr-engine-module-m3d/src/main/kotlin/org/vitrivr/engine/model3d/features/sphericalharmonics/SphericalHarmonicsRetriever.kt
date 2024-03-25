@@ -23,7 +23,7 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class SphericalHarmonicsRetriever(override val field: Schema.Field<Model3DContent, FloatVectorDescriptor>, private val query: FloatVectorDescriptor, private val context: QueryContext) : Retriever<Model3DContent, FloatVectorDescriptor> {
+class SphericalHarmonicsRetriever(override val field: Schema.Field<Model3DContent, FloatVectorDescriptor>, private val query: ProximityQuery<*>, private val context: QueryContext) : Retriever<Model3DContent, FloatVectorDescriptor> {
     companion object {
         private const val MAXIMUM_DISTANCE = 1.0f
         fun scoringFunction(retrieved: Retrieved) : Float {
@@ -33,12 +33,10 @@ class SphericalHarmonicsRetriever(override val field: Schema.Field<Model3DConten
     }
 
     override fun toFlow(scope: CoroutineScope): Flow<Retrieved> {
-        val k = this.context.getProperty(this.field.fieldName, "limit")?.toIntOrNull() ?: 1000 //TODO get limit
-        val returnDescriptor = this.context.getProperty(this.field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+
         val reader = this.field.getReader()
-        val query = ProximityQuery(value = this.query.vector, k = k, distance = Distance.EUCLIDEAN, fetchVector = returnDescriptor)
         return flow {
-            reader.getAll(query).forEach {
+            reader.getAll(this@SphericalHarmonicsRetriever.query).forEach {
                 it.addAttribute(ScoreAttribute(scoringFunction(it)))
                 emit(it)
             }
