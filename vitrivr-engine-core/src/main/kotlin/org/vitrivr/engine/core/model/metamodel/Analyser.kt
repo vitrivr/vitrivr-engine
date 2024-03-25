@@ -5,6 +5,7 @@ import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -58,13 +59,13 @@ interface Analyser<C: ContentElement<*>, D: Descriptor> {
      * Some [Analyser]s may not come with their own [Retriever], in which case the implementation of this method should throw an [UnsupportedOperationException]
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
-     * @param descriptors An array of [Descriptor] elements to use with the [Retriever]
-     * @param context The [QueryContext] to use with the [Retriever]
+     * @param query The [Query] to use with the [Retriever].
+     * @param context The [QueryContext] to use with the [Retriever].
      *
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    fun newRetrieverForDescriptors(field: Schema.Field<C, D>, descriptors: Collection<D>, context: QueryContext): Retriever<C, D>
+    fun newRetrieverForQuery(field: Schema.Field<C, D>, query: Query, context: QueryContext): Retriever<C, D>
 
     /**
      * Generates and returns a new [Retriever] instance for this [Analyser].

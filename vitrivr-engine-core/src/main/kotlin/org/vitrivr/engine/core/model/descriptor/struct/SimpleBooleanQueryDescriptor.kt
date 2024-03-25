@@ -18,6 +18,7 @@ import java.util.*
  * Specifically, this [StructDescriptor] is never persisted and is simply used to express a query due to the current state of the architecture.
  * In a later step, [Analyser]s should not operate on the [Descriptor] level, but on a [Descriptor]'s [FieldSchema].
  */
+@Deprecated("Since newRetrieverForQuery has been introduced")
 data class SimpleBooleanQueryDescriptor(
     /**
      * The boolean [ComparisonOperator] this query builds on.

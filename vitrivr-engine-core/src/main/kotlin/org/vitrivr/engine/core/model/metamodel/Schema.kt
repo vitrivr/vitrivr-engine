@@ -1,7 +1,5 @@
 package org.vitrivr.engine.core.model.metamodel
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.config.IndexConfig
 import org.vitrivr.engine.core.config.pipeline.ExtractionPipelineBuilder
 import org.vitrivr.engine.core.config.pipeline.execution.IndexingPipeline
@@ -14,6 +12,7 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.ExporterFactory
@@ -23,8 +22,6 @@ import org.vitrivr.engine.core.resolver.Resolver
 import org.vitrivr.engine.core.resolver.ResolverFactory
 import java.io.Closeable
 import java.util.*
-
-private val logger: KLogger = KotlinLogging.logger {}
 
 typealias FieldName = String
 
@@ -74,9 +71,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
      * Adds a new [Exporter] to this [Schema].
      *
      * @param name The name of the [Exporter]. Must be unique.
-     * @param factory The [ExporterFactory] used to generated instance.
-     * @param parameters The parameters used to configure the [Exporter].
-     * @param resolver The [Resolver] instance.
+     * @param config The [IndexConfig] used to generated instance.
      */
     fun addPipeline(name: String, config: IndexConfig) {
         this.extractionPipelines[name] = ExtractionPipelineBuilder(this, config)
@@ -155,14 +150,13 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
             this.analyser.newExtractor(this, input, context, true, parameters)
 
         /**
-         * Returns a [Retriever] instance for this [Schema.Field].
+         * Returns a [Retriever] instance for this [Schema.Field] and the provided [Query].
          *
-         * @param descriptor The [Descriptor](s) that should be used with the [Retriever].
+         * @param query The [Query](s) that should be used with the [Retriever].
          * @param context The [QueryContext] to use with the [Retriever].
          * @return [Retriever] instance.
          */
-        fun getRetrieverForDescriptor(descriptor: D, context: QueryContext): Retriever<C, D> =
-            this.analyser.newRetrieverForDescriptors(this, listOf(descriptor), context)
+        fun getRetrieverForQuery(query: Query, context: QueryContext): Retriever<C, D> = this.analyser.newRetrieverForQuery(this, query, context)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field].
@@ -172,18 +166,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
 
          * @return [Retriever] instance.
          */
-        fun getRetrieverForContent(content: C, context: QueryContext): Retriever<C, D> =
-            this.analyser.newRetrieverForContent(this, listOf(content), context)
-
-        /**
-         * Returns a [Retriever] instance for this [Schema.Field].
-         *
-         * @param descriptors The [Descriptor](s) that should be used with the [Retriever].
-         * @param context The [QueryContext] to use with the [Retriever].
-         * @return [Retriever] instance.
-         */
-        fun getRetrieverForDescriptors(descriptors: Collection<D>, context: QueryContext): Retriever<C, D> =
-            this.analyser.newRetrieverForDescriptors(this, descriptors, context)
+        fun getRetrieverForContent(content: C, context: QueryContext): Retriever<C, D> = this.getRetrieverForContent(listOf(content), context)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field].
@@ -191,8 +174,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
          * @param content The [Content] element(s) that should be used with the [Retriever].
          * @return [Retriever] instance.
          */
-        fun getRetrieverForContent(content: Collection<C>, queryContext: QueryContext): Retriever<C, D> =
-            this.analyser.newRetrieverForContent(this, content, queryContext)
+        fun getRetrieverForContent(content: Collection<C>, queryContext: QueryContext): Retriever<C, D> = this.analyser.newRetrieverForContent(this, content, queryContext)
 
         /**
          * Returns the [DescriptorInitializer] for this [Schema.Field].
