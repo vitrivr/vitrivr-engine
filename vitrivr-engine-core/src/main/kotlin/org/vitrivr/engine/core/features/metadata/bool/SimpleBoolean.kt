@@ -9,6 +9,8 @@ import org.vitrivr.engine.core.model.descriptor.struct.SimpleBooleanQueryDescrip
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -42,23 +44,21 @@ class SimpleBoolean : Analyser<ContentElement<*>, StructDescriptor> {
         return analyser.prototype(field)
     }
 
+    override fun newRetrieverForQuery(
+        field: Schema.Field<ContentElement<*>, StructDescriptor>,
+        query: Query,
+        context: QueryContext
+    ): Retriever<ContentElement<*>, StructDescriptor> {
+        require(query is SimpleBooleanQuery<*>){"The SimpleBoolean analyser only accepts queries of type SimpleBooleanQuery"}
+        return SimpleBooleanRetriever(field, query, context)
+    }
+
     override fun newRetrieverForContent(
         field: Schema.Field<ContentElement<*>, StructDescriptor>,
         content: Collection<ContentElement<*>>,
         context: QueryContext
     ): Retriever<ContentElement<*>, StructDescriptor> {
-        TODO("Not yet implemented")
-    }
-
-    override fun newRetrieverForDescriptors(
-        field: Schema.Field<ContentElement<*>, StructDescriptor>,
-        descriptors: Collection<StructDescriptor>,
-        context: QueryContext
-    ): Retriever<ContentElement<*>, StructDescriptor> {
-        /* First check if the correct descriptor is passed */
-        require(descriptors.first() is SimpleBooleanQueryDescriptor){"SimpleBoolean requires SimpleBooleanQueryDescriptor and is not compatible with other descriptors for retrieval"}
-        return SimpleBooleanRetriever(field,
-            descriptors.first() as SimpleBooleanQueryDescriptor, context)
+        throw UnsupportedOperationException("The SimpleBoolean analyser cannot create a retriever for content")
     }
 
     override fun newExtractor(

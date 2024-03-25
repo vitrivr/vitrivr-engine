@@ -21,27 +21,16 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
  */
 class SimpleBooleanRetriever(
     override val field: Schema.Field<ContentElement<*>, StructDescriptor>,
-    val query: SimpleBooleanQueryDescriptor,
+    val query: SimpleBooleanQuery<*>,
     val context: QueryContext
 ) : Retriever<ContentElement<*>, StructDescriptor> {
 
     private val logger = KotlinLogging.logger {  }
     override fun toFlow(scope: CoroutineScope): Flow<Retrieved> {
         logger.debug { "Preparing flow for ${this.javaClass.simpleName}" }
-        val limit = this.context.getProperty(this.field.fieldName, "limit")?.toLongOrNull() ?: 1000L // TODO globalise limit?
         val reader = this.field.getReader()
-        val q = when(query.subField.fieldType){
-            Type.STRING -> query.toStringQuery(limit)
-            Type.BOOLEAN -> query.toBooleanQuery(limit)
-            Type.BYTE -> query.toByteQuery(limit)
-            Type.SHORT -> query.toShortQuery(limit)
-            Type.INT -> query.toIntQuery(limit)
-            Type.LONG -> query.toLongQuery(limit)
-            Type.FLOAT -> query.toFloatQuery(limit)
-            Type.DOUBLE -> query.toDoubleQuery(limit)
-        }
         return flow {
-            reader.getAll(q).forEach {
+            reader.getAll(query).forEach {
                 emit(it)
             }
         }

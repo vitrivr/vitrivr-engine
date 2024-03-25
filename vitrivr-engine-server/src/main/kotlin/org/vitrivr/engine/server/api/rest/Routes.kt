@@ -3,7 +3,6 @@ package org.vitrivr.engine.server.api.rest
 import io.javalin.apibuilder.ApiBuilder.*
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
-import org.vitrivr.engine.query.execution.RetrievalRuntime
 import org.vitrivr.engine.server.api.rest.handlers.*
 import org.vitrivr.engine.server.config.ApiConfig
 
@@ -14,7 +13,7 @@ import org.vitrivr.engine.server.config.ApiConfig
  * @param config The [ApiConfig] used for persistence.
  * @param manager The [SchemaManager] used for persistence.
  */
-fun configureApiRoutes(config: ApiConfig, manager: SchemaManager, retrievalRuntime: RetrievalRuntime, executor: ExecutionServer) {
+fun configureApiRoutes(config: ApiConfig, manager: SchemaManager, executor: ExecutionServer) {
     path("api") {
         /* Add global routes (non-schema specific). */
         path("schema") {
@@ -40,7 +39,7 @@ fun configureApiRoutes(config: ApiConfig, manager: SchemaManager, retrievalRunti
                 }
 
                 if (config.retrieval) {
-                    post("query") { ctx -> executeQuery(ctx, schema, retrievalRuntime) }
+                    post("query") { ctx -> executeQuery(ctx, schema, executor) }
                 }
 
                 if (config.export) {
