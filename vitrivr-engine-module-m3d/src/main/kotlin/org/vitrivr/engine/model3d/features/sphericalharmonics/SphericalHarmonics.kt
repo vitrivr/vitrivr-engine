@@ -23,7 +23,6 @@ import org.vitrivr.engine.core.util.math.MathHelper
 import org.vitrivr.engine.model3d.model.voxel.VoxelModel
 import org.vitrivr.engine.model3d.model.voxel.Voxelizer
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.reflect.KClass
 
 private val logger: KLogger = KotlinLogging.logger {}
@@ -73,25 +72,7 @@ class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
         val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
         val numberOfCoefficients: Int = SphericalHarmonicsFunction.numberOfCoefficients(maxL, true) - SphericalHarmonicsFunction.numberOfCoefficients(minL - 1, true)
         val vectorSize = ((gridSize / 2) - cap) * numberOfCoefficients
-        return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(vectorSize){Value.Float(0f)}, true)
-    }
-
-    override fun newRetrieverForContent(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, content: Collection<Model3DContent>, context: QueryContext): Retriever<Model3DContent, FloatVectorDescriptor> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-
-        /* Extract parameters from field and context. */
-        val mesh = content.first().content.getMaterials().first().meshes.first()
-        val gridSize = field.parameters[GRID_SIZE_PARAMETER_NAME]?.toIntOrNull() ?: GRID_SIZE_PARAMETER_DEFAULT
-        val cap = field.parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
-        val minL = field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
-        val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
-        val descriptor = this.analyse(mesh, gridSize, cap, minL, maxL)
-        val k = context.getProperty(field.fieldName, "limit")?.toIntOrNull() ?: 1000 //TODO get limit
-        val returnDescriptor = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
-
-        /* Construct query. */
-        val query = ProximityQuery(value = descriptor.vector, k = k, distance = Distance.EUCLIDEAN, fetchVector = returnDescriptor)
-        return SphericalHarmonicsRetriever(field, query, context)
+        return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(vectorSize) { Value.Float(0f) }, true)
     }
 
     override fun newRetrieverForQuery(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, query: Query, context: QueryContext): Retriever<Model3DContent, FloatVectorDescriptor> {
@@ -101,6 +82,30 @@ class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
         /* Construct query. */
         @Suppress("UNCHECKED_CAST")
         return SphericalHarmonicsRetriever(field, query as ProximityQuery<Value.Float>, context)
+    }
+
+    override fun newRetrieverForDescriptors(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): Retriever<Model3DContent, FloatVectorDescriptor> {
+        /* Extract parameters from field and context. */
+        val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
+        val returnDescriptor = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+
+        /* Construct query and return retriever. */
+        val query = ProximityQuery(value = descriptors.first().vector, k = k, distance = Distance.EUCLIDEAN, fetchVector = returnDescriptor)
+        return this.newRetrieverForQuery(field, query, context)
+    }
+
+    override fun newRetrieverForContent(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, content: Collection<Model3DContent>, context: QueryContext): Retriever<Model3DContent, FloatVectorDescriptor> {
+        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
+
+        /* Extract parameters from field and context. */
+        val gridSize = field.parameters[GRID_SIZE_PARAMETER_NAME]?.toIntOrNull() ?: GRID_SIZE_PARAMETER_DEFAULT
+        val cap = field.parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
+        val minL = field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
+        val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
+        val descriptors = content.map { this.analyse(it.content.getMaterials().first().meshes.first(), gridSize, cap, minL, maxL) }
+
+        /* Return retriever. */
+        return this.newRetrieverForDescriptors(field, descriptors, context)
     }
 
     override fun newExtractor(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): SphericalHarmonicsExtractor {

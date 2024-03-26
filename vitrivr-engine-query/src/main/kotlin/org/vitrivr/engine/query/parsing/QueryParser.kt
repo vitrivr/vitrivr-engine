@@ -1,7 +1,6 @@
 package org.vitrivr.engine.query.parsing
 
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
@@ -80,7 +79,7 @@ class QueryParser(val schema: Schema) {
         return when (input) {
             is VectorInputData -> { /* TODO: Not very happy with this, since this requires a bit too much knowledge about the schema. */
                 /* Prepare query parameters. */
-                val k = description.context.getProperty(field.fieldName, "limit")?.toIntOrNull() ?: 1000
+                val k = description.context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
                 val fetchVector = description.context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
                 val distance = description.context.getProperty(field.fieldName, "distance")?.let { Distance.valueOf(it) } ?: Distance.EUCLIDEAN
                 val vector = input.data.map { Value.Float(it) }
@@ -94,16 +93,7 @@ class QueryParser(val schema: Schema) {
                 val id = UUID.fromString(input.id)
                 val reader = field.getReader()
                 val descriptor = reader.getBy(id, "retrievableId") ?: throw IllegalArgumentException("No retrievable with id '$id' present in ${field.fieldName}")
-                require(descriptor is FloatVectorDescriptor) { "Descriptor is not a FloatVectorDescriptor." }
-
-                /* Prepare query parameters. */
-                val k = description.context.getProperty(field.fieldName, "limit")?.toIntOrNull() ?: 1000
-                val fetchVector = description.context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
-                val distance = description.context.getProperty(field.fieldName, "distance")?.let { Distance.valueOf(it) } ?: Distance.EUCLIDEAN
-
-                /* Prepare query. */
-                val query = ProximityQuery(value = descriptor.vector, k = k, fetchVector = fetchVector, distance = distance)
-                field.getRetrieverForQuery(query, description.context)
+                field.getRetrieverForDescriptor(descriptor, description.context)
             }
 
             else -> { /* Handles all content input. */

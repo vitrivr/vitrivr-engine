@@ -84,25 +84,35 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
     /**
      * Generates and returns a new [AverageColorRetriever] instance for this [AverageColor].
      *
-     * Invoking this method involves converting the provided [ImageContent] and the [QueryContext] into a [ProximityQuery] that can be used to retrieve
-     * similar [ImageContent] elements.
+     * Invoking this method involves converting the provided [FloatVectorDescriptor] into a [ProximityQuery] that can be used to retrieve similar [ImageContent] elements.
      *
+     * @param field The [Schema.Field] to create an [Retriever] for.
+     * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
+     * @param context The [QueryContext] to use with the [Retriever]
+     */
+    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): AverageColorRetriever {
+        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
+
+        /* Prepare query parameters. */
+        val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
+        val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+
+        /* Return retriever. */
+        return this.newRetrieverForQuery(field, ProximityQuery(value = descriptors.first().vector, k = k, fetchVector = fetchVector), context)
+    }
+
+    /**
+     * Generates and returns a new [AverageColorRetriever] instance for this [AverageColor].
+     *
+     * Invoking this method involves converting the provided [ImageContent] and the [QueryContext] into a [FloatVectorDescriptor]
+     * that can be used to retrieve similar [ImageContent] elements.
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param content An array of [Content] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext): AverageColorRetriever {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-
-        /* Prepare query parameters. */
-        val k = context.getProperty(field.fieldName, "limit")?.toIntOrNull() ?: 1000
-        val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
-        val vector = this.analyse(content).first().vector
-
-        /* Return retriever. */
-        return this.newRetrieverForQuery(field, ProximityQuery(value = vector, k = k, fetchVector = fetchVector), context)
-    }
+    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext): AverageColorRetriever =
+        this.newRetrieverForDescriptors(field, this.analyse(content), context)
 
     /**
      * Performs the [AverageColor] analysis on the provided [List] of [ImageContent] elements.
