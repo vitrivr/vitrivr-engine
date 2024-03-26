@@ -28,9 +28,10 @@
         },
         {
           "name": "clip",
-          "factory": "CLIP",
+          "factory": "DenseEmbedding",
           "parameters": {
-            "host": "http://localhost:8888/"
+            "host": "http://localhost:8888/",
+            "model": "clip-vit-large-patch14"
           }
         },
         {

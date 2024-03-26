@@ -1,0 +1,33 @@
+
+task generateSampleClient(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+    generatorName = "kotlin"
+    inputSpec = "$rootDir/vitrivr-engine-module-fes/feature-extraction-server.json".toString()
+    outputDir = "$buildDir/api-client-generated".toString()
+    id = 'sample-client'
+    skipValidateSpec = true
+    logToStderr = true
+    generateAliasAsModel = false
+    enablePostProcessFile = false
+}
+
+sourceSets {
+    main {
+        kotlin {
+            srcDir "$buildDir/api-client-generated/src/main/kotlin"
+        }
+    }
+}
+
+
+
+dependencies {
+//    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+//    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    implementation "com.squareup.moshi:moshi-kotlin:1.14.0"
+    implementation "com.squareup.moshi:moshi-adapters:1.14.0"
+    implementation "com.squareup.okhttp3:okhttp:4.11.0"
+    implementation "com.squareup.okhttp3:logging-interceptor:3.4.1"
+    implementation project(path: ':vitrivr-engine-core')
+    implementation project(path: ':vitrivr-engine-core')
+    testImplementation "io.kotlintest:kotlintest-runner-junit5:3.4.2"
+}
