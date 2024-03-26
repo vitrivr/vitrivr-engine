@@ -103,7 +103,7 @@ class PassThroughSegmenter : SegmenterFactory {
          * @param source The [Source] to create [Retrievable] for.
          */
         private fun createRetrievableForSource(source: Source): Retrievable {
-            val result = Ingested(source.sourceId, "source", false)
+            val result = Ingested(source.sourceId, "source:${source.type.toString().lowercase()}", false)
 
             result.addAttribute(SourceAttribute(source))
 
