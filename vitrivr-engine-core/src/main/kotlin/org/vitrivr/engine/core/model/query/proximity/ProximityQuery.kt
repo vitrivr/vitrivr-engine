@@ -28,7 +28,7 @@ data class ProximityQuery<T : Value<*>>(
     val order: SortOrder = SortOrder.ASC,
 
     /** The number of results that should be returned by this [ProximityQuery]. */
-    val k: Int = 1000,
+    val k: Long = 1000L,
 
     /** Flag indicating, whether [VectorDescriptor] should be returned as well. */
     val fetchVector: Boolean = false,
