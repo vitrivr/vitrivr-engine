@@ -5,6 +5,7 @@ import org.vitrivr.engine.core.model.descriptor.FieldSchema
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Type
+import org.vitrivr.engine.core.model.types.Value
 import java.util.*
 
 /**
@@ -16,12 +17,12 @@ import java.util.*
 class VideoSourceMetadataDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId,
-    val width: Int,
-    val height: Int,
-    val fps: Double,
-    val channels: Int,
-    val sampleRate: Int,
-    val sampleSize: Int,
+    val width: Value.Int,
+    val height: Value.Int,
+    val fps: Value.Double,
+    val channels: Value.Int,
+    val sampleRate: Value.Int,
+    val sampleSize: Value.Int,
     override val transient: Boolean = false
 ) : StructDescriptor {
 
@@ -37,7 +38,7 @@ class VideoSourceMetadataDescriptor(
         )
 
         /** The prototype [VideoSourceMetadataDescriptor]. */
-        val PROTOTYPE = VideoSourceMetadataDescriptor(UUID.randomUUID(), UUID.randomUUID(), 0, 0, 0.0, 0, 0, 0)
+        val PROTOTYPE = VideoSourceMetadataDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.Int(0), Value.Int(0), Value.Double(0.0), Value.Int(0), Value.Int(0), Value.Int(0))
     }
 
     /**

@@ -8,6 +8,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
+import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.source.file.FileSource
@@ -44,16 +45,14 @@ class FileSourceMetadataExtractor(
      * @return List of resulting [Descriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<FileSourceMetadataDescriptor> {
-//        check(retrievable is RetrievableWithSource) { "Incoming retrievable is not a retrievable with source. This is a programmer's error!" }
-//        check(retrievable.source is FileSource) { "Incoming retrievable is not a retrievable with file source. This is a programmer's error!" }
         val source = retrievable.filteredAttribute(SourceAttribute::class.java)?.source as? FileSource
             ?: throw IllegalArgumentException("Incoming retrievable is not a retrievable with file source. This is a programmer's error!")
         return listOf(
             FileSourceMetadataDescriptor(
                 id = UUID.randomUUID(),
                 retrievableId = retrievable.id,
-                path = source.path.absolutePathString(),
-                size = Files.size(source.path),
+                path = Value.String(source.path.absolutePathString()),
+                size = Value.Long(Files.size(source.path)),
                 transient = !persisting
             )
         )

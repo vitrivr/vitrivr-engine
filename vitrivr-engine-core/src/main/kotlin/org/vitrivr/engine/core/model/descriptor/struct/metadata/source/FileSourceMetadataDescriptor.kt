@@ -5,6 +5,8 @@ import org.vitrivr.engine.core.model.descriptor.FieldSchema
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Type
+import org.vitrivr.engine.core.model.types.Value
+import java.util.*
 
 /**
  * A [StructDescriptor] used to store metadata about a file.
@@ -15,16 +17,20 @@ import org.vitrivr.engine.core.model.types.Type
 data class FileSourceMetadataDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId,
-    val path: String,
-    val size: Long,
+    val path: Value.String,
+    val size: Value.Long,
     override val transient: Boolean = false
 ) : StructDescriptor {
 
     companion object {
+        /** The field schema associated with a [FileSourceMetadataDescriptor]. */
         private val SCHEMA = listOf(
             FieldSchema("path", Type.STRING),
             FieldSchema("size", Type.LONG),
         )
+
+        /** The prototype [FileSourceMetadataDescriptor]. */
+        val PROTOTYPE = FileSourceMetadataDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(""), Value.Long(0L))
     }
 
     /**
