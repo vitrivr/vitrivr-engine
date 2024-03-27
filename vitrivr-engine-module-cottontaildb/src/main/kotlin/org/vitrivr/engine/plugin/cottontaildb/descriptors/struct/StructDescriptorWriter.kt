@@ -12,6 +12,7 @@ import org.vitrivr.cottontail.client.language.dml.Update
 import org.vitrivr.cottontail.core.values.*
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.plugin.cottontaildb.CottontailConnection
 import org.vitrivr.engine.plugin.cottontaildb.DESCRIPTOR_ID_COLUMN_NAME
 import org.vitrivr.engine.plugin.cottontaildb.RETRIEVABLE_ID_COLUMN_NAME
@@ -87,13 +88,21 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
                         null -> null
                         is UUID -> UuidValue(v)
                         is String -> StringValue(v)
+                        is Value.String -> StringValue(v.value)
                         is Boolean -> BooleanValue(v)
+                        is Value.Boolean -> BooleanValue(v.value)
                         is Byte -> ByteValue(v)
+                        is Value.Byte -> ByteValue(v.value)
                         is Short -> ShortValue(v)
+                        is Value.Short -> ShortValue(v.value)
                         is Int -> IntValue(v)
+                        is Value.Int -> IntValue(v.value)
                         is Long -> LongValue(v)
+                        is Value.Long -> LongValue(v.value)
                         is Float -> FloatValue(v)
+                        is Value.Float -> FloatValue(v.value)
                         is Double -> DoubleValue(v)
+                        is Value.Double -> DoubleValue(v.value)
                         else -> throw IllegalArgumentException("Unsupported type ${v::class.simpleName} for struct descriptor.")
                     }
                 }
