@@ -58,9 +58,10 @@ class MeshDecoder : DecoderFactory {
             try {
                 val handler = ModelHandler()
                 val model = source.newInputStream().use {
-                    this.context.contentFactory.newMeshContent(handler.loadModel(source.sourceId.toString(), source.name.substringAfterLast(".")))
+                    handler.loadModel(source.sourceId.toString(), it) // Pass InputStream directly
                 }
-                MeshDecoderWithSource(model, source)
+                val modelContent = this.context.contentFactory.newMeshContent(model)
+                MeshDecoderWithSource(modelContent, source)
             } catch (e: IOException) {
                 logger.error(e) { "Failed to decode 3D model from $source due to an IO exception." }
                 null
