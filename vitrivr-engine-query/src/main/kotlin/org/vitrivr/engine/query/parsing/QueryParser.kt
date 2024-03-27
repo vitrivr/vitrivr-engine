@@ -1,9 +1,8 @@
 package org.vitrivr.engine.query.parsing
 
 import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.query.basics.Distance
-import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
@@ -77,29 +76,14 @@ class QueryParser(val schema: Schema) {
 
         /* Generate retriever instance. */
         return when (input) {
-            is VectorInputData -> { /* TODO: Not very happy with this, since this requires a bit too much knowledge about the schema. */
-                /* Prepare query parameters. */
-                val k = description.context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-                val fetchVector = description.context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
-                val distance = description.context.getProperty(field.fieldName, "distance")?.let { Distance.valueOf(it) } ?: Distance.EUCLIDEAN
-                val vector = input.data.map { Value.Float(it) }
-
-                /* Prepare query. */
-                val query = ProximityQuery(value = vector, k = k, fetchVector = fetchVector, distance = distance)
-                field.getRetrieverForQuery(query, description.context)
-            }
-
-            is RetrievableIdInputData -> { /* TODO: Not very happy with this either; I would argue that MLT should be a Query primitive in this c ase. */
+            is RetrievableIdInputData -> {
                 val id = UUID.fromString(input.id)
                 val reader = field.getReader()
                 val descriptor = reader.getBy(id, "retrievableId") ?: throw IllegalArgumentException("No retrievable with id '$id' present in ${field.fieldName}")
                 field.getRetrieverForDescriptor(descriptor, description.context)
             }
-
-            else -> { /* Handles all content input. */
-                val c = content.computeIfAbsent(operation.input) { input.toContent() }
-                field.getRetrieverForContent(c, description.context)
-            }
+            is VectorInputData -> field.getRetrieverForDescriptor(FloatVectorDescriptor(vector = input.data.map { Value.Float(it) }, transient = true), description.context)
+            else -> field.getRetrieverForContent(content.computeIfAbsent(operation.input) { input.toContent() }, description.context)
         }
     }
 
