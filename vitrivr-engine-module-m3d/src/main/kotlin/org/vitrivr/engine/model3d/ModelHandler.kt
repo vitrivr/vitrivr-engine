@@ -3,12 +3,16 @@ package org.vitrivr.engine.model3d
 
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
+import org.lwjgl.BufferUtils
 import org.lwjgl.assimp.*
 import org.lwjgl.assimp.Assimp.*
 
 import org.lwjgl.system.MemoryStack
 import org.vitrivr.engine.core.model.mesh.*
 import java.io.File
+import java.io.FileInputStream
+import java.io.InputStream
+import java.nio.ByteBuffer
 import java.nio.IntBuffer
 import java.util.*
 import kotlin.collections.ArrayList
@@ -84,56 +88,52 @@ class ModelHandler {
      * </ul>
      *
      * @param modelId   The ID of the model.
-     * @param modelPath Path to the model file.
+     * @param modelPath InputStream id the model.
      * @return Model object.
      */
-    fun loadModel(modelId: String, modelPath: String): Model3D {
-        LOGGER.trace("Try loading file {} from {}", modelId, modelPath)
+    fun loadModel(modelId: String, inputStream: InputStream): Model3D {
+        LOGGER.trace("Try loading model {} from InputStream", modelId)
 
-        val aiScene = loadAIScene(modelId, modelPath)
+        val aiScene = loadAIScene(modelId, inputStream)
 
+        val modelDir = File("").absolutePath // You may need to adjust this to the appropriate directory
 
-        val file = File(modelPath)
-        val modelDir = file.parent
-
-
-        val numMaterials = aiScene.mNumMaterials()
         val materialList: MutableList<Material> = ArrayList()
-        for (ic in 0 until numMaterials) {
-            val aiMaterial = AIMaterial.create(aiScene.mMaterials()?.get(ic) ?: continue)
-            LOGGER.trace("Try processing material {}", ic)
-            materialList.add(processMaterial(aiMaterial, modelDir))
-        }
-
-        val numMeshes = aiScene.mNumMeshes()
+        val defaultMaterial = Material(mutableListOf()) // Define a default material
         val aiMeshes = aiScene.mMeshes()
-        val defaultMaterial = Material(mutableListOf(), )
+        val numMeshes = aiScene.mNumMeshes()
         for (ic in 0 until numMeshes) {
-            LOGGER.trace("Try create AI Mesh {}", ic)
             val aiMesh = AIMesh.create(aiMeshes?.get(ic) ?: continue)
             val mesh = processMesh(aiMesh)
-            LOGGER.trace("Try get Material idx")
             val materialIdx = aiMesh.mMaterialIndex()
             val material = if (materialIdx >= 0 && materialIdx < materialList.size) {
                 materialList[materialIdx]
             } else {
                 defaultMaterial
             }
-            LOGGER.trace("Try add Material to Mesh")
             material.meshes.add(mesh)
         }
 
         if (defaultMaterial.meshes.isNotEmpty()) {
-            LOGGER.trace("Try add default Material")
             materialList.add(defaultMaterial)
         }
 
-        LOGGER.trace("Try instantiate Model")
         aiReleaseImport(aiScene)
 
-        val `🎲` = Model3D(modelId, materials = materialList)
-        LOGGER.trace("Try return Model")
-        return `🎲`
+        return Model3D(modelId, materials = materialList)
+    }
+
+    /**
+     * Loads a model from a file path.
+     *
+     * @param modelId The ID of the model.
+     * @param modelPath Path to the model file.
+     * @return Model object.
+     */
+    fun loadModel(modelId: String, modelPath: String): Model3D {
+        val file = File(modelPath)
+        val inputStream = FileInputStream(file)
+        return loadModel(modelId, inputStream)
     }
 
     private fun processIndices(aiMesh: AIMesh): IntArray {
@@ -241,20 +241,23 @@ class ModelHandler {
     /**
      * Loads a AIScene from a file. Generates all the standard flags for Assimp. For more details see <a href="https://javadoc.lwjgl.org/org/lwjgl/assimp/Assimp.html">Assimp</a>.
      */
-    fun loadAIScene(modelId: String, modelPath: String): AIScene {
-        LOGGER.trace("Try loading file {} from {}", modelId, modelPath)
+    private fun loadAIScene(modelId: String, inputStream: InputStream): AIScene {
+        LOGGER.trace("Try loading model {} from InputStream", modelId)
 
-        val file = File(modelPath)
-        if (!file.exists()) {
-            throw RuntimeException("Model path does not exist [$modelPath]")
+        val data = inputStream.readBytes()
+        val buffer = BufferUtils.createByteBuffer(data.size)
+        buffer.put(data)
+        buffer.flip()
+
+        val aiScene = aiImportFileFromMemory(buffer, aiProcess_JoinIdenticalVertices or aiProcess_GlobalScale or aiProcess_FixInfacingNormals or aiProcess_Triangulate or aiProcess_CalcTangentSpace or aiProcess_LimitBoneWeights or aiProcess_PreTransformVertices, null as ByteBuffer?)
+
+        if (aiScene == null) {
+            throw RuntimeException("Error loading model from InputStream")
         }
-        LOGGER.trace("Loading aiScene")
 
-        return aiImportFile(
-            modelPath,
-            aiProcess_JoinIdenticalVertices or aiProcess_GlobalScale or aiProcess_FixInfacingNormals or aiProcess_Triangulate or aiProcess_CalcTangentSpace or aiProcess_LimitBoneWeights or aiProcess_PreTransformVertices
-        ) ?: throw RuntimeException("Error loading model [modelPath: $modelPath]")
+        return aiScene
     }
+
 
 
     /**
