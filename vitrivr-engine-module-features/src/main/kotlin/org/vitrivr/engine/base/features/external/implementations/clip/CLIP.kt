@@ -12,6 +12,7 @@ import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Value
@@ -92,7 +93,7 @@ class CLIP : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
         val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
 
         /* Return retriever. */
-        return this.newRetrieverForQuery(field, ProximityQuery(value = descriptors.first().vector, k = k, fetchVector = fetchVector), context)
+        return this.newRetrieverForQuery(field, ProximityQuery(value = descriptors.first().vector, k = k, distance = Distance.COSINE, fetchVector = fetchVector), context)
     }
 
     /**
