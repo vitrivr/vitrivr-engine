@@ -13,6 +13,7 @@ import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
+import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.plugin.cottontaildb.*
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorReader
 import java.util.*
@@ -87,22 +88,21 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
         for ((name, type) in this.fieldMap) {
             parameters.add(
                 when(type) {
-                    Types.Boolean -> tuple.asBoolean(name)
+                    Types.Boolean -> tuple.asBoolean(name)?.let { Value.Boolean(it) }
                     Types.Date -> tuple.asDate(name)
-                    Types.Byte -> tuple.asByte(name)
-                    Types.Double -> tuple.asDouble(name)
-                    Types.Float ->  tuple.asFloat(name)
-                    Types.Int -> tuple.asInt(name)
-                    Types.Long -> tuple.asLong(name)
-                    Types.Short -> tuple.asShort(name)
-                    Types.String -> tuple.asString(name)
+                    Types.Byte -> tuple.asByte(name)?.let { Value.Byte(it) }
+                    Types.Double -> tuple.asDouble(name)?.let { Value.Double(it) }
+                    Types.Float ->  tuple.asFloat(name)?.let { Value.Float(it) }
+                    Types.Int -> tuple.asInt(name)?.let { Value.Int(it) }
+                    Types.Long -> tuple.asLong(name)?.let { Value.Long(it)  }
+                    Types.Short -> tuple.asShort(name)?.let { Value.Short(it)  }
+                    Types.String -> tuple.asString(name)?.let { Value.String(it)  }
                     Types.Uuid -> UUID.fromString(tuple.asString(name))
-                    is Types.BooleanVector -> tuple.asBooleanVector(name)
-                    is Types.DoubleVector -> tuple.asBooleanVector(name)
-                    is Types.FloatVector -> tuple.asBooleanVector(name)
-                    is Types.IntVector -> tuple.asIntVector(name)
-                    is Types.LongVector -> tuple.asLongVector(name)
-                    is Types.ShortVector -> tuple.asShort(name)
+                    is Types.BooleanVector -> tuple.asBooleanVector(name)?.let { List(it.size) { i -> it[i] } }
+                    is Types.DoubleVector -> tuple.asBooleanVector(name)?.let { List(it.size) { i -> it[i] } }
+                    is Types.FloatVector -> tuple.asBooleanVector(name)?.let { List(it.size) { i -> it[i] } }
+                    is Types.IntVector -> tuple.asIntVector(name)?.let { List(it.size) { i -> it[i] } }
+                    is Types.LongVector -> tuple.asLongVector(name)?.let { List(it.size) { i -> it[i] } }
                     else -> throw IllegalArgumentException("Type $type is not supported by StructDescriptorReader.")
                 }
             )
