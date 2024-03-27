@@ -36,7 +36,7 @@ class AverageColorRetriever(
     override fun toFlow(scope: CoroutineScope) = flow {
         val reader = this@AverageColorRetriever.field.getReader()
         reader.getAll(this@AverageColorRetriever.query).forEach {
-            it.addAttribute(ScoreAttribute(scoringFunction(it)))
+            it.addAttribute(ScoreAttribute.Similarity(scoringFunction(it)))
             emit(it)
         }
     }
