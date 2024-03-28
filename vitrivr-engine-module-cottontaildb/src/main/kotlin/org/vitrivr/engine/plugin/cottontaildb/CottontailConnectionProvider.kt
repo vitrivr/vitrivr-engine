@@ -99,7 +99,7 @@ class CottontailConnectionProvider: ConnectionProvider {
      * @param descriptorClass The [KClass] of the [Descriptor] to register [DescriptorProvider] for.
      * @param provider The [DescriptorProvider] to register.
      */
-    override fun <T : Descriptor> register(descriptorClass: KClass<T>, provider: DescriptorProvider<T>) {
+    override fun <T : Descriptor> register(descriptorClass: KClass<T>, provider: DescriptorProvider<*>) {
         this.registered[descriptorClass] = provider
     }
 
