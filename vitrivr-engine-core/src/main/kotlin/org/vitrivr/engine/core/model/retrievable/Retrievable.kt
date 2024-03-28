@@ -12,7 +12,7 @@ typealias RetrievableId = UUID
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 interface Retrievable : Persistable {
     /** The [RetrievableId] held by this [Retrievable]. */
@@ -21,19 +21,44 @@ interface Retrievable : Persistable {
     /** The type of this [Retrievable]. This is basically a string that can help to keep apart different types of [Retrievable]. */
     val type: String?
 
-    /**
-     * The attributes of this retrievable
-     */
+    /** The attributes of this retrievable */
     val attributes: Collection<RetrievableAttribute>
 
     /**
-     * Returns only attributes of a certain type
+     * Checks if this [Retrievable] has a [RetrievableAttribute] of the given type.
+     *
+     * @param c The [Class] of the [RetrievableAttribute] to check for.
+     * @return True, if [RetrievableAttribute]
+     */
+    fun <T : RetrievableAttribute> hasAttribute(c: Class<T>): Boolean
+
+    /**
+     * Adds a [RetrievableAttribute] to this [Retrievable].
+     *
+     * @param attribute The [RetrievableAttribute] to add.
+     */
+    fun addAttribute(attribute: RetrievableAttribute)
+
+    /**
+     * Removes all [RetrievableAttribute]s  of a certain type from this [Retrievable].
+     *
+     * @param c The [Class] of the [RetrievableAttribute] to remove.
+     */
+    fun <T : RetrievableAttribute> removeAttributes(c: Class<T>)
+
+    /**
+     * Returns all [RetrievableAttribute] of a certain type.
+     *
+     * @param c The [Class] of the [RetrievableAttribute] to return.
+     * @return [Collection] of [RetrievableAttribute]s.
      */
     fun <T : RetrievableAttribute> filteredAttributes(c: Class<T>): Collection<T>
 
+    /**
+     * Returns the first [RetrievableAttribute] of a certain type.
+     *
+     * @param c The [Class] of the [RetrievableAttribute] to return.
+     * @return [RetrievableAttribute] or null.
+     */
     fun <T : RetrievableAttribute> filteredAttribute(c: Class<T>): T?
-
-    fun addAttribute(attribute: RetrievableAttribute)
-
-    fun <T : RetrievableAttribute> removeAttributes(c: Class<T>)
 }
