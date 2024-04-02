@@ -18,7 +18,7 @@ class DenseEmbeddingExtractor(
         input: Operator<Retrievable>,
         field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
         persisting: Boolean = true
-) : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor>(input, field, persisting) {
+) : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor>(input, field, persisting, 1) {
 
     private val host: String = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
     private val model: String = field.parameters[MODEL_PARAMETER_NAME] ?: MODEL_PARAMETER_DEFAULT
