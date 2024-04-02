@@ -13,21 +13,21 @@ task generateSampleClient(type: org.openapitools.generator.gradle.plugin.tasks.G
 sourceSets {
     main {
         kotlin {
-            srcDir "$buildDir/api-client-generated/src/main/kotlin"
+            srcDirs += "$buildDir/api-client-generated/src/main/kotlin"
         }
+//        resources {
+//            srcDirs = ["$rootDir/vitrivr-engine-module-fes/src/main/resources"]
+//        }
     }
 }
 
 
 
 dependencies {
-//    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-//    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     implementation "com.squareup.moshi:moshi-kotlin:1.14.0"
     implementation "com.squareup.moshi:moshi-adapters:1.14.0"
     implementation "com.squareup.okhttp3:okhttp:4.11.0"
     implementation "com.squareup.okhttp3:logging-interceptor:3.4.1"
-    implementation project(path: ':vitrivr-engine-core')
     implementation project(path: ':vitrivr-engine-core')
     testImplementation "io.kotlintest:kotlintest-runner-junit5:3.4.2"
 }

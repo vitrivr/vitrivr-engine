@@ -6,6 +6,7 @@ import org.openapitools.client.apis.TextEmbeddingApi
 import org.openapitools.client.models.ImageEmbeddingInput
 import org.openapitools.client.models.JobResponseImageEmbeddingOutput
 import org.openapitools.client.models.TextEmbeddingInput
+import org.vitrivr.engine.base.features.external.common.ApiWrapper
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyzer
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
@@ -30,8 +31,6 @@ companion object {
         const val LENGTH_PARAMETER_NAME = "length"
         const val MODEL_PARAMETER_DEFAULT = "clip-vit-large-patch14"
         const val MODEL_PARAMETER_NAME = "model"
-        const val TIMEOUT_PARAMETER_DEFAULT = 60
-        const val TIMEOUT_PARAMETER_NAME = "timeout"
     }
 
 
@@ -39,7 +38,8 @@ companion object {
     override val descriptorClass = FloatVectorDescriptor::class
 
     override fun prototype(field: Schema.Field<*, *>) : FloatVectorDescriptor{
-        val length = field.parameters[LENGTH_PARAMETER_NAME] as Int? ?: LENGTH_PARAMETER_DEFAULT
+        //convert to integer
+        val length = field.parameters[LENGTH_PARAMETER_NAME]?.toIntOrNull() ?: LENGTH_PARAMETER_DEFAULT
         return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(length) { Value.Float(0.0f) }, true)
     }
 
@@ -69,28 +69,15 @@ companion object {
         return DenseEmbeddingExtractor(input, field, persisting)
     }
 
-    override fun analyse(content: ContentElement<*>, model: String, hostName: String, ): FloatVectorDescriptor = when(content) {
+    override fun analyse(content: ContentElement<*>, apiWrapper: ApiWrapper): FloatVectorDescriptor = when(content) {
+
         is ImageContent -> {
-            val apiService = ImageEmbeddingApi("http://localhost:8888")
-            val job = apiService.newJobApiTasksImageEmbeddingModelJobsPost(model = "clip-vit-large-patch14", imageEmbeddingInput = ImageEmbeddingInput(image = content.content.toDataURL()))
-            var result = apiService.getJobResultsApiTasksImageEmbeddingJobsJobGet(job.id)
-            while(result.status != "completed"){
-                Thread.sleep(1000)
-                result = apiService.getJobResultsApiTasksImageEmbeddingJobsJobGet(job.id)
-            }
-            val embeddingList = result.result?.embedding as List<Float>
-            FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), embeddingList.map { Value.Float(it) }, true)
+            val result = apiWrapper.imageEmbedding(content.content) as List<Float>
+            FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), result.map { Value.Float(it) }, true)
         }
         is TextContent -> {
-            val apiService = TextEmbeddingApi("http://localhost:8888")
-            val job = apiService.newJobApiTasksTextEmbeddingModelJobsPost(model = "clip-vit-large-patch14", textEmbeddingInput = TextEmbeddingInput(text = content.content))
-            var result = apiService.getJobResultsApiTasksTextEmbeddingJobsJobGet(job.id)
-            while(result.status != "completed"){
-                Thread.sleep(1000)
-                result = apiService.getJobResultsApiTasksTextEmbeddingJobsJobGet(job.id)
-            }
-            val embeddingList = result.result?.embedding as List<Float>
-            FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), embeddingList.map { Value.Float(it) }, true)
+            val result = apiWrapper.textEmbedding(content.content) as List<Float>
+            FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), result.map { Value.Float(it) }, true)
         }
         else -> throw IllegalArgumentException("Content type not supported")
     }
