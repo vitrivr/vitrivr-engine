@@ -17,7 +17,8 @@ abstract class AbstractRetrievable(override val id: UUID, override val type: Str
         retrievable.attributes.forEach { this.addAttribute(it) }
     }
 
-    private val attributeSet = mutableSetOf<RetrievableAttribute>()
+    /** A synchronized set of [RetrievableAttribute]s. */
+    private val attributeSet = Collections.synchronizedSet(mutableSetOf<RetrievableAttribute>())
 
     /** [Collection] of [RetrievableAttribute]s held by this [AbstractRetrievable]. */
     override val attributes: Collection<RetrievableAttribute>
