@@ -1,4 +1,4 @@
-package org.vitrivr.engine.query.transform
+package org.vitrivr.engine.query.transform.lookup
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
