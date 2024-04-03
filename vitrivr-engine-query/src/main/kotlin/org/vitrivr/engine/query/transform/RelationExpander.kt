@@ -36,7 +36,7 @@ class RelationExpander(
                 this@RelationExpander.retrievableReader.getConnections(emptyList(), this@RelationExpander.incomingRelations, ids)
             } else {
                 emptySequence()
-            }.groupBy { it.first }
+            }.groupBy { it.third }
 
             to
 
@@ -44,13 +44,13 @@ class RelationExpander(
                 this@RelationExpander.retrievableReader.getConnections(ids, this@RelationExpander.outgoingRelations, emptyList())
             } else {
                 emptySequence()
-            }.groupBy { it.third })
+            }.groupBy { it.first })
         } else {
             emptyMap<RetrievableId, List<Triple<RetrievableId,String,RetrievableId>>>() to emptyMap()
         }
 
         /* Collection IDs that are new and fetch corresponding retrievable. */
-        val newIds = (objects.keys + subjects.keys) - ids
+        val newIds = (objects.values.flatMap { o -> o.map { s -> s.first } }.toSet() + subjects.values.flatMap { s -> s.map { o -> o.third } }.toSet()) - ids
         val new = if (newIds.isNotEmpty()) {
             retrievableReader.getAll(newIds.toList())
         } else {
