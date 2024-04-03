@@ -69,8 +69,8 @@ class RelationExpander(
             }
 
             /* Expand outgoing relationships. */
-            for (out in (subjects[it.id] ?: emptyList())) {
-                it.addAttribute(RelationshipAttribute(Relationship(out.first to new[out.third], out.second, out.first to it)))
+            for (sub in (subjects[it.id] ?: emptyList())) {
+                it.addAttribute(RelationshipAttribute(Relationship(sub.first to it, sub.second, sub.third to new[sub.third])))
             }
 
             /* Emit. */
