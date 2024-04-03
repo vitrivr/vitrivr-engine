@@ -31,7 +31,7 @@ class RelationExpander(
 
         /* Fetch relation entries for the provided IDs. */
         val ids = inputRetrieved.map { it.id }.toSet()
-        val (incoming, outgoing) = if (ids.isEmpty()) {
+        val (incoming, outgoing) = if (ids.isNotEmpty()) {
             (if (this@RelationExpander.incomingRelations.isNotEmpty()) {
                 this@RelationExpander.retrievableReader.getConnections(emptyList(), this@RelationExpander.incomingRelations, ids)
             } else {
