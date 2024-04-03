@@ -31,12 +31,12 @@ class RelationExpander(
 
         /* Fetch relation entries for the provided IDs. */
         val ids = inputRetrieved.map { it.id }.toSet()
-        val (incoming, outgoing) = if (ids.isNotEmpty()) {
+        val (objects, subjects) = if (ids.isNotEmpty()) {
             (if (this@RelationExpander.incomingRelations.isNotEmpty()) {
                 this@RelationExpander.retrievableReader.getConnections(emptyList(), this@RelationExpander.incomingRelations, ids)
             } else {
                 emptySequence()
-            }.groupBy { it.third }
+            }.groupBy { it.first }
 
             to
 
@@ -44,14 +44,14 @@ class RelationExpander(
                 this@RelationExpander.retrievableReader.getConnections(ids, this@RelationExpander.outgoingRelations, emptyList())
             } else {
                 emptySequence()
-            }.groupBy { it.first })
+            }.groupBy { it.third })
         } else {
             emptyMap<RetrievableId, List<Triple<RetrievableId,String,RetrievableId>>>() to emptyMap()
         }
 
         /* Collection IDs that are new and fetch corresponding retrievable. */
-        val newIds = (incoming.keys + outgoing.keys) - ids
-        val newRetrievables = if (newIds.isNotEmpty()) {
+        val newIds = (objects.keys + subjects.keys) - ids
+        val new = if (newIds.isNotEmpty()) {
             retrievableReader.getAll(newIds.toList())
         } else {
             emptySequence()
@@ -64,13 +64,13 @@ class RelationExpander(
         /* Iterate over input and emit each retrievable with expanded relationships. */
         inputRetrieved.forEach {
             /* Expand incoming relationships. */
-            for (inc in (incoming[it.id] ?: emptyList())) {
-                it.addAttribute(RelationshipAttribute(Relationship(inc.first to newRetrievables[inc.first], inc.second, inc.third to newRetrievables[inc.third])))
+            for (obj in (objects[it.id] ?: emptyList())) {
+                it.addAttribute(RelationshipAttribute(Relationship(obj.first to it, obj.second, obj.third to new[obj.third])))
             }
 
             /* Expand outgoing relationships. */
-            for (out in (outgoing[it.id] ?: emptyList())) {
-                it.addAttribute(RelationshipAttribute(Relationship(out.third to newRetrievables[out.third], out.second, out.first to newRetrievables[out.first])))
+            for (out in (subjects[it.id] ?: emptyList())) {
+                it.addAttribute(RelationshipAttribute(Relationship(out.first to new[out.third], out.second, out.first to it)))
             }
 
             /* Emit. */
