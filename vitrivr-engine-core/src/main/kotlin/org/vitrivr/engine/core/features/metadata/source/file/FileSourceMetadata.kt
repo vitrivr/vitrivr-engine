@@ -33,7 +33,7 @@ class FileSourceMetadata : Analyser<ContentElement<*>, FileSourceMetadataDescrip
      *  @param field The [Schema.Field] to create the prototype for.
      * @return [FileSourceMetadataDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>) = FileSourceMetadataDescriptor(UUID.randomUUID(), UUID.randomUUID(), "", 0, true)
+    override fun prototype(field: Schema.Field<*, *>) = FileSourceMetadataDescriptor.PROTOTYPE
 
     /**
      * Generates and returns a new [FileSourceMetadataExtractor] for the provided [Schema.Field].

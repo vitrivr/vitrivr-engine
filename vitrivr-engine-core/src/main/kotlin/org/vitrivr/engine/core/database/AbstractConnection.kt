@@ -14,7 +14,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  * @version 1.0.0
  */
 @Suppress("UNCHECKED_CAST")
-abstract class AbstractConnection(override val schemaName: String, private val provider: ConnectionProvider): Connection {
+abstract class AbstractConnection(override val schemaName: String, override val provider: ConnectionProvider) : Connection {
 
     /** An internal [Map] of registered [Reader], [Writer] and [Initializer] instances. */
     private val readers: Map<Schema.Field<*, Descriptor>, DescriptorReader<*>> = HashMap()
