@@ -61,5 +61,31 @@ data class SimpleBooleanQuery<T : Value<*>>(
                 limit
             )
         }
+
+        /**
+         * Generates a [SimpleBooleanQuery] for a given [Int]
+         */
+        fun forInt(
+            v: Int,
+            comparison: ComparisonOperator,
+            attributeName: String?,
+            limit: Long
+        ): SimpleBooleanQuery<Value.Int> {
+            return SimpleBooleanQuery<Value.Int>(
+                Value.Int(v), comparison, attributeName, limit
+            )
+        }
+
+        /**
+         * Generates a [SimpleBooleanQuery] for a given [Long]
+         */
+        fun forLong(
+            v: Long,
+            comparison: ComparisonOperator,
+            attributeName: String?,
+            limit: Long
+        ): SimpleBooleanQuery<Value.Long> {
+            return SimpleBooleanQuery<Value.Long>(Value.Long(v), comparison, attributeName, limit)
+        }
     }
 }

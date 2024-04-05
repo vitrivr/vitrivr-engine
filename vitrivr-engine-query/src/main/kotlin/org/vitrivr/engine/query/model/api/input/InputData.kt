@@ -54,3 +54,11 @@ data class RetrievableIdInputData(val id: String) : InputData() {
     }
 
 }
+
+@Serializable
+data class BooleanQueryInputData(val value: String, val attributeName: String, val comparison: String): InputData(){
+    override val type = InputType.BOOLEAN
+    override fun toContent(): ContentElement<*> {
+        throw UnsupportedOperationException("Cannot derive content from BooleanQueryInputData")
+    }
+}
