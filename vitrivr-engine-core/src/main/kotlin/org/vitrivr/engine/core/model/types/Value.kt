@@ -1,5 +1,7 @@
 package org.vitrivr.engine.core.model.types
 
+import java.util.Date
+
 /**
  * A [Value] in vitrivr-engine maps primitive data types.
  *
@@ -49,4 +51,7 @@ sealed interface Value<T> {
 
     @JvmInline
     value class Double(override val value: kotlin.Double) : Value<kotlin.Double>
+
+    @JvmInline
+    value class DateTime(override val value: Date) : Value<Date>
 }
