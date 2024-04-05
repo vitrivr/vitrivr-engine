@@ -28,6 +28,9 @@ data class SimpleBooleanQuery<T : Value<*>>(
     override val limit: Long = Long.MAX_VALUE
 ) : BooleanQuery {
     companion object {
+        /**
+         * Generates a [SimpleBooleanQuery] for a given [String]
+         */
         fun forString(
             v: String,
             comparison: ComparisonOperator,
@@ -42,6 +45,9 @@ data class SimpleBooleanQuery<T : Value<*>>(
             )
         }
 
+        /**
+         * Generates a [SimpleBooleanQuery] for a given [Boolean]
+         */
         fun forBoolean(
             v: Boolean,
             comparison: ComparisonOperator,

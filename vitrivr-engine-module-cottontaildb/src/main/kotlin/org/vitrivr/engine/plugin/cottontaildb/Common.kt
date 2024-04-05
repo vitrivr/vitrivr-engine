@@ -87,6 +87,8 @@ internal fun FieldSchema.toCottontailType(): Types<*> {
         } else {
             Types.Double
         }
+
+        Type.DATETIME -> Types.Date
     }
 }
 
@@ -118,6 +120,7 @@ internal fun Value<*>.toCottontailValue(): PublicValue = when (this) {
     is Value.Long -> LongValue(this.value)
     is Value.Short -> ShortValue(this.value)
     is Value.String -> StringValue(this.value)
+    is Value.DateTime -> DateValue(this.value)
 }
 
 /**
