@@ -5,6 +5,7 @@ enum class InputType {
     TEXT,
     IMAGE,
     VECTOR,
-    ID
+    ID,
+    BOOLEAN
 
 }

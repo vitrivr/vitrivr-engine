@@ -38,14 +38,15 @@ data class SimpleBooleanQueryDescriptor(
     init {
         /* We are type agnostic to the subField and enforce this here */
         when(subField.fieldType){
-            Type.STRING -> require(value is kotlin.String){"The addressed struct sub field is of type ${subField.fieldType}, which differs from value. This is a programmer's error!"}
-            Type.BOOLEAN -> require(value is kotlin.Boolean){"The addressed struct sub field is of type ${subField.fieldType}, which differs from value. This is a programmer's error!"}
-            Type.BYTE -> require(value is kotlin.Byte){"The addressed struct sub field is of type ${subField.fieldType}, which differs from value. This is a programmer's error!"}
-            Type.SHORT -> require(value is kotlin.Short){"The addressed struct sub field is of type ${subField.fieldType}, which differs from value. This is a programmer's error!"}
-            Type.INT -> require(value is kotlin.Int){"The addressed struct sub field is of type ${subField.fieldType}, which differs from value. This is a programmer's error!"}
-            Type.LONG -> require(value is kotlin.Long){"The addressed struct sub field is of type ${subField.fieldType}, which differs from value. This is a programmer's error!"}
-            Type.FLOAT -> require(value is kotlin.Float){"The addressed struct sub field is of type ${subField.fieldType}, which differs from value. This is a programmer's error!"}
-            Type.DOUBLE -> require(value is kotlin.Double){"The addressed struct sub field is of type ${subField.fieldType}, which differs from value. This is a programmer's error!"}
+            Type.STRING -> require(value is String){"The addressed struct sub field is of type ${subField.fieldType}, which differs from value. This is a programmer's error!"}
+            Type.BOOLEAN -> require(value is Boolean){"The addressed struct sub field is of type ${subField.fieldType}, which differs from value. This is a programmer's error!"}
+            Type.BYTE -> require(value is Byte){"The addressed struct sub field is of type ${subField.fieldType}, which differs from value. This is a programmer's error!"}
+            Type.SHORT -> require(value is Short){"The addressed struct sub field is of type ${subField.fieldType}, which differs from value. This is a programmer's error!"}
+            Type.INT -> require(value is Int){"The addressed struct sub field is of type ${subField.fieldType}, which differs from value. This is a programmer's error!"}
+            Type.LONG -> require(value is Long){"The addressed struct sub field is of type ${subField.fieldType}, which differs from value. This is a programmer's error!"}
+            Type.FLOAT -> require(value is Float){"The addressed struct sub field is of type ${subField.fieldType}, which differs from value. This is a programmer's error!"}
+            Type.DOUBLE -> require(value is Double){"The addressed struct sub field is of type ${subField.fieldType}, which differs from value. This is a programmer's error!"}
+            Type.DATETIME -> require(value is Date){"The addressed struct sub field is of tpye ${subField.fieldType}, which differs from value. This is a programmer's error!"}
         }
     }
 

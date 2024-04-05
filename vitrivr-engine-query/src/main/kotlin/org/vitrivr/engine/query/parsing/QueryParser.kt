@@ -3,7 +3,10 @@ package org.vitrivr.engine.query.parsing
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
+import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.AggregatorFactory
@@ -13,6 +16,7 @@ import org.vitrivr.engine.core.operators.retrieve.TransformerFactory
 import org.vitrivr.engine.core.util.extension.loadServiceForName
 import org.vitrivr.engine.query.execution.RetrievedLookup
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
+import org.vitrivr.engine.query.model.api.input.BooleanQueryInputData
 import org.vitrivr.engine.query.model.api.input.InputType
 import org.vitrivr.engine.query.model.api.input.RetrievableIdInputData
 import org.vitrivr.engine.query.model.api.input.VectorInputData
@@ -83,6 +87,24 @@ class QueryParser(val schema: Schema) {
                 field.getRetrieverForDescriptor(descriptor, description.context)
             }
             is VectorInputData -> field.getRetrieverForDescriptor(FloatVectorDescriptor(vector = input.data.map { Value.Float(it) }, transient = true), description.context)
+            is BooleanQueryInputData -> {
+                val subfield = field.analyser.prototype(field).schema().find { it.name == input.attributeName } ?: throw IllegalArgumentException("Field $field does not have a subfield with name ${input.attributeName}")
+                val query = when(subfield.type){
+                    Type.STRING -> SimpleBooleanQuery(Value.String(input.value), ComparisonOperator.fromString(input.comparison), input.attributeName)
+                    Type.BOOLEAN -> SimpleBooleanQuery(Value.Boolean(input.value.toBoolean()), ComparisonOperator.fromString(input.comparison), input.attributeName)
+                    Type.BYTE -> SimpleBooleanQuery(Value.Byte(input.value.toByte()), ComparisonOperator.fromString(input.comparison), input.attributeName)
+                    Type.SHORT -> SimpleBooleanQuery(Value.Short(input.value.toShort()), ComparisonOperator.fromString(input.comparison), input.attributeName)
+                    Type.INT -> SimpleBooleanQuery(Value.Int(input.value.toInt()), ComparisonOperator.fromString(input.comparison), input.attributeName)
+                    Type.LONG -> SimpleBooleanQuery(Value.Long(input.value.toLong()), ComparisonOperator.fromString(input.comparison), input.attributeName)
+                    Type.FLOAT -> SimpleBooleanQuery(Value.Float(input.value.toFloat()), ComparisonOperator.fromString(input.comparison), input.attributeName)
+                    Type.DOUBLE -> SimpleBooleanQuery(Value.Double(input.value.toDouble()), ComparisonOperator.fromString(input.comparison), input.attributeName)
+                    Type.DATETIME -> TODO()
+                }
+                // TODO also parse limit here already for query ?
+                field.getRetrieverForQuery(
+                    query,
+                    description.context)
+            }
             else -> field.getRetrieverForContent(content.computeIfAbsent(operation.input) { input.toContent() }, description.context)
         }
     }
