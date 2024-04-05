@@ -9,7 +9,7 @@ import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.Persistable
 
 
-class StringConnection(internal val provider: StringConnectionProvider, schemaName: String, internal val stringify: (Persistable) -> String) : AbstractConnection(schemaName, provider) {
+class StringConnection(override val provider: StringConnectionProvider, schemaName: String, internal val stringify: (Persistable) -> String) : AbstractConnection(schemaName, provider) {
 
     override fun getRetrievableInitializer(): RetrievableInitializer = NoRetrievableInitializer()
 

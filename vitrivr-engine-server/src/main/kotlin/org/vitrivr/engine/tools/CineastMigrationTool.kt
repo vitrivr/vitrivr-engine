@@ -179,7 +179,7 @@ data class CineastSkeletonPoseFeature(
         return SkeletonDescriptor(
             id = DescriptorId.randomUUID(),
             retrievableId = RetrievableId.fromString(idmap[id]),
-            person = person,
+            person = Value.Int(person),
             skeleton = skeleton.map { Value.Float(it) },
             weights = weights.map { Value.Float(it) },
             transient = false
@@ -332,8 +332,8 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
             val fileMetadataDescriptor = FileSourceMetadataDescriptor(
                 id = DescriptorId.randomUUID(),
                 retrievableId = objectRetrievable.id,
-                path = mobject.path,
-                size = size,
+                path = Value.String(mobject.path),
+                size = Value.Long(size),
             )
             filemetadatawriter.add(fileMetadataDescriptor)
             retrievableWriter.add(objectRetrievable)
@@ -384,8 +384,8 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                         id = DescriptorId.randomUUID(),
                         retrievableId = RetrievableId.fromString(retrievableId)
                             ?: throw IllegalArgumentException("Could not find retrievable id for object ${mobjectmetadata.objectid}"),
-                        width = width,
-                        height = height,
+                        width = Value.Int(width),
+                        height = Value.Int(height),
                         transient = false
                     )
                     mediadimensionswriter.add(dimensionsDescriptor)
@@ -448,8 +448,8 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
             val temporalMetadataDescriptor = TemporalMetadataDescriptor(
                 id = DescriptorId.randomUUID(),
                 retrievableId = ingested.id,
-                startNs = segment.segmentstartabs.toLong() * 1000 * 1000 * 1000,
-                endNs = segment.segmentendabs.toLong() * 1000 * 1000 * 1000,
+                startNs = Value.Long(segment.segmentstartabs.toLong() * 1000 * 1000 * 1000),
+                endNs = Value.Long(segment.segmentendabs.toLong() * 1000 * 1000 * 1000),
             )
 
             ingestedList.add(ingested)

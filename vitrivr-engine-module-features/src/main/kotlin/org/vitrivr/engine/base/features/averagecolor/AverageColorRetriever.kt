@@ -41,7 +41,7 @@ class AverageColorRetriever(
         val reader = this@AverageColorRetriever.field.getReader()
         logger.debug { "Flow init with query $query" }
         reader.getAll(this@AverageColorRetriever.query).forEach {
-            it.addAttribute(ScoreAttribute(scoringFunction(it)))
+            it.addAttribute(ScoreAttribute.Similarity(scoringFunction(it)))
             emit(it)
         }
     }

@@ -46,10 +46,10 @@ class ScoreAggregator(
                     }
                 }
 
-                retrieved.addAttribute(ScoreAttribute(score))
+                retrieved.addAttribute(ScoreAttribute.Unbound(score))
 
             } else {
-                retrieved.addAttribute(ScoreAttribute(0f))
+                retrieved.addAttribute(ScoreAttribute.Unbound(0f))
             }
 
             retrieved

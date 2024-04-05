@@ -20,7 +20,7 @@ import kotlin.reflect.KClass
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.2.0
  */
 interface Analyser<C: ContentElement<*>, D: Descriptor> {
     /** The [KClass]es of the [ContentElement] accepted by this [Analyser].  */
@@ -56,7 +56,8 @@ interface Analyser<C: ContentElement<*>, D: Descriptor> {
     /**
      * Generates and returns a new [Retriever] instance for this [Analyser].
      *
-     * Some [Analyser]s may not come with their own [Retriever], in which case the implementation of this method should throw an [UnsupportedOperationException]
+     * This is the base-case, every [Analyser] should support this operation unless the [Analyser] is not meant to be used for retrieval at all,
+     * in which case the implementation of this method should throw an [UnsupportedOperationException]
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param query The [Query] to use with the [Retriever].
@@ -70,14 +71,34 @@ interface Analyser<C: ContentElement<*>, D: Descriptor> {
     /**
      * Generates and returns a new [Retriever] instance for this [Analyser].
      *
-     * Some [Analyser]s may not come with their own [Retriever], in which case the implementation of this method should throw an [UnsupportedOperationException]
+     * Some [Analyser]s may not come with their own [Retriever] or may not support generating a [Retriever] from [Content].
+     * In both chases, the implementation of this method should throw an [UnsupportedOperationException].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param content An array of [Content] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      *
      * @return A new [Retriever] instance for this [Analyser]
-     * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
+     * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance from [Content].
      */
-    fun newRetrieverForContent(field: Schema.Field<C, D>, content: Collection<C>, context: QueryContext): Retriever<C, D>
+    fun newRetrieverForContent(field: Schema.Field<C, D>, content: Collection<C>, context: QueryContext): Retriever<C, D> {
+        throw UnsupportedOperationException("This Analyser does not support the creation of a retriever from a collection of descriptors.")
+    }
+
+    /**
+     * Generates and returns a new [Retriever] instance for this [Analyser] from the provided [Collection] of [Descriptor]s.
+     *
+     * Some [Analyser]s may not come with their own [Retriever] or may not support generating a [Retriever] from a [Descriptor].
+     * In both chases, the implementation of this method should throw an [UnsupportedOperationException].
+     *
+     * @param field The [Schema.Field] to create an [Retriever] for.
+     * @param descriptors An array of [Descriptor] elements to use with the [Retriever]
+     * @param context The [QueryContext] to use with the [Retriever]
+     *
+     * @return A new [Retriever] instance for this [Analyser]
+     * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance from [Descriptor]s.
+     */
+    fun newRetrieverForDescriptors(field: Schema.Field<C, D>, descriptors: Collection<D>, context: QueryContext): Retriever<C, D> {
+        throw UnsupportedOperationException("This Analyser does not support the creation of a retriever from a collection of descriptors.")
+    }
 }

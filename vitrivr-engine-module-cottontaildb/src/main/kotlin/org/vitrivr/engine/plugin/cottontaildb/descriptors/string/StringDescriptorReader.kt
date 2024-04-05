@@ -47,7 +47,7 @@ class StringDescriptorReader(field: Schema.Field<*, StringDescriptor>, connectio
             val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
             val score = tuple.asDouble(SCORE_COLUMN_NAME) ?: 0.0
             val retrieved = Retrieved(retrievableId, null, false)
-            retrieved.addAttribute(ScoreAttribute(score))
+            retrieved.addAttribute(ScoreAttribute.Unbound(score.toFloat()))
             retrieved
         }
     }

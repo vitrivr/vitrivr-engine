@@ -140,7 +140,7 @@ class FixedDurationSegmenter : SegmenterFactory {
             require(source != null) { "Last source is null. This is a programmer's error!" }
 
             /* Generate source content. */
-            val sourceRetrievable = Ingested(source.sourceId, "source", false)
+            val sourceRetrievable = Ingested(source.sourceId, "source:${source.type.toString().lowercase()}", false)
 
             sourceRetrievable.addAttribute(SourceAttribute(source))
 
