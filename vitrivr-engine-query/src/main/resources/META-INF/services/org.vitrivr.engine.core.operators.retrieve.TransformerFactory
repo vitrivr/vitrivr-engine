@@ -1,4 +1,4 @@
-org.vitrivr.engine.query.transform.RelationExpanderFactory
-org.vitrivr.engine.query.transform.ScoreAggregatorFactory
-org.vitrivr.engine.query.transform.lookup.FieldLookupFactory
-org.vitrivr.engine.query.transform.lookup.ObjectFieldLookupFactory
+org.vitrivr.engine.query.operators.transform.relation.RelationExpanderFactory
+org.vitrivr.engine.query.operators.transform.scoring.ScoreAggregatorFactory
+org.vitrivr.engine.query.operators.transform.lookup.FieldLookupFactory
+org.vitrivr.engine.query.operators.transform.lookup.ObjectFieldLookupFactory
