@@ -14,7 +14,7 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.core.operators.retrieve.Transformer
 import org.vitrivr.engine.core.operators.retrieve.TransformerFactory
 import org.vitrivr.engine.core.util.extension.loadServiceForName
-import org.vitrivr.engine.query.execution.RetrievedLookup
+import org.vitrivr.engine.query.operators.retrieval.RetrievedLookup
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
 import org.vitrivr.engine.query.model.api.input.*
 import org.vitrivr.engine.query.model.api.operator.AggregatorDescription
@@ -77,8 +77,8 @@ class QueryParser(val schema: Schema) {
         val field = this.schema[fieldAndAttributeName.first] ?: throw IllegalArgumentException("Retriever '${operation.field}' not defined in schema")
 
         /* Special case: handle pass-through. */
-        if (operation.field.isEmpty()) { //special case, handle pass-through
-            require(input.type == InputType.ID) { "Only inputs of type ID are supported for direct retrievable lookup" }
+        if (field == null) { //special case, handle pass-through
+            require(input.type == InputType.ID) { "Only inputs of type ID are supported for direct retrievable lookup." }
             return RetrievedLookup(this.schema.connection.getRetrievableReader(), listOf(UUID.fromString((input as RetrievableIdInputData).id)))
         }
 
