@@ -6,6 +6,8 @@ enum class InputType {
     IMAGE,
     VECTOR,
     ID,
-    BOOLEAN
+    BOOLEAN,
+    NUMERIC,
+    DATE
 
 }

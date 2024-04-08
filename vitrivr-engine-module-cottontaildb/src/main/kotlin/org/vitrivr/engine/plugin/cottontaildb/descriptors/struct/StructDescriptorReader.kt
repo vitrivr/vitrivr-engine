@@ -16,6 +16,7 @@ import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.plugin.cottontaildb.*
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorReader
+import java.io.File
 import java.util.*
 import kotlin.reflect.full.primaryConstructor
 
@@ -61,6 +62,10 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
             else -> throw IllegalArgumentException("Query of typ ${query::class} is not supported by StringDescriptorReader.")
         }
 
+        // DEBUG: Write query as proto
+        File("query-${System.currentTimeMillis()}.proto").writeBytes(cottontailQuery.builder.query.toByteString().toByteArray())
+
+
         /* Execute query. */
         return this.connection.client.query(cottontailQuery).asSequence().map { tuple ->
             val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value
@@ -68,7 +73,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
             val score = if (tuple.size > 1) {
                 tuple.asDouble(SCORE_COLUMN_NAME) ?: 0.0
             } else {
-                0.0
+                1.0 // It is reasonable to use a score of 1.0 for boolena queries.
             }
             val retrieved = Retrieved(retrievableId, null, false)
             retrieved.addAttribute(ScoreAttribute.Unbound(score.toFloat()))
