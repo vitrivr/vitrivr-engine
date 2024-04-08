@@ -62,10 +62,6 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
             else -> throw IllegalArgumentException("Query of typ ${query::class} is not supported by StringDescriptorReader.")
         }
 
-        // DEBUG: Write query as proto
-        File("query-${System.currentTimeMillis()}.proto").writeBytes(cottontailQuery.builder.query.toByteString().toByteArray())
-
-
         /* Execute query. */
         return this.connection.client.query(cottontailQuery).asSequence().map { tuple ->
             val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value
