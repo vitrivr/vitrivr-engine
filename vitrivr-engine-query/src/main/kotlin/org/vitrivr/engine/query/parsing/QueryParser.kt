@@ -123,9 +123,9 @@ class QueryParser(val schema: Schema) {
                         }
                         else -> throw UnsupportedOperationException("Subfield query for $input is currently not supported")
                     }
-                    // TODO also parse limit here already for query ?
+                    val limit = description.context.getProperty(operatorName, "limit")?.toLong() ?: Long.MAX_VALUE
                     field.getRetrieverForQuery(
-                        SimpleBooleanQuery(value, ComparisonOperator.fromString(input.comparison!!), fieldAndAttributeName.second),
+                        SimpleBooleanQuery(value, ComparisonOperator.fromString(input.comparison!!), fieldAndAttributeName.second, limit),
                         description.context)
                 }else{
                     /* no */
