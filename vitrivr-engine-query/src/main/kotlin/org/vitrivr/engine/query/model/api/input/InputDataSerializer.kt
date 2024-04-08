@@ -16,7 +16,9 @@ object InputDataSerializer : JsonContentPolymorphicSerializer<InputData>(InputDa
             InputType.IMAGE -> ImageInputData.serializer()
             InputType.VECTOR -> VectorInputData.serializer()
             InputType.ID -> RetrievableIdInputData.serializer()
-            InputType.BOOLEAN -> BooleanQueryInputData.serializer()
+            InputType.BOOLEAN -> BooleanInputData.serializer()
+            InputType.NUMERIC -> NumericInputData.serializer()
+            InputType.DATE -> DateInputData.serializer()
         }
     }
 }

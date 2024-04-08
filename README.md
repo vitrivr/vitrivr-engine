@@ -58,7 +58,7 @@ This guide assumes a running [CottontailDB](https://github.com/vitrivr/cottontai
 instance on the same machine on the default port `1865`.
 
 ---
-**NOTE this requires [Cottontail d03add](https://github.com/vitrivr/cottontaildb/commit/d03add3ddcae8fea446cf2bd1542ea509c8ffe25) or newer**
+**NOTE this requires [Cottontail 0.16.5](https://github.com/vitrivr/cottontaildb/releases/tag/0.16.5) or newer**
 
 ---
 
