@@ -1,4 +1,4 @@
-package org.vitrivr.engine.query.transform
+package org.vitrivr.engine.query.operators.transform.scoring
 
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrieved

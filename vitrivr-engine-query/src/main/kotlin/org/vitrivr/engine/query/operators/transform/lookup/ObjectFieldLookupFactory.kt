@@ -1,4 +1,4 @@
-package org.vitrivr.engine.query.transform.lookup
+package org.vitrivr.engine.query.operators.transform.lookup
 
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrieved
