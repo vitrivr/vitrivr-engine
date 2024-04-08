@@ -11,7 +11,7 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.core.operators.retrieve.Transformer
 import org.vitrivr.engine.core.operators.retrieve.TransformerFactory
 import org.vitrivr.engine.core.util.extension.loadServiceForName
-import org.vitrivr.engine.query.execution.RetrievedLookup
+import org.vitrivr.engine.query.operators.retrieval.RetrievedLookup
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
 import org.vitrivr.engine.query.model.api.input.InputType
 import org.vitrivr.engine.query.model.api.input.RetrievableIdInputData
@@ -66,11 +66,11 @@ class QueryParser(val schema: Schema) {
         /* Extract necessary information. */
         val operation = description.operations[operatorName] as? RetrieverDescription ?: throw IllegalArgumentException("Operation '$operatorName' not found in information need description.")
         val input = description.inputs[operation.input] ?: throw IllegalArgumentException("Input '${operation.input}' for operation '$operatorName' not found")
-        val field = this.schema[operation.field] ?: throw IllegalArgumentException("Retriever '${operation.field}' not defined in schema")
+        val field = operation.field?.let { this.schema[it] }
 
         /* Special case: handle pass-through. */
-        if (operation.field.isEmpty()) { //special case, handle pass-through
-            require(input.type == InputType.ID) { "Only inputs of type ID are supported for direct retrievable lookup" }
+        if (field == null) { //special case, handle pass-through
+            require(input.type == InputType.ID) { "Only inputs of type ID are supported for direct retrievable lookup." }
             return RetrievedLookup(this.schema.connection.getRetrievableReader(), listOf(UUID.fromString((input as RetrievableIdInputData).id)))
         }
 
