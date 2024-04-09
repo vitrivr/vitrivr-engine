@@ -11,8 +11,9 @@ sealed class OperatorDescription{
 data class RetrieverDescription(
     /** The name of the input in the information need */
     val input: String,
+
     /** The name of the field in the schema */
-    val field: String
+    val field: String? = null
 ) : OperatorDescription() {
     override val type = OperatorType.RETRIEVER
 }

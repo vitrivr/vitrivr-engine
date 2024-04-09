@@ -6,6 +6,7 @@ import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.required
 import com.jakewharton.picnic.table
 import org.vitrivr.engine.core.config.IndexConfig
 import org.vitrivr.engine.core.config.pipeline.ExtractionPipelineBuilder
@@ -14,6 +15,7 @@ import org.vitrivr.engine.core.database.Initializer
 import org.vitrivr.engine.core.model.metamodel.Schema
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.UUID
 
 /**
  *
@@ -22,7 +24,7 @@ import java.nio.file.Paths
  */
 class SchemaCommand(private val schema: Schema, private val server: ExecutionServer) : NoOpCliktCommand(
     name = schema.name,
-    help = "Groups commands related to a specific the schema '${schema.name}'.",
+    help = "Groups commands related to a specific schema, in this case the schema '${schema.name}'.",
     epilog = "Schema related commands usually have the form: <schema> <command>, e.g., `vitrivr about` Check help for command specific parameters.",
     invokeWithoutSubcommand = true,
     printHelpOnEmptyArgs = true
@@ -33,7 +35,8 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
         this.subcommands(
             About(),
             Initialize(),
-            Extract(this.schema, this.server)
+            Extract(this.schema, this.server),
+            Status(this.schema, this.server)
         )
     }
 
@@ -126,6 +129,14 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
             val pipeline = pipelineBuilder.getPipeline()
             val uuid = this.executor.extractAsync(pipeline)
             println("Started extraction job with UUID $uuid.")
+        }
+    }
+
+    inner class Status(private val schema: Schema, private val executor: ExecutionServer):CliktCommand(name="status", help="Prints indexing status"){
+        private val jobId: UUID by option("--job-id", help="The job id").convert{ UUID.fromString(it)}.required()
+
+        override fun run() {
+            println("Status: ${executor.status(jobId)} at ${System.currentTimeMillis()}")
         }
     }
 }

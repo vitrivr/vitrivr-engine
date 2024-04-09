@@ -16,6 +16,7 @@ import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.plugin.cottontaildb.*
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorReader
+import java.io.File
 import java.util.*
 import kotlin.reflect.full.primaryConstructor
 
@@ -63,10 +64,13 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
 
         /* Execute query. */
         return this.connection.client.query(cottontailQuery).asSequence().map { tuple ->
-            val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
-            val score = tuple.asDouble(SCORE_COLUMN_NAME) ?: 0.0
+            val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value
+                ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
             val retrieved = Retrieved(retrievableId, null, false)
-            retrieved.addAttribute(ScoreAttribute.Unbound(score.toFloat()))
+            if(query is SimpleFulltextQuery){
+                val score = tuple.asDouble(SCORE_COLUMN_NAME) ?: 0.0
+                retrieved.addAttribute(ScoreAttribute.Unbound(score.toFloat()))
+            }
             retrieved
         }
     }

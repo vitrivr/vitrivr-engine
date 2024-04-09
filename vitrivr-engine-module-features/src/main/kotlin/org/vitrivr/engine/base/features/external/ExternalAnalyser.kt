@@ -17,7 +17,7 @@ import org.vitrivr.engine.core.model.metamodel.Analyser
  */
 abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor> : Analyser<T, U> {
     companion object {
-        /** Name of the grid_size parameter; determines size of voxel grid for rasterization. */
+        /** Name of the host parameter */
         const val HOST_PARAMETER_NAME = "host"
 
         /** Default value of the grid_size parameter. */

@@ -18,8 +18,8 @@ dependencies {
 
     /** Javalin */
     implementation group: 'io.javalin', name: 'javalin', version: version_javalin
-    implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: version_javalin
-    implementation group: 'io.javalin.community.openapi', name: 'javalin-swagger-plugin', version: version_javalin
+    implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: version_javalinopenapi
+    implementation group: 'io.javalin.community.openapi', name: 'javalin-swagger-plugin', version: version_javalinssl
     implementation group: 'io.javalin.community.ssl', name: 'ssl-plugin', version: version_javalin
 
     /** Jackson (for serialization). */
