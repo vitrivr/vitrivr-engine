@@ -1,10 +1,23 @@
 package org.vitrivr.engine.query.model.api.input
 
-enum class InputType {
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
+enum class InputType {
+    @SerialName("TEXT")
     TEXT,
+    @SerialName("IMAGE")
     IMAGE,
+    @SerialName("VECTOR")
     VECTOR,
-    ID
+    @SerialName("ID")
+    ID,
+    @SerialName("BOOLEAN")
+    BOOLEAN,
+    @SerialName("NUMERIC")
+    NUMERIC,
+    @SerialName("DATE")
+    DATE
 
 }

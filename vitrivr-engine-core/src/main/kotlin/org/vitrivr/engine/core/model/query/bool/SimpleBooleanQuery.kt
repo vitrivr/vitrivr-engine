@@ -26,4 +26,4 @@ data class SimpleBooleanQuery<T : Value<*>>(
 
     /** The number of results that should be returned by this [SimpleBooleanQuery]. */
     override val limit: Long = Long.MAX_VALUE
-) : BooleanQuery
+) : BooleanQuery {}
