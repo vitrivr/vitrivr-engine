@@ -69,6 +69,8 @@ class StructDescriptorInitializer(field: Schema.Field<*, StructDescriptor>, conn
                 } else {
                     Types.Double
                 }
+
+                Type.DATETIME -> Types.Date
             }
             create.column(Name.ColumnName.create(field.name), type, nullable = field.nullable, primaryKey = false, autoIncrement = false)
         }

@@ -1,5 +1,7 @@
 package org.vitrivr.engine.server.api.rest.handlers
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import io.javalin.util.FileUtil
@@ -11,6 +13,8 @@ import org.vitrivr.engine.server.api.rest.model.IngestStatus
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.deleteIfExists
+
+private val logger: KLogger = KotlinLogging.logger("Ingest API")
 
 @OpenApi(
     path = "/api/{schema}/index",
@@ -64,12 +68,12 @@ fun executeIngest(ctx: Context, schema: Schema, executor: ExecutionServer) {
 @OpenApi(
     path = "/api/{schema}/index/{jobId}",
     methods = [HttpMethod.GET],
-    summary = "Indexes an item, adding it to the defined schema.",
-    operationId = "postExecuteIngest",
+    summary = "Queries the status of a given ingest job.",
+    operationId = "getIngestStatus",
     tags = ["Ingest"],
     pathParams = [
         OpenApiParam("schema", type = String::class, description = "The name of the schema to execute a query for.", required = true),
-        OpenApiParam("jobId", type = String::class, description = "The id querying the state.", required = true)
+        OpenApiParam("jobId", type = String::class, description = "The id of the job to query the status for.", required = true)
     ],
     responses = [
         OpenApiResponse("200", [OpenApiContent(IngestStatus::class)]),
