@@ -10,7 +10,7 @@ import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
  * @version 1.1.0
  */
 enum class ComparisonOperator(val value: String) {
-    EQ("="),
+    EQ("=="),
     NEQ("!="),
     LE("<"),
     GR(">"),
@@ -26,7 +26,7 @@ enum class ComparisonOperator(val value: String) {
          */
         fun fromString(str: String):ComparisonOperator{
             return when(str.trim()){
-                "=" -> EQ
+                "==" -> EQ
                 "!=" -> NEQ
                 "<" -> LE
                 ">" -> GR
