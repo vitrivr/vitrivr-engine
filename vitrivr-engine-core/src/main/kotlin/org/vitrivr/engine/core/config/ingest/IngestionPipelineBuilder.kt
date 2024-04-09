@@ -9,6 +9,8 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.operators.ingest.Enumerator
+import org.vitrivr.engine.core.operators.ingest.EnumeratorFactory
+import org.vitrivr.engine.core.util.extension.loadServiceForName
 
 
 /**
@@ -26,6 +28,11 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
      * Parses the given [EnumeratorConfig] and builds the corresponding instance.
      */
     private fun parseEnumerator(config: EnumeratorConfig, context: IndexContext){
-
+        val factory = loadServiceForName<EnumeratorFactory>(config.name)
+            ?: throw IllegalArgumentException("Failed to find 'EnumeratorFactory' implementation for '${config.name}'.")
+        enumerator = factory.newOperator(context, config.parameters)
+        logger.info{"Instantiated new Enumerator: ${enumerator.javaClass.name}, parameters: ${config.parameters}"}
     }
+
+    
 }
