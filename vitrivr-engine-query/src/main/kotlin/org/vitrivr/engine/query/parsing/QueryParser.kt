@@ -68,8 +68,8 @@ class QueryParser(val schema: Schema) {
         val operation = description.operations[operatorName] as? RetrieverDescription ?: throw IllegalArgumentException("Operation '$operatorName' not found in information need description.")
         val input = description.inputs[operation.input] ?: throw IllegalArgumentException("Input '${operation.input}' for operation '$operatorName' not found")
         val fieldAndAttributeName: Pair<String,String?> = if(operation.field.contains(".")){
-            val f = operation.field.split(".").firstOrNull() ?: throw IllegalArgumentException("Field name in dot notation FIELD.ATTRIBUTE requires both, field and attribute")
-            val a = operation.field.split(".").lastOrNull() ?: throw IllegalArgumentException("Field name in dot notation FIELD.ATTRIBUTE requires both, field and attribute")
+            val f = operation.field.split(".").getOrNull(0) ?: throw IllegalArgumentException("Field name in dot notation FIELD.ATTRIBUTE requires both, field and attribute")
+            val a = operation.field.split(".").getOrNull(1) ?: throw IllegalArgumentException("Field name in dot notation FIELD.ATTRIBUTE requires both, field and attribute")
             f to a
         }else{
             operation.field to null
@@ -93,7 +93,7 @@ class QueryParser(val schema: Schema) {
             is VectorInputData -> field.getRetrieverForDescriptor(FloatVectorDescriptor(vector = input.data.map { Value.Float(it) }, transient = true), description.context)
             else -> {
                 /* Is this a boolean sub-field query ? */
-                if(input.comparison != null){
+                if(fieldAndAttributeName.second != null && input.comparison != null){
                     /* yes */
                     val subfield = field.analyser.prototype(field).schema().find { it.name == fieldAndAttributeName.second } ?: throw IllegalArgumentException("Field $field does not have a subfield with name ${fieldAndAttributeName.second}")
                     /* For now, we support not all input data */

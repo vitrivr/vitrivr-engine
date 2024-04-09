@@ -33,7 +33,7 @@ sealed class InputData() {
     /**
      * Optional comparison to apply.
      *
-     * Supported comparisons use Kotlin notation:
+     * Currently supported comparisons use Kotlin notation:
      * - `<`: less than
      * - `<=`: less or equal than
      * - `==`: equal
