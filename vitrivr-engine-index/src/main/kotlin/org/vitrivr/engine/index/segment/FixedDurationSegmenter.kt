@@ -96,9 +96,6 @@ class FixedDurationSegmenter : SegmenterFactory {
         private var sourceWritten = false
 
 
-        /** [KLogger] instance. */
-        private val logger: KLogger = KotlinLogging.logger {}
-
         override suspend fun segment(upstream: Flow<ContentElement<*>>, downstream: ProducerScope<Retrievable>) {
             upstream.collect { content ->
                 this.mutex.lock()

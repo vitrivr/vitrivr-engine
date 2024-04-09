@@ -3,7 +3,10 @@ package org.vitrivr.engine.query.parsing
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
+import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.AggregatorFactory
@@ -13,9 +16,7 @@ import org.vitrivr.engine.core.operators.retrieve.TransformerFactory
 import org.vitrivr.engine.core.util.extension.loadServiceForName
 import org.vitrivr.engine.query.operators.retrieval.RetrievedLookup
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
-import org.vitrivr.engine.query.model.api.input.InputType
-import org.vitrivr.engine.query.model.api.input.RetrievableIdInputData
-import org.vitrivr.engine.query.model.api.input.VectorInputData
+import org.vitrivr.engine.query.model.api.input.*
 import org.vitrivr.engine.query.model.api.operator.AggregatorDescription
 import org.vitrivr.engine.query.model.api.operator.RetrieverDescription
 import org.vitrivr.engine.query.model.api.operator.TransformerDescription
@@ -66,13 +67,20 @@ class QueryParser(val schema: Schema) {
         /* Extract necessary information. */
         val operation = description.operations[operatorName] as? RetrieverDescription ?: throw IllegalArgumentException("Operation '$operatorName' not found in information need description.")
         val input = description.inputs[operation.input] ?: throw IllegalArgumentException("Input '${operation.input}' for operation '$operatorName' not found")
-        val field = operation.field?.let { this.schema[it] }
-
         /* Special case: handle pass-through. */
-        if (field == null) { //special case, handle pass-through
+        if (operation.field == null) { //special case, handle pass-through
             require(input.type == InputType.ID) { "Only inputs of type ID are supported for direct retrievable lookup." }
             return RetrievedLookup(this.schema.connection.getRetrievableReader(), listOf(UUID.fromString((input as RetrievableIdInputData).id)))
         }
+        val fieldAndAttributeName: Pair<String,String?> = if(operation.field?.contains(".") == true){
+            val f = operation.field.substringBefore(".")
+            val a = operation.field.substringAfter(".")
+            f to a
+        }else{
+            operation.field!! to null
+        }
+        val field = this.schema[fieldAndAttributeName.first] ?: throw IllegalArgumentException("Retriever '${operation.field}' not defined in schema")
+
 
         /* Generate retriever instance. */
         return when (input) {
@@ -83,7 +91,47 @@ class QueryParser(val schema: Schema) {
                 field.getRetrieverForDescriptor(descriptor, description.context)
             }
             is VectorInputData -> field.getRetrieverForDescriptor(FloatVectorDescriptor(vector = input.data.map { Value.Float(it) }, transient = true), description.context)
-            else -> field.getRetrieverForContent(content.computeIfAbsent(operation.input) { input.toContent() }, description.context)
+            else -> {
+                /* Is this a boolean sub-field query ? */
+                if(fieldAndAttributeName.second != null && input.comparison != null){
+                    /* yes */
+                    val subfield = field.analyser.prototype(field).schema().find { it.name == fieldAndAttributeName.second } ?: throw IllegalArgumentException("Field $field does not have a subfield with name ${fieldAndAttributeName.second}")
+                    /* For now, we support not all input data */
+                    val value = when(input){
+                        is TextInputData -> {
+                            require(subfield.type == Type.STRING){"The given sub-field ${fieldAndAttributeName.first}.${fieldAndAttributeName.second}'s type is ${subfield.type}, which is not the expexted ${Type.STRING}"}
+                            Value.String(input.data)
+                        }
+                        is BooleanInputData -> {
+                            require(subfield.type == Type.BOOLEAN){"The given sub-field ${fieldAndAttributeName.first}.${fieldAndAttributeName.second}'s type is ${subfield.type}, which is not the expexted ${Type.BOOLEAN}"}
+                            Value.Boolean(input.value)
+                        }
+                        is NumericInputData -> {
+                            when(subfield.type){
+                                Type.DOUBLE -> Value.Double(input.value)
+                                Type.INT -> Value.Int(input.value.toInt())
+                                Type.LONG -> Value.Long(input.value.toLong())
+                                Type.SHORT -> Value.Short(input.value.toInt().toShort())
+                                Type.BYTE -> Value.Byte(input.value.toInt().toByte())
+                                Type.FLOAT -> Value.Float(input.value.toFloat())
+                                else -> throw IllegalArgumentException("Cannot work with NumericInputData $input but non-numerical sub-field $subfield")
+                            }
+                        }
+                        is DateInputData -> {
+                            require(subfield.type == Type.DATETIME){"The given sub-field ${fieldAndAttributeName.first}.${fieldAndAttributeName.second}'s type is ${subfield.type}, which is not the expexted ${Type.DATETIME}"}
+                            Value.DateTime(input.parseDate())
+                        }
+                        else -> throw UnsupportedOperationException("Subfield query for $input is currently not supported")
+                    }
+                    val limit = description.context.getProperty(operatorName, "limit")?.toLong() ?: Long.MAX_VALUE
+                    field.getRetrieverForQuery(
+                        SimpleBooleanQuery(value, ComparisonOperator.fromString(input.comparison!!), fieldAndAttributeName.second, limit),
+                        description.context)
+                }else{
+                    /* no */
+                    field.getRetrieverForContent(content.computeIfAbsent(operation.input) { input.toContent() }, description.context)
+                }
+            }
         }
     }
 

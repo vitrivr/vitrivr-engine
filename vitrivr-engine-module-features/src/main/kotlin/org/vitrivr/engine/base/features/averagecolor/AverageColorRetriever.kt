@@ -1,5 +1,7 @@
 package org.vitrivr.engine.base.features.averagecolor
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flow
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -25,6 +27,8 @@ class AverageColorRetriever(
     private val query: ProximityQuery<Value.Float>
 ) : Retriever<ImageContent, FloatVectorDescriptor> {
 
+    private val logger: KLogger = KotlinLogging.logger {}
+
     companion object {
         private const val MAXIMUM_DISTANCE = 3f
         fun scoringFunction(retrieved: Retrieved): Float {
@@ -35,6 +39,7 @@ class AverageColorRetriever(
 
     override fun toFlow(scope: CoroutineScope) = flow {
         val reader = this@AverageColorRetriever.field.getReader()
+        logger.debug { "Flow init with query $query" }
         reader.getAll(this@AverageColorRetriever.query).forEach {
             it.addAttribute(ScoreAttribute.Similarity(scoringFunction(it)))
             emit(it)
