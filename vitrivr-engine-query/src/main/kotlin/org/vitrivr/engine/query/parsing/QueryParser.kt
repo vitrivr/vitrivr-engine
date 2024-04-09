@@ -67,20 +67,20 @@ class QueryParser(val schema: Schema) {
         /* Extract necessary information. */
         val operation = description.operations[operatorName] as? RetrieverDescription ?: throw IllegalArgumentException("Operation '$operatorName' not found in information need description.")
         val input = description.inputs[operation.input] ?: throw IllegalArgumentException("Input '${operation.input}' for operation '$operatorName' not found")
-        val fieldAndAttributeName: Pair<String,String?> = if(operation.field.contains(".")){
-            val f = operation.field.split(".").getOrNull(0) ?: throw IllegalArgumentException("Field name in dot notation FIELD.ATTRIBUTE requires both, field and attribute")
-            val a = operation.field.split(".").getOrNull(1) ?: throw IllegalArgumentException("Field name in dot notation FIELD.ATTRIBUTE requires both, field and attribute")
-            f to a
-        }else{
-            operation.field to null
-        }
-        val field = this.schema[fieldAndAttributeName.first] ?: throw IllegalArgumentException("Retriever '${operation.field}' not defined in schema")
-
         /* Special case: handle pass-through. */
-        if (field == null) { //special case, handle pass-through
+        if (operation.field == null) { //special case, handle pass-through
             require(input.type == InputType.ID) { "Only inputs of type ID are supported for direct retrievable lookup." }
             return RetrievedLookup(this.schema.connection.getRetrievableReader(), listOf(UUID.fromString((input as RetrievableIdInputData).id)))
         }
+        val fieldAndAttributeName: Pair<String,String?> = if(operation.field?.contains(".") == true){
+            val f = operation.field.substringBefore(".")
+            val a = operation.field.substringAfter(".")
+            f to a
+        }else{
+            operation.field!! to null
+        }
+        val field = this.schema[fieldAndAttributeName.first] ?: throw IllegalArgumentException("Retriever '${operation.field}' not defined in schema")
+
 
         /* Generate retriever instance. */
         return when (input) {
