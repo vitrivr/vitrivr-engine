@@ -50,7 +50,7 @@ fun main(args: Array<String>) {
                 .withDefinitionConfiguration{ _, def ->
                     def.withInfo{i ->
                         i.title = "vitrivr engine API"
-                        i.version = "1.0.0"
+                        i.version = "0.1.0"
                         i.description = "Rest API for the vitrivr engine project. Provides query (runtime) and extraction (ingestion) endpoints"
                     }
                         .withSecurity(

@@ -25,7 +25,7 @@ enum class ComparisonOperator(val value: String) {
          * @throws IllegalArgumentException In case the given string is not one of the defined ones.
          */
         fun fromString(str: String):ComparisonOperator{
-            return when(str){
+            return when(str.trim()){
                 "=" -> EQ
                 "!=" -> NEQ
                 "<" -> LE

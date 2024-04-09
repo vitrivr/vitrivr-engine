@@ -66,13 +66,11 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
         return this.connection.client.query(cottontailQuery).asSequence().map { tuple ->
             val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value
                 ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
-            val score = if (tuple.size > 1) {
-                tuple.asDouble(SCORE_COLUMN_NAME) ?: 0.0
-            } else {
-                1.0 // It is reasonable to use a score of 1.0 for boolena queries.
-            }
             val retrieved = Retrieved(retrievableId, null, false)
-            retrieved.addAttribute(ScoreAttribute.Unbound(score.toFloat()))
+            if(query is SimpleFulltextQuery){
+                val score = tuple.asDouble(SCORE_COLUMN_NAME) ?: 0.0
+                retrieved.addAttribute(ScoreAttribute.Unbound(score.toFloat()))
+            }
             retrieved
         }
     }
