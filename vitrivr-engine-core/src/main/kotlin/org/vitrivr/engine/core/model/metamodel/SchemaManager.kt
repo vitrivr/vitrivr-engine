@@ -60,6 +60,9 @@ class SchemaManager {
         val schema = Schema(config.name, connection)
         config.fields.map {
             val analyser = loadServiceForName<Analyser<*,*>>(it.factory) ?: throw IllegalArgumentException("Failed to find a factory implementation for '${it.factory}'.")
+            if(it.name.contains(".")){
+                throw IllegalArgumentException("Field names must not have a dot (.) in their name.")
+            }
             @Suppress("UNCHECKED_CAST")
             schema.addField(it.name, analyser as Analyser<ContentElement<*>, Descriptor>, it.parameters)
         }
