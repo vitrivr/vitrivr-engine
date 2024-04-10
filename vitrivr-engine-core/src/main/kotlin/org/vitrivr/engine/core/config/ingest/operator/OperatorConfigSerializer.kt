@@ -23,6 +23,10 @@ object OperatorConfigSerializer: JsonContentPolymorphicSerializer<OperatorConfig
             OperatorType.EXTRACTOR -> ExtractorConfig.serializer()
             OperatorType.EXPORTER -> ExporterConfig.serializer()
             OperatorType.AGGREGATOR -> AggregatorConfig.serializer()
+            OperatorType.ENUMERATOR -> EnumeratorConfig.serializer()
+            OperatorType.SEGMENTER -> SegmenterConfig.serializer()
+            OperatorType.OPERATOR -> TODO()
+            OperatorType.RETRIEVER -> TODO()
         }
     }
 
