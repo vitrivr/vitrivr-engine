@@ -47,6 +47,17 @@
         {
           "name": "whisperasr",
           "factory": "ASR"
+        },
+        {
+          "name": "exif",
+          "factory": "EXIF",
+          "parameters": {
+            "iso": "INT",
+            "shutterSpeed": "STRING",
+            "aperture": "STRING",
+            "focalLength": "STRING",
+            "cameraModel": "STRING"
+          }
         }
       ],
       "exporters": [
