@@ -7,6 +7,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import org.vitrivr.engine.core.config.IndexConfig
 import org.vitrivr.engine.core.config.SchemaConfig
+import org.vitrivr.engine.core.config.ingest.IngestionConfig
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -75,12 +76,18 @@ class SchemaManager {
             )
         }
         config.extractionPipelines.map {
-            val indexConfig = IndexConfig.read(Paths.get(it.path))
+            /*val indexConfig = IndexConfig.read(Paths.get(it.path))
                 ?: throw IllegalArgumentException("Failed to read pipeline configuration from '${it.path}'.")
             if (indexConfig.schema != schema.name) {
                 throw IllegalArgumentException("Schema name in pipeline configuration '${indexConfig.schema}' does not match schema name '${schema.name}'.")
             }
-            schema.addPipeline(it.name, indexConfig)
+            schema.addPipeline(it.name, indexConfig)*/
+            val indexConfig = IngestionConfig.read(Paths.get(it.path))
+                ?: throw IllegalArgumentException("Failed to read pipeline configuration from '${it.path}'.")
+            if (indexConfig.schema != schema.name) {
+                throw IllegalArgumentException("Schema name in pipeline configuration '${indexConfig.schema}' does not match schema name '${schema.name}'.")
+            }
+            schema.addIngestionPipeline(it.name, indexConfig)
         }
 
         /* Cache and return connection. */

@@ -11,10 +11,14 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.*
 import org.vitrivr.engine.core.util.extension.loadServiceForName
+import java.util.stream.Stream
 
 
 /**
  * Parses the [IngestionConfig] to build an ingestion pipeline.
+ *
+ * Currently, there is a strict set of rules regarding the build-up of a pipeline:
+ * [Enumerator] -> [Decoder] -> ([Transformer] | [Segmenter])* - if [Segmenter] > [Aggregator]* -> ([Exporter] | [Extractor])*
  */
 class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) {
 
@@ -63,10 +67,14 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
      * Parses and builds the [Enumerator] based on the given [EnumeratorConfig].
      * Starts the pipeline building process.
      */
-    private fun buildEnumerator(config: EnumeratorConfig, context: IndexContext){
+    private fun buildEnumerator(config: EnumeratorConfig, context: IndexContext, stream: Stream<*>? = null){
         val factory = loadFactory<EnumeratorFactory>(config.factory)
-        enumerator = factory.newOperator(context, config.parameters)
-        logger.info{"Instantiated new Enumerator: ${enumerator.javaClass.name}, parameters: ${config.parameters}"}
+        if(stream == null){
+            enumerator = factory.newOperator(context, config.parameters)
+        }else {
+            enumerator = factory.newOperator(context, config.parameters, stream)
+        }
+        logger.info{"Instantiated new ${if(stream != null){"stream-input"}else{""} } Enumerator: ${enumerator.javaClass.name}, parameters: ${config.parameters}"}
     }
 
     /**
@@ -149,17 +157,22 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
      * Parses the pipeline and constructs the corresponding operators.
      */
     private fun buildOperators(){
-        require(this::pipeline.isInitialized) {"Illegal State: Cannot build the ingestion pipeline if the pipeline is not initialised. This is a programmer's error!"}
-        require(pipelineDefValid) {"Illegal State: Cannot build the ingestion pipeline if not previously validated. This is a programmer's error!"}
-        var previous : Operator<*>
+        require(this::pipeline.isInitialized) {"Illegal State: Cannot build the ingestion pipeline when the pipeline is not initialised. This is a programmer's error!"}
+        require(pipelineDefValid) {"Illegal State: Cannot build the ingestion pipeline when not previously validated. This is a programmer's error!"}
+        require(this::enumerator.isInitialized){"Illegal State: Cannot build the ingestion pipeline when the enumerator has not been constructed. This is a programmer's error!"}
+        require(this::decoder.isInitialized){"Illegal State: Cannot build the ingestion pipeline when the decoder has not been constructed. This is a programmer's error!"}
+        var previous : Operator<*> = decoder
         pipelineDef.forEachIndexed { idx, entry ->
             logger.debug { "Building the $idx-th operator" }
-            if(idx == 0){
-                /* First operation, preceded by Enumerator -> Decoder */
-            }else if(idx == config.operations.size-1){
+            if(idx == config.operations.size-1){
                 /* Last operation, finalise */
+                @Suppress("UNCHECKED_CAST")
+                pipeline.addLeaf(buildOperator(idx,entry) as Operator<Retrievable>)
+                logger.debug{"Added the last operator to the pipeline"}
             }else{
                 /* Operation in between, build */
+                previous = buildOperator(idx, entry)
+                logger.debug{"Built an operator"}
             }
         }
     }
@@ -172,14 +185,15 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
         require(this::pipeline.isInitialized) {"Illegal State: Cannot build the ingestion pipeline if the pipeline is not initialised. This is a programmer's error!"}
         require(index in 0..pipelineDef.size){"Illegal Argument: Index has to be within pipeline bounds. This is a programmer's error!"}
         logger.debug { "Building $index-th operator for configuration $config" }
+        @Suppress("UNCHECKED_CAST")
         return when(config.type){ // the when-on-type is on purpose: It enforces all branches
             OperatorType.ENUMERATOR -> throw IllegalStateException("Paring operators and encountered an ENUMERATOR, which should start the pipeline. This is a configuration error! Use the configuration's 'enumerator' property!")
             OperatorType.DECODER -> throw IllegalStateException("Paring operators and encountered an DECODER, which should start the pipeline. This is a configuration error! Use the configuration's 'decoder' property!")
             OperatorType.OPERATOR -> throw UnsupportedOperationException("Free-form OPERATOR operators are not yet supported")
             OperatorType.RETRIEVER -> throw UnsupportedOperationException("RETRIEVER operators are not yet supported")
             OperatorType.TRANSFORMER -> buildTransformer(operators[index-1], config as TransformerConfig)
-            OperatorType.EXTRACTOR -> TODO()
-            OperatorType.EXPORTER -> TODO()
+            OperatorType.EXTRACTOR -> buildExtractor(operators[index-1] as Operator<Retrievable>, config as ExtractorConfig) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
+            OperatorType.EXPORTER -> buildExporter(operators[index-1] as Operator<Retrievable>, config as ExporterConfig) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
             OperatorType.AGGREGATOR -> buildAggregator(operators[index-1], config as AggregatorConfig)
             OperatorType.SEGMENTER -> buildSegmenter(operators[index-1], config as SegmenterConfig)
         }
@@ -187,7 +201,7 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
 
     /**
      * Builds a [Transformer] based on the [TransformerConfig]'s factory.
-     * @param parent: The preceding [Operator]
+     * @param parent: The preceding [Operator]. Has to be one of: [Decoder], [Transformer]
      * @param config: The [TransformerConfig] describing the to-be-built [Transformer]
      */
     private fun buildTransformer(parent: Operator<*>, config: TransformerConfig): Transformer {
@@ -204,7 +218,7 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
 
     /**
      * Builds a [Segmenter] based on the [SegmenterConfig]'s factory.
-     * @param parent: The preceding [Operator]
+     * @param parent: The preceding [Operator]. Has to be one of: [Decoder], [Transformer]
      * @param config: The [SegmenterConfig] describing the to-be-built [Segmenter]
      */
     private fun buildSegmenter(parent: Operator<*>, config: SegmenterConfig): Segmenter{
@@ -220,8 +234,8 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
     }
 
     /**
-     * Builds a [Aggregator] based on the [AggregatorConfig]'s factory.
-     * @param parent: The preceding [Operator]
+     * Builds an [Aggregator] based on the [AggregatorConfig]'s factory.
+     * @param parent: The preceding [Operator]. Has to be one of: [Aggregator]
      * @param config: The [AggregatorConfig] describing the to-be-built [Aggregator]
      */
     private fun buildAggregator(parent: Operator<*>, config: AggregatorConfig): Aggregator{
@@ -233,6 +247,11 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
             }
     }
 
+    /**
+     * Builds an [Exporter] based on the [ExporterConfig]'s factory OR the [ExporterConfig.exporterName] named exporter in the schema.
+     * @param parent: The preceding [Operator]. Has to be one of: [Exporter], [Extractor], [Aggregator].
+     * @param config: The [ExporterConfig] describing the to-be-built [Exporter]
+     */
     private fun buildExporter(parent: Operator<Retrievable>, config: ExporterConfig): Exporter {
         require(parent is Exporter || parent is Extractor<*, *> || parent is Aggregator) { "Preceding an exporter, there must be an aggregator, exporter or extractor" }
         return if (config.exporterName.isNullOrBlank() && !config.factory.isNullOrBlank()) {
@@ -259,6 +278,28 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
     }
 
     /**
+     * Builds an [Extractor] based on the [ExtractorConfig.fieldName] named field in the schema.
+     * @param parent The preceding [Operator]. Has to be one of: [Exporter], [Extractor].
+     * @param config: The [ExtractorConfig] describing the to-be-built [Extractor]
+     */
+    private fun buildExtractor(
+        parent: Operator<Retrievable>,
+        config: ExtractorConfig
+    ): Extractor<*, *> {
+        require(parent is Exporter || parent is Extractor<*, *>) { "Preceding an extractor, there must be an exporter or extractor" }
+        val field = context.schema[config.fieldName]
+            ?: throw IllegalArgumentException("Field '${config.fieldName}' does not exist in schema '${context.schema.name}'")
+        return if (config.parameters.isNotEmpty()) {
+            logger.warn { "PipelineBuilder overrides Extractor '${config.fieldName}' parameters provided in schema '${context.schema.name}" }
+            field.getExtractor(parent, context, config.parameters)
+        } else {
+            field.getExtractor(parent, context)
+        }.apply {
+            logger.info { "Built extractor by name from schema: ${this.javaClass.name} with parameters ${config.parameters}" }
+        }
+    }
+
+    /**
      * Loads the appropriate factory for the given name.
      *
      * @param name The (fully qualified or simple) class name of a factory.
@@ -268,9 +309,20 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
         return loadServiceForName<T>(name) ?: throw IllegalArgumentException("Failed to find '${T::class.java.simpleName}' implementation for name '$name'")
     }
 
-    fun build(): IndexingPipeline{
+    /**
+     * Build the [IndexingPipeline] based this [IngestionPipelineBuilder]'s [config].
+     * The involved steps are:
+     * 1. Parsing of the configuration
+     * 2. Validating the configuration
+     * 3. Building the Enumerator and Decoder
+     * 4. Building the operators
+     *
+     * @param stream If there is a specific stream the built [Enumerator] should process.
+     * @return The produced [IndexingPipeline], ready to be processed.
+     */
+    fun build(stream: Stream<*>? = null): IndexingPipeline{
         this.pipeline = IndexingPipeline()
-        buildEnumerator(config.enumerator, context)
+        buildEnumerator(config.enumerator, context, stream)
         buildDecoder(config.decoder, context)
         parseOperations()
         validatePipelineDefinition()
