@@ -25,7 +25,7 @@ sealed class OperatorConfig {
     /**
      * Additional parameters, operator dependent.
      */
-    abstract val parameters: Map<String, String>
+    val parameters: Map<String, String> = mutableMapOf()
 }
 
 sealed class FactoryBuildableOperatorConfig: OperatorConfig() {
@@ -40,7 +40,7 @@ sealed class FactoryBuildableOperatorConfig: OperatorConfig() {
  * Configuration for a [Decoder].
  */
 @Serializable
-data class DecoderConfig(override val parameters: Map<String, String>, override val factory: String): FactoryBuildableOperatorConfig(){
+data class DecoderConfig(override val factory: String): FactoryBuildableOperatorConfig(){
     override val type = OperatorType.DECODER
 }
 
@@ -48,7 +48,7 @@ data class DecoderConfig(override val parameters: Map<String, String>, override 
  * Configuration for a [Enumerator]
  */
 @Serializable
-data class EnumeratorConfig(override val parameters: Map<String, String>,
+data class EnumeratorConfig(
                             override val factory: String
 ): FactoryBuildableOperatorConfig(){
     override val type = OperatorType.ENUMERATOR
@@ -59,7 +59,7 @@ data class EnumeratorConfig(override val parameters: Map<String, String>,
  * Configuration for a [Transformer].
  */
 @Serializable
-data class TransformerConfig(override val parameters: Map<String, String>,
+data class TransformerConfig(
                              override val factory: String
 ): FactoryBuildableOperatorConfig(){
     override val type = OperatorType.TRANSFORMER
@@ -69,7 +69,7 @@ data class TransformerConfig(override val parameters: Map<String, String>,
  * Configuration for a [Segmenter].
  */
 @Serializable
-data class SegmenterConfig(override val parameters: Map<String, String>,
+data class SegmenterConfig(
                              override val factory: String
 ): FactoryBuildableOperatorConfig(){
     override val type = OperatorType.SEGMENTER
@@ -83,17 +83,12 @@ data class ExtractorConfig(
     /**
      * Name of a field as defined in the schema.
      */
-    val fieldName: String?,
+    val fieldName: String,
     val factory: String?,
-    override val parameters: Map<String, String>
+
 ): OperatorConfig(){
        override val type = OperatorType.EXTRACTOR
 
-    init {
-        require((fieldName.isNullOrBlank() && !factory.isNullOrBlank())
-                || (!fieldName.isNullOrBlank() && factory.isNullOrBlank()) )
-        {"An ExtractorConfig must have either a field name (referencing a schema's field) or a factory name"}
-    }
 }
 
 /**
@@ -106,7 +101,6 @@ data class ExporterConfig(
      */
     val exporterName: String?,
     val factory: String?,
-    override val parameters: Map<String, String>
 ): OperatorConfig(){
     override val type = OperatorType.EXPORTER
 
@@ -121,8 +115,7 @@ data class ExporterConfig(
  * Configuration for an [Aggregator].
  */
 @Serializable
-data class AggregatorConfig(
-    override val parameters: Map<String, String>, override val factory: String
+data class AggregatorConfig(override val factory: String
 ): FactoryBuildableOperatorConfig(){
     override val type = OperatorType.AGGREGATOR
 }
