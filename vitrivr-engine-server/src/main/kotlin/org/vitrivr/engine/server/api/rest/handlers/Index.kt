@@ -50,9 +50,9 @@ fun executeIngest(ctx: Context, schema: Schema, executor: ExecutionServer) {
         val stream = filestream.stream()
 
         /* Construct extraction pipeline */
-        val pipelineBuilder = pipelineName?.let { schema.getPipelineBuilder(it) }
-            ?: throw ErrorStatusException(400, "Invalid request: Pipeline '$pipelineName' does not exist.")
-        val pipeline = pipelineBuilder.getApiPipeline(stream)
+        val pipelineBuilder = pipelineName?.let { schema.getIngestionPipelineBuilder(it) }
+            ?: throw ErrorStatusException(404, "Invalid request: Pipeline '$pipelineName' does not exist.")
+        val pipeline = pipelineBuilder.build(stream)
 
         /* Schedule pipeline and return job Id. */
         val jobId = executor.extractAsync(pipeline)
