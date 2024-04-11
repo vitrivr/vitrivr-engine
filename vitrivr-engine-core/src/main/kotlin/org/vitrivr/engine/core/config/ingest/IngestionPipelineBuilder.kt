@@ -162,18 +162,21 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
         require(this::enumerator.isInitialized){"Illegal State: Cannot build the ingestion pipeline when the enumerator has not been constructed. This is a programmer's error!"}
         require(this::decoder.isInitialized){"Illegal State: Cannot build the ingestion pipeline when the decoder has not been constructed. This is a programmer's error!"}
         var previous : Operator<*> = decoder
+        operators.add(previous)
         pipelineDef.forEachIndexed { idx, entry ->
-            logger.debug { "Building the $idx-th operator" }
+            logger.debug { "Building the ${idx+1}-th operator" }
+            val operator = buildOperator(idx+1, entry)
             if(idx == config.operations.size-1){
                 /* Last operation, finalise */
                 @Suppress("UNCHECKED_CAST")
-                pipeline.addLeaf(buildOperator(idx,entry) as Operator<Retrievable>)
+                pipeline.addLeaf(operator as Operator<Retrievable>)
                 logger.debug{"Added the last operator to the pipeline"}
             }else{
                 /* Operation in between, build */
-                previous = buildOperator(idx, entry)
+                previous = operator
                 logger.debug{"Built an operator"}
             }
+            operators.add(operator)
         }
     }
 
@@ -183,7 +186,7 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
      */
     private fun buildOperator(index: Int, config: OperatorConfig): Operator<*>{
         require(this::pipeline.isInitialized) {"Illegal State: Cannot build the ingestion pipeline if the pipeline is not initialised. This is a programmer's error!"}
-        require(index in 0..pipelineDef.size){"Illegal Argument: Index has to be within pipeline bounds. This is a programmer's error!"}
+        require(index in 1..pipelineDef.size){"Illegal Argument: Index has to be within pipeline bounds. This is a programmer's error!"}
         logger.debug { "Building $index-th operator for configuration $config" }
         @Suppress("UNCHECKED_CAST")
         return when(config.type){ // the when-on-type is on purpose: It enforces all branches
@@ -205,7 +208,7 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
      * @param config: The [TransformerConfig] describing the to-be-built [Transformer]
      */
     private fun buildTransformer(parent: Operator<*>, config: TransformerConfig): Transformer {
-        require(parent is Decoder || parent is Transformer){"Preceding a transformer, there must be decoder or transformer"}
+        require(parent is Decoder || parent is Transformer){"Preceding a transformer, there must be decoder or transformer, but found $parent"}
         val factory = loadFactory<TransformerFactory>(config.factory)
         return when(parent){
             is Decoder -> factory.newOperator(parent, context, config.parameters)
@@ -222,7 +225,7 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
      * @param config: The [SegmenterConfig] describing the to-be-built [Segmenter]
      */
     private fun buildSegmenter(parent: Operator<*>, config: SegmenterConfig): Segmenter{
-        require(parent is Decoder || parent is Transformer){"Preceding a segmenter, there must be a decoder or transformer"}
+        require(parent is Decoder || parent is Transformer){"Preceding a segmenter, there must be a decoder or transformer, but found $parent"}
         val factory = loadFactory<SegmenterFactory>(config.factory)
         return when(parent){
             is Decoder -> factory.newOperator(parent, context, config.parameters)
@@ -253,7 +256,7 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
      * @param config: The [ExporterConfig] describing the to-be-built [Exporter]
      */
     private fun buildExporter(parent: Operator<Retrievable>, config: ExporterConfig): Exporter {
-        require(parent is Exporter || parent is Extractor<*, *> || parent is Aggregator) { "Preceding an exporter, there must be an aggregator, exporter or extractor" }
+        require(parent is Exporter || parent is Extractor<*, *> || parent is Aggregator) { "Preceding an exporter, there must be an aggregator, exporter or extractor, but found $parent" }
         return if (config.exporterName.isNullOrBlank() && !config.factory.isNullOrBlank()) {
             /* Case factory is specified */
             val factory = loadFactory<ExporterFactory>(config.factory!!)
@@ -286,7 +289,7 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
         parent: Operator<Retrievable>,
         config: ExtractorConfig
     ): Extractor<*, *> {
-        require(parent is Exporter || parent is Extractor<*, *>) { "Preceding an extractor, there must be an exporter or extractor" }
+        require(parent is Exporter || parent is Extractor<*, *> || parent is Aggregator) { "Preceding an extractor, there must be an exporter or extractor, but found $parent" }
         val field = context.schema[config.fieldName]
             ?: throw IllegalArgumentException("Field '${config.fieldName}' does not exist in schema '${context.schema.name}'")
         return if (config.parameters.isNotEmpty()) {
