@@ -1,0 +1,57 @@
+{
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverFactory": "DiskResolver",
+    "parameters": {
+      "location": "../objects"
+    }
+  },
+  "schema": "Test",
+  "enumerator": {
+    "name": "FileSystemEnumerator",
+    "parameters": {
+      "path": "../data",
+      "depth": "5",
+      "mediaTypes": "VIDEO"
+    },
+    "next": {
+      "name": "VideoDecoder",
+      "parameters": {
+        "audio": "false",
+        "video": "true",
+        "sample.video": "10"
+      },
+      "nextSegmenter": {
+        "name": "FixedDurationSegmenter",
+        "parameters": {
+          "duration": "3",
+          "lookAheadTime": "1"
+        },
+        "aggregators": [
+          {
+            "name": "CenterContentAggregator",
+            "nextExtractor": {
+              "fieldName": "averagecolor",
+              "nextExporter": {
+                "name": "ThumbnailExporter",
+                "exporterName": "thumbnail",
+                "nextExtractor": {
+                  "fieldName": "file",
+                  "nextExtractor": {
+                    "fieldName": "video",
+                    "nextExtractor": {
+                      "fieldName": "time",
+                      "nextExtractor": {
+                        "fieldName": "ocr"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

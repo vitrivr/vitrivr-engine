@@ -1,5 +1,5 @@
 
-task generateSampleClient(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+task generateFESClient(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
     generatorName = "kotlin"
     inputSpec = "$rootDir/vitrivr-engine-module-fes/feature-extraction-server.json".toString()
     outputDir = "$buildDir/api-client-generated".toString()
@@ -9,6 +9,8 @@ task generateSampleClient(type: org.openapitools.generator.gradle.plugin.tasks.G
     generateAliasAsModel = false
     enablePostProcessFile = false
 }
+
+assemble.dependsOn generateFESClient
 
 sourceSets {
     main {
@@ -29,5 +31,6 @@ dependencies {
     implementation "com.squareup.okhttp3:okhttp:4.11.0"
     implementation "com.squareup.okhttp3:logging-interceptor:3.4.1"
     implementation project(path: ':vitrivr-engine-core')
+    implementation project(path: ':vitrivr-engine-module-features')
     testImplementation "io.kotlintest:kotlintest-runner-junit5:3.4.2"
 }

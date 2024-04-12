@@ -2,6 +2,7 @@ package org.vitrivr.engine.base.features.external.implementations.dino
 
 import org.vitrivr.engine.base.features.external.ExternalAnalyser
 import org.vitrivr.engine.base.features.external.common.ExternalWithFloatVectorDescriptorAnalyser
+import org.vitrivr.engine.base.features.external.common.DenseRetriever
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.Content
@@ -25,7 +26,7 @@ import java.util.*
  * @author Rahel Arnold
  * @version 1.0.0
  */
-class DINO : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
+class DINO : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
 
     override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = FloatVectorDescriptor::class
@@ -48,13 +49,13 @@ class DINO : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
      * @return A new [Extractor] instance for this [DINO]
      * @throws [UnsupportedOperationException], if this [DINO] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): Extractor<ImageContent, FloatVectorDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): Extractor<ContentElement<*>, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         return DINOExtractor(input, field, persisting)
     }
 
     /**
-     * Generates and returns a new [DINORetriever] instance for this [DINO].
+     * Generates and returns a new [DenseRetriever] instance for this [DINO].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param query An array of [Query] elements to use with the [Retriever]
@@ -63,15 +64,15 @@ class DINO : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, context: QueryContext): DINORetriever {
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, query: Query, context: QueryContext): DenseRetriever {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is ProximityQuery<*> && query.value.first() is Value.Float) { "The query is not a ProximityQuery<Value.Float>." }
         @Suppress("UNCHECKED_CAST")
-        return DINORetriever(field, query as ProximityQuery<Value.Float>, context)
+        return DenseRetriever(field, query as ProximityQuery<Value.Float>, context)
     }
 
     /**
-     * Generates and returns a new [DINORetriever] instance for this [DINO].
+     * Generates and returns a new [DenseRetriever] instance for this [DINO].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param content An array of [Content] elements to use with the [Retriever]
@@ -80,7 +81,7 @@ class DINO : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext): DINORetriever {
+    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): DenseRetriever {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
 
@@ -100,7 +101,7 @@ class DINO : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
      * @param hostname The hostname of the external feature descriptor service.
      * @return A list of CLIP feature descriptors.
      */
-    override fun analyse(content: ImageContent, hostname: String): FloatVectorDescriptor {
+    override fun analyse(content: ContentElement<*>, hostname: String): FloatVectorDescriptor {
         return FloatVectorDescriptor(UUID.randomUUID(), null, httpRequest(content, "$hostname/extract/dino"), true)
     }
 }
