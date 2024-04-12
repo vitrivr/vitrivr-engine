@@ -1,10 +1,5 @@
 package org.vitrivr.engine.core.model.retrievable
 
-import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.retrievable.attributes.ContentAttribute
-import org.vitrivr.engine.core.model.retrievable.attributes.MergingRetrievableAttribute
-import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
-
 /**
  * A [Ingested] used in the data ingest pipeline.
  *
