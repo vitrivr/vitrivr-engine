@@ -4,13 +4,11 @@ import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
-import org.vitrivr.engine.core.model.content.impl.InMemoryImageContent
-import org.vitrivr.engine.core.model.content.impl.InMemoryTextContent
+import org.vitrivr.engine.core.model.content.impl.memory.InMemoryImageContent
+import org.vitrivr.engine.core.model.content.impl.memory.InMemoryTextContent
 import org.vitrivr.engine.core.util.extension.BufferedImage
 import java.awt.image.BufferedImage
 import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.LocalDate
 import java.util.*
 
 /**

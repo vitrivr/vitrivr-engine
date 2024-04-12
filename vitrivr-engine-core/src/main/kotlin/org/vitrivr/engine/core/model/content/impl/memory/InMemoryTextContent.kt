@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.model.content.impl
+package org.vitrivr.engine.core.model.content.impl.memory
 
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.content.element.TextContent

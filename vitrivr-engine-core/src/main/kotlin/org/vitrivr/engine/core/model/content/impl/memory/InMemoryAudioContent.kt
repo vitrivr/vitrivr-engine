@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.model.content.impl
+package org.vitrivr.engine.core.model.content.impl.memory
 
 import org.vitrivr.engine.core.model.content.element.AudioContent
 import java.nio.ShortBuffer
