@@ -2,11 +2,7 @@ package org.vitrivr.engine.core.model.content.factory
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.vitrivr.engine.core.content.ContentFactory
-import org.vitrivr.engine.core.model.content.element.AudioContent
-import org.vitrivr.engine.core.model.content.element.ImageContent
-import org.vitrivr.engine.core.model.content.element.Model3DContent
-import org.vitrivr.engine.core.model.content.element.TextContent
+import org.vitrivr.engine.core.model.content.element.*
 import org.vitrivr.engine.core.model.content.impl.cache.CachedAudioContent
 import org.vitrivr.engine.core.model.content.impl.cache.CachedContent
 import org.vitrivr.engine.core.model.content.impl.cache.CachedImageContent
@@ -24,7 +20,7 @@ import kotlin.concurrent.thread
 private val logger: KLogger = KotlinLogging.logger {}
 
 /**
- * A [ContentFactory] that uses a file cache to back content items.
+ * A [ContentFactory] that uses a file cache to back [ContentElement]s.
  *
  * @author Ralph Gasser
  * @version 1.0.0

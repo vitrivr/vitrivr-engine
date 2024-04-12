@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.content
+package org.vitrivr.engine.core.model.content.factory
 
 import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.model.content.element.ImageContent
