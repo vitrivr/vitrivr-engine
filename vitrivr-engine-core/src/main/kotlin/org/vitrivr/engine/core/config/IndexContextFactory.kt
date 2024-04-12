@@ -1,6 +1,6 @@
 package org.vitrivr.engine.core.config
 
-import org.vitrivr.engine.core.content.ContentFactory
+import org.vitrivr.engine.core.model.content.factory.ContentFactory
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.resolver.ResolverFactory
