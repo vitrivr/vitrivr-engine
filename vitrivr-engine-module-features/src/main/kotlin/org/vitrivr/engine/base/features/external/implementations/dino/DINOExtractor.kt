@@ -3,6 +3,7 @@ package org.vitrivr.engine.base.features.external.implementations.dino
 import org.vitrivr.engine.base.features.external.ExternalAnalyser
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.model.content.ContentType
+import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
@@ -24,9 +25,9 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  */
 class DINOExtractor(
     input: Operator<Retrievable>,
-    field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+    field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
     persisting: Boolean
-) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, field, persisting) {
+) : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor>(input, field, persisting) {
 
     /** The host of the external [DINO] service. */
     private val host: String =

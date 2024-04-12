@@ -1,4 +1,4 @@
-package org.vitrivr.engine.base.features.fulltext
+package org.vitrivr.engine.base.features.external.common
 
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.AbstractRetriever
