@@ -1,7 +1,5 @@
 package org.vitrivr.engine.index.segment
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.sync.Mutex
@@ -9,10 +7,9 @@ import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.retrievable.Ingested
-import org.vitrivr.engine.core.model.retrievable.Relationship
+import org.vitrivr.engine.core.model.retrievable.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.ContentAttribute
-import org.vitrivr.engine.core.model.retrievable.attributes.RelationshipAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.*
@@ -167,7 +164,7 @@ class FixedDurationSegmenter : SegmenterFactory {
             /* Prepare retrievable. */
             val retrievable = Ingested(UUID.randomUUID(), "segment", false)
             content.forEach { retrievable.addAttribute(ContentAttribute(it)) }
-            retrievable.addAttribute(RelationshipAttribute(Relationship(retrievable, "partOf", sourceRetrievable)))
+            retrievable.addRelationship(Relationship.ByRef(retrievable, "partOf", sourceRetrievable))
 
             /* Persist retrievable and relationship. */
             this.writer.add(retrievable)

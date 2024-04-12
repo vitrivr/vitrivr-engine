@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.model.retrievable
 
 import org.vitrivr.engine.core.model.retrievable.attributes.MergingRetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
+import org.vitrivr.engine.core.model.retrievable.relationship.Relationship
 import java.util.*
 
 /**
@@ -9,7 +10,7 @@ import java.util.*
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.2.0
  */
 abstract class AbstractRetrievable(override val id: UUID, override val type: String?, override val transient: Boolean) : Retrievable {
 
@@ -17,18 +18,26 @@ abstract class AbstractRetrievable(override val id: UUID, override val type: Str
         retrievable.attributes.forEach { this.addAttribute(it) }
     }
 
-    /** A synchronized set of [RetrievableAttribute]s. */
-    private val attributeSet = Collections.synchronizedSet(mutableSetOf<RetrievableAttribute>())
+    /** A synchronized set of [RetrievableAttribute]s held by this [AbstractRetrievable]. */
+    private val attributeSet = mutableSetOf<RetrievableAttribute>()
+
+    /** A synchronized set of [Relationship]s. */
+    private val relationshipSet = mutableSetOf<Relationship>()
 
     /** [Collection] of [RetrievableAttribute]s held by this [AbstractRetrievable]. */
     override val attributes: Collection<RetrievableAttribute>
-        get() = this.attributeSet
+        get() = Collections.unmodifiableSet(this.attributeSet)
+
+    /** [Collection] of [Relationship]s held by this [AbstractRetrievable]. */
+    override val relationships: Collection<Relationship>
+        get() = Collections.unmodifiableSet(this.relationshipSet)
 
     /**
      * Adds a [RetrievableAttribute] to this [AbstractRetrievable].
      *
      * @param attribute The [RetrievableAttribute] to add.
      */
+    @Synchronized
     override fun addAttribute(attribute: RetrievableAttribute) {
         if (this.attributeSet.contains(attribute)) {
             return
@@ -52,6 +61,7 @@ abstract class AbstractRetrievable(override val id: UUID, override val type: Str
      *
      * @param c The [Class] of the [RetrievableAttribute] to remove.
      */
+    @Synchronized
     override fun <T : RetrievableAttribute> removeAttributes(c: Class<T>) {
         this.attributeSet.removeIf { c.isInstance(it) }
     }
@@ -62,6 +72,7 @@ abstract class AbstractRetrievable(override val id: UUID, override val type: Str
      * @param c The [Class] of the [RetrievableAttribute] to check for.
      * @return True, if [RetrievableAttribute]
      */
+    @Synchronized
     override fun <T : RetrievableAttribute> hasAttribute(c: Class<T>): Boolean = this.attributeSet.any { c.isInstance(it) }
 
     /**
@@ -70,6 +81,7 @@ abstract class AbstractRetrievable(override val id: UUID, override val type: Str
      * @param c The [Class] of the [RetrievableAttribute] to return.
      * @return [Collection] of [RetrievableAttribute]s.
      */
+    @Synchronized
     override fun <T : RetrievableAttribute> filteredAttributes(c: Class<T>): Collection<T> = this.attributeSet.filterIsInstance(c)
 
     inline fun <reified T : RetrievableAttribute> filteredAttributes(): Collection<T> = filteredAttributes(T::class.java)
@@ -80,7 +92,26 @@ abstract class AbstractRetrievable(override val id: UUID, override val type: Str
      * @param c The [Class] of the [RetrievableAttribute] to return.
      * @return [RetrievableAttribute] or null.
      */
+    @Synchronized
     override fun <T : RetrievableAttribute> filteredAttribute(c: Class<T>): T? = this.attributeSet.filterIsInstance(c).firstOrNull()
+
+    /**
+     * Adds a [Relationship] to this [AbstractRetrievable].
+     *
+     * @param relationship [Relationship] to add.
+     * @return True on success, false otherwise.
+     */
+    @Synchronized
+    override fun addRelationship(relationship: Relationship): Boolean = this.relationshipSet.add(relationship)
+
+    /**
+     * Removes a [Relationship] from this [AbstractRetrievable].
+     *
+     * @param relationship [Relationship] to remove.
+     * @return True on success, false otherwise.
+     */
+    @Synchronized
+    override fun removeRelationship(relationship: Relationship): Boolean = this.relationshipSet.remove(relationship)
 
     inline fun <reified T : RetrievableAttribute> filteredAttribute(): T? = filteredAttribute(T::class.java)
 }

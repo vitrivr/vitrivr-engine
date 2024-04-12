@@ -2,7 +2,9 @@ package org.vitrivr.engine.core.model.retrievable
 
 import org.vitrivr.engine.core.model.Persistable
 import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
+import org.vitrivr.engine.core.model.retrievable.relationship.Relationship
 import java.util.*
+import java.util.function.Predicate
 
 /** A typealias to identify the [UUID] identifying a [Retrievable]. */
 typealias RetrievableId = UUID
@@ -12,7 +14,7 @@ typealias RetrievableId = UUID
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.2.0
  */
 interface Retrievable : Persistable {
     /** The [RetrievableId] held by this [Retrievable]. */
@@ -21,8 +23,11 @@ interface Retrievable : Persistable {
     /** The type of this [Retrievable]. This is basically a string that can help to keep apart different types of [Retrievable]. */
     val type: String?
 
-    /** The attributes of this retrievable */
+    /** The [RetrievableAttribute]s held by this [Retrievable]. */
     val attributes: Collection<RetrievableAttribute>
+
+    /** The [Relationship]s held by [Retrievable]. */
+    val relationships: Collection<Relationship>
 
     /**
      * Checks if this [Retrievable] has a [RetrievableAttribute] of the given type.
@@ -61,4 +66,25 @@ interface Retrievable : Persistable {
      * @return [RetrievableAttribute] or null.
      */
     fun <T : RetrievableAttribute> filteredAttribute(c: Class<T>): T?
+
+    /**
+     * Adds a [Relationship] to this [Retrievable].
+     *
+     * @param relationship The [Relationship] to add.
+     * @return True on success, false otherwise.
+     */
+    fun addRelationship(relationship: Relationship): Boolean
+
+    /**
+     * Removes all [Relationship]s from this [Retrievable].
+     *
+     * @param relationship The [Relationship] to remove.
+     * @return True on success, false otherwise.
+     */
+    fun removeRelationship(relationship: Relationship): Boolean
+
+    /**
+     * Finds all [Relationship]s held by this [Retrievable] that satisfy the given [Predicate]
+     */
+    fun findRelationship(predicate: Predicate<Relationship>): List<Relationship> = this.relationships.filter { predicate.test(it) }
 }

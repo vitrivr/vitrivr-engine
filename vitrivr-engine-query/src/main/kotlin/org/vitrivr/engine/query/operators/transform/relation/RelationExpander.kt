@@ -5,17 +5,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
-import org.vitrivr.engine.core.model.retrievable.Relationship
+import org.vitrivr.engine.core.model.retrievable.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
-import org.vitrivr.engine.core.model.retrievable.attributes.RelationshipAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Transformer
 
 /**
- * Appends [RelationshipAttribute] to a [Retrieved] by expanding the specified incoming and outgoing relationships.
+ * Appends [Relationship] to a [Retrieved] by expanding the specified incoming and outgoing relationships.
  *
- * @version 1.1.0
+ * @version 1.2.0
  * @author Luca Rossetto
  * @author Ralph Gasser
  */
@@ -52,7 +51,7 @@ class RelationExpander(
         /* Collection IDs that are new and fetch corresponding retrievable. */
         val newIds = (objects.values.flatMap { o -> o.map { s -> s.first } }.toSet() + subjects.values.flatMap { s -> s.map { o -> o.third } }.toSet()) - ids
         val new = if (newIds.isNotEmpty()) {
-            retrievableReader.getAll(newIds.toList())
+            this@RelationExpander.retrievableReader.getAll(newIds.toList())
         } else {
             emptySequence()
         }.map {
@@ -65,12 +64,19 @@ class RelationExpander(
         inputRetrieved.forEach {
             /* Expand incoming relationships. */
             for (obj in (objects[it.id] ?: emptyList())) {
-                it.addAttribute(RelationshipAttribute(Relationship(obj.first to it, obj.second, obj.third to new[obj.third])))
+                val subject = new[obj.third]
+                if (subject != null) {
+                    it.addRelationship(Relationship.ByRef(it, obj.second, subject))
+                }
             }
 
             /* Expand outgoing relationships. */
             for (sub in (subjects[it.id] ?: emptyList())) {
-                it.addAttribute(RelationshipAttribute(Relationship(sub.first to it, sub.second, sub.third to new[sub.third])))
+                val `object` = new[sub.third]
+                if (`object` != null) {
+                    it.addRelationship(Relationship.ByRef(it, sub.second, `object`))
+
+                }
             }
 
             /* Emit. */
