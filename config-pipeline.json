@@ -1,60 +1,59 @@
 {
+  "schema": "PTT",
   "context": {
     "contentFactory": "InMemoryContentFactory",
     "resolverFactory": "DiskResolver",
     "parameters": {
-      "location": "/Volumes/V3C1/LHE/thumbnails"
+      "location": "D:/ptt/thumbnails/"
     }
   },
-  "schema": "VBSLHE",
   "enumerator": {
-    "name": "FileSystemEnumerator",
+    "type": "ENUMERATOR",
+    "factory": "FileSystemEnumerator",
     "parameters": {
-      "path": "/Volumes/V3C1/LHE/videos",
-      "depth": "5",
-      "mediaTypes": "VIDEO"
-    },
-    "next": {
-      "name": "VideoDecoder",
-      "parameters": {
-        "audio": "false",
-        "video": "true",
-        "sample.video": "10"
-      },
-      "nextSegmenter": {
-        "name": "FixedDurationSegmenter",
-        "parameters": {
-          "duration": "3",
-          "lookAheadTime": "1"
-        },
-        "aggregators": [
-          {
-            "name": "CenterContentAggregator",
-            "nextExtractor": {
-              "fieldName": "averagecolor",
-              "nextExporter": {
-                "name": "ThumbnailExporter",
-                "exporterName": "thumbnail",
-                "nextExtractor": {
-                  "fieldName": "file",
-                  "nextExtractor": {
-                    "fieldName": "video",
-                    "nextExtractor": {
-                      "fieldName": "time",
-                      "nextExtractor": {
-                        "fieldName": "clip",
-                        "nextExtractor": {
-                          "fieldName": "dino"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        ]
-      }
+      "path": "D:/ptt/PTT-Testdaten",
+      "mediaTypes": "IMAGE;VIDEO",
+      "depth": "5"
     }
+  },
+  "decoder": {
+    "factory": "ImageDecoder"
+  },
+  "operators": {
+    "pass": {
+      "type": "SEGMENTER",
+      "factory": "FixedDurationSegmenter",
+      "parameters": {
+        "duration": "10",
+        "lookAheadTime": "1"
+      }
+    },
+    "allContent": {
+      "type": "AGGREGATOR",
+      "factory": "AllContentAggregator"
+    },
+    "avgColor": {
+      "type": "EXTRACTOR",
+      "fieldName": "averagecolor"
+    },
+    "thumbs": {
+      "type": "EXPORTER",
+      "exporterName": "thumbnail",
+      "parameters": {
+        "maxSideResolution": "350",
+        "mimeType": "JPG"
+      }
+    },
+    "fileMeta": {
+      "type": "EXTRACTOR",
+      "fieldName": "file"
+    }
+  },
+  "operations": {
+    "stage1": {"operator": "pass"},
+    "stage2": {"operator": "allContent"},
+    "stage3": {"operator": "avgColor"},
+    "stage4": {"operator": "thumbs"},
+    "stage5": {"operator": "fileMeta"}
   }
 }

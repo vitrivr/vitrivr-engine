@@ -155,6 +155,51 @@
           }
         }
       ]
+    },
+    {
+      "name": "PTT",
+      "connection": {
+        "database": "CottontailConnectionProvider",
+        "parameters": {
+          "host": "127.0.0.1",
+          "port": "1865"
+        }
+      },
+      "fields": [
+        {
+          "name": "averagecolor",
+          "factory": "AverageColor"
+        },
+        {
+          "name": "clip",
+          "factory": "CLIP"
+        },
+        {
+          "name": "dino",
+          "factory": "DINO"
+        },
+        {
+          "name": "file",
+          "factory": "FileSourceMetadata"
+        },
+        {
+          "name": "video",
+          "factory": "VideoSourceMetadata"
+        },
+        {
+          "name": "time",
+          "factory": "TemporalMetadata"
+        }
+      ],
+      "exporters": [
+        {
+          "name": "thumbnail",
+          "factory": "ThumbnailExporter",
+          "resolver": {
+            "factory": "DiskResolver"
+          }
+        }
+      ]
     }
   ]
 }
