@@ -34,7 +34,7 @@ typealias FieldName = String
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class Schema(val name: String = "vitrivr", val connection: Connection) : Closeable {
+open class Schema(val name: String = "vitrivr", val connection: Connection) : Closeable {
 
     /** The [List] of [Field]s contained in this [Schema]. */
     private val fields: MutableList<Schema.Field<ContentElement<*>, Descriptor>> = mutableListOf()

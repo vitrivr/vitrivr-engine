@@ -3,6 +3,7 @@ package org.vitrivr.engine.core.config.ingest
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.config.IndexContextFactory
+import org.vitrivr.engine.core.config.ingest.operation.OperationsConfig
 import org.vitrivr.engine.core.config.ingest.operator.*
 import org.vitrivr.engine.core.config.pipeline.execution.IndexingPipeline
 import org.vitrivr.engine.core.context.IndexContext
@@ -11,6 +12,9 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.*
 import org.vitrivr.engine.core.util.extension.loadServiceForName
+import org.vitrivr.engine.core.util.tree.Tree
+import org.vitrivr.engine.core.util.tree.TreeNode
+import java.util.*
 import java.util.stream.Stream
 
 
@@ -46,7 +50,13 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
     /**
      * Internal definition of the pipeline in form of ordered list of [OperatorConfig]s
      */
+    @Deprecated("In order to support branching, this has been replaced with the pipelienDefTree", replaceWith = ReplaceWith("pipelineDefTree"))
     private val pipelineDef = mutableListOf<OperatorConfig>()
+
+    /**
+     * Internal definition of the pipeline as a tree.
+     */
+    val pipelineDefTree = Tree<OperatorConfig>()
 
     /**
      * Internal flag whether [pipelineDef] is valid.
@@ -56,7 +66,7 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
     /**
      * Internal list of [Operator]s
      */
-    private val operators = mutableListOf<Operator<*>>()
+    private val operators = mutableMapOf<String,Operator<*>>()
 
     /**
      * The [IndexContext]
@@ -93,15 +103,31 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
      * Builds an internal representation of the definition.
      * Required to be invoked **before** [validatePipelineDefinition]
      */
-    private fun parseOperations(){
-        require(pipelineDef.isEmpty()) {"Illegal State: Cannot parse the pipeline definition, if there is already a pipeline definition"}
+    fun parseOperations(){
+        require(pipelineDefTree.isEmpty()) {"Illegal State: Cannot parse the pipeline definition, if there is already a pipeline definition"}
         logger.debug { "Starting building operator tree" }
-        config.operations.entries.forEachIndexed { index, entry ->
-            logger.debug { "Parsing $index-th operation: ${entry.key}" }
-            val opCfg = config.operators[entry.value.operator] ?: throw IllegalArgumentException("No such operator '${entry.value.operator}")
-            logger.debug{ "Found operator config for operation ${entry.key}: $opCfg"}
-            pipelineDef.add(opCfg)
+        val stack = Stack<Map.Entry<String, OperationsConfig>>()
+        val parentStack = Stack<String>()
+        stack.push(config.operations.entries.toList()[0])
+        while(stack.isNotEmpty()){
+            var ops = stack.pop()
+            /* Visit node */
+            val opCfg = config.operators[ops.value.operator] ?: throw IllegalArgumentException("No such operator '${ops.value.operator}'")
+            if(parentStack.isEmpty()){
+                pipelineDefTree.add(TreeNode(ops.key, opCfg))
+            }else{
+                pipelineDefTree.addTo(parentStack.pop(), TreeNode(ops.key, opCfg))
+            }
+            if(ops.value.next.isNotEmpty()){
+                parentStack.push(ops.key)
+            }
+            /* Reverse so left-to-right order in definition is respected: visit children */
+            ops.value.next.reversed().forEach { next ->
+                config.operations[next] ?: throw IllegalArgumentException("No such operations '$next'")
+                stack.push(config.operations.entries.find { it.key==next }!!)
+            }
         }
+
     }
 
     /**
@@ -116,25 +142,32 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
      * ```
      */
     private fun validatePipelineDefinition() {
-        require(pipelineDef.isNotEmpty()) { "Cannot " }
+        require(pipelineDefTree.isEmpty()) { "Illegal State: Pipeline definition does not (yet) exist. This is a programmer's error!" }
         logger.debug { "Validating pipeline definition." }
         var phase = 0
-        pipelineDef.forEachIndexed { index, operatorConfig ->
-            logger.debug{"Validating $index-th operation entry $operatorConfig. We are in phase: $phase"}
-            /* 1. Phase determination */
-            if (index >= 1) {
-                val last = pipelineDef[index - 1]
+        var counter = 0
+        pipelineDefTree.depthFirstPreorder { node, parent ->
+            val operatorConfig = node.value
+            logger.debug{"Validating  ${node.name} ($counter-th) operation entry: $operatorConfig. We are in phase: $phase"}
+            /* 1. Phase determination, if we are deeper than root */
+            if(parent != null){
+                val last = parent.value
                 if (last.type == OperatorType.SEGMENTER && operatorConfig.type == OperatorType.AGGREGATOR) {
                     phase = 1
                 } else if (last.type == OperatorType.AGGREGATOR && (operatorConfig.type == OperatorType.EXPORTER || operatorConfig.type == OperatorType.EXTRACTOR)) {
                     phase = 2
                 }
+                logger.debug{"Determined phase according to environment: $phase"}
             }
-            logger.debug{"Determined phase according to environment: $phase"}
             /* 2. Phase boundary conditions */
             when (phase) {
-                0 -> if (operatorConfig.type != OperatorType.TRANSFORMER && operatorConfig.type != OperatorType.SEGMENTER) {
-                    throw IllegalArgumentException("Pipeline is in stage TRANSFORMER / SEGMENTER but found ${operatorConfig.type}")
+                0 -> {
+                    if (operatorConfig.type != OperatorType.TRANSFORMER && operatorConfig.type != OperatorType.SEGMENTER) {
+                        throw IllegalArgumentException("Pipeline is in stage TRANSFORMER / SEGMENTER but found ${operatorConfig.type}")
+                    }
+                    if(operatorConfig.type != OperatorType.SEGMENTER && node.children.isNotEmpty() ){
+                        throw IllegalArgumentException("Pipeline branching only allowed for SEGMENTER, but branches with ${operatorConfig.type}")
+                    }
                 }
 
                 1 -> if (operatorConfig.type != OperatorType.AGGREGATOR) {
@@ -149,6 +182,7 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
                 throw IllegalArgumentException("ENUMERATOR and DECODER are specified outside of the pipeline.")
             }
         }
+
         logger.debug{"Validation complete."}
         pipelineDefValid=true
     }
@@ -162,21 +196,22 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
         require(this::enumerator.isInitialized){"Illegal State: Cannot build the ingestion pipeline when the enumerator has not been constructed. This is a programmer's error!"}
         require(this::decoder.isInitialized){"Illegal State: Cannot build the ingestion pipeline when the decoder has not been constructed. This is a programmer's error!"}
         var previous : Operator<*> = decoder
-        operators.add(previous)
-        pipelineDef.forEachIndexed { idx, entry ->
-            logger.debug { "Building the ${idx+1}-th operator" }
-            val operator = buildOperator(idx+1, entry)
-            if(idx == config.operations.size-1){
-                /* Last operation, finalise */
-                @Suppress("UNCHECKED_CAST")
-                pipeline.addLeaf(operator as Operator<Retrievable>)
-                logger.debug{"Added the last operator to the pipeline"}
+        pipelineDefTree.depthFirstPreorder { node, parent ->
+            logger.debug{"Building operator: ${node.name}"}
+            val op = if(parent == null){
+                buildOperator(decoder, node.value)
             }else{
-                /* Operation in between, build */
-                previous = operator
-                logger.debug{"Built an operator"}
+                val parentOp = operators[parent.name] ?: throw IllegalArgumentException("Could not find operator with name ${parent.name}")
+                buildOperator(parentOp, node.value)
             }
-            operators.add(operator)
+            operators.put(node.name, op)
+            if(node.isLeaf()){
+                @Suppress("UNCHECKED_CAST")
+                pipeline.addLeaf(op as Operator<Retrievable>)
+                logger.debug{"Added the the operator ${node.name} to the pipeline"}
+            }else{
+                logger.debug{"Built the operator named ${node.name}"}
+            }
         }
     }
 
@@ -184,21 +219,20 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
      * Build the [Operator] based on the provided [OperatorConfig] at the specified position.
      *
      */
-    private fun buildOperator(index: Int, config: OperatorConfig): Operator<*>{
+    private fun buildOperator(parent: Operator<*>, config: OperatorConfig): Operator<*>{
         require(this::pipeline.isInitialized) {"Illegal State: Cannot build the ingestion pipeline if the pipeline is not initialised. This is a programmer's error!"}
-        require(index in 1..pipelineDef.size){"Illegal Argument: Index has to be within pipeline bounds. This is a programmer's error!"}
-        logger.debug { "Building $index-th operator for configuration $config" }
+        logger.debug { "Building operator for configuration $config" }
         @Suppress("UNCHECKED_CAST")
         return when(config.type){ // the when-on-type is on purpose: It enforces all branches
             OperatorType.ENUMERATOR -> throw IllegalStateException("Paring operators and encountered an ENUMERATOR, which should start the pipeline. This is a configuration error! Use the configuration's 'enumerator' property!")
             OperatorType.DECODER -> throw IllegalStateException("Paring operators and encountered an DECODER, which should start the pipeline. This is a configuration error! Use the configuration's 'decoder' property!")
             OperatorType.OPERATOR -> throw UnsupportedOperationException("Free-form OPERATOR operators are not yet supported")
             OperatorType.RETRIEVER -> throw UnsupportedOperationException("RETRIEVER operators are not yet supported")
-            OperatorType.TRANSFORMER -> buildTransformer(operators[index-1], config as TransformerConfig)
-            OperatorType.EXTRACTOR -> buildExtractor(operators[index-1] as Operator<Retrievable>, config as ExtractorConfig) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
-            OperatorType.EXPORTER -> buildExporter(operators[index-1] as Operator<Retrievable>, config as ExporterConfig) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
-            OperatorType.AGGREGATOR -> buildAggregator(operators[index-1], config as AggregatorConfig)
-            OperatorType.SEGMENTER -> buildSegmenter(operators[index-1], config as SegmenterConfig)
+            OperatorType.TRANSFORMER -> buildTransformer(parent, config as TransformerConfig)
+            OperatorType.EXTRACTOR -> buildExtractor(parent as Operator<Retrievable>, config as ExtractorConfig) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
+            OperatorType.EXPORTER -> buildExporter(parent as Operator<Retrievable>, config as ExporterConfig) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
+            OperatorType.AGGREGATOR -> buildAggregator(parent, config as AggregatorConfig)
+            OperatorType.SEGMENTER -> buildSegmenter(parent, config as SegmenterConfig)
         }
     }
 

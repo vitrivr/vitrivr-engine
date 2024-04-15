@@ -20,8 +20,31 @@ import org.vitrivr.engine.core.config.pipeline.execution.IndexingPipeline
 @Serializable
 data class OperationsConfig (
     /**
-     * The name of te [OperatorConfig] at this stage.
+     * The name of the [OperatorConfig] at this stage.
+     * Must be a name of the [IngestionConfig.operators] property.
      */
-    val operator: String
+    val operator: String,
 
-)
+    /**
+     * The names of the [OperationsConfig] that follow this operation.
+     * Must be a name of the [IngestionConfig.operations] property.
+     */
+    val next: Array<String> = emptyArray()
+
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is OperationsConfig) return false
+
+        if (operator != other.operator) return false
+        if (!next.contentEquals(other.next)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = operator.hashCode()
+        result = 31 * result + next.contentHashCode()
+        return result
+    }
+}
