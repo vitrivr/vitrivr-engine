@@ -1,8 +1,8 @@
 package org.vitrivr.engine.core.model.retrievable
 
 import org.vitrivr.engine.core.model.Persistable
+import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
-import org.vitrivr.engine.core.model.retrievable.relationship.Relationship
 import java.util.*
 import java.util.function.Predicate
 
@@ -18,7 +18,7 @@ typealias RetrievableId = UUID
  */
 interface Retrievable : Persistable {
     /** The [RetrievableId] held by this [Retrievable]. */
-    override val id: RetrievableId
+    val id: RetrievableId
 
     /** The type of this [Retrievable]. This is basically a string that can help to keep apart different types of [Retrievable]. */
     val type: String?

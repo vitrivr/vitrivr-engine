@@ -1,8 +1,8 @@
 package org.vitrivr.engine.core.model.retrievable
 
+import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.attributes.MergingRetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
-import org.vitrivr.engine.core.model.retrievable.relationship.Relationship
 import java.util.*
 
 /**

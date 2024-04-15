@@ -20,7 +20,7 @@ import kotlin.reflect.KClass
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.2.0
+ * @version 1.3.0
  */
 interface Analyser<C: ContentElement<*>, D: Descriptor> {
     /** The [KClass]es of the [ContentElement] accepted by this [Analyser].  */
@@ -43,15 +43,14 @@ interface Analyser<C: ContentElement<*>, D: Descriptor> {
      *
      * Some [Analyser]s may not come with their own [Extractor], in which case the implementation of this method should throw an [UnsupportedOperationException]
      *
-     * @param field The [Schema.Field] to create an [Extractor] for.
+     * @param field The [Schema.Field] to create an [Extractor] for. Can be null, in which case the resulting descriptor won't be stored.
      * @param input The [Operator] that acts as input to the new [Extractor].
      * @param context The [IndexContext] to use with the [Extractor].
-     * @param persisting True, if the results of the [Extractor] should be persisted.
      *
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    fun newExtractor(field: Schema.Field<C, D>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean = true, parameters: Map<String, Any> = emptyMap()): Extractor<C, D>
+    fun newExtractor(field: Schema.Field<C, D>?, input: Operator<Retrievable>, context: IndexContext): Extractor<C, D>
 
     /**
      * Generates and returns a new [Retriever] instance for this [Analyser].

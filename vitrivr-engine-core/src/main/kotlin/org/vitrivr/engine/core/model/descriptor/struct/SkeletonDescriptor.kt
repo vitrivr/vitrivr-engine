@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.model.descriptor.struct
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
@@ -12,7 +13,7 @@ data class SkeletonDescriptor(
     val person: Value.Int,
     val skeleton: List<Value.Float>,
     val weights: List<Value.Float>,
-    override val transient: Boolean = false
+    override val field: Schema.Field<*, SkeletonDescriptor>? = null
 ) : StructDescriptor {
 
     /**

@@ -4,7 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
-import org.vitrivr.engine.core.model.retrievable.relationship.Relationship
+import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.PropertyAttribute
@@ -185,7 +185,7 @@ class TemporalSequenceAggregator(
             val id = UUID.randomUUID()
 
             val relationships = sequence.flatMap {
-                it.retrieved.map { r -> Relationship.ById(r.id, "partOf", id) }
+                it.retrieved.map { r -> Relationship.ById(r.id, "partOf", id, false) }
             }.toSet()
 
             if (relationships.size < 2) {

@@ -59,17 +59,11 @@ class PassThroughSegmenter : SegmenterFactory {
                 retrievable.addAttribute(SourceAttribute(it.source))
                 retrievable.addAttribute(ContentAttribute(it))
 
-                /* Persist retrievable */
-                this.writer.add(retrievable)
-
                 /* Send retrievable downstream. */
                 downstream.send(retrievable)
             } else {
                 val retrievable = Ingested(UUID.randomUUID(), null, false)
                 retrievable.addAttribute(ContentAttribute(it))
-
-                /* Persist retrievable. */
-                this.writer.add(retrievable)
 
                 /* Send retrievable downstream. */
                 downstream.send(retrievable)

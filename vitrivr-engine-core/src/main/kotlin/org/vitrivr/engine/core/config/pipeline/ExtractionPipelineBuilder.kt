@@ -176,7 +176,7 @@ class ExtractionPipelineBuilder(val schema: Schema, val config: IndexConfig) {
             if (config.parameters.isNotEmpty()) {
                 //throw IllegalArgumentException("Extractor '${config.fieldName}' parameters provided in schema '${context.schema.name}' are not supported.")
                 logger.warn { "PipelineBuilder overrides Extractor '${config.fieldName}' parameters provided in schema '${context.schema.name}'." }
-                field.getExtractor(parent, context, config.parameters)
+                field.getExtractor(parent, context)
             } else {
                 field.getExtractor(parent, context)
             }

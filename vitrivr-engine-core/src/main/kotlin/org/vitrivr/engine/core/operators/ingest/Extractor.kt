@@ -20,8 +20,9 @@ import org.vitrivr.engine.core.operators.Operator
  */
 interface Extractor<C : ContentElement<*>, D : Descriptor> : Operator.Unary<Retrievable, Retrievable> {
     /** The [Schema.Field] populated by this [Extractor]. */
-    val field: Schema.Field<C, D>
+    val field: Schema.Field<C, D>?
 
     /** Flag indicating, that this [Extractor] is persisting information. */
     val persisting: Boolean
+        get() = this.field != null
 }

@@ -20,8 +20,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class TemporalMetadataExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, persisting: Boolean = true) :
-    AbstractExtractor<ContentElement<*>, TemporalMetadataDescriptor>(input, field, persisting, bufferSize = 1) {
+class TemporalMetadataExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>?) : AbstractExtractor<ContentElement<*>, TemporalMetadataDescriptor>(input, field, bufferSize = 1) {
 
     override fun matches(retrievable: Retrievable): Boolean = retrievable.filteredAttribute(ContentAttribute::class.java) != null
 
@@ -35,8 +34,8 @@ class TemporalMetadataExtractor(input: Operator<Retrievable>, field: Schema.Fiel
         val content = retrievable.filteredAttributes(ContentAttribute::class.java).map { it.content }
         val descriptors = content.filterIsInstance<TemporalContent>().map { c ->
             when (c) {
-                is TemporalContent.Timepoint -> TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, Value.Long(c.timepointNs), Value.Long(c.timepointNs), !persisting)
-                is TemporalContent.TimeSpan -> TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, Value.Long(c.startNs), Value.Long(c.endNs), !persisting)
+                is TemporalContent.Timepoint -> TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, Value.Long(c.timepointNs), Value.Long(c.timepointNs), this@TemporalMetadataExtractor.field)
+                is TemporalContent.TimeSpan -> TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, Value.Long(c.startNs), Value.Long(c.endNs), this@TemporalMetadataExtractor.field)
             }
         }
         return descriptors

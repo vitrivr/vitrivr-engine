@@ -17,7 +17,7 @@ import java.util.*
 class VideoFPS : Analyser<ContentElement<*>, FloatDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = FloatDescriptor::class
-    override fun prototype(field: Schema.Field<*, *>) = FloatDescriptor(UUID.randomUUID(), UUID.randomUUID(), transient = true, value = Value.Float(.0f))
+    override fun prototype(field: Schema.Field<*, *>) = FloatDescriptor(UUID.randomUUID(), UUID.randomUUID(), value = Value.Float(.0f))
     override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, FloatDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, FloatDescriptor> {
         TODO("Not yet implemented")
     }
@@ -26,7 +26,7 @@ class VideoFPS : Analyser<ContentElement<*>, FloatDescriptor> {
         TODO("Not yet implemented")
     }
 
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): Extractor<ContentElement<*>, FloatDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatDescriptor>?, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, FloatDescriptor> {
         TODO("Not yet implemented")
     }
 }

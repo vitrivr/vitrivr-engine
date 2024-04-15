@@ -13,7 +13,6 @@ import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Retriever
-import java.util.*
 
 private val logger: KLogger = KotlinLogging.logger {}
 
@@ -21,7 +20,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  * Implementation of the [FileSourceMetadata] [Analyser], which derives metadata information from file-based retrievables
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 class FileSourceMetadata : Analyser<ContentElement<*>, FileSourceMetadataDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
@@ -38,18 +37,13 @@ class FileSourceMetadata : Analyser<ContentElement<*>, FileSourceMetadataDescrip
     /**
      * Generates and returns a new [FileSourceMetadataExtractor] for the provided [Schema.Field].
      *
-     * @param field The [Schema.Field] for which to create the [FileSourceMetadataExtractor].
+     * @param field The [Schema.Field] for which to create the [FileSourceMetadataExtractor]. Can be null.
      * @param input The input [Operator]
      * @param context The [IndexContext]
-     * @param persisting Whether the resulting [FileSourceMetadataDescriptor]s should be persisted.
      *
      * @return [FileSourceMetadataExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): FileSourceMetadataExtractor {
-        require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
-        logger.debug { "Creating new FileMetadataExtractor for field '${field.fieldName}' with parameters $parameters." }
-        return FileSourceMetadataExtractor(input, field, persisting)
-    }
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>?, input: Operator<Retrievable>, context: IndexContext) = FileSourceMetadataExtractor(input, field)
 
     /**
      * Generates and returns a new [FileSourceMetadataRetriever] for the provided [Schema.Field].

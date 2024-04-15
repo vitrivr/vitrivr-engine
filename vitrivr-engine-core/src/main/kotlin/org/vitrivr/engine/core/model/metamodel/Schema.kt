@@ -142,12 +142,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
          * @param context The [IndexContext] to use with the [Extractor].
          * @return [Extractor] instance.
          */
-        fun getExtractor(
-            input: Operator<Retrievable>,
-            context: IndexContext,
-            parameters: Map<String, Any> = this.parameters
-        ): Extractor<C, D> =
-            this.analyser.newExtractor(this, input, context, true, parameters)
+        fun getExtractor(input: Operator<Retrievable>, context: IndexContext): Extractor<C, D> = this.analyser.newExtractor(this, input, context)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field] and the provided [Query].

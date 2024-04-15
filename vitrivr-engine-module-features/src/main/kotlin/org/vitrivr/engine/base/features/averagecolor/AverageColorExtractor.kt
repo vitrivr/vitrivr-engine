@@ -19,13 +19,13 @@ import org.vitrivr.engine.core.source.file.FileSource
  * @see [AverageColor]
  *
  * @author Luca Rossetto
- * @version 1.0.0
+ * @version 1.1.0
  */
-class AverageColorExtractor(input: Operator<Retrievable>, field: Schema.Field<ImageContent, FloatVectorDescriptor>, persisting: Boolean = true) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, field, persisting) {
+class AverageColorExtractor(input: Operator<Retrievable>, field: Schema.Field<ImageContent, FloatVectorDescriptor>?) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, field) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
-     * [FileSourceMetadataExtractor] implementation only works with [RetrievableWithSource] that contain a [FileSource].
+     * [FileSourceMetadataExtractor] implementation only works with [Retrievable] that contain a [FileSource].
      *
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,
@@ -40,6 +40,6 @@ class AverageColorExtractor(input: Operator<Retrievable>, field: Schema.Field<Im
      */
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
         val content = retrievable.filteredAttributes(ContentAttribute::class.java).map { it.content }.filterIsInstance<ImageContent>()
-        return (this.field.analyser as AverageColor).analyse(content).map { it.copy(retrievableId = retrievable.id) }
+        return AverageColor().analyse(content).map { it.copy(retrievableId = retrievable.id, field = this@AverageColorExtractor.field) }
     }
 }
