@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
-import org.vitrivr.engine.core.model.retrievable.relationship.Relationship
+import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.operators.Operator
@@ -66,7 +66,7 @@ class RelationExpander(
             for (obj in (objects[it.id] ?: emptyList())) {
                 val subject = new[obj.third]
                 if (subject != null) {
-                    it.addRelationship(Relationship.ByRef(it, obj.second, subject))
+                    it.addRelationship(Relationship.ByRef(it, obj.second, subject, false))
                 }
             }
 
@@ -74,7 +74,7 @@ class RelationExpander(
             for (sub in (subjects[it.id] ?: emptyList())) {
                 val `object` = new[sub.third]
                 if (`object` != null) {
-                    it.addRelationship(Relationship.ByRef(it, sub.second, `object`))
+                    it.addRelationship(Relationship.ByRef(it, sub.second, `object`, false))
 
                 }
             }

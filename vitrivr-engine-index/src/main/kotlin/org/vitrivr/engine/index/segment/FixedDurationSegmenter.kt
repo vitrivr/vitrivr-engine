@@ -6,8 +6,8 @@ import kotlinx.coroutines.sync.Mutex
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
-import org.vitrivr.engine.core.model.retrievable.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.ContentAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
@@ -143,7 +143,6 @@ class FixedDurationSegmenter : SegmenterFactory {
 
             /* Persist source retrievable and send it downstream */
             if (!this.sourceWritten) {
-                this.writer.add(sourceRetrievable)
                 downstream.send(sourceRetrievable)
                 this.sourceWritten = true
             }
@@ -164,11 +163,7 @@ class FixedDurationSegmenter : SegmenterFactory {
             /* Prepare retrievable. */
             val retrievable = Ingested(UUID.randomUUID(), "segment", false)
             content.forEach { retrievable.addAttribute(ContentAttribute(it)) }
-            retrievable.addRelationship(Relationship.ByRef(retrievable, "partOf", sourceRetrievable))
-
-            /* Persist retrievable and relationship. */
-            this.writer.add(retrievable)
-            this.writer.connect(retrievable.id, "partOf", sourceRetrievable.id)
+            retrievable.addRelationship(Relationship.ByRef(retrievable, "partOf", sourceRetrievable, false))
 
             /* Send retrievable downstream. */
             downstream.send(retrievable)

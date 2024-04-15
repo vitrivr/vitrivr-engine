@@ -127,7 +127,7 @@ data class CineastSegmentMetadata(
 interface CineastFeature {
 
     val id: String
-    abstract fun toDescriptor(idmap: Map<String, String>): Descriptor?
+    fun toDescriptor(idmap: Map<String, String>): Descriptor?
 }
 
 
@@ -141,8 +141,7 @@ data class CineastVectorFeature(override val id: String, val feature: List<Float
         return FloatVectorDescriptor(
             id = DescriptorId.randomUUID(),
             retrievableId = RetrievableId.fromString(idmap[id]),
-            vector = feature.map { Value.Float(it) },
-            transient = false
+            vector = feature.map { Value.Float(it) }
         )
     }
 }
@@ -158,8 +157,7 @@ data class CineastStringFeature(override val id: String, val feature: String) : 
             id = DescriptorId.randomUUID(),
             retrievableId = RetrievableId.fromString(idmap[id])
                 ?: throw IllegalArgumentException("Could not find retrievable id for id $id"),
-            value = Value.String(feature),
-            transient = false
+            value = Value.String(feature)
         )
     }
 }
@@ -181,8 +179,7 @@ data class CineastSkeletonPoseFeature(
             retrievableId = RetrievableId.fromString(idmap[id]),
             person = Value.Int(person),
             skeleton = skeleton.map { Value.Float(it) },
-            weights = weights.map { Value.Float(it) },
-            transient = false
+            weights = weights.map { Value.Float(it) }
         )
     }
 }
@@ -385,8 +382,7 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                         retrievableId = RetrievableId.fromString(retrievableId)
                             ?: throw IllegalArgumentException("Could not find retrievable id for object ${mobjectmetadata.objectid}"),
                         width = Value.Int(width),
-                        height = Value.Int(height),
-                        transient = false
+                        height = Value.Int(height)
                     )
                     mediadimensionswriter.add(dimensionsDescriptor)
                 }
@@ -399,8 +395,7 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                     id = DescriptorId.randomUUID(),
                     retrievableId = RetrievableId.fromString(retrievableId)
                         ?: throw IllegalArgumentException("Could not find retrievable id for object ${mobjectmetadata.objectid}"),
-                    value = Value.Float(fps),
-                    transient = false
+                    value = Value.Float(fps)
                 )
                 videofpswriter.add(fpsDescriptor)
             }
@@ -413,8 +408,7 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                     id = DescriptorId.randomUUID(),
                     retrievableId = RetrievableId.fromString(retrievableId)
                         ?: throw IllegalArgumentException("Could not find retrievable id for object ${mobjectmetadata.objectid}"),
-                    value = Value.Float(duration),
-                    transient = false
+                    value = Value.Float(duration)
                 )
                 videodurationwriter.add(durationDescriptor)
             }
@@ -499,8 +493,7 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                     val dominantColorDescriptor = StringDescriptor(
                         id = DescriptorId.randomUUID(),
                         retrievableId = retrievableId,
-                        value = Value.String(color),
-                        transient = false
+                        value = Value.String(color)
                     )
                     dominantcolordescriptors.add(dominantColorDescriptor)
 

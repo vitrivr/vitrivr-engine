@@ -36,17 +36,13 @@ class VideoSourceMetadata : Analyser<ContentElement<*>, VideoSourceMetadataDescr
     /**
      * Generates and returns a new [FileSourceMetadataExtractor] for the provided [Schema.Field].
      *
-     * @param field The [Schema.Field] for which to create the [FileSourceMetadataExtractor].
+     * @param field The [Schema.Field] for which to create the [FileSourceMetadataExtractor]. Can be null.
      * @param input The input [Operator]
      * @param context The [IndexContext]
-     * @param persisting Whether the resulting [FileSourceMetadataDescriptor]s should be persisted.
      *
      * @return [FileSourceMetadataExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): VideoSourceMetadataExtractor {
-        require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
-        return VideoSourceMetadataExtractor(input, field, persisting)
-    }
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>?, input: Operator<Retrievable>, context: IndexContext) = VideoSourceMetadataExtractor(input, field)
 
     /**
      * Generates and returns a new [VideoSourceMetadataRetriever] for the provided [Schema.Field].

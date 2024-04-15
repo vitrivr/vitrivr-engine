@@ -10,4 +10,19 @@ import org.vitrivr.engine.core.resolver.Resolver
  * @author Raphael Waltenspuel
  * @version 1.0.0
  */
-data class IndexContext(val schema: Schema, val contentFactory: ContentFactory, val resolver: Resolver)
+
+data class IndexContext(
+    val schema: Schema,
+    val contentFactory: ContentFactory,
+    val resolver: Resolver,
+
+    /** Properties applicable to all operators. */
+    val global: Map<String, String> = emptyMap(),
+
+    /** Properties per operator. */
+    val local: Map<String, Map<String, String>> = emptyMap()
+) {
+
+    fun getProperty(operator: String, property: String): String? = local[operator]?.get(property) ?: global[property]
+
+}

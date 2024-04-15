@@ -3,9 +3,9 @@ package org.vitrivr.engine.query.operators.transform.scoring
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
-import org.vitrivr.engine.core.model.retrievable.relationship.Relationship
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Transformer
 
@@ -14,7 +14,6 @@ class ScoreAggregator(
     private val aggregationMode: AggregationMode = AggregationMode.MAX,
     private val relations: Set<String> = setOf("partOf")
 ) : Transformer {
-
     enum class AggregationMode {
         MAX,
         MEAN,

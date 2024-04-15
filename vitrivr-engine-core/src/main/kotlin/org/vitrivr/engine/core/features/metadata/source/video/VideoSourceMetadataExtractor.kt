@@ -22,9 +22,9 @@ import java.util.*
  */
 class VideoSourceMetadataExtractor(
     input: Operator<Retrievable>,
-    field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>,
+    field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>?,
     persisting: Boolean = true
-) : AbstractExtractor<ContentElement<*>, VideoSourceMetadataDescriptor>(input, field, persisting, bufferSize = 1) {
+) : AbstractExtractor<ContentElement<*>, VideoSourceMetadataDescriptor>(input, field, bufferSize = 1) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
@@ -55,7 +55,7 @@ class VideoSourceMetadataExtractor(
                 channels = Value.Int(source.channels() ?: 0),
                 sampleRate = Value.Int(source.sampleRate() ?: 0),
                 sampleSize = Value.Int(source.sampleSize() ?: 0),
-                transient = !persisting
+                this@VideoSourceMetadataExtractor.field
             )
         )
     }

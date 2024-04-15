@@ -8,15 +8,11 @@ import kotlinx.coroutines.channels.Channel.Factory.RENDEZVOUS
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.*
 import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.database.retrievable.RetrievableReader
-import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.retrievable.AbstractRetrievable
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.RetrievableId
-import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.operators.Operator
 import java.util.*
 import java.util.concurrent.locks.StampedLock
@@ -39,16 +35,10 @@ abstract class AbstractSegmenter(override val input: Operator<ContentElement<*>>
     /** A [StampedLock] to mediate access to [sharedFlow]. */
     private val lock = StampedLock()
 
-    /** The [RetrievableWriter] used by this [AbstractSegmenter]. */
-    protected val writer: RetrievableWriter = this.context.schema.connection.getRetrievableWriter()
-
-    /** The [RetrievableReader] used by this [AbstractSegmenter]. */
-    protected val reader: RetrievableReader = this.context.schema.connection.getRetrievableReader()
-
     /**
      * A special [Ingested] that can be used to signal the termination of an ingest pipeline.
      */
-    object TerminalRetrievable : AbstractRetrievable(UUID(0L, 0L), null, true) { }
+    object TerminalRetrievable : AbstractRetrievable(UUID(0L, 0L), null, true)
 
     /**
      * Implements the [AbstractSegmenter]'s [toFlow] method. Uses a shared channel flow for downstream communication
