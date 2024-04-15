@@ -26,6 +26,7 @@ abstract class AbstractAggregator(override val input: Operator<Retrievable>, pro
      *  @param scope [CoroutineScope] to use for the [Flow].
      */
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).map {
+
         val content = it.filteredAttributes(ContentAttribute::class.java).map { a -> a.content }
         if (content.isNotEmpty()) {
             val aggregated = this.aggregate(content)
