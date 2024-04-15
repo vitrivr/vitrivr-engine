@@ -34,7 +34,7 @@ class Tree<T>(
      *
      * @param visitor Processor of the nodes upon traversal. In case of a single-leafed tree, parent is null.
      */
-    fun depthFirstPreorder(visitor: (value: TreeNode<T>, parent: TreeNode<T>?) -> Unit){
+    fun depthFirstPreorder(visitor: (node: TreeNode<T>, parent: TreeNode<T>?) -> Unit){
         depthFirstPreRecursively(root, visitor = visitor)
     }
 

@@ -14,6 +14,7 @@ import java.lang.ref.ReferenceQueue
 import java.nio.ShortBuffer
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 
@@ -25,7 +26,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class CachedContentFactory(private val basePath: Path) : ContentFactory {
+class CachedContentFactory(private val basePath: Path = Paths.get("./cache")) : ContentFactory {
 
     /** The [ReferenceQueue] used for cleanup. */
     private val referenceQueue = ReferenceQueue<CachedContent>()
