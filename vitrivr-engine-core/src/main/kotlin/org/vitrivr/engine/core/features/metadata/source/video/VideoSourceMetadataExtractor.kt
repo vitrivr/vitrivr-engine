@@ -20,11 +20,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class VideoSourceMetadataExtractor(
-    input: Operator<Retrievable>,
-    field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>?,
-    persisting: Boolean = true
-) : AbstractExtractor<ContentElement<*>, VideoSourceMetadataDescriptor>(input, field, bufferSize = 1) {
+class VideoSourceMetadataExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>?) : AbstractExtractor<ContentElement<*>, VideoSourceMetadataDescriptor>(input, field) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *

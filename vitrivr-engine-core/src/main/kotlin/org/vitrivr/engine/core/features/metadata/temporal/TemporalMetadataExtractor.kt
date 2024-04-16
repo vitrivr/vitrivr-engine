@@ -20,7 +20,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class TemporalMetadataExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>?) : AbstractExtractor<ContentElement<*>, TemporalMetadataDescriptor>(input, field, bufferSize = 1) {
+class TemporalMetadataExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>?) : AbstractExtractor<ContentElement<*>, TemporalMetadataDescriptor>(input, field) {
 
     override fun matches(retrievable: Retrievable): Boolean = retrievable.filteredAttribute(ContentAttribute::class.java) != null
 
