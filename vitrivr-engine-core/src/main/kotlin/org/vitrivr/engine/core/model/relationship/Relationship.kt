@@ -4,7 +4,6 @@ import org.vitrivr.engine.core.model.Persistable
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 
-
 /**
  * Used to model [Relationship]s between [Retrievable]s.
  *
@@ -43,4 +42,16 @@ sealed interface Relationship: Persistable {
     /** A [Relationship] by ID. */
     data class ById(override val subjectId: RetrievableId, override val predicate: String, override val objectId: RetrievableId, override val transient: Boolean):
         Relationship
+
+    /** A [Relationship] where subject is provided by reference to another [Retrievable] and object by an ID. */
+    data class BySubRefObjId(val subject: Retrievable, override val predicate: String, override val objectId: RetrievableId, override val transient: Boolean): Relationship {
+        override val subjectId: RetrievableId
+            get() = this.subject.id
+    }
+
+    /** A [Relationship] where subject is provided by ID and object by reference to another [Retrievable]. */
+    data class BySubIdObjRef(override val subjectId: RetrievableId, override val predicate: String, val `object`: Retrievable, override val transient: Boolean): Relationship {
+        override val objectId: RetrievableId
+            get() = this.`object`.id
+    }
 }
