@@ -102,7 +102,12 @@ abstract class AbstractRetrievable(override val id: UUID, override val type: Str
      * @return True on success, false otherwise.
      */
     @Synchronized
-    override fun addRelationship(relationship: Relationship): Boolean = this.relationshipSet.add(relationship)
+    override fun addRelationship(relationship: Relationship): Boolean {
+        check(relationship.subjectId == this.id || relationship.objectId == this.id) {
+            "Relationship is not related to current retrievable and therefore cannot be added."
+        }
+        return this.relationshipSet.add(relationship)
+    }
 
     /**
      * Removes a [Relationship] from this [AbstractRetrievable].
