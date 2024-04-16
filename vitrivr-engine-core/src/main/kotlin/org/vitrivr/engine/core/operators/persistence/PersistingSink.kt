@@ -61,7 +61,8 @@ class PersistingSink(override val input: Operator<Ingested>, val context: IndexC
 
         /* Persist descriptors. */
         for (descriptor in retrievable.filteredAttributes(DescriptorAttribute::class.java)) {
-            descriptor.descriptor.field?.let { field -> this.descriptorWriters.computeIfAbsent(field) { it.getWriter() } }
+            val writer = descriptor.descriptor.field?.let { field -> this.descriptorWriters.computeIfAbsent(field) { it.getWriter() } } as? DescriptorWriter<Descriptor>
+            writer?.add(descriptor.descriptor)
         }
 
         /* Persist relationships. */
