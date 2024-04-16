@@ -19,7 +19,7 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Ralph Gasser
  * @version 1.1.0
  */
-abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final override val input: Operator<Retrievable>, final override val field: Schema.Field<C, D>? = null, private val bufferSize: Int = 100) : Extractor<C, D> {
+abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final override val input: Operator<Retrievable>, final override val field: Schema.Field<C, D>? = null) : Extractor<C, D> {
 
     protected val logger: KLogger = KotlinLogging.logger {}
 
