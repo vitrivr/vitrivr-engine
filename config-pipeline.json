@@ -22,6 +22,10 @@
   "operators": {
     "pass": {
       "type": "SEGMENTER",
+      "factory": "PassThroughSegmenter"
+    },
+    "seg": {
+      "type": "SEGMENTER",
       "factory": "FixedDurationSegmenter",
       "parameters": {
         "duration": "10",
@@ -50,7 +54,7 @@
     }
   },
   "operations": {
-    "stage1": {"operator": "pass"},
+    "stage1": {"operator": "seg"},
     "stage2": {"operator": "allContent"},
     "stage3": {"operator": "avgColor"},
     "stage4": {"operator": "thumbs"},
