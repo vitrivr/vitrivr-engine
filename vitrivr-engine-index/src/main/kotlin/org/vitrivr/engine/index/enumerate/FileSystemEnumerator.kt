@@ -79,7 +79,8 @@ class FileSystemEnumerator : EnumeratorFactory {
             } catch (ex: NoSuchFileException) {
                 val mes = "In flow: Path ${this@Instance.path} does not exist."
                 logger.error { mes }
-                currentCoroutineContext().cancel(CancellationException(mes, ex))
+                scope.coroutineContext.cancel(CancellationException(mes, ex))
+                //currentCoroutineContext().cancel(CancellationException(mes, ex))
                 return@flow
             }
             for (element in stream) {
@@ -89,7 +90,7 @@ class FileSystemEnumerator : EnumeratorFactory {
                     val file = try {
                         FileSource(path = element, mimeType = type)
                     } catch (ex: FileSystemException) {
-                        logger.error { "In flow: Failed to create FileSource for ${element.fileName} (${element.toUri()})" }
+                        logger.error { "In flow: Failed to create FileSource for ${element.fileName} (${element.toUri()}). Skip!" }
                         continue
                     }
                     emit(file)
