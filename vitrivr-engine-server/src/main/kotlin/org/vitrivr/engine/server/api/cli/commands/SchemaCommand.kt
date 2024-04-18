@@ -8,6 +8,8 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.jakewharton.picnic.table
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.config.IndexConfig
 import org.vitrivr.engine.core.config.ingest.IngestionConfig
 import org.vitrivr.engine.core.config.ingest.IngestionPipelineBuilder
@@ -32,6 +34,7 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
     invokeWithoutSubcommand = true,
     printHelpOnEmptyArgs = true
 ) {
+
 
 
     init {
@@ -84,7 +87,8 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
     /**
      * [CliktCommand] to initialize the schema.
      */
-    inner class Initialize : CliktCommand(name = "init", help = "Initializes the schema using the database connection.") {
+    inner class Initialize :
+        CliktCommand(name = "init", help = "Initializes the schema using the database connection.") {
         override fun run() {
             val schema = this@SchemaCommand.schema
             var initialized = 0
@@ -107,18 +111,30 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
     /**
      * [CliktCommand] to start an extraction job.
      */
-    inner class Extract(private val schema: Schema, private val executor: ExecutionServer) : CliktCommand(name = "extract", help = "Extracts data from a source and stores it in the schema.") {
+    inner class Extract(private val schema: Schema, private val executor: ExecutionServer) :
+        CliktCommand(name = "extract", help = "Extracts data from a source and stores it in the schema.") {
+
+        private val logger: KLogger = KotlinLogging.logger {}
 
         /** Path to the configuration file. */
-        private val input: Path? by option("-c", "--config", help = "Path to the extraction configuration.").convert { Paths.get(it) }
+        private val input: Path? by option(
+            "-c",
+            "--config",
+            help = "Path to the extraction configuration."
+        ).convert { Paths.get(it) }
+
         /** Name of the ingestion config as specified on the schema */
-        private val name: String? by option("-n", "--name", help="The name of the ingestion pipeline configuration to use from the schema")
+        private val name: String? by option(
+            "-n",
+            "--name",
+            help = "The name of the ingestion pipeline configuration to use from the schema"
+        )
 
 
         override fun run() {
-            val pipeline: IndexingPipeline = if(name != null){
+            val pipeline: IndexingPipeline = if (name != null) {
                 this.schema.getIngestionPipelineBuilder(name!!).build()
-            }else if(input != null) {
+            } else if (input != null) {
                 /* Read configuration file. */
                 val config = try {
                     IngestionConfig.read(this.input!!)
@@ -133,20 +149,23 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
                     return
                 }
                 IngestionPipelineBuilder(this.schema, config).build()
-            }else{
+            } else {
                 System.err.println("Requires either -n / --name: Name of the ingestion config defined on the schema or -c / --config the path to a ingestion config")
                 return
             }
             val uuid = this.executor.extractAsync(pipeline)
-            println("Started extraction job with UUID $uuid.")
+            logger.info { "Started extraction job with UUID $uuid." }
         }
     }
 
-    inner class Status(private val schema: Schema, private val executor: ExecutionServer):CliktCommand(name="status", help="Prints indexing status"){
-        private val jobId: UUID by option("--job-id", help="The job id").convert{ UUID.fromString(it)}.required()
+    inner class Status(private val schema: Schema, private val executor: ExecutionServer) :
+        CliktCommand(name = "status", help = "Prints indexing status") {
+        private val logger: KLogger = KotlinLogging.logger {}
+
+        private val jobId: UUID by option("--job-id", help = "The job id").convert { UUID.fromString(it) }.required()
 
         override fun run() {
-            println("Status: ${executor.status(jobId)} at ${System.currentTimeMillis()}")
+            logger.info { "Status: ${executor.status(jobId)} at ${System.currentTimeMillis()}" }
         }
     }
 }
