@@ -25,7 +25,9 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class CachedContentFactory(private val basePath: Path) : ContentFactory {
+class CachedContentFactory() : ContentFactory {
+
+    private val basePath: Path = Files.createTempDirectory("vitrivr-cache")
 
     /** The [ReferenceQueue] used for cleanup. */
     private val referenceQueue = ReferenceQueue<CachedContent>()

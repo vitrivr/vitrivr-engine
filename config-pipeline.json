@@ -1,7 +1,7 @@
 {
   "schema": "PTT",
   "context": {
-    "contentFactory": "InMemoryContentFactory",
+    "contentFactory": "CachedContentFactory",
     "resolverFactory": "DiskResolver",
     "parameters": {
       "location": "D:/ptt/thumbnails/"
