@@ -29,7 +29,7 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(
     private val bufferSize: Int = 100) :
     Extractor<C, D> {
 
-        protected val logger: KLogger = KotlinLogging.logger {}
+        private val logger: KLogger = KotlinLogging.logger {}
 
     /**
      * A default [Extractor] implementation. It executes the following steps:
@@ -41,7 +41,7 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(
      * @return [Flow] of [Retrievable]
      */
     final override fun toFlow(scope: CoroutineScope): Flow<Retrievable> {
-        logger.debug { "Initialising flow..." }
+        logger.trace { "Initialising flow..." }
 
         /** The [DescriptorWriter] used by this [AbstractExtractor]. */
         val writer: DescriptorWriter<D> by lazy { this.field.getWriter() }
@@ -53,7 +53,7 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(
         return this.input.toFlow(scope).onEach { retrievable ->
             logger.trace{"Retrievable $retrievable"}
             if (this.matches(retrievable)) {
-                logger.debug{"Extraction for retrievable: $retrievable" }
+                logger.trace{"Extraction for retrievable: $retrievable" }
                 /* Perform extraction. */
                 val descriptors = extract(retrievable)
 
@@ -65,7 +65,7 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(
 
                 /* Persist descriptor. */
                 if (this.persisting) {
-                    logger.debug{"Persisting descriptors for retrievable ($retrievable)"}
+                    logger.trace{"Persisting descriptors for retrievable ($retrievable)"}
                     /* Add descriptors to buffer. */
                     for (d in descriptors) {
                         buffer.add(d)
