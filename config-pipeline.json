@@ -1,10 +1,17 @@
 {
   "schema": "PTT",
   "context": {
-    "contentFactory": "CachedContentFactory",
-    "resolverFactory": "DiskResolver",
-    "parameters": {
-      "location": "D:/ptt/thumbnails/"
+    "contentFactory": {
+      "factory": "CachedContentFactory",
+      "parameters": {
+        "location": "D:/ptt/cache/"
+      }
+    },
+    "resolver": {
+      "factory": "DiskResolver",
+      "parameters": {
+        "location": "D:/ptt/thumbnails/"
+      }
     }
   },
   "enumerator": {
@@ -54,10 +61,20 @@
     }
   },
   "operations": {
-    "stage1": {"operator": "pass"},
-    "stage2": {"operator": "allContent"},
-    "stage3": {"operator": "avgColor"},
-    "stage4": {"operator": "thumbs"},
-    "stage5": {"operator": "fileMeta"}
+    "stage1": {
+      "operator": "pass"
+    },
+    "stage2": {
+      "operator": "allContent"
+    },
+    "stage3": {
+      "operator": "avgColor"
+    },
+    "stage4": {
+      "operator": "thumbs"
+    },
+    "stage5": {
+      "operator": "fileMeta"
+    }
   }
 }

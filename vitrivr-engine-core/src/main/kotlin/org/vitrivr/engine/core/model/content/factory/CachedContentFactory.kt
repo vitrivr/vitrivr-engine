@@ -8,6 +8,7 @@ import org.vitrivr.engine.core.model.content.impl.cache.CachedContent
 import org.vitrivr.engine.core.model.content.impl.cache.CachedImageContent
 import org.vitrivr.engine.core.model.content.impl.cache.CachedTextContent
 import org.vitrivr.engine.core.model.mesh.Model3D
+import org.vitrivr.engine.core.model.metamodel.Schema
 import java.awt.image.BufferedImage
 import java.lang.ref.PhantomReference
 import java.lang.ref.ReferenceQueue
@@ -25,71 +26,85 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class CachedContentFactory() : ContentFactory {
+class CachedContentFactory : ContentFactoriesFactory {
 
-    private val basePath: Path = Files.createTempDirectory("vitrivr-cache")
+    override fun newContentFactory(schema: Schema, parameters: Map<String, String>): ContentFactory {
+        val basePath = parameters["location"]?.let { Path.of(it) }
+        return Instance(basePath)
+    }
 
-    /** The [ReferenceQueue] used for cleanup. */
-    private val referenceQueue = ReferenceQueue<CachedContent>()
+    private class Instance(private var basePath: Path? = null) : ContentFactory {
 
-    /** Set of all the [PhantomReference]s. */
-    private val refSet = HashSet<PhantomReference<CachedContent>>()
 
-    /** Internal counter used. */
-    private val counter = AtomicInteger(0)
+        /** The [ReferenceQueue] used for cleanup. */
+        private val referenceQueue = ReferenceQueue<CachedContent>()
 
-    init {
-        Files.createDirectories(basePath)
-        thread(name = "FileCachedContentFactory cleaner thread.", isDaemon = true, start = true) {
-            while (true) { //FIXME cleanup mechanism appears not to be working
-                try {
-                    val reference = this.referenceQueue.poll() as? PhantomReference<out CachedContent>
-                    if (reference != null) {
-                        this.refSet.remove(reference)
-                        val content = reference.get()
-                        if (content != null) {
-                            try {
-                                content.purge()
-                                logger.debug { "Purged cached item ${content.path}." }
-                            } catch (e: Throwable) {
-                                logger.error(e) { "Failed to purge cached item ${content.path}." }
+        /** Set of all the [PhantomReference]s. */
+        private val refSet = HashSet<PhantomReference<CachedContent>>()
+
+        /** Internal counter used. */
+        private val counter = AtomicInteger(0)
+
+        init {
+            if (this.basePath == null) {
+                this.basePath = Files.createTempDirectory("vitrivr-cache")
+                logger.warn { "No base path provided for CachedContentFactory. Using temporary directory ${this.basePath}." }
+            } else {
+                if (!this.basePath?.let { Files.exists(it) }!!) {
+                    this.basePath?.let { Files.createDirectories(it) }
+                    logger.info { "Created base path for CachedContentFactory at ${this.basePath}." }
+                }
+            }
+            thread(name = "FileCachedContentFactory cleaner thread.", isDaemon = true, start = true) {
+                while (true) { //FIXME cleanup mechanism appears not to be working
+                    try {
+                        val reference = this.referenceQueue.poll() as? PhantomReference<out CachedContent>
+                        if (reference != null) {
+                            this.refSet.remove(reference)
+                            val content = reference.get()
+                            if (content != null) {
+                                try {
+                                    content.purge()
+                                    logger.debug { "Purged cached item ${content.path}." }
+                                } catch (e: Throwable) {
+                                    logger.error(e) { "Failed to purge cached item ${content.path}." }
+                                }
                             }
+                        } else {
+                            Thread.sleep(100)
                         }
-                    } else {
-                        Thread.sleep(100)
+                    } catch (e: InterruptedException) {
+                        logger.info { "FileCachedContentFactory cleaner thread interrupted" }
                     }
-                } catch (e: InterruptedException) {
-                    logger.info { "FileCachedContentFactory cleaner thread interrupted" }
                 }
             }
         }
+
+        /**
+         * Generates the next [Path] for this [CachedContentFactory].
+         *
+         * @return Next [Path].
+         */
+        private fun nextPath(): Path = this.basePath!!.resolve(this.counter.incrementAndGet().toString())
+
+        override fun newImageContent(bufferedImage: BufferedImage): ImageContent {
+            val content = CachedImageContent(this.nextPath(), bufferedImage)
+            this.refSet.add(PhantomReference(content, this.referenceQueue))
+            return content
+        }
+
+        override fun newAudioContent(channel: Int, samplingRate: Int, audio: ShortBuffer): AudioContent {
+            val content = CachedAudioContent(this.nextPath(), channel, samplingRate, audio)
+            this.refSet.add(PhantomReference(content, this.referenceQueue))
+            return content
+        }
+
+        override fun newTextContent(text: String): TextContent {
+            val content = CachedTextContent(this.nextPath(), text)
+            this.refSet.add(PhantomReference(content, this.referenceQueue))
+            return content
+        }
+
+        override fun newMeshContent(model3D: Model3D): Model3DContent = TODO()
     }
-
-    /**
-     * Generates the next [Path] for this [CachedContentFactory].
-     *
-     * @return Next [Path].
-     */
-    private fun nextPath(): Path = this.basePath.resolve(this.counter.incrementAndGet().toString())
-
-    override fun newImageContent(bufferedImage: BufferedImage): ImageContent {
-        val content = CachedImageContent(this.nextPath(), bufferedImage)
-        this.refSet.add(PhantomReference(content, this.referenceQueue))
-        return content
-    }
-
-    override fun newAudioContent(channel: Int, samplingRate: Int, audio: ShortBuffer): AudioContent {
-        val content = CachedAudioContent(this.nextPath(), channel, samplingRate, audio)
-        this.refSet.add(PhantomReference(content, this.referenceQueue))
-        return content
-    }
-
-    override fun newTextContent(text: String): TextContent {
-        val content = CachedTextContent(this.nextPath(), text)
-        this.refSet.add(PhantomReference(content, this.referenceQueue))
-        return content
-    }
-
-    override fun newMeshContent(model3D: Model3D): Model3DContent = TODO()
-
 }
