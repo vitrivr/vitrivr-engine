@@ -54,7 +54,7 @@
     }
   },
   "operations": {
-    "stage1": {"operator": "seg"},
+    "stage1": {"operator": "pass"},
     "stage2": {"operator": "allContent"},
     "stage3": {"operator": "avgColor"},
     "stage4": {"operator": "thumbs"},
