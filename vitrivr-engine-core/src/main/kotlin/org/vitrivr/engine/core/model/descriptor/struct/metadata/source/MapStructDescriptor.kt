@@ -15,11 +15,6 @@ data class MapStructDescriptor(
     override val transient: Boolean = false
 ) : StructDescriptor {
 
-    companion object {
-        /** The prototype [MapStructDescriptor]. */
-        val PROTOTYPE = MapStructDescriptor(UUID.randomUUID(), UUID.randomUUID(),  mapOf("" to "BOOLEAN"))
-    }
-
     override fun schema(): List<FieldSchema> {
         return this.metadata.map { (key, value) ->
             when (value) {
