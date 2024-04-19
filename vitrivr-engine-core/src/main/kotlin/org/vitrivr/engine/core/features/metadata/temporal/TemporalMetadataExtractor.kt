@@ -9,6 +9,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.ContentAttribute
+import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import java.util.*
@@ -34,8 +35,8 @@ class TemporalMetadataExtractor(input: Operator<Retrievable>, field: Schema.Fiel
         val content = retrievable.filteredAttributes(ContentAttribute::class.java).map { it.content }
         val descriptors = content.filterIsInstance<TemporalContent>().map { c ->
             when (c) {
-                is TemporalContent.Timepoint -> TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, c.timepointNs, c.timepointNs, !persisting)
-                is TemporalContent.TimeSpan -> TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, c.startNs, c.endNs, !persisting)
+                is TemporalContent.Timepoint -> TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, Value.Long(c.timepointNs), Value.Long(c.timepointNs), !persisting)
+                is TemporalContent.TimeSpan -> TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, Value.Long(c.startNs), Value.Long(c.endNs), !persisting)
             }
         }
         return descriptors

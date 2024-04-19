@@ -107,26 +107,8 @@ subprojects {
 }
 
 /* Define required variables. */
-def fullOAS = 'http://localhost:7070/swagger-docs'
+def fullOAS = 'http://localhost:7070/openapi.json'
 def oasFile = "${project.projectDir}/vitrivr-engine-server/doc/oas.json"
-
-openApiGenerate {
-    generateApiTests = false
-    generateModelTests = false
-    validateSpec = false
-    skipValidateSpec = true
-
-    generatorName = 'typescript-angular'
-    inputSpec = oasFile
-    outputDir = file("${project.projectDir}/openapi/doc/ts").toString()
-    configOptions = [
-            npmName: '@vitrivr-engine/api',
-            ngVersion: '13.2.3',
-            snapshot: 'true',
-            enumPropertyNaming: 'original'
-    ]
-}
-
 
 openApiGenerate {
     generateApiTests = false

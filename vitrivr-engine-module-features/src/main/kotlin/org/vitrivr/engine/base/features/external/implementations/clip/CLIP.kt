@@ -9,8 +9,10 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
+import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Value
@@ -76,6 +78,25 @@ class CLIP : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
     }
 
     /**
+     * Generates and returns a new [DINORetriever] instance for this [CLIP].
+     *
+     * @param field The [Schema.Field] to create an [Retriever] for.
+     * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
+     * @param context The [QueryContext] to use with the [Retriever]
+     *
+     * @return A new [Retriever] instance for this [Analyser]
+     * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
+     */
+    override fun newRetrieverForDescriptors(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): DenseRetriever {
+        /* Prepare query parameters. */
+        val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
+        val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+
+        /* Return retriever. */
+        return this.newRetrieverForQuery(field, ProximityQuery(value = descriptors.first().vector, k = k, distance = Distance.COSINE, fetchVector = fetchVector), context)
+    }
+
+    /**
      * Generates and returns a new [Retriever] instance for this [CLIP].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
@@ -88,13 +109,11 @@ class CLIP : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, FloatVectorDescriptor> {
         val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
 
-        /* Prepare query parameters. */
-        val vector = analyse(content.first(), host)
-        val k = context.getProperty(field.fieldName, "limit")?.toIntOrNull() ?: 1000
-        val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+        /* Extract vectors from content. */
+        val vectors = content.map { analyse(it, host) }
 
         /* Return retriever. */
-        return this.newRetrieverForQuery(field, ProximityQuery(value = vector.vector, k = k, fetchVector = fetchVector), context)
+        return this.newRetrieverForDescriptors(field, vectors, context)
     }
 
     /**

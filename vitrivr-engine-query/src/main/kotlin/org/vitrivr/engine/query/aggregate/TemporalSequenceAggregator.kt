@@ -195,7 +195,7 @@ class TemporalSequenceAggregator(
                 id, "temporalSequence", true
             )
 
-            retrieved.addAttribute(ScoreAttribute(score))
+            retrieved.addAttribute(ScoreAttribute.Unbound(score))
             retrieved.addAttribute(RelationshipAttribute(relationships))
 
             emit(retrieved)

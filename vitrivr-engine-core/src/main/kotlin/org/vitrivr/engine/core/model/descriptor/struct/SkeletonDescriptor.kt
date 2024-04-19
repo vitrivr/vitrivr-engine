@@ -9,7 +9,7 @@ import org.vitrivr.engine.core.model.types.Value
 data class SkeletonDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId,
-    val person: Int,
+    val person: Value.Int,
     val skeleton: List<Value.Float>,
     val weights: List<Value.Float>,
     override val transient: Boolean = false
@@ -27,8 +27,8 @@ data class SkeletonDescriptor(
     )
 
     override fun values(): List<Pair<String, Any?>> = listOf(
-            "person" to this.person,
-            "skeleton" to this.skeleton,
-            "weights" to this.weights
+        "person" to this.person,
+        "skeleton" to this.skeleton,
+        "weights" to this.weights
     )
 }

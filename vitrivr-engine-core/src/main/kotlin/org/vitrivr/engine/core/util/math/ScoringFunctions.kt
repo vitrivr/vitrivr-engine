@@ -19,7 +19,7 @@ object ScoringFunctions {
      * @param max Maximum value. Default is 1.0.
      */
     fun max(retrieved: Retrieved, max: Float = 1.0f): ScoreAttribute {
-        val distance = retrieved.filteredAttribute<DistanceAttribute>()?.distance ?: return ScoreAttribute.ZERO
-        return ScoreAttribute(max - distance)
+        val distance = retrieved.filteredAttribute<DistanceAttribute>()?.distance ?: return ScoreAttribute.Unbound(0.0f)
+        return ScoreAttribute.Unbound(max - distance)
     }
 }

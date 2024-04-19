@@ -177,6 +177,22 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
         fun getRetrieverForContent(content: Collection<C>, queryContext: QueryContext): Retriever<C, D> = this.analyser.newRetrieverForContent(this, content, queryContext)
 
         /**
+         * Returns a [Retriever] instance for this [Schema.Field].
+         *
+         * @param descriptor The [Descriptor] that should be used with the [Retriever].
+         * @return [Retriever] instance.
+         */
+        fun getRetrieverForDescriptor(descriptor: D, queryContext: QueryContext): Retriever<C, D> = this.getRetrieverForDescriptors(listOf(descriptor), queryContext)
+
+        /**
+         * Returns a [Retriever] instance for this [Schema.Field].
+         *
+         * @param descriptors The [Descriptor] element(s) that should be used with the [Retriever].
+         * @return [Retriever] instance.
+         */
+        fun getRetrieverForDescriptors(descriptors: Collection<D>, queryContext: QueryContext): Retriever<C, D> = this.analyser.newRetrieverForDescriptors(this, descriptors, queryContext)
+
+        /**
          * Returns the [DescriptorInitializer] for this [Schema.Field].
          *
          * @return [DescriptorInitializer]

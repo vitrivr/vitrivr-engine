@@ -19,7 +19,7 @@ class SkeletonPose : Analyser<ContentElement<*>, SkeletonDescriptor> {
     override fun prototype(field: Schema.Field<*, *>): SkeletonDescriptor = SkeletonDescriptor(
         id = java.util.UUID.randomUUID(),
         retrievableId = java.util.UUID.randomUUID(),
-        person = 0,
+        person = Value.Int(0),
         skeleton = List(12) { Value.Float(0.0f) },
         weights = List(12) { Value.Float(0.0f) },
         transient = true

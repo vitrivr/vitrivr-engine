@@ -8,21 +8,36 @@ import kotlin.math.max
  * Scores are expected to be in the range of [0, 1].
  *
  * @author Luca Rossetto
- * @version 1.0.0
+ * @author Ralph Gasser
+ * @version 1.1.0
  */
-data class ScoreAttribute(val score: Float) : MergingRetrievableAttribute {
+sealed interface ScoreAttribute : MergingRetrievableAttribute {
 
-    companion object {
-        val ZERO = ScoreAttribute(0f)
+    /** The score associated with this [ScoreAttribute]. */
+    val score: Float
+
+    /**
+     * A similarity score. Strictly bound between 0 and 1.
+     */
+    data class Similarity(override val score: Float): ScoreAttribute {
+        init {
+            require(score in 0f..1f) { "Similarity score '$score' outside of valid range (0, 1)" }
+        }
+
+        override fun merge(other: MergingRetrievableAttribute): Similarity = Similarity(
+            max(this.score, (other as? Similarity)?.score ?: 0f)
+        )
     }
 
-    constructor(score: Double) : this(score.toFloat())
-
-    init {
-        require(score in 0f..1f) { "Score '$score' outside of valid range (0, 1)" }
+    /**
+     * An unbound score. Strictly bound between 0 and 1.
+     */
+    data class Unbound(override val score: Float): ScoreAttribute {
+        init {
+            require(this.score >= 0f) { "Score '$score' outside of valid range (>= 0)." }
+        }
+        override fun merge(other: MergingRetrievableAttribute): Unbound = Unbound(
+            max(this.score, (other as? Unbound)?.score ?: 0f)
+        )
     }
-
-    override fun merge(other: MergingRetrievableAttribute): ScoreAttribute = ScoreAttribute(
-        max(this.score, (other as? ScoreAttribute)?.score ?: 0f)
-    )
 }
