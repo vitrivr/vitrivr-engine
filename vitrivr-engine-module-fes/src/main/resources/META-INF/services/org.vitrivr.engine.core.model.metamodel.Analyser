@@ -2,3 +2,4 @@ org.vitrivr.engine.base.features.external.implementations.DenseEmbedding
 org.vitrivr.engine.base.features.external.implementations.ASR
 org.vitrivr.engine.base.features.external.implementations.OCR
 org.vitrivr.engine.base.features.external.implementations.ImageClass
+org.vitrivr.engine.base.features.external.implementations.ImageCaption

@@ -20,14 +20,23 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import java.util.*
 
-class OCR : ExternalFesAnalyser<ContentElement<*>, StringDescriptor>() {
-    override val defaultModel = "tesseract"
+class ImageCaption : ExternalFesAnalyser<ContentElement<*>, StringDescriptor>() {
+    companion object {
+        const val PROMPT_PARAMETER_NAME = "prompt"
+    }
+
+    override val defaultModel = "blip2"
     override fun analyse(content: List<ContentElement<*>>, apiWrapper: ApiWrapper, parameters: Map<String, String>): List<List<StringDescriptor>> {
+        val prompt = parameters[PROMPT_PARAMETER_NAME]
         val imageContents = content.filterIsInstance<ImageContent>()
         if (imageContents.isEmpty()) {
             throw IllegalArgumentException("No image content found in the provided content.")
         }
-        val result = apiWrapper.opticalCharacterRecognition(imageContents.map { it.content })
+        if (prompt != null) {
+            val result = apiWrapper.conditionalImageCaptioning(imageContents.map { it.content }, List(imageContents.size) { prompt })
+            return result.map { listOf(StringDescriptor(UUID.randomUUID(), null, Value.String(it))) }
+        }
+        val result = apiWrapper.imageCaptioning(imageContents.map { it.content })
         return result.map { listOf(StringDescriptor(UUID.randomUUID(), null, Value.String(it))) }
     }
 
@@ -37,7 +46,7 @@ class OCR : ExternalFesAnalyser<ContentElement<*>, StringDescriptor>() {
 
     override fun newExtractor(field: Schema.Field<ContentElement<*>, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): Extractor<ContentElement<*>, StringDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        return object : FesExtractor<StringDescriptor, OCR>(input, field, persisting) {
+        return object : FesExtractor<StringDescriptor, ImageCaption>(input, field, persisting) {
             override fun assignRetrievableId(descriptor: StringDescriptor, retrievableId: RetrievableId): StringDescriptor {
                 return descriptor.copy(retrievableId = retrievableId)
             }
@@ -45,13 +54,13 @@ class OCR : ExternalFesAnalyser<ContentElement<*>, StringDescriptor>() {
     }
 
     /**
-     * Generates and returns a new [FulltextRetriever] instance for this [OCR].
+     * Generates and returns a new [FulltextRetriever] instance for this [ImageCaption].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param query The [Query] to use with the [Retriever].
      * @param context The [QueryContext] to use with the [Retriever].
      *
-     * @return A new [FulltextRetriever] instance for this [OCR]
+     * @return A new [FulltextRetriever] instance for this [ImageCaption]
      */
     override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, StringDescriptor>, query: Query, context: QueryContext): FulltextRetriever {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
@@ -60,7 +69,7 @@ class OCR : ExternalFesAnalyser<ContentElement<*>, StringDescriptor>() {
     }
 
     /**
-     * Generates and returns a new [FulltextRetriever] instance for this [OCR].
+     * Generates and returns a new [FulltextRetriever] instance for this [ImageCaption].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param content An array of [Content] elements to use with the [Retriever]
