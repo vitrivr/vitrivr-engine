@@ -3,11 +3,14 @@ package org.vitrivr.engine.core.model.descriptor.struct.metadata
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Type
+import org.vitrivr.engine.core.model.types.Value
+import java.util.*
 
 /**
- * A [StructDescriptor] used to store temporal metadata.
+ * A [StructDescriptor] used to store spatial metadata in a 2D raster graphic.
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -15,21 +18,24 @@ import org.vitrivr.engine.core.model.types.Type
 data class Rectangle2DMetadataDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId,
-    val leftX: Int,
-    val leftY: Int,
-    val width: Int,
-    val height: Int,
+    val leftX: Value.Int,
+    val leftY: Value.Int,
+    val width: Value.Int,
+    val height: Value.Int,
     override val transient: Boolean = false
 ) : StructDescriptor {
 
     companion object {
+        /** The field schema associated with a [Rectangle2DMetadataDescriptor]. */
         private val SCHEMA = listOf(
             FieldSchema("leftX", Type.INT),
             FieldSchema("leftY", Type.INT),
             FieldSchema("width", Type.INT),
             FieldSchema("height", Type.INT),
+        )
 
-            )
+        /** The prototype [Rectangle2DMetadataDescriptor]. */
+        val PROTOTYPE = Rectangle2DMetadataDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.Int(0), Value.Int(0), Value.Int(0), Value.Int(0))
     }
 
     /**

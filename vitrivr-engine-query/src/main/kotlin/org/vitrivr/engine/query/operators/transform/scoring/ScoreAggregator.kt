@@ -1,4 +1,4 @@
-package org.vitrivr.engine.query.transform
+package org.vitrivr.engine.query.operators.transform.scoring
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -46,10 +46,10 @@ class ScoreAggregator(
                     }
                 }
 
-                retrieved.addAttribute(ScoreAttribute(score))
+                retrieved.addAttribute(ScoreAttribute.Unbound(score))
 
             } else {
-                retrieved.addAttribute(ScoreAttribute(0f))
+                retrieved.addAttribute(ScoreAttribute.Unbound(0f))
             }
 
             retrieved

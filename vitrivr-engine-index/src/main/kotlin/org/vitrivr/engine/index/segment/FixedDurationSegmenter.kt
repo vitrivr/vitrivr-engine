@@ -96,9 +96,6 @@ class FixedDurationSegmenter : SegmenterFactory {
         private var sourceWritten = false
 
 
-        /** [KLogger] instance. */
-        private val logger: KLogger = KotlinLogging.logger {}
-
         override suspend fun segment(upstream: Flow<ContentElement<*>>, downstream: ProducerScope<Retrievable>) {
             upstream.collect { content ->
                 this.mutex.lock()
@@ -143,7 +140,7 @@ class FixedDurationSegmenter : SegmenterFactory {
             require(source != null) { "Last source is null. This is a programmer's error!" }
 
             /* Generate source content. */
-            val sourceRetrievable = Ingested(source.sourceId, "source", false)
+            val sourceRetrievable = Ingested(source.sourceId, "source:${source.type.toString().lowercase()}", false)
 
             sourceRetrievable.addAttribute(SourceAttribute(source))
 

@@ -63,6 +63,22 @@ class OCR : ExternalFesAnalyser<ContentElement<*>, StringDescriptor>() {
      * Generates and returns a new [FulltextRetriever] instance for this [OCR].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
+     * @param descriptors An array of [StringDescriptor] elements to use with the [Retriever]
+     * @param context The [QueryContext] to use with the [Retriever]
+     * @return [FulltextRetriever]
+     */
+    override fun newRetrieverForDescriptors(field: Schema.Field<ContentElement<*>, StringDescriptor>, descriptors: Collection<StringDescriptor>, context: QueryContext): Retriever<ContentElement<*>, StringDescriptor> {
+        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
+
+        /* Prepare query parameters and return retriever. */
+        val limit = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
+        return this.newRetrieverForQuery(field, SimpleFulltextQuery(value = descriptors.first().value, limit = limit), context)
+    }
+
+    /**
+     * Generates and returns a new [FulltextRetriever] instance for this [OCR].
+     *
+     * @param field The [Schema.Field] to create an [Retriever] for.
      * @param content An array of [Content] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      * @return [FulltextRetriever]

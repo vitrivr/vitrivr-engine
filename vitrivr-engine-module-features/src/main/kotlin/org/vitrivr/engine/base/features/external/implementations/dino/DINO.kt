@@ -75,6 +75,25 @@ class DINO : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
      * Generates and returns a new [DenseRetriever] instance for this [DINO].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
+     * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
+     * @param context The [QueryContext] to use with the [Retriever]
+     *
+     * @return A new [Retriever] instance for this [Analyser]
+     * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
+     */
+    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): DINORetriever {
+        /* Prepare query parameters. */
+        val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
+        val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+
+        /* Return retriever. */
+        return this.newRetrieverForQuery(field, ProximityQuery(value = descriptors.first().vector, k = k, fetchVector = fetchVector), context)
+    }
+
+    /**
+     * Generates and returns a new [DINORetriever] instance for this [DINO].
+     *
+     * @param field The [Schema.Field] to create an [Retriever] for.
      * @param content An array of [Content] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      *
@@ -85,13 +104,11 @@ class DINO : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
 
-        /* Prepare query parameters. */
-        val vector = analyse(content.first(), host)
-        val k = context.getProperty(field.fieldName, "limit")?.toIntOrNull() ?: 1000
-        val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+        /* Extract vectors from content. */
+        val vectors = content.map { analyse(it, host) }
 
         /* Return retriever. */
-        return this.newRetrieverForQuery(field, ProximityQuery(value = vector.vector, k = k, fetchVector = fetchVector), context)
+        return this.newRetrieverForDescriptors(field, vectors, context)
     }
 
     /**

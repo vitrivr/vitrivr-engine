@@ -37,7 +37,7 @@ class SphericalHarmonicsRetriever(override val field: Schema.Field<Model3DConten
         val reader = this.field.getReader()
         return flow {
             reader.getAll(this@SphericalHarmonicsRetriever.query).forEach {
-                it.addAttribute(ScoreAttribute(scoringFunction(it)))
+                it.addAttribute(ScoreAttribute.Similarity(scoringFunction(it)))
                 emit(it)
             }
         }

@@ -2,7 +2,6 @@ package org.vitrivr.engine.plugin.cottontaildb
 
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.core.types.Types
-import org.vitrivr.cottontail.core.types.VectorValue
 import org.vitrivr.cottontail.core.values.*
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
 import org.vitrivr.engine.core.model.descriptor.scalar.*
@@ -88,6 +87,8 @@ internal fun FieldSchema.toCottontailType(): Types<*> {
         } else {
             Types.Double
         }
+
+        Type.DATETIME -> Types.Date
     }
 }
 
@@ -119,6 +120,7 @@ internal fun Value<*>.toCottontailValue(): PublicValue = when (this) {
     is Value.Long -> LongValue(this.value)
     is Value.Short -> ShortValue(this.value)
     is Value.String -> StringValue(this.value)
+    is Value.DateTime -> DateValue(this.value)
 }
 
 /**

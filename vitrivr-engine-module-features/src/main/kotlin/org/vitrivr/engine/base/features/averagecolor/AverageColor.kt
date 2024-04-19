@@ -22,8 +22,6 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.core.util.extension.getRGBArray
 import java.util.*
 
-private val logger: KLogger = KotlinLogging.logger {}
-
 /**
  * Implementation of the [AverageColor] [Analyser], which derives the average color from an [ImageContent] as [FloatVectorDescriptor].
  *
@@ -31,6 +29,9 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @version 1.0.0
  */
 class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
+
+    private val logger: KLogger = KotlinLogging.logger {}
+
     override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = FloatVectorDescriptor::class
 
@@ -84,25 +85,35 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
     /**
      * Generates and returns a new [AverageColorRetriever] instance for this [AverageColor].
      *
-     * Invoking this method involves converting the provided [ImageContent] and the [QueryContext] into a [ProximityQuery] that can be used to retrieve
-     * similar [ImageContent] elements.
+     * Invoking this method involves converting the provided [FloatVectorDescriptor] into a [ProximityQuery] that can be used to retrieve similar [ImageContent] elements.
      *
+     * @param field The [Schema.Field] to create an [Retriever] for.
+     * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
+     * @param context The [QueryContext] to use with the [Retriever]
+     */
+    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): AverageColorRetriever {
+        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
+
+        /* Prepare query parameters. */
+        val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
+        val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+
+        /* Return retriever. */
+        return this.newRetrieverForQuery(field, ProximityQuery(value = descriptors.first().vector, k = k, fetchVector = fetchVector), context)
+    }
+
+    /**
+     * Generates and returns a new [AverageColorRetriever] instance for this [AverageColor].
+     *
+     * Invoking this method involves converting the provided [ImageContent] and the [QueryContext] into a [FloatVectorDescriptor]
+     * that can be used to retrieve similar [ImageContent] elements.
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param content An array of [Content] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext): AverageColorRetriever {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-
-        /* Prepare query parameters. */
-        val k = context.getProperty(field.fieldName, "limit")?.toIntOrNull() ?: 1000
-        val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
-        val vector = this.analyse(content).first().vector
-
-        /* Return retriever. */
-        return this.newRetrieverForQuery(field, ProximityQuery(value = vector, k = k, fetchVector = fetchVector), context)
-    }
+    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext): AverageColorRetriever =
+        this.newRetrieverForDescriptors(field, this.analyse(content), context)
 
     /**
      * Performs the [AverageColor] analysis on the provided [List] of [ImageContent] elements.
@@ -111,6 +122,7 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return [List] of [FloatVectorDescriptor]s.
      */
     fun analyse(content: Collection<ImageContent>): List<FloatVectorDescriptor> = content.map {
+        logger.trace{"Analysing"}
         val color = MutableRGBFloatColorContainer()
         val rgb = it.content.getRGBArray()
         rgb.forEach { c -> color += RGBByteColorContainer.fromRGB(c) }

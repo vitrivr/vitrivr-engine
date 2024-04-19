@@ -8,6 +8,7 @@ import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSour
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
+import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.source.MediaType
@@ -48,12 +49,12 @@ class VideoSourceMetadataExtractor(
             VideoSourceMetadataDescriptor(
                 id = UUID.randomUUID(),
                 retrievableId = retrievable.id,
-                width = source.width() ?: 0,
-                height = source.height() ?: 0,
-                fps = source.fps() ?: 0.0,
-                channels = source.channels() ?: 0,
-                sampleRate = source.sampleRate() ?: 0,
-                sampleSize = source.sampleSize() ?: 0,
+                width = Value.Int(source.width() ?: 0),
+                height = Value.Int(source.height() ?: 0),
+                fps = Value.Double(source.fps() ?: 0.0),
+                channels = Value.Int(source.channels() ?: 0),
+                sampleRate = Value.Int(source.sampleRate() ?: 0),
+                sampleSize = Value.Int(source.sampleSize() ?: 0),
                 transient = !persisting
             )
         )
