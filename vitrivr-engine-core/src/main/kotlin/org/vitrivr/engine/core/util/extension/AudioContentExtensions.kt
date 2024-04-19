@@ -41,6 +41,11 @@ fun AudioContent.toDataURL(): String {
         buffer.putShort(sample)
     }
 
+
+    //save to disk for debugging with random name
+    val file = java.io.File("audio${Random().nextInt()}.wav")
+    file.writeBytes(buffer.array())
+
     val base64 = Base64.getEncoder().encodeToString(buffer.array())
     return "data:audio/wav;base64,$base64"
 }
