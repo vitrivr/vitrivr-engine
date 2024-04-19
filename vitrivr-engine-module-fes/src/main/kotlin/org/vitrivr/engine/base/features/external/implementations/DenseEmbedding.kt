@@ -63,7 +63,7 @@ companion object {
 
         /* Prepare query parameters. */
         val vector = analyse(content.first(), field.parameters)
-        val k = context.getProperty(field.fieldName, "limit")?.toIntOrNull() ?: 1000
+        val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
         val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
 
         /* Return retriever. */

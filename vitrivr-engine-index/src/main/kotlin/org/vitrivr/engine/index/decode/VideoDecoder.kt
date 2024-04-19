@@ -161,7 +161,7 @@ class VideoDecoder : DecoderFactory {
             }
 
             /* Create and emit audio content. */
-            val audio = this.context.contentFactory.newAudioContent(frame.audioChannels.toShort(), frame.sampleRate, samples)
+            val audio = this.context.contentFactory.newAudioContent(frame.audioChannels.toShort(), frame.sampleRate * 2, samples)
             channel.send(object : AudioContent by audio, SourcedContent.Temporal {
                 override val source: Source = source
                 override val timepointNs: Long = timestampNs

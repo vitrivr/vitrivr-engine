@@ -52,10 +52,10 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(f
                     val r = batch[i]
                     for (d in descriptors[i]) {
                         r.addAttribute(DescriptorAttribute(d))
-                        if (persisting){
-                            writer.add(d)
-                        }
                     }
+                }
+                if (persisting){
+                    writer.addAll(descriptors.flatten())
                 }
                 batch.clear()
             }
@@ -68,10 +68,10 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(f
                     val r = batch[i]
                     for (d in descriptors[i]) {
                         r.addAttribute(DescriptorAttribute(d))
-                        if (persisting){
-                            writer.add(d)
-                        }
                     }
+                }
+                if (persisting){
+                    writer.addAll(descriptors.flatten())
                 }
                 batch.clear()
             }
