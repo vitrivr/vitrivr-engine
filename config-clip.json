@@ -42,7 +42,7 @@
                     "nextExtractor": {
                       "fieldName": "time",
                       "nextExtractor": {
-                        "fieldName": "caption"
+                        "fieldName": "clip"
                       }
                     }
                   }
