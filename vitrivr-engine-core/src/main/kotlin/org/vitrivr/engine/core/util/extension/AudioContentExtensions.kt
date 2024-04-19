@@ -36,21 +36,10 @@ fun AudioContent.toDataURL(): String {
     // Write WAV header
     writeWaveHeader(buffer, this.samplingRate.toFloat(), 1, data.remaining())
 
-    // Write audio data
-    println("Starting to write audio data. Remaining: ${data.remaining()}")
     while (data.hasRemaining()) {
         val sample = data.get()
         buffer.putShort(sample)
-        println("Writing sample: $sample")
     }
-
-    // Debugging: check buffer state
-    println("Buffer position after data write: ${buffer.position()}")
-
-    //save to disk for debugging
-    val file = java.io.File("audio.wav")
-    file.writeBytes(buffer.array())
-    println("File size written: ${file.length()} bytes")
 
     val base64 = Base64.getEncoder().encodeToString(buffer.array())
     return "data:audio/wav;base64,$base64"

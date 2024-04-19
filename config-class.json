@@ -3,14 +3,14 @@
     "contentFactory": "InMemoryContentFactory",
     "resolverFactory": "DiskResolver",
     "parameters": {
-      "location": "../objects"
+      "location": "../data"
     }
   },
   "schema": "Test",
   "enumerator": {
     "name": "FileSystemEnumerator",
     "parameters": {
-      "path": "../data",
+      "path": "../objects",
       "depth": "5",
       "mediaTypes": "VIDEO"
     },
