@@ -18,6 +18,7 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
+import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
 class OCR : ExternalFesAnalyser<ContentElement<*>, StringDescriptor>() {
