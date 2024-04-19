@@ -1,13 +1,11 @@
 package org.vitrivr.engine.base.features.external.common
 
+import okhttp3.OkHttpClient
 import org.openapitools.client.apis.*
 import org.openapitools.client.models.*
 import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.util.extension.toDataURL
 import java.awt.image.BufferedImage
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.util.*
 
 data class JobResult<S>(
         val status: JobState,
@@ -36,57 +34,21 @@ class JobWrapper<T, S>(
     }
 }
 
-fun AudioContent.toDataURL(): String {
-    val data = this.content // Assuming this.content returns a ShortArray of audio data
-    val buffer = ByteBuffer.allocate(44 + data.remaining() * 2).order(ByteOrder.LITTLE_ENDIAN)
-
-    // Write WAV header
-    writeWaveHeader(buffer, this.samplingRate.toFloat(), 1, data.remaining())
-
-    // Write audio data
-    while (data.hasRemaining()) {
-        buffer.putShort(data.get())
-    }
-
-    val base64 = Base64.getEncoder().encodeToString(buffer.array())
-    return "data:audio/wav;base64,$base64"
-}
-
-private fun writeWaveHeader(buffer: ByteBuffer, samplingRate: Float, channels: Short, length: Int) {
-    val subChunk2Length = length * channels * (16 / 8) // Assuming 16 bits per sample
-
-    // RIFF Chunk
-    buffer.put("RIFF".toByteArray())
-    buffer.putInt(36 + subChunk2Length)
-    buffer.put("WAVE".toByteArray())
-
-    // fmt chunk
-    buffer.put("fmt ".toByteArray())
-    buffer.putInt(16) // PCM header size
-    buffer.putShort(1) // Audio format 1 = PCM
-    buffer.putShort(channels)
-    buffer.putInt(samplingRate.toInt())
-    buffer.putInt((samplingRate * channels * (16 / 8)).toInt()) // Byte rate
-    buffer.putShort((channels * (16 / 8)).toShort()) // Block align
-    buffer.putShort(16) // Bits per sample
-
-    // data chunk
-    buffer.put("data".toByteArray())
-    buffer.putInt(subChunk2Length)
-}
-
 
 class ApiWrapper(private val hostName:String, private val model: String) {
 
-    private val textEmbeddingApi = TextEmbeddingApi(basePath = hostName)
-    private val imageEmbeddingApi = ImageEmbeddingApi(basePath = hostName)
-    private val imageCaptioningApi = ImageCaptioningApi(basePath = hostName)
-    private val zeroShotImageClassificationApi = ZeroShotImageClassificationApi(basePath = hostName)
-    private val conditionalImageCaptioningApi = ConditionalImageCaptioningApi(basePath = hostName)
-    private val faceEmbeddingApi = FaceEmbeddingApi(basePath = hostName)
-    private val objectDetectionApi = ObjectDetectionApi(basePath = hostName)
-    private val automatedSpeechRecognitionApi = AutomatedSpeechRecognitionApi(basePath = hostName)
-    private val opticalCharacterRecognitionApi = OpticalCharacterRecognitionApi(basePath = hostName)
+
+    private val okHttpClient = OkHttpClient().newBuilder().readTimeout(10, java.util.concurrent.TimeUnit.SECONDS).build()
+    private val textEmbeddingApi = TextEmbeddingApi(basePath = hostName, client = okHttpClient)
+    private val imageEmbeddingApi = ImageEmbeddingApi(basePath = hostName, client = okHttpClient)
+    private val imageCaptioningApi = ImageCaptioningApi(basePath = hostName, client = okHttpClient)
+    private val zeroShotImageClassificationApi = ZeroShotImageClassificationApi(basePath = hostName, client = okHttpClient)
+    private val conditionalImageCaptioningApi = ConditionalImageCaptioningApi(basePath = hostName, client = okHttpClient)
+    private val faceEmbeddingApi = FaceEmbeddingApi(basePath = hostName, client = okHttpClient)
+    private val objectDetectionApi = ObjectDetectionApi(basePath = hostName, client = okHttpClient)
+    private val automatedSpeechRecognitionApi = AutomatedSpeechRecognitionApi(basePath = hostName, client = okHttpClient)
+    private val opticalCharacterRecognitionApi = OpticalCharacterRecognitionApi(basePath = hostName, client = okHttpClient)
+
     fun textEmbedding(text: String): kotlin.collections.List<Float> {
 
         val input = TextEmbeddingInput(text)
