@@ -81,9 +81,9 @@ class CachedContentFactory : ContentFactory, AutoCloseable {
         return content
     }
 
-    override fun newAudioContent(channel: Int, samplingRate: Int, audio: ShortBuffer): AudioContent {
+    override fun newAudioContent(channels: Short, sampleRate: Int, audio: ShortBuffer): AudioContent {
         check(!this.closed) { "CachedContentFactory has been closed." }
-        val content = CachedAudioContent(this.nextPath(), channel, samplingRate, audio)
+        val content = CachedAudioContent(this.nextPath(), channels, sampleRate, audio)
         this.refSet.add(CachedItem(content, this.referenceQueue))
         return content
     }
