@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.filter
 import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.Frame
+import org.bytedeco.javacv.FrameGrabber
 import org.bytedeco.javacv.Java2DFrameConverter
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.Content
@@ -79,6 +80,11 @@ class VideoDecoder : DecoderFactory {
                     var audioCounter = 0
                     source.newInputStream().use { input ->
                         FFmpegFrameGrabber(input).use { grabber ->
+
+                            /* Configure FFmpegFrameGrabber. */
+                            grabber.imageMode = FrameGrabber.ImageMode.COLOR
+                            grabber.sampleMode = FrameGrabber.SampleMode.SHORT
+
                             logger.info { "Start decoding source ${source.name} (${source.sourceId})" }
                             try {
                                 grabber.start()
@@ -93,6 +99,7 @@ class VideoDecoder : DecoderFactory {
 
                                 /* Start extraction of frames. */
                                 var frame = grabber.grabFrame(this@Instance.audio, this@Instance.video, true, this@Instance.keyFrames, true)
+
                                 while (frame != null) {
                                     when (frame.type) {
                                         Frame.Type.VIDEO -> if ((videoCounter++) % this@Instance.sampleVideo == 0) {
@@ -144,18 +151,21 @@ class VideoDecoder : DecoderFactory {
          * @param source The [ProducerScope]'s to send [ContentElement] to.
          */
         private suspend fun emitAudioContent(frame: Frame, source: Source, channel: ProducerScope<ContentElement<*>>) {
-            for ((c, s) in frame.samples.withIndex()) {
-                val normalizedSamples = when (s) {
-                    is ShortBuffer -> s
-                    else -> ShortBuffer.allocate(0)/* TODO: Cover other cases. */
-                }
-                val timestampNs: Long = frame.timestamp * 1000 // Convert microseconds to nanoseconds
-                val audio = this.context.contentFactory.newAudioContent(c, frame.sampleRate, normalizedSamples)
-                channel.send(object : AudioContent by audio, SourcedContent.Temporal {
-                    override val source: Source = source
-                    override val timepointNs: Long = timestampNs
-                })
+            val timestampNs: Long = frame.timestamp * 1000 // Convert microseconds to nanoseconds
+
+            /* Copy audio samples (important)! */
+            val samples = (frame.samples.firstOrNull() as? ShortBuffer)?.let { ShortBuffer.allocate(it.limit()).put(it).flip() }
+            if (samples == null) {
+                logger.warn { "Audio frame at timestamp $timestampNs did not contain any audio samples." }
+                return
             }
+
+            /* Create and emit audio content. */
+            val audio = this.context.contentFactory.newAudioContent(frame.audioChannels.toShort(), frame.sampleRate, samples)
+            channel.send(object : AudioContent by audio, SourcedContent.Temporal {
+                override val source: Source = source
+                override val timepointNs: Long = timestampNs
+            })
         }
     }
 }

@@ -11,4 +11,4 @@ import java.nio.ShortBuffer
  * @author Ralph Gasser
  * @version 1.0.0
  */
-data class InMemoryAudioContent(override val channel: Int, override val samplingRate: Int, override val content: ShortBuffer) : AudioContent
+data class InMemoryAudioContent(override val channels: Short, override val samplingRate: Int, override val content: ShortBuffer) : AudioContent
