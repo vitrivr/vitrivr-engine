@@ -1,4 +1,4 @@
-package org.vitrivr.engine.index.resolvers
+package org.vitrivr.engine.core.resolver.impl
 
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
