@@ -22,6 +22,7 @@ sealed interface Value<T> {
             is kotlin.Long -> Long(value)
             is kotlin.Float -> Float(value)
             is kotlin.Double -> Double(value)
+            is Date -> DateTime(value)
             else -> throw IllegalArgumentException("Unsupported data type.")
         }
     }

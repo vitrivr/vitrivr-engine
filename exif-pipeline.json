@@ -1,0 +1,32 @@
+{
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverFactory": "DiskResolver",
+    "parameters": {
+      "location": "../data"
+    }
+  },
+  "schema": "LSC-metadata",
+  "enumerator": {
+    "name": "FileSystemEnumerator",
+    "parameters": {
+      "path": "../objects_exif",
+      "depth": "5",
+      "mediaTypes": "IMAGE"
+    },
+    "next": {
+      "name": "ImageDecoder",
+      "nextSegmenter": {
+        "name": "PassThroughSegmenter",
+        "aggregators": [
+          {
+            "name": "CenterContentAggregator",
+            "nextExtractor": {
+              "fieldName": "exif"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

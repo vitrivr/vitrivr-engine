@@ -20,7 +20,7 @@ private val logger: KLogger = KotlinLogging.logger {}
 class ExifMetadata : Analyser<ContentElement<*>, MapStructDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = MapStructDescriptor::class
-    override fun prototype(field: Schema.Field<*, *>) = MapStructDescriptor(UUID.randomUUID(), UUID.randomUUID(), field.parameters)
+    override fun prototype(field: Schema.Field<*, *>) = MapStructDescriptor.prototype(field.parameters)
 
     override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, MapStructDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, MapStructDescriptor> {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
