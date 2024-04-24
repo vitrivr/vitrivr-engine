@@ -396,7 +396,7 @@ In order to address (reference) our schema, we reference it in our index config 
 
 _NOTE: THIS SECTION REQUIRES REVIEW_
 
-An [`IngestionContextConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/IngestionContextConfig.kt)
+An [`IngestionContextConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/context/IngestionContextConfig.kt)
 is used to specify the _context_, additional information to the media data.
 Specifically, a [`Resolver`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/resolver/Resolver.kt), `disk`, is referenced by its name from the _schema_ configuration.
 
@@ -899,7 +899,6 @@ The **schema** config:
     ]
   }]
 }
-
 ```
 
 The **pipeline** config:

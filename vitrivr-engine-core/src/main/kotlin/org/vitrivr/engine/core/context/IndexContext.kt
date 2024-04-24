@@ -11,4 +11,7 @@ import org.vitrivr.engine.core.resolver.Resolver
  * @author Raphael Waltenspuel
  * @version 1.0.0
  */
-data class IndexContext(val schema: Schema, val contentFactory: ContentFactory, val resolver: Resolver): Context()
+data class IndexContext(val schema: Schema, val contentFactory: ContentFactory, val resolver: Resolver,
+                        override val local: Map<String, Map<String, String>>,
+                        override val global: Map<String, String>
+): Context()

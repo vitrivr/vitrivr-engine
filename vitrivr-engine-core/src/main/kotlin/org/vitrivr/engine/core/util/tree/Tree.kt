@@ -47,11 +47,10 @@ class Tree<T>(
      */
     private fun depthFirstPreRecursively(node: TreeNode<T>, parent:TreeNode<T>? = null, visitor: (value: TreeNode<T>, parent: TreeNode<T>?) -> Unit ){
         if(node.isLeaf()){
+            visitor.invoke(node, parent)
             return
         }
-
         visitor.invoke(node, parent)
-
         for(child in node.children) {
             depthFirstPreRecursively(child, node, visitor)
         }

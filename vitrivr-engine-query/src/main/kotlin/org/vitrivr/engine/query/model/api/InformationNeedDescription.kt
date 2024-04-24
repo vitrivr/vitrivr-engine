@@ -10,5 +10,5 @@ data class InformationNeedDescription(
     val inputs: Map<String, InputData>,
     val operations: Map<String, OperatorDescription>,
     val output: String,
-    val context: QueryContext = QueryContext(emptyMap(), emptyMap())
+    val context: QueryContext = QueryContext()
 )
