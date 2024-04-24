@@ -19,7 +19,7 @@ class InMemoryContentFactory : ContentFactory {
 
     override fun newImageContent(bufferedImage: BufferedImage): ImageContent = InMemoryImageContent(bufferedImage)
 
-    override fun newAudioContent(channel: Int, samplingRate: Int, audio: ShortBuffer): AudioContent = InMemoryAudioContent(channel, samplingRate, audio)
+    override fun newAudioContent(channels: Short, sampleRate: Int, audio: ShortBuffer): AudioContent = InMemoryAudioContent(channels, sampleRate, audio)
 
     override fun newTextContent(text: String): TextContent = InMemoryTextContent(text)
 
