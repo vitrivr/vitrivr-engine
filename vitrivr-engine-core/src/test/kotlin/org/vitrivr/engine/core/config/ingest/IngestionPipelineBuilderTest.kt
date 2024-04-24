@@ -46,11 +46,11 @@ class IngestionPipelineBuilderTest {
                 operations = mapOf(
                     "stage1" to OperationsConfig(
                         "A",
-                        listOf("stage2-1", "stage2-2").toTypedArray()
+                        listOf("stage2-1", "stage2-2")
                     ),
-                    "stage2-1" to OperationsConfig("B1", listOf("stage3-1").toTypedArray()),
-                    "stage2-2" to OperationsConfig("B2", listOf("stage3-2").toTypedArray()),
-                    "stage3-1" to OperationsConfig("C1", listOf("stage4").toTypedArray()),
+                    "stage2-1" to OperationsConfig("B1", listOf("stage3-1")),
+                    "stage2-2" to OperationsConfig("B2", listOf("stage3-2")),
+                    "stage3-1" to OperationsConfig("C1", listOf("stage4")),
                     "stage3-2" to OperationsConfig("C2"),
                     "stage4" to OperationsConfig("D1")
                 )

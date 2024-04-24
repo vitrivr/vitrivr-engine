@@ -29,22 +29,6 @@ data class OperationsConfig (
      * The names of the [OperationsConfig] that follow this operation.
      * Must be a name of the [IngestionConfig.operations] property.
      */
-    val next: Array<String> = emptyArray()
+    val next: List<String> = emptyList()
 
-) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is OperationsConfig) return false
-
-        if (operator != other.operator) return false
-        if (!next.contentEquals(other.next)) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = operator.hashCode()
-        result = 31 * result + next.contentHashCode()
-        return result
-    }
-}
+)
