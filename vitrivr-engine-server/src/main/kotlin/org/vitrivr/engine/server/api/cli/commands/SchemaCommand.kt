@@ -4,14 +4,11 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.convert
-import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.jakewharton.picnic.table
-import org.vitrivr.engine.core.config.IndexConfig
 import org.vitrivr.engine.core.config.ingest.IngestionConfig
 import org.vitrivr.engine.core.config.ingest.IngestionPipelineBuilder
-import org.vitrivr.engine.core.config.pipeline.ExtractionPipelineBuilder
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.config.pipeline.execution.IndexingPipeline
 import org.vitrivr.engine.core.database.Initializer

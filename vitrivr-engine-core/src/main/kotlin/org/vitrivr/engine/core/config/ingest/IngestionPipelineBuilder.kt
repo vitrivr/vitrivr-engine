@@ -50,7 +50,7 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
     /**
      * Internal definition of the pipeline as a tree.
      */
-    val pipelineDefTree = Tree<OperatorConfig>()
+    val pipelineDefTree = Tree<Pair<String,OperatorConfig>>()
 
     /**
      * Internal flag whether [pipelineDef] is valid.
@@ -108,9 +108,9 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
             /* Visit node */
             val opCfg = config.operators[ops.value.operator] ?: throw IllegalArgumentException("No such operator '${ops.value.operator}'")
             if(parentStack.isEmpty()){
-                pipelineDefTree.add(TreeNode(ops.key, opCfg))
+                pipelineDefTree.add(TreeNode(ops.key, ops.value.operator to opCfg))
             }else{
-                pipelineDefTree.addTo(parentStack.pop(), TreeNode(ops.key, opCfg))
+                pipelineDefTree.addTo(parentStack.pop(), TreeNode(ops.key, ops.value.operator to opCfg))
             }
             if(ops.value.next.isNotEmpty()){
                 parentStack.push(ops.key)
@@ -136,16 +136,16 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
      * ```
      */
     private fun validatePipelineDefinition() {
-        require(pipelineDefTree.isEmpty()) { "Illegal State: Pipeline definition does not (yet) exist. This is a programmer's error!" }
+//        require(pipelineDefTree.isEmpty()) { "Illegal State: Pipeline definition does not (yet) exist. This is a programmer's error!" }
         logger.debug { "Validating pipeline definition." }
         var phase = 0
         var counter = 0
         pipelineDefTree.depthFirstPreorder { node, parent ->
-            val operatorConfig = node.value
+            val operatorConfig = node.value.second
             logger.debug{"Validating  ${node.name} ($counter-th) operation entry: $operatorConfig. We are in phase: $phase"}
             /* 1. Phase determination, if we are deeper than root */
             if(parent != null){
-                val last = parent.value
+                val last = parent.value.second
                 if (last.type == OperatorType.SEGMENTER && operatorConfig.type == OperatorType.AGGREGATOR) {
                     phase = 1
                 } else if (last.type == OperatorType.AGGREGATOR && (operatorConfig.type == OperatorType.EXPORTER || operatorConfig.type == OperatorType.EXTRACTOR)) {
@@ -190,20 +190,20 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
         require(this::enumerator.isInitialized){"Illegal State: Cannot build the ingestion pipeline when the enumerator has not been constructed. This is a programmer's error!"}
         require(this::decoder.isInitialized){"Illegal State: Cannot build the ingestion pipeline when the decoder has not been constructed. This is a programmer's error!"}
         pipelineDefTree.depthFirstPreorder { node, parent ->
-            logger.debug{"Building operator: ${node.name}"}
+            logger.debug{"Building operator ${node.value.first} for operation ${node.name}"}
             val op = if(parent == null){
-                buildOperator(node.name, decoder, node.value)
+                buildOperator(node.value.first, decoder, node.value.second)
             }else{
-                val parentOp = operators[parent.name] ?: throw IllegalArgumentException("Could not find operator with name ${parent.name}")
-                buildOperator(node.name, parentOp, node.value)
+                val parentOp = operators[parent.value.first] ?: throw IllegalArgumentException("Could not find operator with name ${parent.name}")
+                buildOperator(node.value.first, parentOp, node.value.second)
             }
-            operators.put(node.name, op)
+            operators[node.value.first] = op
             if(node.isLeaf()){
                 @Suppress("UNCHECKED_CAST")
                 pipeline.addLeaf(op as Operator<Retrievable>)
-                logger.debug{"Added the the operator ${node.name} to the pipeline"}
+                logger.debug{"Added the the operator ${node.value.first} to the pipeline"}
             }else{
-                logger.debug{"Built the operator named ${node.name}"}
+                logger.debug{"Built the operator named ${node.value.first}"}
             }
         }
     }

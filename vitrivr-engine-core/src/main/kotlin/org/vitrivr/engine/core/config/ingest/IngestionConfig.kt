@@ -12,6 +12,7 @@ import org.vitrivr.engine.core.config.ingest.operation.OperationsConfig
 import org.vitrivr.engine.core.config.ingest.operator.DecoderConfig
 import org.vitrivr.engine.core.config.ingest.operator.EnumeratorConfig
 import org.vitrivr.engine.core.config.ingest.operator.OperatorConfig
+import org.vitrivr.engine.core.context.IngestionContextConfig
 import org.vitrivr.engine.core.operators.ingest.*
 import java.nio.file.Files
 import java.nio.file.Path

@@ -269,7 +269,15 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
         fun getExporter(
             input: Operator<Retrievable>,
             context: IndexContext,
-            parameters: Map<String, String> = this.parameters
-        ): org.vitrivr.engine.core.operators.ingest.Exporter = this.factory.newOperator(input, context, parameters)
+        ): org.vitrivr.engine.core.operators.ingest.Exporter {
+            if(parameters.isNotEmpty()){
+                /* Case this is newly defined in the schema */
+                parameters.entries.forEach {
+                    context.setLocalProperty(name, it.key, it.value)
+                }
+            }
+            /* Other case: this is from the ingestion side of things, but referenced */
+            return this.factory.newOperator(name, input, context)
+        }
     }
 }
