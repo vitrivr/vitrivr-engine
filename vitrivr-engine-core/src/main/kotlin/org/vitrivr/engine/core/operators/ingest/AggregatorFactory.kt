@@ -12,9 +12,9 @@ interface AggregatorFactory {
     /**
      * Creates a new [Aggregator] instance from this [AggregatorFactory].
      *
+     * @param name The name of the [Aggregator]
      * @param input The input [Segmenter].
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      */
-    fun newOperator(input: Segmenter, context: IndexContext, parameters: Map<String, String> = emptyMap()): Aggregator
+    fun newOperator(name: String, input: Segmenter, context: IndexContext): Aggregator
 }

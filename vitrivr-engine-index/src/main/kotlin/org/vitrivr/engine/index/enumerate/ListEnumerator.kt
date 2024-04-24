@@ -8,6 +8,7 @@ import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.operators.ingest.EnumeratorFactory
 import org.vitrivr.engine.core.source.Source
 import java.util.LinkedList
+import java.util.stream.Stream
 
 /**
  * A [Enumerator] that allows a caller to explicitly prepare a list of [Source]s to enumerate.
@@ -20,11 +21,21 @@ class ListEnumerator : EnumeratorFactory {
     /**
      * Creates a new [Enumerator] instance from this [ListEnumerator].
      *
+     * @param name The name of the [Enumerator]
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      */
-    override fun newOperator(context: IndexContext, parameters: Map<String, String>): Enumerator {
+    override fun newOperator(name: String, context: IndexContext): Enumerator {
         return Instance(context)
+    }
+    /**
+     * Creates a new [Enumerator] instance from this [ListEnumerator].
+     *
+     * @param name The name of the [Enumerator]
+     * @param context The [IndexContext] to use.
+     * @param inputs Is ignored.
+     */
+    override fun newOperator(name: String, context: IndexContext, inputs: Stream<*>?): Enumerator {
+        return newOperator(name, context)
     }
 
     /**

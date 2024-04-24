@@ -12,18 +12,18 @@ interface SegmenterFactory {
     /**
      * Creates a new [Segmenter] instance from this [SegmenterFactory].
      *
+     * @param name The name of the [Segmenter]
      * @param input The input [Transformer].
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      */
-    fun newOperator(input: Transformer, context: IndexContext, parameters: Map<String, String> = emptyMap()): Segmenter
+    fun newOperator(name: String, input: Transformer, context: IndexContext): Segmenter
 
     /**
      * Creates a new [Segmenter] instance from this [SegmenterFactory].
      *
+     * @param name The name of the [Segmenter]
      * @param input The input [Segmenter].
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      */
-    fun newOperator(input: Decoder, context: IndexContext, parameters: Map<String, String> = emptyMap()): Segmenter
+    fun newOperator(name: String, input: Decoder, context: IndexContext): Segmenter
 }

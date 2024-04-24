@@ -15,12 +15,10 @@ interface EnumeratorFactory {
      * Creates a new [Enumerator] instance from this [EnumeratorFactory].
      *
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      */
-    fun newOperator(context: IndexContext, parameters: Map<String, String> = emptyMap()): Enumerator{
-        return newOperator(context, parameters, null)
+    fun newOperator(name: String, context: IndexContext): Enumerator{
+        return newOperator(name, context, null)
     }
-    fun newOperator(context: IndexContext, parameters: Map<String, String> = emptyMap(), inputs: Stream<*>? = null): Enumerator {
-        return newOperator(context, parameters)
-    }
+
+    fun newOperator(name: String, context: IndexContext, inputs: Stream<*>? = null): Enumerator
 }

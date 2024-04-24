@@ -33,6 +33,17 @@ open class Context(){
      *
      * @return Either the value named [property] for the [operator] or NULL, in case no such property exists.
      */
+    operator fun get(operator: String, property: String): String? = getProperty(operator,property)
+
+    /**
+     * Provides the [property] for the [operator], in case it is defined.
+     * Defining a property [local]ly overrides a [global] one.
+     *
+     * @param operator The name of the operator to get the property for.
+     * @param property The name of the property to get.
+     *
+     * @return Either the value named [property] for the [operator] or NULL, in case no such property exists.
+     */
     fun getProperty(operator: String, property: String): String? =
         local[operator]?.get(property) ?: global[property]
 
@@ -47,4 +58,11 @@ open class Context(){
      * @return Either the value named [property] for the [operator] or [default]
      */
     fun getPropertyOrDefault(operator: String, property: String, default: String): String = getProperty(operator, property) ?: default
+
+    companion object {
+        /**
+         * The empty [Context] - one without any properties set.
+         */
+        val EMPTY = Context()
+    }
 }
