@@ -3,14 +3,14 @@
     "contentFactory": "InMemoryContentFactory",
     "resolverFactory": "DiskResolver",
     "parameters": {
-      "location": "/Volumes/V3C1/LHE/thumbnails"
+      "location": "../data"
     }
   },
-  "schema": "VBSLHE",
+  "schema": "Test",
   "enumerator": {
     "name": "FileSystemEnumerator",
     "parameters": {
-      "path": "/Volumes/V3C1/LHE/videos",
+      "path": "../objects",
       "depth": "5",
       "mediaTypes": "VIDEO"
     },
@@ -44,7 +44,16 @@
                       "nextExtractor": {
                         "fieldName": "clip",
                         "nextExtractor": {
-                          "fieldName": "dino"
+                          "fieldName": "ocr",
+                          "nextExtractor": {
+                            "fieldName": "documenttype",
+                            "nextExtractor": {
+                              "fieldName": "caption",
+                              "nextExtractor": {
+                                "fieldName": "asr"
+                              }
+                            }
+                          }
                         }
                       }
                     }
