@@ -14,6 +14,7 @@
     }
   },
   "decoder": {
+    "type": "DECODER",
     "factory": "ImageDecoder"
   },
   "operators": {

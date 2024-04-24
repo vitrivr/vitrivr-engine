@@ -165,6 +165,70 @@ configuration file:
 }
 ```
 
+#### Schema Resolver Configuration
+
+Some data is stored e.g. on disk during extraction, which later will also be required during query time,
+therefore the [`Resolver`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/resolver/Resolver.kt)
+is configured as the [`ResolverConfig`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/schema/ResolverConfig.kt)
+on the schema with a unique name.
+
+The [`ResolverConfig`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/schema/ResolverConfig.kt) describes such a configuration:
+
+```json
+{
+  "factory": "FactoryClass",
+  "parameters": {
+    "key": "value"
+  }
+}
+```
+
+Specifically, the [`DiskResolver`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/resolver/impl/DiskResolver.kt) is implemented and configured as such:
+
+```json
+{
+  "factory": "DiskResolver",
+  "parameters": {
+    "location": "./thumbnails/vitrivr"
+  }
+}
+```
+
+Therefore, the _schema_ config is expanded with the _disk resolver_, named `disk`:
+
+```json
+{
+  "schemas": [{
+    "name": "sandbox",
+    "connection": {
+      "database": "CottontailConnectionProvider",
+      "parameters": {
+        "Host": "127.0.0.1",
+        "port": "1865"
+      }
+    },
+    "fields": [
+      {
+        "name": "averagecolor",
+        "factory": "AverageColor"
+      },
+      {
+        "name": "file",
+        "factory": "FileSourceMetadata"
+      }
+    ]
+  }],
+  "resolvers": {
+    "disk": {
+      "factory": "DiskResolver",
+      "parameters": {
+        "location": "./thumbnails/vitrivr"
+      }
+    }
+  }
+}
+```
+
 #### Schema Exporter Configuration
 
 In the context of images and videos, having thumbnails is desirable, which can be generated
@@ -178,9 +242,7 @@ describes such a configuration:
 {
   "name": "uniqueName",
   "factory": "FactoryClass",
-  "resolver": {
-    "factory": "ResolverFactoryClass"
-  },
+  "resolverName": "disk",
   "parameters": {
     "key": "value"
   }
@@ -188,18 +250,13 @@ describes such a configuration:
 ```
 
 Specifically, the [`ThumbnailExporter`](/vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/exporters/ThumbnailExporter.kt),
-can be configured as follows, which uses a [`DiskResolver`](/vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/resolvers/DiskResolver.kt).
+can be configured as follows, which references a [`DiskResolver`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/resolver/impl/DiskResolver.kt) named `disk`, see the previous section.
 
 ```json
 {
     "name": "thumbnail",
     "factory": "ThumbnailExporter",
-    "resolver": {
-      "factory": "DiskResolver",
-      "parameters": {
-        "location": "./thumbnails/sandbox"
-      }
-    },
+    "resolverName": "disk",
     "parameters": {
       "maxSideResolution": "400",
       "mimeType": "JPG"
@@ -230,16 +287,19 @@ Resulting in the following schema config:
         "factory": "FileSourceMetadata"
       }
     ],
+    "resolvers": {
+      "disk": {
+        "factory": "DiskResolver",
+        "parameters": {
+          "location": "./thumbnails/vitrivr"
+        }
+      }
+    },
     "exporters": [
       {
         "name": "thumbnail",
         "factory": "ThumbnailExporter",
-        "resolver": {
-          "factory": "DiskResolver",
-          "parameters": {
-            "location": "./thumbnails/sandbox"
-          }
-        },
+        "resolverName": "disk",
         "parameters": {
           "maxSideResolution": "400",
           "mimeType": "JPG"
@@ -316,7 +376,7 @@ is as follows:
 #### Index Pipeline Configuration
 
 Let's create a new file `sandbox-pipeline.json` right next to the `sandbox-config.json` in the root of the project.
-This file will contain the [`IndexConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/IndexConfig.kt).
+This file will contain the [`IngestionConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/IngestionConfig.kt).
 
 In order to address (reference) our schema, we reference it in our index config and provide a _context_ as well as an _enumerator_:
 
@@ -336,17 +396,14 @@ In order to address (reference) our schema, we reference it in our index config 
 
 _NOTE: THIS SECTION REQUIRES REVIEW_
 
-An [`ContextConfig](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ContextConfig.kt)
+An [`IngestionContextConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/IngestionContextConfig.kt)
 is used to specify the _context_, additional information to the media data.
-
+Specifically, a [`Resolver`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/resolver/Resolver.kt), `disk`, is referenced by its name from the _schema_ configuration.
 
 ```json
 {
     "contentFactory": "InMemoryContentFactory",
-    "resolverFactory": "DiskResolver",
-    "parameters": {
-      "location": "path/to/thumbnails"
-    }
+    "resolverName": "disk"
 }
 ```
 
@@ -358,10 +415,7 @@ looks as follows:
   "schema": "sandbox",
   "context": {
     "contentFactory": "InMemoryContentFactory",
-    "resolverFactory": "DiskResolver",
-    "parameters": {
-      "location": "./thumbnails/sandbox"
-    }
+    "resolverName": "disk"
   },
   "enumerator": {
 
@@ -372,16 +426,16 @@ looks as follows:
 #### Index Enumerator Configuration
 
 The _enumerator_ enumerates the content to index and provides it to the indexing pipeline.
-It is described with a [`EnumeratorConfig](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/operators/EnumeratorConfig.kt).
+It is described with a [`EnumeratorConfig](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/operator/OperatorConfig.kt).
 
 ```json
 {
-  "name": "EnumeratorClass",
+  "type": "ENUMERATOR",
+  "factory": "FactoryClass",
   "api": true,
   "parameters": {
     "key": "value"
-  },
-  "next": {}
+  }
 }
 ```
 
@@ -412,14 +466,14 @@ For an image only ingestion, we could set-up the configuration as follows (`skip
 
 ```json
 {
-    "name": "FileSystemEnumerator",
+    "type": "ENUMERATOR",
+    "factory": "FileSystemEnumerator",
     "api": true,
     "parameters": {
       "path": "./sandbox/imgs",
       "mediaTypes": "IMAGE",
       "depth": "1"
-    },
-    "next": {}
+    }
 }
 ```
 
@@ -430,39 +484,33 @@ This results in the following index pipeline config:
   "schema": "sandbox",
   "context": {
     "contentFactory": "InMemoryContentFactory",
-    "resolverFactory": "DiskResolver",
-    "parameters": {
-      "location": "./thumbnails/sandbox"
-    }
+    "resolverName": "disk"
   },
   "enumerator": {
-    "name": "FileSystemEnumerator",
+    "type": "ENUMERATOR",
+    "factory": "FileSystemEnumerator",
     "api": true,
     "parameters": {
       "path": "./sandbox/imgs",
       "mediaTypes": "IMAGE",
-      "depth": "0"
-    },
-    "next": {}
+      "depth": "1"
+    }
   }
 }
 ```
 
-The `next` property is a _decoder_ configuration, which will be addressed in the next section.
+#### Index Decoder Configuration
 
-#### Index Next / Decoder Configuration
-
-The [`DecoderConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/operators/DecoderConfig.kt)
+The [`DecoderConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/operator/OperatorConfig.kt)
 describes how the media content is decoded.
 
 ```json
 {
-  "name": "DecoderClass",
+  "type": "",
+  "factory": "DecoderClass",
   "parameters": {
     "key": "value"
-  },
-  "nextTransformer": {},
-  "nextSegmenter": {}
+  }
 }
 ```
 Note that either a _transformer_ **or** a _segmenter_ can be configured as next.
@@ -472,8 +520,7 @@ Since we work with images in this tutorial, we require the [`ImageDecoder`](/vit
 
 ```json
 {
-  "name": "ImageDecoder",
-  "nextSegmenter": {}
+  "name": "ImageDecoder"
 }
 ```
 
@@ -484,232 +531,289 @@ Resulting in the following index pipeline configuration:
   "schema": "sandbox",
   "context": {
     "contentFactory": "InMemoryContentFactory",
-    "resolverFactory": "DiskResolver",
-    "parameters": {
-      "location": "./thumbnails/sandbox"
-    }
+    "resolverName": "disk"
   },
   "enumerator": {
-    "name": "FileSystemEnumerator",
-    "api": true,
-    "parameters": {
-      "path": "./sandbox-media/imgs",
-      "mediaTypes": "IMAGE",
-      "depth": "1"
-    },
-    "next": {
-      "name": "ImageDecoder",
-      "nextSegmenter": {}
-    }
-  }
-}
-```
-
-#### Index Transformer and Segmenter Configuration
-
-_Transformers_ can be chained, if so desired, whereas a _segmenter_ is required in order to proceed with the
-index pipeline.
-The [`TransformerConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/operators/TransformerConfig.kt) is similarly
-to the previously shown [`DecoderConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/operators/DecoderConfig.kt).
-The [`SegmenterConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/operators/SegmenterConfig.kt)
-is as follows:
-
-```json
-{
-  "name": "SegmenterClass",
-  "parameters": {
-    "key": "value"
-  },
-  "aggregators": []
-}
-```
-
-Both, _transformers_ and _segmenters_ can be found in the index module [transformer package](/vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/transform)
-and [segmenter package](/vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/segment).
-There exists a `PassThroughSegmenter` and `PassThroughTransformer` which do nothing but pass through.
-We will directly use the `PassThroughSegmenter` to further build our index pipeline config:
-
-```json
-{
-  "schema": "sandbox",
-  "context": {
-    "contentFactory": "InMemoryContentFactory",
-    "resolverFactory": "DiskResolver",
-    "parameters": {
-      "location": "./thumbnails/sandbox"
-    }
-  },
-  "enumerator": {
-    "name": "FileSystemEnumerator",
-    "api": true,
-    "parameters": {
-      "path": "./sandbox-media/imgs",
-      "mediaTypes": "IMAGE",
-      "depth": "1"
-    },
-    "next": {
-      "name": "ImageDecoder",
-      "nextSegmenter": {
-        "name": "PassThroughSegmenter",
-        "aggregators": []
-      }
-    }
-  }
-}
-```
-
-#### Index Aggregator Config
-
-The [`AggregatorConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/operators/AggregatorConfig.kt)
-describes the configuration of one single aggregator:
-
-```json
-{
-  "name": "AggregatorClass",
-  "parameters": {
-    "key": "value"
-  },
-  "nextExtractor": {},
-  "nextExporter": {}
-}
-```
-
-An aggregator can only be followed by **either** an exporter **or** an extractor
-
-The available aggregators can be seen in the [aggregator package](/vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/aggregators).
-
-For the sake of this tutorial, we will use the simple
-[`AllContentAggregator`](/vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/aggregators/AllContentAggregator.kt),
-as we do not want to have the images aggregator in any way.
-
-```json
-{
-  "name": "AllContentAggregator",
-  "nextExtractor": {}
-}
-```
-
-Extractors and exporters can be chained as required and are interchangeable.
-
-#### Index Extractor Configuration
-
-The [`ExtractorConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/operators/ExtractorConfig.kt)
-describes an extractor.
-An _extractor_ extracts descriptors from the content, thus, requires a field.
-
-```json
-{
-  "fieldName": "uniqueFieldNameFromConfig",
-  "factoryName": "FactoryClassName",
-  "parameters": {},
-  "nextExtractor": {},
-  "nextExporter": {}
-}
-```
-
-The [features packages](/vitrivr-engine-plugin-features/src/main/kotlin/org/vitrivr/engine/base/) provide some extractors,
-such as the [`AverageColor`](vitrivr-engine-plugin-features/src/main/kotlin/org/vitrivr/engine/base/features/averagecolor/AverageColor.kt).
-In this example, we use the _AverageColor_ extractor by the field name, that we initially set in [the schema configuration](#schema-exporter-configuration).
-
-```json
-{
-  "fieldName": "averagecolor"
-}
-```
-
-In our [schema configuration](#schema-exporter-configuration), we also added the `file` named _FileSourceMetadata_, also simply by specifying the `fieldName`.
-
-#### Index Exporter Configuration
-
-An _exporter_ exports information during the ingestion that is derived from the input, for instance thumbnails.
-
-The generic [`ExporterConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/operators/ExporterConfig.kt) describes such exporters:
-
-```json
-{
-  "name": "exporterName",
-  "exporterName": "ExporterClass",
-  "factoryName": "FactoryClass",
-  "parameters": {
-    "key": "value"
-  },
-  "nextExporter": {},
-  "nextExtractor": {}
-}
-```
-
-Please keep in mind that the `name` property relates to the class name of the exporter and the `exporterName` to the `name` property set in [the schema configuration](#schema-exporter-configuration).
-
-Either the _next_ extractor or exporter are to be defined by the config as well (exclusive or).
-
-One such example is the [`ThumbnailExporter`](vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/exporters/ThumbnailExporter.kt), which can be configured as such:
-
-```json
-{
-  "name": "ThumbnailExporter",
-  "exporterName": "thumbnail",
-  "factoryName": "ThumbnailExporter",
-  "parameters": {
-    "maxSideResolution": "400",
-    "mimeType": "JPG"
-  }
-}
-```
-
-We set the larger of the two sides to 400 pixel and the thumbnail's mime type to JPG.
-
-All in all, our final pipeline configuration looks as follows:
-
-```json
-{
-  "schema": "sandbox",
-  "context": {
-    "contentFactory": "InMemoryContentFactory",
-    "resolverFactory": "DiskResolver",
-    "parameters": {
-      "location": "./thumbnails/sandbox"
-    }
-  },
-  "enumerator": {
-    "name": "FileSystemEnumerator",
+    "type": "ENUMERATOR",
+    "factory": "FileSystemEnumerator",
     "api": true,
     "parameters": {
       "path": "./sandbox/imgs",
-      "mediaTypes": "IMAGE;VIDEO",
+      "mediaTypes": "IMAGE",
       "depth": "1"
+    }
+  },
+  "decoder": {
+    "type": "DECODER",
+    "factory": "ImageDecoder"
+  }
+}
+```
+
+#### Index Operators Configuration
+
+Next up, we declare a list of [operators](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/Operator.kt)
+in the form of [`OperatorConfig`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/operator/OperatorConfig.kt)s.
+These _operators_ must have a unique name in the `operators` property of the [`IngestionConfig`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/IngestionConfig.kt):
+
+```json
+{
+  "schema": "sandbox",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverName": "disk"
+  },
+  "enumerator": {
+    "type": "ENUMERATOR",
+    "factory": "FileSystemEnumerator",
+    "api": true,
+    "parameters": {
+      "path": "./sandbox/imgs",
+      "mediaTypes": "IMAGE",
+      "depth": "1"
+    }
+  },
+  "decoder": {
+    "type": "DECODER",
+    "factory": "ImageDecoder"
+  },
+  "operators": {
+    "myoperator1": {},
+    "myoperator2": {}
+  }
+}
+```
+
+There are different _types_ of operators:
+
+* [`Segmenter`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Segmenter.kt) which segment incoming content and emit _n_ [`Retrievable`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/retrievable/Retrievable.kt)s, resulting in a 1:n mapping.
+* [`Transformer`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Segmenter.kt), [`Extractor`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Extractor.kt), and [`Exporter`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Exporter.kt), which all process one retrievable and emit _one_ [`Retrievable`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/retrievable/Retrievable.kt)s, resulting in a 1:1 mapping.
+* [`Aggregator`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Aggregator.kt) which aggregate _n_ incoming retrievables and emit one [`Retrievable`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/retrievable/Retrievable.kt)s, resulting in a n:1 mapping.
+
+Notably, `Extractor`s are backed by a schema's field and `Exporter`s are also referenced by name from the _schema_.
+
+In the following, we briefly introduce these configurations:
+
+##### Index Operators Configuration: Segmenter
+
+A [`Segmenter`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Segmenter.kt) is a 1:n operator,
+its [`OperatorConfig`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/operator/OperatorConfig.kt) looks as follows:
+
+```json
+{
+  "type": "SEGMENTER",
+  "factory": "FactoryClass",
+  "parameters": {
+    "key": "value"
+  }
+}
+```
+
+The `type` property is mandatory, equally so the `factory`, which has to point to a [`SegmenterFactory`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/SegmenterFactory.kt) implementation.
+The `parameters` property is optional and implementation dependent.
+
+See [implementations](vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/segment/) 
+
+##### Index Operators Configuration: Transformer
+
+A [`Transformer`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Transformer.kt) is a 1:1 operator,
+its [`OperatorConfig`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/operator/OperatorConfig.kt) looks as follows:
+
+```json
+{
+  "type": "TRANSFORMER",
+  "factory": "FactoryClass",
+  "parameters": {
+    "key": "value"
+  }
+}
+```
+
+The `type` property is mandatory, equally so the `factory`, which has to point to a [`TransformerFactory`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/TransformerFactory.kt) implementation.
+The `parameters` property is optional and implementation dependent.
+
+See [implementations](vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/transform)
+
+##### Index Operators Configuration: Exporter
+
+A [`Exporter`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Exporter.kt) is a 1:1 operator,
+its [`OperatorConfig`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/operator/OperatorConfig.kt) looks as follows:
+
+```json
+{
+  "type": "EXPORTER",
+  "exporterName": "name-from-schema",
+  "parameters": {
+    "key": "value"
+  }
+}
+```
+
+The `type` property is mandatory, equally so the `exporterName`, which has to point to an `Exporter` defined on the _schema_.
+The `parameters` property is optional and implementation dependent.
+
+See [implementations](vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/exporters)
+
+##### Index Operators Configuration: Extractor
+
+A [`Extractor`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Extractor.kt) is a 1:1 operator,
+its [`OperatorConfig`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/operator/OperatorConfig.kt) looks as follows:
+
+```json
+{
+  "type": "EXTRACTOR",
+  "fieldName": "name-from-schema"
+}
+```
+
+The `type` property is mandatory, equally so the `fieldName`, which has to point to a _field_ as defined on the _schema_.
+
+
+See [implementations](vitrivr-engine-module-features/src/main/kotlin/org/vitrivr/engine/base/features/)
+
+##### Index Operators Configuration: Aggregator
+
+A [`Aggregator`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Aggregator.kt) is a 1:n operator,
+its [`OperatorConfig`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/operator/OperatorConfig.kt) looks as follows:
+
+```json
+{
+  "type": "AGGREGATOR",
+  "factory": "FactoryClass",
+  "parameters": {
+    "key": "value"
+  }
+}
+```
+
+The `type` property is mandatory, equally so the `factory`, which has to point to a [`AggregatorFactory`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/AggregatorFactory.kt) implementation.
+The `parameters` property is optional and implementation dependent.
+
+See [implementations](vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/aggregators)
+
+#### Index Operations Configuration: The Pipeline
+
+So far, we only have _declared_ the operators, with the `operations` property, we define the ingestion pipeline as a tree in the form of
+[`OperationsConfig`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/operation/OperationsConfig.kt):
+
+```json
+{
+  "schema": "sandbox",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverName": "disk"
+  },
+  "enumerator": {
+    "type": "ENUMERATOR",
+    "factory": "FileSystemEnumerator",
+    "api": true,
+    "parameters": {
+      "path": "./sandbox/imgs",
+      "mediaTypes": "IMAGE",
+      "depth": "1"
+    }
+  },
+  "decoder": {
+    "type": "DECODER",
+    "factory": "ImageDecoder"
+  },
+  "operators": {
+    "myoperator": {},
+    "myoperator1": {},
+    "myoperator2": {}
+  },
+  "operations": {
+    "myOperation": {
+      "operator": "myoperator",
+      "next": [
+        "nextOperation1",
+        "nextOperation2"
+      ]
     },
-    "next": {
-      "name": "ImageDecoder",
-      "nextSegmenter": {
-        "name": "PassThroughSegmenter",
-        "aggregators": [
-          {
-            "name": "AllContentAggregator",
-            "nextExtractor": {
-              "fieldName": "averagecolor",
-              "nextExporter": {
-                "name": "ThumbnailExporter",
-                "exporterName": "thumbnail",
-                "factoryName": "ThumbnailExporter",
-                "parameters": {
-                  "maxSideResolution": "400",
-                  "mimeType": "JPG"
-                },
-                "nextExtractor": {
-                  "fieldName": "file"
-                }
-              }
-            }
-          }
-        ]
-      }
+    "myOperation1": {
+      "operator": "myoperator1"
+    },
+    "myOperation2": {
+      "operator": "myoperator2"
     }
   }
 }
-
 ```
 
+Specifically, the `operator` property must point to a previously declared _operator_ and the entries in the `next` property must point to an _operation_ with that name.
 
+
+Currently, there are the following rules to build such a pipeline:
+
+**Pipeline Rules:**
+
+1. The first _operation_ must either be a `TRANSFORMER` or `SEGMENTER`
+2. `TRANSFORMER`s and `SEGMENTER`s can be daisy-chained 
+3. A `SEGMENTER` must be followed by one or more `AGGREGATOR`s, multiple `AGGREGATORS` results in branching.
+4. An `AGGREGATOR` must be followed by either a `EXTRACTOR` or `EXPORTER`
+5. `EXPORTER`s and `EXTRACTOR`s can be daisy-chained
+6. The end or the ends, in case of branching, must be of type `EXPORTER` or `EXTRACTOR`.
+
+One example, based on the _schema_ further above (without branching), might look as follows:
+
+```json
+{
+  "schema": "sandbox",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverName": "disk"
+  },
+  "enumerator": {
+    "type": "ENUMERATOR",
+    "factory": "FileSystemEnumerator",
+    "api": true,
+    "parameters": {
+      "path": "./sandbox/imgs",
+      "mediaTypes": "IMAGE",
+      "depth": "1"
+    }
+  },
+  "decoder": {
+    "type": "DECODER",
+    "factory": "ImageDecoder"
+  },
+  "operators": {
+    "pass": {
+      "type": "SEGMENTER",
+      "factory": "PassThroughSegmenter"
+    },
+    "allContent": {
+      "type": "AGGREGATOR",
+      "factory": "AllContentAggregator"
+    },
+    "avgColor": {
+      "type": "EXTRACTOR",
+      "fieldName": "averagecolor"
+    },
+    "thumbs": {
+      "type": "EXPORTER",
+      "exporterName": "thumbnail",
+      "parameters": {
+        "maxSideResolution": "350",
+        "mimeType": "JPG"
+      }
+    },
+    "fileMeta": {
+      "type": "EXTRACTOR",
+      "fieldName": "file"
+    }
+  },
+  "operations": {
+    "stage1": {"operator": "pass", "next": ["stage2"]},
+    "stage2": {"operator": "allContent", "next": ["stage3"]},
+    "stage3": {"operator": "avgColor", "next": ["stage4"]},
+    "stage4": {"operator": "thumbs", "next": ["stage5"]},
+    "stage5": {"operator": "fileMeta"}
+  }
+}
+```
+
+Here, the linear pipeline is: `pass` -> `allContent` -> `avgColor` -> `thumbs` -> `fileMeta`.
 
 #### Complete Sandbox Configuration
 
@@ -773,48 +877,56 @@ The pipeline config:
   "schema": "sandbox",
   "context": {
     "contentFactory": "InMemoryContentFactory",
-    "resolverFactory": "DiskResolver",
-    "parameters": {
-      "location": "./thumbnails/sandbox"
-    }
+    "resolverName": "disk"
   },
   "enumerator": {
-    "name": "FileSystemEnumerator",
+    "type": "ENUMERATOR",
+    "factory": "FileSystemEnumerator",
     "api": true,
     "parameters": {
       "path": "./sandbox/imgs",
-      "mediaTypes": "IMAGE;VIDEO",
-      "depth": "0"
-    },
-    "next": {
-      "name": "ImageDecoder",
-      "nextSegmenter": {
-        "name": "PassThroughSegmenter",
-        "aggregators": [
-          {
-            "name": "AllContentAggregator",
-            "nextExtractor": {
-              "fieldName": "averagecolor",
-              "nextExporter": {
-                "name": "ThumbnailExporter",
-                "exporterName": "thumbnail",
-                "factoryName": "ThumbnailExporter",
-                "parameters": {
-                  "maxSideResolution": "400",
-                  "mimeType": "JPG"
-                },
-                "nextExtractor": {
-                  "fieldName": "file"
-                }
-              }
-            }
-          }
-        ]
-      }
+      "mediaTypes": "IMAGE",
+      "depth": "1"
     }
+  },
+  "decoder": {
+    "type": "DECODER",
+    "factory": "ImageDecoder"
+  },
+  "operators": {
+    "pass": {
+      "type": "SEGMENTER",
+      "factory": "PassThroughSegmenter"
+    },
+    "allContent": {
+      "type": "AGGREGATOR",
+      "factory": "AllContentAggregator"
+    },
+    "avgColor": {
+      "type": "EXTRACTOR",
+      "fieldName": "averagecolor"
+    },
+    "thumbs": {
+      "type": "EXPORTER",
+      "exporterName": "thumbnail",
+      "parameters": {
+        "maxSideResolution": "350",
+        "mimeType": "JPG"
+      }
+    },
+    "fileMeta": {
+      "type": "EXTRACTOR",
+      "fieldName": "file"
+    }
+  },
+  "operations": {
+    "stage1": {"operator": "pass", "next": ["stage2"]},
+    "stage2": {"operator": "allContent", "next": ["stage3"]},
+    "stage3": {"operator": "avgColor", "next": ["stage4"]},
+    "stage4": {"operator": "thumbs", "next": ["stage5"]},
+    "stage5": {"operator": "fileMeta"}
   }
 }
-
 ```
 
 ---

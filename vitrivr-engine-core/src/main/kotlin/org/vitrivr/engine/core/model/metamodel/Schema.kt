@@ -1,10 +1,8 @@
 package org.vitrivr.engine.core.model.metamodel
 
-import org.vitrivr.engine.core.config.IndexConfig
 import org.vitrivr.engine.core.config.schema.SchemaConfig
 import org.vitrivr.engine.core.config.ingest.IngestionConfig
 import org.vitrivr.engine.core.config.ingest.IngestionPipelineBuilder
-import org.vitrivr.engine.core.config.pipeline.ExtractionPipelineBuilder
 import org.vitrivr.engine.core.config.pipeline.execution.IndexingPipeline
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
@@ -44,10 +42,6 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
 
     /** The [Map] of named [Resolver]s contained in this [Schema]. */
     private val resolvers: MutableMap<String, Resolver> = mutableMapOf()
-
-    /** The [List] of [IndexingPipeline]s contained in this [Schema]. */
-    @Deprecated(message="ExtractionPipelineBuilder is being replaced with IngestionPipelineBuilder")
-    private val extractionPipelines: MutableMap<String, ExtractionPipelineBuilder> = mutableMapOf()
 
     /** The [Map] of named [IngestionPipelineBuilder]s contained in this [Schema] */
     private val ingestionPipelineBuilders = mutableMapOf<String, IngestionPipelineBuilder>()
@@ -89,16 +83,6 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
         this.resolvers[name] = resolver
     }
 
-    /**
-     * Adds a new [Exporter] to this [Schema].
-     *
-     * @param name The name of the [Exporter]. Must be unique.
-     * @param config The [IndexConfig] used to generated instance.
-     */
-    @Deprecated("Extraction pipeline definition and parsing has been replaced", replaceWith = ReplaceWith("addIngestionPipeline(name:String,config:IngestionConfig"))
-    fun addPipeline(name: String, config: IndexConfig) {
-        this.extractionPipelines[name] = ExtractionPipelineBuilder(this, config)
-    }
 
     /**
      * Adds a new [IngestionPipelineBuilder] for the given [IngestionConfig] to this [Schema].
@@ -140,11 +124,6 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      * @return [Schema.Exporter] or null, if no such [Schema.Exporter] exists.
      */
     fun getExporter(name: String) = this.exporters.firstOrNull { it.name == name }
-
-
-    @Deprecated("Extraction pipeline definition and parsing has been replaced", replaceWith = ReplaceWith("getIngestionPipelineBuilder(name:String)"))
-    fun getPipelineBuilder(key: String): ExtractionPipelineBuilder = this.extractionPipelines[key]
-        ?: throw IllegalArgumentException("No pipeline with key '$key' found in schema '$name'.")
 
     /**
      * Get the [IngestionPipelineBuilder] associated with the provided name to build the [IndexingPipeline].
