@@ -8,7 +8,7 @@
     "type": "ENUMERATOR",
     "factory": "FileSystemEnumerator",
     "parameters": {
-      "path": "./sandbox/imgs",
+      "path": "./your/media/path",
       "mediaTypes": "IMAGE;VIDEO",
       "depth": "1"
     }
