@@ -178,11 +178,10 @@
           "name": "exif",
           "factory": "ExifMetadata",
           "parameters": {
-            "iso": "INT",
-            "shutterSpeed": "STRING",
-            "aperture": "STRING",
-            "focalLength": "STRING",
-            "cameraModel": "STRING"
+            "ExifSubIFD_FocalLength": "INT",
+            "ExifSubIFD_ApertureValue": "FLOAT",
+            "ExifSubIFD_DateTimeOriginal": "DATETIME",
+            "ExifSubIFD_MeteringMode": "STRING"
           }
         }
       ],
