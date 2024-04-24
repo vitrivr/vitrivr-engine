@@ -90,7 +90,7 @@ class CachedContentFactory : ContentFactoriesFactory {
          *
          * @return Next [Path].
          */
-        private fun nextPath(): Path = this.basePath.resolve(this.counter.incrementAndGet().toString())
+        private fun nextPath(): Path = this.basePath!!.resolve(this.counter.incrementAndGet().toString())
 
         override fun newImageContent(bufferedImage: BufferedImage): ImageContent {
             check(!this.closed) { "CachedContentFactory has been closed." }
