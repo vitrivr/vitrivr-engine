@@ -37,12 +37,12 @@ import java.nio.ShortBuffer
  */
 class VideoDecoder : DecoderFactory {
 
-    override fun newOperator(input: Enumerator, context: IndexContext, parameters: Map<String, String>): Decoder {
-        val video = parameters["video"]?.let { it.lowercase() == "true" } ?: true
-        val audio = parameters["audio"]?.let { it.lowercase() == "true" } ?: true
-        val keyFrames = parameters["keyFrames"]?.let { it.lowercase() == "true" } ?: false
-        val sampleVideo = parameters["sample.video"]?.toIntOrNull() ?: 1
-        val sampleAudio = parameters["sample.audio"]?.toIntOrNull() ?: 1
+    override fun newOperator(name: String, input: Enumerator, context: IndexContext): Decoder {
+        val video = context[name, "video"]?.let { it.lowercase() == "true" } ?: true
+        val audio = context[name, "audio"]?.let { it.lowercase() == "true" } ?: true
+        val keyFrames = context[name, "keyFrames"]?.let { it.lowercase() == "true" } ?: false
+        val sampleVideo = context[name, "sample.video"]?.toIntOrNull() ?: 1
+        val sampleAudio = context[name, "sample.audio"]?.toIntOrNull() ?: 1
         return Instance(input, context, video, audio, keyFrames, sampleVideo, sampleAudio)
     }
 

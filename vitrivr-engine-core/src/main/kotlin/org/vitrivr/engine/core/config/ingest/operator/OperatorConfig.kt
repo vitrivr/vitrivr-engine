@@ -22,10 +22,6 @@ sealed class OperatorConfig {
      */
     abstract val type: OperatorType
 
-    /**
-     * Additional parameters, operator dependent.
-     */
-    abstract val parameters: Map<String, String>
 }
 
 sealed class FactoryBuildableOperatorConfig : OperatorConfig() {
@@ -42,7 +38,6 @@ sealed class FactoryBuildableOperatorConfig : OperatorConfig() {
 @Serializable
 data class DecoderConfig(
     override val factory: String,
-    override val parameters: Map<String, String> = mapOf()
 ) : FactoryBuildableOperatorConfig() {
     override val type = OperatorType.DECODER
 }
@@ -53,7 +48,6 @@ data class DecoderConfig(
 @Serializable
 data class EnumeratorConfig(
     override val factory: String,
-    override val parameters: Map<String, String> = mapOf()
 ) : FactoryBuildableOperatorConfig() {
     override val type = OperatorType.ENUMERATOR
 }
@@ -64,7 +58,7 @@ data class EnumeratorConfig(
  */
 @Serializable
 data class TransformerConfig(
-    override val factory: String, override val parameters: Map<String, String> = mapOf()
+    override val factory: String,
 ) : FactoryBuildableOperatorConfig() {
     override val type = OperatorType.TRANSFORMER
 }
@@ -74,7 +68,7 @@ data class TransformerConfig(
  */
 @Serializable
 data class SegmenterConfig(
-    override val factory: String, override val parameters: Map<String, String> = mapOf()
+    override val factory: String,
 ) : FactoryBuildableOperatorConfig() {
     override val type = OperatorType.SEGMENTER
 }
@@ -89,7 +83,6 @@ data class ExtractorConfig(
      */
     val fieldName: String,
     val factory: String? = null,
-    override val parameters: Map<String, String> = mapOf(),
 
     ) : OperatorConfig() {
     override val type = OperatorType.EXTRACTOR
@@ -105,7 +98,7 @@ data class ExporterConfig(
      * Name of an exporter as defined in the schema
      */
     val exporterName: String? = null,
-    val factory: String? = null, override val parameters: Map<String, String> = mapOf()
+    val factory: String? = null,
 ) : OperatorConfig() {
     override val type = OperatorType.EXPORTER
 
@@ -123,7 +116,7 @@ data class ExporterConfig(
  */
 @Serializable
 data class AggregatorConfig(
-    override val factory: String, override val parameters: Map<String, String> = mapOf()
+    override val factory: String,
 ) : FactoryBuildableOperatorConfig() {
     override val type = OperatorType.AGGREGATOR
 }

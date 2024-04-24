@@ -2,16 +2,22 @@
   "schema": "vitrivr",
   "context": {
     "contentFactory": "InMemoryContentFactory",
-    "resolverName": "disk"
+    "resolverName": "disk",
+    "local": {
+      "enumerator": {
+        "path": "./your/media/path",
+        "mediaTypes": "IMAGE;VIDEO",
+        "depth": "1"
+      },
+      "thumbs": {
+        "maxSideResolution": "350",
+        "mimeType": "JPG"
+      }
+    }
   },
   "enumerator": {
     "type": "ENUMERATOR",
-    "factory": "FileSystemEnumerator",
-    "parameters": {
-      "path": "./your/media/path",
-      "mediaTypes": "IMAGE;VIDEO",
-      "depth": "1"
-    }
+    "factory": "FileSystemEnumerator"
   },
   "decoder": {
     "type": "DECODER",
@@ -32,11 +38,7 @@
     },
     "thumbs": {
       "type": "EXPORTER",
-      "exporterName": "thumbnail",
-      "parameters": {
-        "maxSideResolution": "350",
-        "mimeType": "JPG"
-      }
+      "exporterName": "thumbnail"
     },
     "fileMeta": {
       "type": "EXTRACTOR",

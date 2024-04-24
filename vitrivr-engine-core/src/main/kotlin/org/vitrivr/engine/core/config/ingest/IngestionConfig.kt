@@ -8,7 +8,6 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
-import org.vitrivr.engine.core.config.ContextConfig
 import org.vitrivr.engine.core.config.ingest.operation.OperationsConfig
 import org.vitrivr.engine.core.config.ingest.operator.DecoderConfig
 import org.vitrivr.engine.core.config.ingest.operator.EnumeratorConfig
