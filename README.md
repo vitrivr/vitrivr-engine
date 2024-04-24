@@ -259,7 +259,7 @@ which is configured as a [`PipelineConfig`](/vitrivr-engine-core/src/main/kotlin
 ```json
 {
   "name": "pipelineName",
-  "path": "path/to/config-pipeline.json"
+  "path": "path/to/vbs-config-pipeline.json"
 }
 ```
 

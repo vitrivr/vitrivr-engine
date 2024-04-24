@@ -1,0 +1,52 @@
+{
+  "schema": "vitrivr",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverName": "disk"
+  },
+  "enumerator": {
+    "type": "ENUMERATOR",
+    "factory": "FileSystemEnumerator",
+    "parameters": {
+      "path": "./sandbox/imgs",
+      "mediaTypes": "IMAGE;VIDEO",
+      "depth": "1"
+    }
+  },
+  "decoder": {
+    "factory": "ImageDecoder"
+  },
+  "operators": {
+    "pass": {
+      "type": "SEGMENTER",
+      "factory": "PassThroughSegmenter"
+    },
+    "allContent": {
+      "type": "AGGREGATOR",
+      "factory": "AllContentAggregator"
+    },
+    "avgColor": {
+      "type": "EXTRACTOR",
+      "fieldName": "averagecolor"
+    },
+    "thumbs": {
+      "type": "EXPORTER",
+      "exporterName": "thumbnail",
+      "parameters": {
+        "maxSideResolution": "350",
+        "mimeType": "JPG"
+      }
+    },
+    "fileMeta": {
+      "type": "EXTRACTOR",
+      "fieldName": "file"
+    }
+  },
+  "operations": {
+    "stage1": {"operator": "pass", "next": ["stage2"]},
+    "stage2": {"operator": "allContent", "next": ["stage3"]},
+    "stage3": {"operator": "avgColor", "next": ["stage4"]},
+    "stage4": {"operator": "thumbs", "next": ["stage5"]},
+    "stage5": {"operator": "fileMeta"}
+  }
+}

@@ -1,7 +1,7 @@
 package org.vitrivr.engine.core.model.metamodel
 
 import org.vitrivr.engine.core.config.IndexConfig
-import org.vitrivr.engine.core.config.SchemaConfig
+import org.vitrivr.engine.core.config.schema.SchemaConfig
 import org.vitrivr.engine.core.config.ingest.IngestionConfig
 import org.vitrivr.engine.core.config.ingest.IngestionPipelineBuilder
 import org.vitrivr.engine.core.config.pipeline.ExtractionPipelineBuilder
@@ -42,6 +42,9 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
     /** The [List] of [Exporter]s contained in this [Schema]. */
     private val exporters: MutableList<Schema.Exporter> = mutableListOf()
 
+    /** The [Map] of named [Resolver]s contained in this [Schema]. */
+    private val resolvers: MutableMap<String, Resolver> = mutableMapOf()
+
     /** The [List] of [IndexingPipeline]s contained in this [Schema]. */
     @Deprecated(message="ExtractionPipelineBuilder is being replaced with IngestionPipelineBuilder")
     private val extractionPipelines: MutableMap<String, ExtractionPipelineBuilder> = mutableMapOf()
@@ -68,10 +71,22 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      * @param name The name of the [Exporter]. Must be unique.
      * @param factory The [ExporterFactory] used to generated instance.
      * @param parameters The parameters used to configure the [Exporter].
+     * @param resolver The name of a previously registered [Resolver].
+     *
+     * @throws IllegalArgumentException In case the [resolver] named [Resolver] is not found.
+     */
+    fun addExporter(name: String, factory: ExporterFactory, parameters: Map<String, String>, resolver: String) {
+        this.exporters.add(Exporter(name, factory, parameters, (this.resolvers[resolver] ?: throw IllegalArgumentException("There is no resolver '$resolver' defined on the schema '${this.name}'"))))
+    }
+
+    /**
+     * Add a new [Resolver] to this [Schema].
+     *
+     * @param name The name of the [Resolver]. Must be unique.
      * @param resolver The [Resolver] instance.
      */
-    fun addExporter(name: String, factory: ExporterFactory, parameters: Map<String, String>, resolver: Resolver) {
-        this.exporters.add(Exporter(name, factory, parameters, resolver))
+    fun addResolver(name: String, resolver: Resolver) {
+        this.resolvers[name] = resolver
     }
 
     /**
@@ -119,7 +134,7 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
     operator fun get(name: String) = this.fields.firstOrNull { it.fieldName == name }
 
     /**
-     * Returns the exporter for the provided name.
+     * Returns the [Exporter] for the provided name.
      *
      * @param name The name of the [Schema.Exporter] to return.
      * @return [Schema.Exporter] or null, if no such [Schema.Exporter] exists.
@@ -141,6 +156,18 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      * Closes this [Schema] and the associated database [Connection].
      */
     override fun close() = this.connection.close()
+
+    /**
+     * Returns the [Resolver] for the provided name.
+     *
+     * @param resolverName The name of the [Resolver] to return.
+     * @return The [resolverName] named [Resolver] that is registered on this [Schema]
+     *
+     * @throws IllegalArgumentException In case no such named [Resolver] was found.
+     */
+    fun getResolver(resolverName: String): Resolver {
+        return resolvers[resolverName] ?: throw IllegalArgumentException("No resolver '$resolverName' found on schema '${this.name}'.")
+    }
 
     /**
      * A [Field] that is part of a [Schema].

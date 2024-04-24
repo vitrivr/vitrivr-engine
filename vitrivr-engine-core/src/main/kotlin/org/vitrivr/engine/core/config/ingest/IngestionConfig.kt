@@ -22,6 +22,7 @@ import java.nio.file.StandardOpenOption
  * Configuration of an ingestion pipeline for indexing.
  *
  * Current strict order of operators
+ *
  * [Enumerator] -> [Decoder] -> ([Transformer] | [Segmenter])* - if [Segmenter] > [Aggregator]* -> ([Exporter] | [Extractor])*
  *
  * @see IngestionPipelineBuilder
@@ -35,9 +36,9 @@ data class IngestionConfig(
     val schema: String,
 
     /**
-     * The [ContextConfig] for this [IngestionConfig]'s context.
+     * The [IngestionContextConfig] for this [IngestionConfig]'s context.
      */
-    val context: ContextConfig,
+    val context: IngestionContextConfig,
 
     /**
      * The [EnumeratorConfig] for this [IngestionConfig].
