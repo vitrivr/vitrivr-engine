@@ -13,7 +13,6 @@ import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Retriever
-import java.util.*
 
 private val logger: KLogger = KotlinLogging.logger {}
 
@@ -45,7 +44,7 @@ class FileSourceMetadata : Analyser<ContentElement<*>, FileSourceMetadataDescrip
      *
      * @return [FileSourceMetadataExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): FileSourceMetadataExtractor {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, String>): FileSourceMetadataExtractor {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         logger.debug { "Creating new FileMetadataExtractor for field '${field.fieldName}' with parameters $parameters." }
         return FileSourceMetadataExtractor(input, field, persisting)

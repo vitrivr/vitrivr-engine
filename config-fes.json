@@ -17,7 +17,7 @@
     "next": {
       "name": "VideoDecoder",
       "parameters": {
-        "audio": "false",
+        "audio": "true",
         "video": "true",
         "sample.video": "10"
       },
@@ -30,9 +30,22 @@
         "aggregators": [
           {
             "name": "CenterContentAggregator",
+              "nextExtractor": {
+                "fieldName": "clip",
+                "nextExtractor": {
+                  "fieldName": "ocr",
+                  "nextExtractor": {
+                    "fieldName": "asr",
+                    "nextExtractor": {
+                      "fieldName": "document_type",
                       "nextExtractor": {
-                        "fieldName": "ocr"
+                        "fieldName": "caption"
                       }
+                    }
+                  }
+                }
+              }
+
           }
         ]
       }

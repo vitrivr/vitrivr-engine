@@ -28,7 +28,7 @@ companion object {
     }
 
     override val defaultModel = "clip-vit-large-patch14"
-    override fun analyse(content: List<ContentElement<*>>, apiWrapper: ApiWrapper, parameters: Map<String, String>): List<List<FloatVectorDescriptor>> {
+    override fun analyseFlattened(content: List<ContentElement<*>>, apiWrapper: ApiWrapper, parameters: Map<String, String>): List<List<FloatVectorDescriptor>> {
         val imageContents = content.filterIsInstance<ImageContent>()
         val textContents = content.filterIsInstance<TextContent>()
         if (imageContents.isEmpty() && !textContents.isEmpty()) {
@@ -71,9 +71,10 @@ companion object {
     }
 
 
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): Extractor<ContentElement<*>, FloatVectorDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, String>): Extractor<ContentElement<*>, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        return object : FesExtractor<FloatVectorDescriptor, DenseEmbedding>(input, field, persisting) {
+        val batchSize = parameters[BATCHSIZE_PARAMETER_NAME]?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
+        return object : FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding>(input, field, persisting, batchSize) {
             override fun assignRetrievableId(descriptor: FloatVectorDescriptor, retrievableId: RetrievableId): FloatVectorDescriptor {
                 return descriptor.copy(retrievableId = retrievableId)
             }

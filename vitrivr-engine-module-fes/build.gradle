@@ -1,16 +1,32 @@
+import org.apache.tools.ant.taskdefs.condition.Os
 
-task generateFESClient(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+tasks.register('downloadOpenApiSpec', Exec) {
+    workingDir "$buildDir"
+    doFirst {
+        mkdir("$buildDir/api-client-spec")
+    }
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        commandLine 'cmd', '/c', 'curl -o', "$buildDir/api-client-spec/openapi_spec.json", "https://raw.githubusercontent.com/faberf/feature-extraction-server/main/openapi_spec.json"
+    } else {
+        commandLine 'curl', '-o', "$buildDir/api-client-spec/openapi_spec.json", "https://raw.githubusercontent.com/faberf/feature-extraction-server/main/openapi_spec.json"
+    }
+}
+
+tasks.register('generateFESClient', org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
     generatorName = "kotlin"
-    inputSpec = "$rootDir/vitrivr-engine-module-fes/feature-extraction-server.json".toString()
+    inputSpec = "$buildDir/api-client-spec/openapi_spec.json".toString()
     outputDir = "$buildDir/api-client-generated".toString()
-    id = 'sample-client'
+    id = 'vitrivr-engine-module-fes-generate-api-client'
     skipValidateSpec = true
     logToStderr = true
     generateAliasAsModel = false
     enablePostProcessFile = false
+
+    dependsOn 'downloadOpenApiSpec'
 }
 
 assemble.dependsOn generateFESClient
+
 
 sourceSets {
     main {

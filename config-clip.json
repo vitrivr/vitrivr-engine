@@ -6,7 +6,7 @@
       "location": "../data"
     }
   },
-  "schema": "Test",
+  "schema": "FES-test",
   "enumerator": {
     "name": "FileSystemEnumerator",
     "parameters": {
@@ -30,25 +30,9 @@
         "aggregators": [
           {
             "name": "CenterContentAggregator",
-            "nextExtractor": {
-              "fieldName": "averagecolor",
-              "nextExporter": {
-                "name": "ThumbnailExporter",
-                "exporterName": "thumbnail",
-                "nextExtractor": {
-                  "fieldName": "file",
-                  "nextExtractor": {
-                    "fieldName": "video",
-                    "nextExtractor": {
-                      "fieldName": "time",
                       "nextExtractor": {
                         "fieldName": "clip"
                       }
-                    }
-                  }
-                }
-              }
-            }
           }
         ]
       }

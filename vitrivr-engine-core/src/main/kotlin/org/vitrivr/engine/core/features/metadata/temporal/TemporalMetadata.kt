@@ -16,7 +16,6 @@ import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.BooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import java.util.*
 
 /**
  * Implementation of the [TemporalMetadata] [Analyser], which derives metadata information [TemporalContent].
@@ -54,7 +53,7 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
         input: Operator<Retrievable>,
         context: IndexContext,
         persisting: Boolean,
-        parameters: Map<String, Any>
+        parameters: Map<String, String>
     ): TemporalMetadataExtractor {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         logger.debug { "Creating new TemporalMetadataExtractor for field '${field.fieldName}' with parameters $parameters." }

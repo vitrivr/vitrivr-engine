@@ -3,10 +3,9 @@ package org.vitrivr.engine.base.features.external.implementations
 import org.vitrivr.engine.base.features.external.common.ApiWrapper
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.base.features.external.common.FesExtractor
-import org.vitrivr.engine.base.features.external.common.FulltextRetriever
+import org.vitrivr.engine.base.features.fulltext.FulltextRetriever
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
-import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
@@ -18,35 +17,33 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
+import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
-class ImageCaption : ExternalFesAnalyser<ContentElement<*>, StringDescriptor>() {
+class ImageCaption : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
     companion object {
         const val PROMPT_PARAMETER_NAME = "prompt"
     }
 
     override val defaultModel = "blip2"
-    override fun analyse(content: List<ContentElement<*>>, apiWrapper: ApiWrapper, parameters: Map<String, String>): List<List<StringDescriptor>> {
+    override fun analyseFlattened(content: List<ImageContent>, apiWrapper: ApiWrapper, parameters: Map<String, String>): List<List<StringDescriptor>> {
         val prompt = parameters[PROMPT_PARAMETER_NAME]
-        val imageContents = content.filterIsInstance<ImageContent>()
-        if (imageContents.isEmpty()) {
-            throw IllegalArgumentException("No image content found in the provided content.")
-        }
         if (prompt != null) {
-            val result = apiWrapper.conditionalImageCaptioning(imageContents.map { it.content }, List(imageContents.size) { prompt })
+            val result = apiWrapper.conditionalImageCaptioning(content.map { it.content }, List(content.size) { prompt })
             return result.map { listOf(StringDescriptor(UUID.randomUUID(), null, Value.String(it))) }
         }
-        val result = apiWrapper.imageCaptioning(imageContents.map { it.content })
+        val result = apiWrapper.imageCaptioning(content.map { it.content })
         return result.map { listOf(StringDescriptor(UUID.randomUUID(), null, Value.String(it))) }
     }
 
-    override val contentClasses = setOf(ContentElement::class)
+    override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = StringDescriptor::class
     override fun prototype(field: Schema.Field<*, *>): StringDescriptor = StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(""), true)
 
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): Extractor<ContentElement<*>, StringDescriptor> {
+    override fun newExtractor(field: Schema.Field<ImageContent, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, String>): Extractor<ImageContent, StringDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        return object : FesExtractor<StringDescriptor, ImageCaption>(input, field, persisting) {
+        val batchSize = parameters[BATCHSIZE_PARAMETER_NAME]?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
+        return object : FesExtractor<StringDescriptor, ImageContent, ImageCaption>(input, field, persisting, batchSize) {
             override fun assignRetrievableId(descriptor: StringDescriptor, retrievableId: RetrievableId): StringDescriptor {
                 return descriptor.copy(retrievableId = retrievableId)
             }
@@ -62,7 +59,7 @@ class ImageCaption : ExternalFesAnalyser<ContentElement<*>, StringDescriptor>() 
      *
      * @return A new [FulltextRetriever] instance for this [ImageCaption]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, StringDescriptor>, query: Query, context: QueryContext): FulltextRetriever {
+    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, StringDescriptor>, query: Query, context: QueryContext): Retriever<ImageContent, StringDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is SimpleFulltextQuery) { "The query is not a fulltext query. This is a programmer's error!" }
         return FulltextRetriever(field, query, context)
@@ -76,7 +73,7 @@ class ImageCaption : ExternalFesAnalyser<ContentElement<*>, StringDescriptor>() 
      * @param context The [QueryContext] to use with the [Retriever]
      * @return [FulltextRetriever]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, StringDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): FulltextRetriever {
+    override fun newRetrieverForContent(field: Schema.Field<ImageContent, StringDescriptor>, content: Collection<ImageContent>, context: QueryContext): Retriever<ImageContent, StringDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
 
         /* Prepare query parameters. */

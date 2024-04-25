@@ -43,7 +43,7 @@ class VideoSourceMetadata : Analyser<ContentElement<*>, VideoSourceMetadataDescr
      *
      * @return [FileSourceMetadataExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): VideoSourceMetadataExtractor {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, String>): VideoSourceMetadataExtractor {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         return VideoSourceMetadataExtractor(input, field, persisting)
     }

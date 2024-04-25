@@ -59,7 +59,7 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
         input: Operator<Retrievable>,
         context: IndexContext,
         persisting: Boolean,
-        parameters: Map<String, Any>
+        parameters: Map<String, String>
     ): AverageColorExtractor {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         logger.debug { "Creating new AverageColorExtractor for field '${field.fieldName}' with parameters $parameters." }

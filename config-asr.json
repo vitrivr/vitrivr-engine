@@ -6,7 +6,7 @@
       "location": "../data"
     }
   },
-  "schema": "Test",
+  "schema": "FES-test",
   "enumerator": {
     "name": "FileSystemEnumerator",
     "parameters": {
