@@ -54,7 +54,7 @@ class ImageDecoder : DecoderFactory {
         override fun toFlow(scope: CoroutineScope): Flow<ImageContent> = this.input.toFlow(scope).filter {
             it.type == MediaType.IMAGE
         }.mapNotNull { source ->
-            logger.info { "Decoding source ${source.name} (${source.sourceId})" }
+            logger.debug { "In flow: Decoding source ${source.name} (${source.sourceId})" }
             try {
                 val image = source.newInputStream().use {
                     this.context.contentFactory.newImageContent(ImageIO.read(it))

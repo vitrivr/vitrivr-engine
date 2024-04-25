@@ -1,5 +1,7 @@
 package org.vitrivr.engine.index.aggregators
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.retrievable.Ingested
@@ -16,6 +18,7 @@ import org.vitrivr.engine.core.operators.ingest.Segmenter
  * @version 1.0.0
  */
 class AllContentAggregator : AggregatorFactory {
+
     /**
      * Returns an [AllContentAggregator.Instance].
      *
@@ -30,7 +33,11 @@ class AllContentAggregator : AggregatorFactory {
      * The [Instance] simply copies the incoming [Ingested] and replaces the content with the aggregated content.
      */
     private class Instance(override val input: Operator<Retrievable>, context: IndexContext) : AbstractAggregator(input, context) {
-        override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> = content
+        protected val logger: KLogger = KotlinLogging.logger {  }
+        override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> {
+            logger.debug { "In flow: Aggregating all content elements of size ${content.size}." }
+            return content
+        }
     }
 }
 

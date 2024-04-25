@@ -4,10 +4,10 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import org.slf4j.event.LoggingEvent
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.operators.ingest.EnumeratorFactory
@@ -15,10 +15,9 @@ import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Source
 import org.vitrivr.engine.core.source.file.FileSource
 import org.vitrivr.engine.core.source.file.MimeType
-import java.nio.file.FileVisitOption
-import java.nio.file.Files
-import java.nio.file.Path
+import java.nio.file.*
 import java.util.stream.Stream
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.io.path.Path
 import kotlin.io.path.isRegularFile
 
@@ -71,13 +70,34 @@ class FileSystemEnumerator : EnumeratorFactory {
         private val skip: Long = 0,
         private val limit: Long = Long.MAX_VALUE
     ) : Enumerator {
+        private val logger: KLogger = KotlinLogging.logger {}
+
         override fun toFlow(scope: CoroutineScope): Flow<Source> = flow {
-            val stream = Files.walk(this@Instance.path, this@Instance.depth, FileVisitOption.FOLLOW_LINKS)
-                .filter { it.isRegularFile() }.skip(skip).limit(limit)
+
+            logger.debug { "In flow: Start Enumerating with path: $path, depth: $depth, mediaTypes: $mediaTypes, skip: $skip, limit: $limit" }
+
+            val stream = try {
+                Files.walk(this@Instance.path, this@Instance.depth, FileVisitOption.FOLLOW_LINKS)
+                    .filter { it.isRegularFile() }.skip(skip).limit(limit)
+            } catch (ex: NoSuchFileException) {
+                val mes = "In flow: Path ${this@Instance.path} does not exist."
+                logger.error { mes }
+                scope.coroutineContext.cancel(CancellationException(mes, ex))
+                //currentCoroutineContext().cancel(CancellationException(mes, ex))
+                return@flow
+            }
             for (element in stream) {
+
                 val type = MimeType.getMimeType(element) ?: continue
                 if (type.mediaType in this@Instance.mediaTypes) {
-                    emit(FileSource(path = element, mimeType = type))
+                    val file = try {
+                        FileSource(path = element, mimeType = type)
+                    } catch (ex: FileSystemException) {
+                        logger.error { "In flow: Failed to create FileSource for ${element.fileName} (${element.toUri()}). Skip!" }
+                        continue
+                    }
+                    emit(file)
+                    logger.debug { "In flow: Emitting source ${element.fileName} (${element.toUri()})" }
                 }
             }
         }.flowOn(Dispatchers.IO)

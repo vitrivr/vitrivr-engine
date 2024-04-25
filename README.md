@@ -394,8 +394,6 @@ In order to address (reference) our schema, we reference it in our index config 
 
 #### Index Context Configuration
 
-_NOTE: THIS SECTION REQUIRES REVIEW_
-
 An [`IngestionContextConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/context/IngestionContextConfig.kt)
 is used to specify the _context_, additional information to the media data.
 Specifically, a [`Resolver`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/resolver/Resolver.kt), `disk`, is referenced by its name from the _schema_ configuration.
@@ -423,8 +421,7 @@ resulting in the value `local-value` to be used. However, a separate operator na
 for the key `key`, as no local value is defined.
 We refer to this part of the context, to the _context-parameters_.
 
-The example index pipeline configuration then, with the path adjusted to the one we used in our configuration,
-looks as follows:
+The example index pipeline configuration then, the current context looks as follow:
 
 ```json
 {
@@ -438,6 +435,12 @@ looks as follows:
   }
 }
 ```
+
+There are these special sections for the context-parameters:
+
+* `enumerator` - For local context-parameters for the _enumerator_.
+* `decoder` - For the local context-parameters for the _decoder_.
+* `content` - For the local context-parameters for the _content factory_.
 
 #### Index Enumerator Configuration
 
