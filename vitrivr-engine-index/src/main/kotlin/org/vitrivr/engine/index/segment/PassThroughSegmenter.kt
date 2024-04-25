@@ -1,5 +1,7 @@
 package org.vitrivr.engine.index.segment
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import org.vitrivr.engine.core.context.IndexContext
@@ -23,7 +25,7 @@ import java.util.*
  * @version 1.1.0
  */
 class PassThroughSegmenter : SegmenterFactory {
-
+    private val logger: KLogger = KotlinLogging.logger {}
     /**
      * Creates a new [Segmenter] instance from this [PassThroughSegmenter].
      *
@@ -46,6 +48,10 @@ class PassThroughSegmenter : SegmenterFactory {
      * The [AbstractSegmenter] returned by this [PassThroughSegmenter].
      */
     private class Instance(input: Operator<ContentElement<*>>, context: IndexContext) : AbstractSegmenter(input, context) {
+
+        private val logger: KLogger = KotlinLogging.logger {}
+
+
         /**
          * Segments by creating a [Ingested] for every incoming [Content] element, attaching that [Content] element to the [Ingested].
          *
@@ -63,6 +69,7 @@ class PassThroughSegmenter : SegmenterFactory {
                 this.writer.add(retrievable)
 
                 /* Send retrievable downstream. */
+                logger.debug { "In flow: Passing through downstream ${retrievable.id} with ${retrievable.type}" }
                 downstream.send(retrievable)
             } else {
                 val retrievable = Ingested(UUID.randomUUID(), null, false)
@@ -72,6 +79,7 @@ class PassThroughSegmenter : SegmenterFactory {
                 this.writer.add(retrievable)
 
                 /* Send retrievable downstream. */
+                logger.debug { "In flow: Passing through downstream ${retrievable.id} with ${retrievable.type}" }
                 downstream.send(retrievable)
             }
         }

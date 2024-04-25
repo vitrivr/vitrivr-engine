@@ -56,6 +56,8 @@ class ThumbnailExporter : ExporterFactory {
         private val maxResolution: Int,
         private val mimeType: MimeType
     ) : Exporter {
+        protected val logger: KLogger = KotlinLogging.logger {}
+
         init {
             require(
                 mimeType in setOf(
@@ -68,14 +70,18 @@ class ThumbnailExporter : ExporterFactory {
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).map { retrievable ->
             val resolvable = this.context.resolver.resolve(retrievable.id)
-            val content = retrievable.filteredAttributes(ContentAttribute::class.java).map { it.content }.filterIsInstance<ImageContent>().firstOrNull()
+            val content = retrievable.filteredAttributes(ContentAttribute::class.java).map { it.content }
+                .filterIsInstance<ImageContent>().firstOrNull()
             if (resolvable != null && content != null) {
                 val writer = when (mimeType) {
                     MimeType.JPEG,
                     MimeType.JPG -> JpegWriter()
+
                     MimeType.PNG -> PngWriter()
                     else -> throw IllegalArgumentException("Unsupported mime type $mimeType")
                 }
+
+                logger.debug { "Generating thumbnail for ${retrievable.id} with ${retrievable.type} and resolution $maxResolution. Storing it in ${resolvable.uri} with ${resolvable::class.simpleName}." }
 
                 val imgBytes = ImmutableImage.fromAwt(content.content).let {
                     if (it.width > it.height) {
@@ -84,9 +90,9 @@ class ThumbnailExporter : ExporterFactory {
                         it.scaleToHeight(maxResolution)
                     }
                 }.bytes(writer)
-                    resolvable.openOutputStream().use {
-                        it.write(imgBytes)
-                    }
+                resolvable.openOutputStream().use {
+                    it.write(imgBytes)
+                }
 
             }
             retrievable

@@ -1,11 +1,13 @@
 package org.vitrivr.engine.core.model.content.factory
 
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.*
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryAudioContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryImageContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryMeshContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryTextContent
 import org.vitrivr.engine.core.model.mesh.Model3D
+import org.vitrivr.engine.core.model.metamodel.Schema
 import java.awt.image.BufferedImage
 import java.nio.ShortBuffer
 
@@ -15,13 +17,19 @@ import java.nio.ShortBuffer
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class InMemoryContentFactory : ContentFactory {
+class InMemoryContentFactory : ContentFactoriesFactory {
 
-    override fun newImageContent(bufferedImage: BufferedImage): ImageContent = InMemoryImageContent(bufferedImage)
+    override fun newContentFactory(schema: Schema, context: Context): ContentFactory = Instance()
 
-    override fun newAudioContent(channels: Short, sampleRate: Int, audio: ShortBuffer): AudioContent = InMemoryAudioContent(channels, sampleRate, audio)
+    private class Instance() : ContentFactory {
 
-    override fun newTextContent(text: String): TextContent = InMemoryTextContent(text)
+        override fun newImageContent(bufferedImage: BufferedImage): ImageContent = InMemoryImageContent(bufferedImage)
 
-    override fun newMeshContent(model3D: Model3D): Model3DContent = InMemoryMeshContent(model3D)
+        override fun newAudioContent(channels: Short, samplingRate: Int, audio: ShortBuffer): AudioContent =
+            InMemoryAudioContent(channels, samplingRate, audio)
+
+        override fun newTextContent(text: String): TextContent = InMemoryTextContent(text)
+
+        override fun newMeshContent(model3D: Model3D): Model3DContent = InMemoryMeshContent(model3D)
+    }
 }
