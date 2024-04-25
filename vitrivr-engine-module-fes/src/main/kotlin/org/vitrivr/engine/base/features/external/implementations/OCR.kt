@@ -3,10 +3,9 @@ package org.vitrivr.engine.base.features.external.implementations
 import org.vitrivr.engine.base.features.external.common.ApiWrapper
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.base.features.external.common.FesExtractor
-import org.vitrivr.engine.base.features.external.common.FulltextRetriever
+import org.vitrivr.engine.base.features.fulltext.FulltextRetriever
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
-import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
@@ -21,24 +20,23 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
-class OCR : ExternalFesAnalyser<ContentElement<*>, StringDescriptor>() {
+class OCR : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
+
     override val defaultModel = "tesseract"
-    override fun analyse(content: List<ContentElement<*>>, apiWrapper: ApiWrapper, parameters: Map<String, String>): List<List<StringDescriptor>> {
-        val imageContents = content.filterIsInstance<ImageContent>()
-        if (imageContents.isEmpty()) {
-            throw IllegalArgumentException("No image content found in the provided content.")
-        }
-        val result = apiWrapper.opticalCharacterRecognition(imageContents.map { it.content })
+    override fun analyseFlattened(content: List<ImageContent>, apiWrapper: ApiWrapper, parameters: Map<String, String>): List<List<StringDescriptor>> {
+
+        val result = apiWrapper.opticalCharacterRecognition(content.map { it.content })
         return result.map { listOf(StringDescriptor(UUID.randomUUID(), null, Value.String(it))) }
     }
 
-    override val contentClasses = setOf(ContentElement::class)
+    override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = StringDescriptor::class
     override fun prototype(field: Schema.Field<*, *>): StringDescriptor = StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(""), true)
 
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): Extractor<ContentElement<*>, StringDescriptor> {
+    override fun newExtractor(field: Schema.Field<ImageContent, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, String>): Extractor<ImageContent, StringDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        return object : FesExtractor<StringDescriptor, OCR>(input, field, persisting) {
+        val batchSize = parameters[BATCHSIZE_PARAMETER_NAME]?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
+        return object : FesExtractor<StringDescriptor,ImageContent, OCR>(input, field, persisting, batchSize) {
             override fun assignRetrievableId(descriptor: StringDescriptor, retrievableId: RetrievableId): StringDescriptor {
                 return descriptor.copy(retrievableId = retrievableId)
             }
@@ -54,7 +52,7 @@ class OCR : ExternalFesAnalyser<ContentElement<*>, StringDescriptor>() {
      *
      * @return A new [FulltextRetriever] instance for this [OCR]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, StringDescriptor>, query: Query, context: QueryContext): FulltextRetriever {
+    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, StringDescriptor>, query: Query, context: QueryContext): Retriever<ImageContent, StringDescriptor>{
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is SimpleFulltextQuery) { "The query is not a fulltext query. This is a programmer's error!" }
         return FulltextRetriever(field, query, context)
@@ -68,7 +66,7 @@ class OCR : ExternalFesAnalyser<ContentElement<*>, StringDescriptor>() {
      * @param context The [QueryContext] to use with the [Retriever]
      * @return [FulltextRetriever]
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ContentElement<*>, StringDescriptor>, descriptors: Collection<StringDescriptor>, context: QueryContext): Retriever<ContentElement<*>, StringDescriptor> {
+    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, StringDescriptor>, descriptors: Collection<StringDescriptor>, context: QueryContext): Retriever<ImageContent, StringDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
 
         /* Prepare query parameters and return retriever. */
@@ -84,7 +82,7 @@ class OCR : ExternalFesAnalyser<ContentElement<*>, StringDescriptor>() {
      * @param context The [QueryContext] to use with the [Retriever]
      * @return [FulltextRetriever]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, StringDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): FulltextRetriever {
+    override fun newRetrieverForContent(field: Schema.Field<ImageContent, StringDescriptor>, content: Collection<ImageContent>, context: QueryContext): Retriever<ImageContent, StringDescriptor>{
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
 
         /* Prepare query parameters. */

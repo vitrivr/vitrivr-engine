@@ -28,7 +28,7 @@ class AverageColorRaster: Analyser<ContentElement<*>, RasterDescriptor> {
         TODO("Not yet implemented")
     }
 
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, RasterDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): Extractor<ContentElement<*>, RasterDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, RasterDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, String>): Extractor<ContentElement<*>, RasterDescriptor> {
         TODO("Not yet implemented")
     }
 }

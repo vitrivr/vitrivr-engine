@@ -108,7 +108,7 @@ class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
         return this.newRetrieverForDescriptors(field, descriptors, context)
     }
 
-    override fun newExtractor(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): SphericalHarmonicsExtractor {
+    override fun newExtractor(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, String>): SphericalHarmonicsExtractor {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         logger.debug { "Creating new SphericalHarmonicsExtract for field '${field.fieldName}' with parameters $parameters." }
         return SphericalHarmonicsExtractor(input, field, persisting)

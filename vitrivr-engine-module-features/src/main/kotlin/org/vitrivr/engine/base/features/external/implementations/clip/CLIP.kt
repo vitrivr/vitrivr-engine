@@ -54,7 +54,7 @@ class CLIP : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
         input: Operator<Retrievable>,
         context: IndexContext,
         persisting: Boolean,
-        parameters: Map<String, Any>
+        parameters: Map<String, String>
     ): Extractor<ContentElement<*>, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         return CLIPExtractor(input, field, persisting)

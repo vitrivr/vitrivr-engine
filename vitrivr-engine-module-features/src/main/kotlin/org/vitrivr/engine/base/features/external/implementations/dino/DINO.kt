@@ -49,7 +49,7 @@ class DINO : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
      * @return A new [Extractor] instance for this [DINO]
      * @throws [UnsupportedOperationException], if this [DINO] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): Extractor<ContentElement<*>, FloatVectorDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, String>): Extractor<ContentElement<*>, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         return DINOExtractor(input, field, persisting)
     }

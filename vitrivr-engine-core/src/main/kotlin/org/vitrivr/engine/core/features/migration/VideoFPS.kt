@@ -26,7 +26,7 @@ class VideoFPS : Analyser<ContentElement<*>, FloatDescriptor> {
         TODO("Not yet implemented")
     }
 
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): Extractor<ContentElement<*>, FloatDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, String>): Extractor<ContentElement<*>, FloatDescriptor> {
         TODO("Not yet implemented")
     }
 }

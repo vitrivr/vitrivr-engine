@@ -145,7 +145,7 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
         fun getExtractor(
             input: Operator<Retrievable>,
             context: IndexContext,
-            parameters: Map<String, Any> = this.parameters
+            parameters: Map<String, String> = this.parameters
         ): Extractor<C, D> =
             this.analyser.newExtractor(this, input, context, true, parameters)
 
