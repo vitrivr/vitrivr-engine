@@ -37,13 +37,14 @@ class ApiEnumerator : EnumeratorFactory {
      */
     private val logger: KLogger = KotlinLogging.logger {}
 
-    override fun newOperator(name: String, context: IndexContext, inputs: Stream<*>?): Enumerator {
+    override fun newOperator(
+        name: String,
+        context: IndexContext,
+        mediaTypes: List<MediaType>,
+        inputs: Stream<*>?
+    ): Enumerator {
         val paths = inputs as Stream<Path>;
         val depth = (context[name,"depth"] ?: Int.MAX_VALUE.toString()).toInt()
-        val mediaTypes = (context[name,"mediaTypes"] ?: throw IllegalArgumentException("MediaTypes are required"))
-            .split(";").map { x ->
-                MediaType.valueOf(x.trim())
-            }
         val skip = context[name,"skip"]?.toLongOrNull() ?: 0L
         val limit = context[name,"limit"]?.toLongOrNull() ?: Long.MAX_VALUE
         logger.info { "Enumerator: FileSystemEnumerator with path: $paths, depth: $depth, mediaTypes: $mediaTypes, skip: $skip, limit: ${if (limit == Long.MAX_VALUE) "none" else limit}" }

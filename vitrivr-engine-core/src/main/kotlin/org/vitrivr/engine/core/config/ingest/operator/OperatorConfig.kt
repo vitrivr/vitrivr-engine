@@ -8,6 +8,7 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.ingest.Exporter
 import org.vitrivr.engine.core.operators.ingest.Aggregator
 import org.vitrivr.engine.core.operators.ingest.Enumerator
+import org.vitrivr.engine.core.source.MediaType
 
 /**
  * Configuration for ingestion operators, as defined in the [org.vitrivr.engine.core.operators.ingest] package.
@@ -50,6 +51,7 @@ data class EnumeratorConfig(
     override val factory: String,
 ) : FactoryBuildableOperatorConfig() {
     override val type = OperatorType.ENUMERATOR
+    val mediaTypes: List<MediaType> = emptyList()
 }
 
 

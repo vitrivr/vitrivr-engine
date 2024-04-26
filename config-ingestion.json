@@ -6,7 +6,6 @@
     "local": {
       "enumerator": {
         "path": "./your/media/path",
-        "mediaTypes": "IMAGE;VIDEO",
         "depth": "1"
       },
       "thumbs": {
@@ -15,15 +14,16 @@
       }
     }
   },
-  "enumerator": {
-    "type": "ENUMERATOR",
-    "factory": "FileSystemEnumerator"
-  },
-  "decoder": {
-    "type": "DECODER",
-    "factory": "ImageDecoder"
-  },
   "operators": {
+    "enumerator": {
+      "type": "ENUMERATOR",
+      "factory": "FileSystemEnumerator",
+      "mediaTypes": ["IMAGE"]
+    },
+    "decoder": {
+      "type": "DECODER",
+      "factory": "ImageDecoder"
+    },
     "pass": {
       "type": "SEGMENTER",
       "factory": "PassThroughSegmenter"
@@ -46,10 +46,12 @@
     }
   },
   "operations": {
-    "stage1": {"operator": "pass", "next": ["stage2"]},
-    "stage2": {"operator": "allContent", "next": ["stage3"]},
-    "stage3": {"operator": "avgColor", "next": ["stage4"]},
-    "stage4": {"operator": "thumbs", "next": ["stage5"]},
-    "stage5": {"operator": "fileMeta"}
+    "stage0": {"operator": "enumerator"},
+    "stage1": {"operator": "decoder", "inputs": ["stage0"]},
+    "stage2": {"operator": "pass", "inputs": ["stage1"]},
+    "stage3": {"operator": "allContent", "inputs": ["stage2"]},
+    "stage4": {"operator": "avgColor", "inputs": ["stage3"]},
+    "stage5": {"operator": "thumbs", "inputs": ["stage4"]},
+    "stage6": {"operator": "fileMeta", "inputs": ["stage5"]}
   }
 }

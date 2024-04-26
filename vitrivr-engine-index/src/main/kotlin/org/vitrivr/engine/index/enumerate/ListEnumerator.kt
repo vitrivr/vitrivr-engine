@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.flow
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.operators.ingest.EnumeratorFactory
+import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Source
 import java.util.LinkedList
 import java.util.stream.Stream
@@ -24,8 +25,12 @@ class ListEnumerator : EnumeratorFactory {
      * @param name The name of the [Enumerator]
      * @param context The [IndexContext] to use.
      */
-    override fun newOperator(name: String, context: IndexContext): Enumerator {
-        return Instance(context)
+    override fun newOperator(
+        name: String,
+        context: IndexContext,
+        mediaTypes: List<MediaType>
+    ): Enumerator {
+        return Instance(context, mediaTypes)
     }
     /**
      * Creates a new [Enumerator] instance from this [ListEnumerator].
@@ -34,14 +39,19 @@ class ListEnumerator : EnumeratorFactory {
      * @param context The [IndexContext] to use.
      * @param inputs Is ignored.
      */
-    override fun newOperator(name: String, context: IndexContext, inputs: Stream<*>?): Enumerator {
-        return newOperator(name, context)
+    override fun newOperator(
+        name: String,
+        context: IndexContext,
+        mediaTypes: List<MediaType>,
+        inputs: Stream<*>?
+    ): Enumerator {
+        return newOperator(name, context, mediaTypes)
     }
 
     /**
      * The [Enumerator] returned by this [FileSystemEnumerator].
      */
-    class Instance(private val context: IndexContext) : Enumerator {
+    class Instance(private val context: IndexContext, mediaTypes: List<MediaType>) : Enumerator {
 
         /** List of [Source]s that should be enumerated. */
         private val list: LinkedList<Source> = LinkedList()

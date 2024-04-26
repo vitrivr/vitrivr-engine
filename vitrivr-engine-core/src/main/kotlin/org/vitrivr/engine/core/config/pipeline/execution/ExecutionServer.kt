@@ -119,7 +119,7 @@ class ExecutionServer {
     }
 
     /**
-     * Executes a [RetrievalPipeline] in a blocking fashion, i.e., the call will block until the [IndexingPipeline] has been executed.
+     * Executes a [RetrievalPipeline] in a blocking fashion, i.e., the call will block until the [RetrievalPipeline] has been executed.
 
      * @param query The [Operator] to execute.
      * @return The resulting [List] of [Retrieved]
