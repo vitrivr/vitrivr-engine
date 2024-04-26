@@ -1,32 +1,57 @@
 {
   "context": {
-    "contentFactory": "InMemoryContentFactory",
-    "resolverFactory": "DiskResolver",
-    "parameters": {
-      "location": "../data"
+    "contentFactory": {
+      "factory": "InMemoryContentFactory"
+    },
+    "resolver": {
+      "factory": "DiskResolver",
+      "parameters": {
+        "location": "../data"
+      }
     }
   },
   "schema": "LSC-metadata",
   "enumerator": {
-    "name": "FileSystemEnumerator",
+    "factory": "FileSystemEnumerator",
     "parameters": {
       "path": "../objects_exif",
       "depth": "5",
       "mediaTypes": "IMAGE"
+    }
+  },
+  "decoder": {
+    "factory": "ImageDecoder"
+  },
+  "operators": {
+    "seg": {
+      "type": "SEGMENTER",
+      "factory": "PassThroughSegmenter"
     },
-    "next": {
-      "name": "ImageDecoder",
-      "nextSegmenter": {
-        "name": "PassThroughSegmenter",
-        "aggregators": [
-          {
-            "name": "CenterContentAggregator",
-            "nextExtractor": {
-              "fieldName": "exif"
-            }
-          }
-        ]
-      }
+    "centerContent": {
+      "type": "AGGREGATOR",
+      "factory": "CenterContentAggregator"
+    },
+    "exif": {
+      "type": "EXTRACTOR",
+      "fieldName": "exif"
+    },
+    "fileMeta": {
+      "type": "EXTRACTOR",
+      "fieldName": "file"
+    }
+  },
+  "operations": {
+    "stage1": {
+      "operator": "seg"
+    },
+    "stage2": {
+      "operator": "centerContent"
+    },
+    "stage3": {
+      "operator": "fileMeta"
+    },
+    "stage4": {
+      "operator": "exif"
     }
   }
 }
