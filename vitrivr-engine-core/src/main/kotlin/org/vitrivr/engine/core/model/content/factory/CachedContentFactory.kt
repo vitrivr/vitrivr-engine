@@ -58,7 +58,6 @@ class CachedContentFactory : ContentFactoriesFactory {
 
             if (this.basePath == null) {
                 this.basePath = Files.createTempDirectory("vitrivr-cache")
-                //this.basePath: Path = Paths.get("./cache")
                 logger.warn { "No base path provided for CachedContentFactory. Using temporary directory ${this.basePath}." }
             } else {
                 if (!this.basePath?.let { Files.exists(it) }!!) {
