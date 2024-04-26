@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
  * This is applicable for index and query phases.
  */
 @Serializable
-sealed class Context(){
+sealed class Context{
     /**
      * Configuration per named operator.
      */
@@ -16,11 +16,6 @@ sealed class Context(){
 
     /** properties applicable to all operators */
     abstract val global: Map<String, String>
-
-    constructor(local: Map<String, Map<String, String>>, global: Map<String, String>) : this(){
-        global.entries.forEach { this.global.toMutableMap()[it.key] = it.value }
-        local.entries.forEach { this.local.toMutableMap()[it.key] = it.value.toMutableMap() }
-    }
 
     /**
      * Provides the [property] for the [operator], in case it is defined.
@@ -56,30 +51,5 @@ sealed class Context(){
      * @return Either the value named [property] for the [operator] or [default]
      */
     fun getPropertyOrDefault(operator: String, property: String, default: String): String = getProperty(operator, property) ?: default
-
-    /**
-     * Sets the [property] with the [value] for the given [operator].
-     *
-     * @param operator The name of the operator to set the property for.
-     * @param property The name of the property
-     * @param value The value to set
-     */
-    fun setLocalProperty(operator: String, property: String, value: String){
-        if(local.containsKey(operator)){
-            local[operator]!!.toMutableMap()[property] = value
-        }else{
-            local.toMutableMap()[operator] = mutableMapOf(property to value)
-        }
-    }
-
-    /**
-     * Sets the [property] with the [value] globally.
-     *
-     * @param property The name of the property
-     * @param value The value to set
-     */
-    fun setGlobalProperty(property: String, value: String){
-        global.toMutableMap()[property] = value
-    }
 
 }
