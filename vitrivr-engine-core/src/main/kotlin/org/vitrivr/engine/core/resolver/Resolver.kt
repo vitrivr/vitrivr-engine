@@ -16,4 +16,5 @@ interface Resolver {
      * @return [Resolvable] or null, if [RetrievableId] could not be resolved.
      */
     fun resolve(id: RetrievableId) : Resolvable?
+
 }

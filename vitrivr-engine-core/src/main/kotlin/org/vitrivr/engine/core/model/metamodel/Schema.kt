@@ -1,6 +1,9 @@
 package org.vitrivr.engine.core.model.metamodel
 
 import org.vitrivr.engine.core.config.IndexConfig
+import org.vitrivr.engine.core.config.SchemaConfig
+import org.vitrivr.engine.core.config.ingest.IngestionConfig
+import org.vitrivr.engine.core.config.ingest.IngestionPipelineBuilder
 import org.vitrivr.engine.core.config.pipeline.ExtractionPipelineBuilder
 import org.vitrivr.engine.core.config.pipeline.execution.IndexingPipeline
 import org.vitrivr.engine.core.context.IndexContext
@@ -40,7 +43,11 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
     private val exporters: MutableList<Schema.Exporter> = mutableListOf()
 
     /** The [List] of [IndexingPipeline]s contained in this [Schema]. */
+    @Deprecated(message="ExtractionPipelineBuilder is being replaced with IngestionPipelineBuilder")
     private val extractionPipelines: MutableMap<String, ExtractionPipelineBuilder> = mutableMapOf()
+
+    /** The [Map] of named [IngestionPipelineBuilder]s contained in this [Schema] */
+    private val ingestionPipelineBuilders = mutableMapOf<String, IngestionPipelineBuilder>()
 
     /**
      * Adds a new [Field] to this [Schema].
@@ -73,8 +80,19 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
      * @param name The name of the [Exporter]. Must be unique.
      * @param config The [IndexConfig] used to generated instance.
      */
+    @Deprecated("Extraction pipeline definition and parsing has been replaced", replaceWith = ReplaceWith("addIngestionPipeline(name:String,config:IngestionConfig"))
     fun addPipeline(name: String, config: IndexConfig) {
         this.extractionPipelines[name] = ExtractionPipelineBuilder(this, config)
+    }
+
+    /**
+     * Adds a new [IngestionPipelineBuilder] for the given [IngestionConfig] to this [Schema].
+     *
+     * @param name The name of the [IngestionConfig], as specified in the [SchemaConfig].
+     * @param config The actual [IngestionConfig]
+     */
+    fun addIngestionPipeline(name: String, config: IngestionConfig){
+        ingestionPipelineBuilders[name] = IngestionPipelineBuilder(this, config)
     }
 
     /**
@@ -109,8 +127,15 @@ class Schema(val name: String = "vitrivr", val connection: Connection) : Closeab
     fun getExporter(name: String) = this.exporters.firstOrNull { it.name == name }
 
 
+    @Deprecated("Extraction pipeline definition and parsing has been replaced", replaceWith = ReplaceWith("getIngestionPipelineBuilder(name:String)"))
     fun getPipelineBuilder(key: String): ExtractionPipelineBuilder = this.extractionPipelines[key]
         ?: throw IllegalArgumentException("No pipeline with key '$key' found in schema '$name'.")
+
+    /**
+     * Get the [IngestionPipelineBuilder] associated with the provided name to build the [IndexingPipeline].
+     * @param name The name of the ingestion pipeline configuration, essentially the [SchemaConfig.pipelien]
+     */
+    fun getIngestionPipelineBuilder(name:String) = ingestionPipelineBuilders[name] ?: throw IllegalArgumentException("No ingestion pipeline builder with the name '$name' found in schema '${this.name}'")
 
     /**
      * Closes this [Schema] and the associated database [Connection].

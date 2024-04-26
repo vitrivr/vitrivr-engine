@@ -74,6 +74,8 @@ class FixedDurationSegmenter : SegmenterFactory {
         lookAheadTime: Duration = Duration.ofSeconds(1)
     ) : AbstractSegmenter(input, context) {
 
+        private val logger: KLogger = KotlinLogging.logger {}
+
         /** A [Mutex] to make sure, that only a single thread enters the critical section of this [FixedDurationSegmenter]. */
         private val mutex = Mutex()
 
