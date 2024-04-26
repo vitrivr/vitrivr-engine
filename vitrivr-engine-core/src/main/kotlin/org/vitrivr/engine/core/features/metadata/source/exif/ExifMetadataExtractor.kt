@@ -32,6 +32,11 @@ fun parseJson(jsonString: String): Map<String, String> {
     return map
 }
 
+fun convertDate(date: String): Date {
+    val format = SimpleDateFormat("yyyy:MM:dd HH:mm:ss")
+    return format.parse(date)
+}
+
 fun convertType(directory: Directory, tagType: Int, type: String): Value<*> {
     return when(type) {
         "STRING" -> Value.String(directory.getString(tagType))
@@ -42,7 +47,7 @@ fun convertType(directory: Directory, tagType: Int, type: String): Value<*> {
         "LONG" -> Value.Long(directory.getLong(tagType))
         "FLOAT" -> Value.Float(directory.getFloat(tagType))
         "DOUBLE" -> Value.Double(directory.getDouble(tagType))
-        "DATETIME" -> Value.DateTime(SimpleDateFormat("yyyy:MM:dd HH:mm:ss").parse(directory.getString(tagType)))
+        "DATETIME" -> Value.DateTime(convertDate(directory.getString(tagType)))
         else -> throw(IllegalArgumentException("Type not supported"))
     }
 }
@@ -84,7 +89,7 @@ class ExifMetadataExtractor(
                                     "LONG" -> columnValues[key] = Value.Long(value.toLong())
                                     "FLOAT" -> columnValues[key] = Value.Float(value.toFloat())
                                     "DOUBLE" -> columnValues[key] = Value.Double(value.toDouble())
-                                    "DATETIME" -> columnValues[key] = Value.DateTime(SimpleDateFormat("yyyy:MM:dd HH:mm:ss").parse(value))
+                                    "DATETIME" -> columnValues[key] = Value.DateTime(convertDate(value))
                                     else -> throw(IllegalArgumentException("Type not supported"))
                                 }
                             }
@@ -102,6 +107,8 @@ class ExifMetadataExtractor(
 
             }
         }
+        logger.info { "Extracted fields ${columnValues.map{(key, value) -> "${key} = ${value.value}"}}" }
+
         return listOf(MapStructDescriptor(UUID.randomUUID(), retrievable.id, this.field.parameters, columnValues.mapValues { it.value.value }))
     }
 }
