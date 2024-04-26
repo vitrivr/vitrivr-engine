@@ -15,9 +15,10 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
-private val logger: KLogger = KotlinLogging.logger {}
-
 class ExifMetadata : Analyser<ContentElement<*>, MapStructDescriptor> {
+
+    private val logger: KLogger = KotlinLogging.logger {}
+
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = MapStructDescriptor::class
     override fun prototype(field: Schema.Field<*, *>) = MapStructDescriptor.prototype(field.parameters)

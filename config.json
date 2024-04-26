@@ -181,7 +181,8 @@
             "ExifSubIFD_FocalLength": "INT",
             "ExifSubIFD_ApertureValue": "FLOAT",
             "ExifSubIFD_DateTimeOriginal": "DATETIME",
-            "ExifSubIFD_MeteringMode": "STRING"
+            "ExifSubIFD_MeteringMode": "STRING",
+            "time_zone": "STRING"
           }
         }
       ],
