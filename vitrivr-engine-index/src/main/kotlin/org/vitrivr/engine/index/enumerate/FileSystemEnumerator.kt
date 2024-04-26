@@ -37,13 +37,13 @@ class FileSystemEnumerator : EnumeratorFactory {
      * @param name The name of the [Enumerator]
      * @param context The [IndexContext] to use.
      */
-    override fun newOperator(name: String, context: IndexContext): Enumerator {
+    override fun newOperator(
+        name: String,
+        context: IndexContext,
+        mediaTypes: List<MediaType>
+    ): Enumerator {
         val path = Path(context[name,"path"] ?: throw IllegalArgumentException("Path is required"))
         val depth = (context[name,"depth"] ?: Int.MAX_VALUE.toString()).toInt()
-        val mediaTypes = (context[name,"mediaTypes"] ?: throw IllegalArgumentException("MediaTypes are required"))
-            .split(";").map { x ->
-                MediaType.valueOf(x.trim())
-            }
         val skip = context[name,"skip"]?.toLongOrNull() ?: 0L
         val limit = context[name,"limit"]?.toLongOrNull() ?: Long.MAX_VALUE
         logger.info { "Enumerator: FileSystemEnumerator with path: $path, depth: $depth, mediaTypes: $mediaTypes, skip: $skip, limit: ${if (limit == Long.MAX_VALUE) "none" else limit}" }
@@ -56,8 +56,13 @@ class FileSystemEnumerator : EnumeratorFactory {
      * @param context The [IndexContext] to use.
      * @param inputs Is ignored.
      */
-    override fun newOperator(name: String, context: IndexContext, inputs: Stream<*>?): Enumerator {
-        return newOperator(name, context)
+    override fun newOperator(
+        name: String,
+        context: IndexContext,
+        mediaTypes: List<MediaType>,
+        inputs: Stream<*>?
+    ): Enumerator {
+        return newOperator(name, context, mediaTypes)
     }
 
     /**

@@ -29,6 +29,15 @@ data class OperationsConfig (
      * The names of the [OperationsConfig] that follow this operation.
      * Must be a name of the [IngestionConfig.operations] property.
      */
-    val next: List<String> = emptyList()
+    val inputs: List<String> = emptyList()
 
-)
+){
+    /**
+     * Indicates whether this [OperationsConfig] is an entry point, e.g. has no [inputs].
+     *
+     * @return TRUE if no [inputs] are defined, FALSE otherwise.
+     */
+    fun isEntry(): Boolean {
+        return inputs.isEmpty()
+    }
+}

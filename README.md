@@ -438,29 +438,71 @@ The example index pipeline configuration then, the current context looks as foll
 
 There are these special sections for the context-parameters:
 
-* `enumerator` - For local context-parameters for the _enumerator_.
-* `decoder` - For the local context-parameters for the _decoder_.
 * `content` - For the local context-parameters for the _content factory_.
 
-#### Index Enumerator Configuration
+#### Index Operators Configuration
+
+Next up, we declare a list of [operators](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/Operator.kt)
+in the form of [`OperatorConfig`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/operator/OperatorConfig.kt)s.
+These _operators_ must have a unique name in the `operators` property of the [`IngestionConfig`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/IngestionConfig.kt):
+These names are used in the local context-parameters to configure them
+
+```json
+{
+  "schema": "sandbox",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverName": "disk",
+    "local": {
+      "enumerator": {
+        "path": "./sandbox/imgs",
+        "mediaTypes": "IMAGE;VIDEO",
+        "depth": "1"
+      },
+      "myoperator1": {
+        "key1": "a-value",
+        "key2": "1234"
+      }
+    }
+  },
+  "operators": {
+    "myoperator1": {},
+    "myoperator2": {}
+  }
+}
+```
+
+There are different _types_ of operators:
+
+* [`Enumerator`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Enumerator.kt) which emit items to ingest.
+* [`Decoder`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Decoder.kt) which decode the file sources such that the content is available for ingestion.
+* [`Segmenter`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Segmenter.kt) which segment incoming content and emit _n_ [`Retrievable`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/retrievable/Retrievable.kt)s, resulting in a 1:n mapping.
+* [`Transformer`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Segmenter.kt), [`Extractor`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Extractor.kt), and [`Exporter`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Exporter.kt), which all process one retrievable and emit _one_ [`Retrievable`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/retrievable/Retrievable.kt)s, resulting in a 1:1 mapping.
+* [`Aggregator`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Aggregator.kt) which aggregate _n_ incoming retrievables and emit one [`Retrievable`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/retrievable/Retrievable.kt)s, resulting in a n:1 mapping.
+
+Notably, `Extractor`s are backed by a schema's field and `Exporter`s are also referenced by name from the _schema_.
+
+In the following, we briefly introduce these configurations:
+
+##### Index Operator Configuration: Enumerator
 
 The _enumerator_ enumerates the content to index and provides it to the indexing pipeline.
 It is described with a [`EnumeratorConfig](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/operator/OperatorConfig.kt).
 
-Local context-parameters for the _enumerator_ are in a special section called `enumerator`.
+Requires the property `mediaTypes`, a list of [`MediaType`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/source/MediaType.kt)s.
 
 ```json
 {
   "type": "ENUMERATOR",
-  "factory": "FactoryClass"
+  "factory": "FactoryClass",
+  "mediaTypes": ["IMAGE","VIDEO"]
 }
 ```
 
 Currently implemented enumerators are found [in the index module](/vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/enumerate),
 of which we will use the [`FileSystemEnumerator`](/vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/enumerate/FileSystemEnumerator.kt).
 
-The configuration **requires** the context-parameter `path`, the path to the folder containing multimedia content
-and the context-parameter `mediaTypes`, which is a semicolon (`;`) separated list of [`MediaType`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/source/MediaType.kt)s.
+The configuration **requires** the context-parameter `path`, the path to the folder containing multimedia content.
 Essentially, for still images, use `IMAGE` and for videos `VIDEO`.
 Additional context-parameters are `skip` (how many files should be skipped), `limit` (how many files should at max be enumerated over)
 and `depth` (the depth to traverse the file system, `1` stands for current folder only, `2` for sub-folders, `3` for sub-sub-folders, ...).
@@ -490,7 +532,6 @@ For an image only ingestion, we could set-up the configuration as follows (`skip
   "local": {
     "enumerator": {
       "path": "./your/media/path",
-      "mediaTypes": "IMAGE;VIDEO",
       "depth": "1"
     }
   }
@@ -499,35 +540,15 @@ For an image only ingestion, we could set-up the configuration as follows (`skip
 **Enumerator**:
 ```json
 {
-    "type": "ENUMERATOR",
-    "factory": "FileSystemEnumerator"
+  "type": "ENUMERATOR",
+  "factory": "FileSystemEnumerator",
+  "mediaTypes": [
+    "IMAGE", "VIDEO"
+  ]
 }
 ```
 
-This results in the following index pipeline config:
-
-```json
-{
-  "schema": "sandbox",
-  "context": {
-    "contentFactory": "InMemoryContentFactory",
-    "resolverName": "disk",
-    "local": {
-      "enumerator": {
-        "path": "./sandbox/imgs",
-        "mediaTypes": "IMAGE;VIDEO",
-        "depth": "1"
-      }
-    }
-  },
-  "enumerator": {
-    "type": "ENUMERATOR",
-    "factory": "FileSystemEnumerator"
-  }
-}
-```
-
-#### Index Decoder Configuration
+##### Index Operator Configuration: Decoder
 
 The [`DecoderConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/operator/OperatorConfig.kt)
 describes how the media content is decoded.
@@ -535,14 +556,9 @@ describes how the media content is decoded.
 ```json
 {
   "type": "",
-  "factory": "DecoderClass",
-  "parameters": {
-    "key": "value"
-  }
+  "factory": "DecoderClass"
 }
 ```
-
-The context-parameters for the _decoder_ are in the special section `decoder`.
 
 Available decodes can be found [in the index module](/vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/decode).
 Since we work with images in this tutorial, we require the [`ImageDecoder`](/vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/decode/ImageDecoder.kt):
@@ -552,87 +568,6 @@ Since we work with images in this tutorial, we require the [`ImageDecoder`](/vit
   "name": "ImageDecoder"
 }
 ```
-
-Resulting in the following index pipeline configuration:
-
-```json
-{
-  "schema": "sandbox",
-  "context": {
-    "contentFactory": "InMemoryContentFactory",
-    "resolverName": "disk",
-    "local": {
-      "enumerator": {
-        "path": "./sandbox/imgs",
-        "mediaTypes": "IMAGE;VIDEO",
-        "depth": "1"
-      },
-      "thumbs": {
-        "maxSideResolution": "350",
-        "mimeType": "JPG"
-      }
-    }
-  },
-  "enumerator": {
-    "type": "ENUMERATOR",
-    "factory": "FileSystemEnumerator"
-  },
-  "decoder": {
-    "type": "DECODER",
-    "factory": "ImageDecoder"
-  }
-}
-```
-
-#### Index Operators Configuration
-
-Next up, we declare a list of [operators](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/Operator.kt)
-in the form of [`OperatorConfig`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/operator/OperatorConfig.kt)s.
-These _operators_ must have a unique name in the `operators` property of the [`IngestionConfig`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/IngestionConfig.kt):
-These names are used in the local context-parameters to configure them
-
-```json
-{
-  "schema": "sandbox",
-  "context": {
-    "contentFactory": "InMemoryContentFactory",
-    "resolverName": "disk",
-    "local": {
-      "enumerator": {
-        "path": "./sandbox/imgs",
-        "mediaTypes": "IMAGE;VIDEO",
-        "depth": "1"
-      },
-      "myoperator1": {
-        "key1": "a-value",
-        "key2": "1234"
-      }
-    }
-  },
-  "enumerator": {
-    "type": "ENUMERATOR",
-    "factory": "FileSystemEnumerator"
-  },
-  "decoder": {
-    "type": "DECODER",
-    "factory": "ImageDecoder"
-  },
-  "operators": {
-    "myoperator1": {},
-    "myoperator2": {}
-  }
-}
-```
-
-There are different _types_ of operators:
-
-* [`Segmenter`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Segmenter.kt) which segment incoming content and emit _n_ [`Retrievable`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/retrievable/Retrievable.kt)s, resulting in a 1:n mapping.
-* [`Transformer`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Segmenter.kt), [`Extractor`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Extractor.kt), and [`Exporter`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Exporter.kt), which all process one retrievable and emit _one_ [`Retrievable`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/retrievable/Retrievable.kt)s, resulting in a 1:1 mapping.
-* [`Aggregator`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Aggregator.kt) which aggregate _n_ incoming retrievables and emit one [`Retrievable`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/retrievable/Retrievable.kt)s, resulting in a n:1 mapping.
-
-Notably, `Extractor`s are backed by a schema's field and `Exporter`s are also referenced by name from the _schema_.
-
-In the following, we briefly introduce these configurations:
 
 ##### Index Operators Configuration: Segmenter
 
@@ -733,7 +668,6 @@ So far, we only have _declared_ the operators, with the `operations` property, w
     "local": {
       "enumerator": {
         "path": "./sandbox/imgs",
-        "mediaTypes": "IMAGE;VIDEO",
         "depth": "1"
       },
       "myoperator": {
@@ -742,14 +676,6 @@ So far, we only have _declared_ the operators, with the `operations` property, w
       }
     }
   },
-  "enumerator": {
-    "type": "ENUMERATOR",
-    "factory": "FileSystemEnumerator"
-  },
-  "decoder": {
-    "type": "DECODER",
-    "factory": "ImageDecoder"
-  },
   "operators": {
     "myoperator": {},
     "myoperator1": {},
@@ -757,35 +683,35 @@ So far, we only have _declared_ the operators, with the `operations` property, w
   },
   "operations": {
     "myOperation": {
-      "operator": "myoperator",
-      "next": [
-        "nextOperation1",
-        "nextOperation2"
-      ]
+      "operator": "myoperator"
     },
     "myOperation1": {
-      "operator": "myoperator1"
+      "operator": "myoperator1", "inputs": ["myOperation"]
     },
     "myOperation2": {
-      "operator": "myoperator2"
+      "operator": "myoperator2", "inputs": ["myOperation"]
     }
   }
 }
 ```
 
-Specifically, the `operator` property must point to a previously declared _operator_ and the entries in the `next` property must point to an _operation_ with that name.
-
+Specifically, the `operator` property must point to a previously declared _operator_ and
+the entries in the `inputs` property must point to an _operation_ with that name.
 
 Currently, there are the following rules to build such a pipeline:
 
 **Pipeline Rules:**
 
-1. The first _operation_ must either be a `TRANSFORMER` or `SEGMENTER`
-2. `TRANSFORMER`s and `SEGMENTER`s can be daisy-chained 
-3. A `SEGMENTER` must be followed by one or more `AGGREGATOR`s, multiple `AGGREGATORS` results in branching.
-4. An `AGGREGATOR` must be followed by either a `EXTRACTOR` or `EXPORTER`
-5. `EXPORTER`s and `EXTRACTOR`s can be daisy-chained
-6. The end or the ends, in case of branching, must be of type `EXPORTER` or `EXTRACTOR`.
+1. The first _operation_ **must** be a `ENUMERATOR`
+2. Following an `ENUMERATOR`, there **must** come a `DECODER`
+3. Following a `DECODER`, there **must** either be a `TRANSFORMER` or `SEGMENTER`
+4. `TRANSFORMER`s and `SEGMENTER`s can be daisy-chained 
+5. A `SEGMENTER` must be followed by one or more `AGGREGATOR`s, multiple `AGGREGATORS` results in branching.
+6. An `AGGREGATOR` must be followed by either a `EXTRACTOR` or `EXPORTER`
+7. `EXPORTER`s and `EXTRACTOR`s can be daisy-chained
+8. The end or the ends, in case of branching, must be of type `EXPORTER` or `EXTRACTOR`.
+
+Notably, currently multiple `ENUMERATORS` are treated as separate trees, since merging is not yet supported.
 
 One example, based on the _schema_ further above (without branching), might look as follows:
 
@@ -798,7 +724,6 @@ One example, based on the _schema_ further above (without branching), might look
     "local": {
       "enumerator": {
         "path": "./sandbox/imgs",
-        "mediaTypes": "IMAGE;VIDEO",
         "depth": "1"
       },
       "thumbs": {
@@ -807,15 +732,16 @@ One example, based on the _schema_ further above (without branching), might look
       }
     }
   },
-  "enumerator": {
-    "type": "ENUMERATOR",
-    "factory": "FileSystemEnumerator"
-  },
-  "decoder": {
-    "type": "DECODER",
-    "factory": "ImageDecoder"
-  },
   "operators": {
+    "fsenumerator": {
+      "type": "ENUMERATOR",
+      "factory": "FileSystemEnumerator",
+      "mediaTypes": ["IMAGE"]
+    },
+    "decoder": {
+      "type": "DECODER",
+      "factory": "ImageDecoder"
+    },
     "pass": {
       "type": "SEGMENTER",
       "factory": "PassThroughSegmenter"
@@ -838,16 +764,18 @@ One example, based on the _schema_ further above (without branching), might look
     }
   },
   "operations": {
-    "stage1": {"operator": "pass", "next": ["stage2"]},
-    "stage2": {"operator": "allContent", "next": ["stage3"]},
-    "stage3": {"operator": "avgColor", "next": ["stage4"]},
-    "stage4": {"operator": "thumbs", "next": ["stage5"]},
-    "stage5": {"operator": "fileMeta"}
+    "stage2": {"operator": "pass", "inputs": ["stage1"]},
+    "stage0": {"operator": "fsenumerator"},
+    "stage1": {"operator": "decoder", "inputs": ["stage0"]},
+    "stage3": {"operator": "allContent", "inputs": ["stage2"]},
+    "stage4": {"operator": "avgColor", "inputs": ["stage3"]},
+    "stage5": {"operator": "thumbs", "inputs": ["stage4"]},
+    "stage6": {"operator": "fileMeta", "inputs": ["stage5"]}
   }
 }
 ```
 
-Here, the linear pipeline is: `pass` -> `allContent` -> `avgColor` -> `thumbs` -> `fileMeta`.
+Here, the linear pipeline is: `fsenumerator` -> `decoder` -> `pass` -> `allContent` -> `avgColor` -> `thumbs` -> `fileMeta`.
 Note that there are context-parameters defined for the `thumbs` exporter.
 
 #### Complete Sandbox Configuration
@@ -913,26 +841,27 @@ The **pipeline** config:
     "contentFactory": "InMemoryContentFactory",
     "resolverName": "disk",
     "local": {
-      "enumerator": {
+      "fsenumerator": {
         "path": "./sandbox/imgs",
-        "mediaTypes": "IMAGE;VIDEO",
         "depth": "1"
       },
       "thumbs": {
+        "path": "./sandbox/thumbnails",
         "maxSideResolution": "350",
         "mimeType": "JPG"
       }
     }
   },
-  "enumerator": {
-    "type": "ENUMERATOR",
-    "factory": "FileSystemEnumerator"
-  },
-  "decoder": {
-    "type": "DECODER",
-    "factory": "ImageDecoder"
-  },
   "operators": {
+    "fsenumerator": {
+      "type": "ENUMERATOR",
+      "factory": "FileSystemEnumerator",
+      "mediaTypes": ["IMAGE","VIDEO"]
+    },
+    "decoder": {
+      "type": "DECODER",
+      "factory": "ImageDecoder"
+    },
     "pass": {
       "type": "SEGMENTER",
       "factory": "PassThroughSegmenter"
@@ -955,11 +884,13 @@ The **pipeline** config:
     }
   },
   "operations": {
-    "stage1": {"operator": "pass", "next": ["stage2"]},
-    "stage2": {"operator": "allContent", "next": ["stage3"]},
-    "stage3": {"operator": "avgColor", "next": ["stage4"]},
-    "stage4": {"operator": "thumbs", "next": ["stage5"]},
-    "stage5": {"operator": "fileMeta"}
+    "stage2": {"operator": "pass", "inputs": ["stage1"]},
+    "stage0": {"operator": "fsenumerator"},
+    "stage1": {"operator": "decoder", "inputs": ["stage0"]},
+    "stage3": {"operator": "allContent", "inputs": ["stage2"]},
+    "stage4": {"operator": "avgColor", "inputs": ["stage3"]},
+    "stage5": {"operator": "thumbs", "inputs": ["stage4"]},
+    "stage6": {"operator": "fileMeta", "inputs": ["stage5"]}
   }
 }
 ```

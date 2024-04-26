@@ -41,19 +41,6 @@ data class IngestionConfig(
     val context: IngestionContextConfig,
 
     /**
-     * The [EnumeratorConfig] for this [IngestionConfig].
-     * The enumerator provides the elements to ingest.
-     */
-    val enumerator: EnumeratorConfig,
-
-    /**
-     * The [DecoderConfig] for this [IngestionConfig].
-     * The [decoder] is staged between the [enumerator] providing elements for ingestion
-     * and the [operators], processing the decoded elements.
-     */
-    val decoder: DecoderConfig,
-
-    /**
      * The [OperatorConfig]s as a named map.
      * Provides named definitions of [OperatorConfig]s for the [operations] property.
      */
@@ -69,9 +56,7 @@ data class IngestionConfig(
 
     companion object {
         /** The default config path for [IngestionConfig], which is `./config-index.json` */
-        const val DEFAULT_PIPELINE_PATH = "./config-index.json"
         private val logger: KLogger = KotlinLogging.logger("IngestionConfig")
-
 
         /**
          * Reads a [IngestionConfig] from file located at [path].
