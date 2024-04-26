@@ -20,6 +20,11 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @version 1.0.0
  */
 @Serializable
+@Deprecated(
+    message = "Replaced by the new extraction pipeline definition language in package package org.vitrivr.engine.core.config.ingest",
+    replaceWith = ReplaceWith("org.vitrivr.engine.core.config.ingest.IngestionConfig"),
+    level = DeprecationLevel.WARNING
+)
 data class IndexConfig(val schema: String, val context: ContextConfig, val enumerator: EnumeratorConfig) {
     companion object {
         /** Default path to fall back to. */

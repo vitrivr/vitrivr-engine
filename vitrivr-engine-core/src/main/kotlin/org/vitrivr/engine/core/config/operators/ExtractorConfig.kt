@@ -10,6 +10,11 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @version 1.0.0
  */
 @Serializable
+@Deprecated(
+    message = "Replaced by the new extraction pipeline definition language in package package org.vitrivr.engine.core.config.ingest",
+    replaceWith = ReplaceWith("org.vitrivr.engine.core.config.ingest.operator.ExtractorConfig"),
+    level = DeprecationLevel.WARNING
+)
 data class ExtractorConfig(
     val fieldName: String? = null,
     val factoryName: String? = null,

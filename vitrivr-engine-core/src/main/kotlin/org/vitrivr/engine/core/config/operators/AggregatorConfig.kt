@@ -1,8 +1,6 @@
 package org.vitrivr.engine.core.config.operators
 
 import kotlinx.serialization.Serializable
-import org.vitrivr.engine.core.config.operators.ExporterConfig
-import org.vitrivr.engine.core.config.operators.ExtractorConfig
 
 
 /**
@@ -11,6 +9,11 @@ import org.vitrivr.engine.core.config.operators.ExtractorConfig
  * @author Ralph Gasser
  * @version 1.0.0
  */
+@Deprecated(
+    message = "Replaced by the new extraction pipeline definition language in package package org.vitrivr.engine.core.config.ingest",
+    replaceWith = ReplaceWith("org.vitrivr.engine.core.config.ingest.operator.AggregatorConfig"),
+    level = DeprecationLevel.WARNING
+)
 @Serializable
 data class AggregatorConfig(
     val name: String,

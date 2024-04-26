@@ -10,6 +10,11 @@ import org.vitrivr.engine.core.operators.ingest.Enumerator
  * @author Raphael Waltenspuel
  * @version 1.0.0
  */
+@Deprecated(
+    message = "Replaced by the new extraction pipeline definition language in package package org.vitrivr.engine.core.config.ingest",
+    replaceWith = ReplaceWith("org.vitrivr.engine.core.config.ingest.operator.EnumeratorConfig"),
+    level = DeprecationLevel.WARNING
+)
 @Serializable
 data class EnumeratorConfig(
     val name: String,

@@ -1,7 +1,5 @@
 package org.vitrivr.engine.server.api.rest.handlers
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import io.javalin.util.FileUtil
@@ -13,8 +11,6 @@ import org.vitrivr.engine.server.api.rest.model.IngestStatus
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.deleteIfExists
-
-private val logger: KLogger = KotlinLogging.logger("Ingest API")
 
 @OpenApi(
     path = "/api/{schema}/index",
@@ -38,21 +34,21 @@ fun executeIngest(ctx: Context, schema: Schema, executor: ExecutionServer) {
     }
     val filestream: MutableList<Path> = mutableListOf()
     // folder with threadId to avoid deleting files from other threads
-    val uuid = UUID.randomUUID();
+    val uuid = UUID.randomUUID()
     val basepath = Path.of("upload/$uuid/")
     try {
         /* Handle uploaded file. */
         ctx.uploadedFiles("data").forEach { uploadedFile ->
             val path = Path.of("$basepath/${uploadedFile.filename()}")
-            FileUtil.streamToFile(uploadedFile.content(), path.toString());
+            FileUtil.streamToFile(uploadedFile.content(), path.toString())
             filestream.add(path)
         }
         val stream = filestream.stream()
 
         /* Construct extraction pipeline */
-        val pipelineBuilder = pipelineName?.let { schema.getPipelineBuilder(it) }
-            ?: throw ErrorStatusException(400, "Invalid request: Pipeline '$pipelineName' does not exist.")
-        val pipeline = pipelineBuilder.getApiPipeline(stream)
+        val pipelineBuilder = pipelineName?.let { schema.getIngestionPipelineBuilder(it) }
+            ?: throw ErrorStatusException(404, "Invalid request: Pipeline '$pipelineName' does not exist.")
+        val pipeline = pipelineBuilder.build(stream)
 
         /* Schedule pipeline and return job Id. */
         val jobId = executor.extractAsync(pipeline)

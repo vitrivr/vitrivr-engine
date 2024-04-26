@@ -1,5 +1,7 @@
 package org.vitrivr.engine.index.segment
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.sync.Mutex
@@ -70,6 +72,8 @@ class FixedDurationSegmenter : SegmenterFactory {
         /** Size of the time window beyond the target duration to be considered for incoming content */
         lookAheadTime: Duration = Duration.ofSeconds(1)
     ) : AbstractSegmenter(input, context) {
+
+        private val logger: KLogger = KotlinLogging.logger {}
 
         /** A [Mutex] to make sure, that only a single thread enters the critical section of this [FixedDurationSegmenter]. */
         private val mutex = Mutex()
