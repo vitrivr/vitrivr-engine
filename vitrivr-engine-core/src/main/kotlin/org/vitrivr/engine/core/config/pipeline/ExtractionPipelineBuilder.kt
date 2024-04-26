@@ -26,6 +26,11 @@ private val logger: KLogger = KotlinLogging.logger {}
  * Pipleine setup
  * Enumerator: Source -> Decoder: ContentElement<*> -> Transformer: ContentElement<*> -> Segmenter: Ingested -> Extractor: Ingested -> Exporter: Ingested
  */
+@Deprecated(
+    message = "Replaced by the new extraction pipeline definition language builder in package package org.vitrivr.engine.core.config.ingest",
+    replaceWith = ReplaceWith("org.vitrivr.engine.core.config.ingest.IngestionPipelineBuilder"),
+    level = DeprecationLevel.WARNING
+)
 class ExtractionPipelineBuilder(val schema: Schema, val config: IndexConfig) {
 
     companion object {

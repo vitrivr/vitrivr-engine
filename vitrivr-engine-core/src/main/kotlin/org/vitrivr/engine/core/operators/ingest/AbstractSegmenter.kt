@@ -27,7 +27,7 @@ import java.util.concurrent.locks.StampedLock
  */
 abstract class AbstractSegmenter(override val input: Operator<ContentElement<*>>, val context: IndexContext) : Segmenter {
 
-    protected val logger: KLogger = KotlinLogging.logger {  }
+    private val logger: KLogger = KotlinLogging.logger { }
 
     /** The [SharedFlow] returned by this [AbstractSegmenter]'s [toFlow] method. Is created lazily. */
     private var sharedFlow: SharedFlow<Retrievable>? = null
@@ -49,7 +49,7 @@ abstract class AbstractSegmenter(override val input: Operator<ContentElement<*>>
      * @return A [SharedFlow]
      */
     final override fun toFlow(scope: CoroutineScope): SharedFlow<Retrievable> {
-        logger.trace { "Initialising flow..." }
+        logger.trace { "Initialising shared flow..." }
         val stamp = this.lock.writeLock()
         try {
             if (this.sharedFlow != null) return this.sharedFlow!!

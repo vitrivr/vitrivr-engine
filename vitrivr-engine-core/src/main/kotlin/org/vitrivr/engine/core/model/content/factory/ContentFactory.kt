@@ -11,7 +11,7 @@ import java.nio.ShortBuffer
 interface ContentFactory {
     fun newImageContent(bufferedImage: BufferedImage): ImageContent
 
-    fun newAudioContent(channel: Int, samplingRate: Int, audio: ShortBuffer): AudioContent
+    fun newAudioContent(channels: Short, sampleRate: Int, audio: ShortBuffer): AudioContent
 
     fun newTextContent(text: String): TextContent
 
