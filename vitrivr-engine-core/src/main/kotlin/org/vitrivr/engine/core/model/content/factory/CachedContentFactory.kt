@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.model.content.factory
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.*
 import org.vitrivr.engine.core.model.content.impl.cache.CachedAudioContent
 import org.vitrivr.engine.core.model.content.impl.cache.CachedContent
@@ -31,8 +32,8 @@ private val logger: KLogger = KotlinLogging.logger {}
 class CachedContentFactory : ContentFactoriesFactory {
 
 
-    override fun newContentFactory(schema: Schema, parameters: Map<String, String>): ContentFactory {
-        val basePath = parameters["location"]?.let { Path.of(it) }
+    override fun newContentFactory(schema: Schema, context: Context): ContentFactory {
+        val basePath = context["content","location"]?.let { Path.of(it) }
         return Instance(basePath)
     }
 
@@ -57,7 +58,6 @@ class CachedContentFactory : ContentFactoriesFactory {
 
             if (this.basePath == null) {
                 this.basePath = Files.createTempDirectory("vitrivr-cache")
-                //this.basePath: Path = Paths.get("./cache")
                 logger.warn { "No base path provided for CachedContentFactory. Using temporary directory ${this.basePath}." }
             } else {
                 if (!this.basePath?.let { Files.exists(it) }!!) {

@@ -14,9 +14,9 @@ interface ExporterFactory {
     /**
      * Creates a new [Exporter] instance from this [ExporterFactory].
      *
+     * @param name The name of the [Exporter]
      * @param input The input [Enumerator].
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      */
-    fun newOperator(input: Operator<Retrievable>, context: IndexContext, parameters: Map<String, String>): Exporter
+    fun newOperator(name: String, input: Operator<Retrievable>, context: IndexContext): Exporter
 }

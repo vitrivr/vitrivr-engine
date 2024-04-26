@@ -1,8 +1,6 @@
-package org.vitrivr.engine.core.config
+package org.vitrivr.engine.core.config.schema
 
 import kotlinx.serialization.Serializable
-import java.nio.file.Path
-import java.security.cert.CertPath
 
 @Serializable
 data class PipelineConfig(

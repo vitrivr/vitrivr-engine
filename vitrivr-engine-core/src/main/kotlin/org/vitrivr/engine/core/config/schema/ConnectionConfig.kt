@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.config
+package org.vitrivr.engine.core.config.schema
 
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.database.Connection

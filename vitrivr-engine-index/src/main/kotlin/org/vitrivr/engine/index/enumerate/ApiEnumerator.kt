@@ -32,20 +32,21 @@ class ApiEnumerator : EnumeratorFactory {
     /**
      * Creates a new [Enumerator] instance from this [ApiEnumerator].
      *
+     * @param name The name of the [Enumerator]
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      */
     private val logger: KLogger = KotlinLogging.logger {}
 
-    override fun newOperator(context: IndexContext, parameters: Map<String, String>, inputs: Stream<*>?): Enumerator {
+    override fun newOperator(
+        name: String,
+        context: IndexContext,
+        mediaTypes: List<MediaType>,
+        inputs: Stream<*>?
+    ): Enumerator {
         val paths = inputs as Stream<Path>;
-        val depth = (parameters["depth"] ?: Int.MAX_VALUE.toString()).toInt()
-        val mediaTypes = (parameters["mediaTypes"] ?: throw IllegalArgumentException("MediaTypes are required"))
-            .split(";").map { x ->
-                MediaType.valueOf(x.trim())
-            }
-        val skip = parameters["skip"]?.toLongOrNull() ?: 0L
-        val limit = parameters["limit"]?.toLongOrNull() ?: Long.MAX_VALUE
+        val depth = (context[name,"depth"] ?: Int.MAX_VALUE.toString()).toInt()
+        val skip = context[name,"skip"]?.toLongOrNull() ?: 0L
+        val limit = context[name,"limit"]?.toLongOrNull() ?: Long.MAX_VALUE
         logger.info { "Enumerator: FileSystemEnumerator with path: $paths, depth: $depth, mediaTypes: $mediaTypes, skip: $skip, limit: ${if (limit == Long.MAX_VALUE) "none" else limit}" }
         return Instance(paths, mediaTypes)
     }

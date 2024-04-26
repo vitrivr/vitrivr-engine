@@ -29,11 +29,11 @@ class ImageDecoder : DecoderFactory {
     /**
      * Creates a new [Decoder] instance from this [ImageDecoder].
      *
+     * @param name the name of the [Decoder]
      * @param input The input [Enumerator].
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      */
-    override fun newOperator(input: Enumerator, context: IndexContext, parameters: Map<String, String>): Decoder = Instance(input, context)
+    override fun newOperator(name: String, input: Enumerator, context: IndexContext): Decoder = Instance(input, context)
 
     /**
      * The [Decoder] returned by this [ImageDecoder].

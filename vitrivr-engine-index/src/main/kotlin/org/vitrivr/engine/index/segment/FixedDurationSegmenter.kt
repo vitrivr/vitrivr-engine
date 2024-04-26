@@ -29,12 +29,12 @@ class FixedDurationSegmenter : SegmenterFactory {
     /**
      * The [AbstractSegmenter] returned by this [FixedDurationSegmenter].
      */
-    private fun internalNewOperator(input: Operator<ContentElement<*>>, context: IndexContext, parameters: Map<String, Any> = emptyMap()): Segmenter {
+    private fun internalNewOperator(name: String, input: Operator<ContentElement<*>>, context: IndexContext): Segmenter {
         val duration = Duration.ofSeconds(
-            (parameters["duration"] as String? ?: throw IllegalArgumentException("'duration' must be specified")).toLong()
+            (context[name,"duration"]  ?: throw IllegalArgumentException("'duration' must be specified")).toLong()
         )
         val lookAheadTime = Duration.ofSeconds(
-            (parameters["lookAheadTime"] as String? ?: throw IllegalArgumentException("'lookAheadTime' must be specified")).toLong()
+            (context[name,"lookAheadTime"]  ?: throw IllegalArgumentException("'lookAheadTime' must be specified")).toLong()
         )
         return Instance(input, context, duration, lookAheadTime)
     }
@@ -42,20 +42,20 @@ class FixedDurationSegmenter : SegmenterFactory {
     /**
      * Creates a new [Segmenter] instance from this [SegmenterFactory].
      *
+     * @param name The name of the [Segmenter]
      * @param input The input [Transformer].
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      */
-    override fun newOperator(input: Transformer, context: IndexContext, parameters: Map<String, String>): Segmenter = internalNewOperator(input, context, parameters)
+    override fun newOperator(name: String, input: Transformer, context: IndexContext): Segmenter = internalNewOperator(name, input, context)
 
     /**
      * Creates a new [Segmenter] instance from this [SegmenterFactory].
      *
+     * @param name The name of the [Segmenter]
      * @param input The input [Segmenter].
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      */
-    override fun newOperator(input: Decoder, context: IndexContext, parameters: Map<String, String>): Segmenter = internalNewOperator(input, context, parameters)
+    override fun newOperator(name: String, input: Decoder, context: IndexContext): Segmenter = internalNewOperator(name, input, context)
 
     /**
      * The [AbstractSegmenter] returned by this [FixedDurationSegmenter].
