@@ -1,0 +1,2 @@
+org.vitrivr.engine.core.model.content.factory.InMemoryContentFactory
+org.vitrivr.engine.core.model.content.factory.CachedContentFactory

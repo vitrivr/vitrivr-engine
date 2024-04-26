@@ -1,9 +1,8 @@
-package org.vitrivr.engine.core.model.content.impl
+package org.vitrivr.engine.core.model.content.impl.memory
 
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.Model3DContent
 import org.vitrivr.engine.core.model.mesh.Model3D
-import java.awt.image.BufferedImage
 
 /**
  * A naive in-memory implementation of the [ImageContent] interface.
