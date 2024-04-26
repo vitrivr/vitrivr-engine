@@ -1,20 +1,18 @@
 package org.vitrivr.engine.index.segment
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.flow.channelFlow
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
-import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.ContentAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.TimestampAttribute
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.*
+import org.vitrivr.engine.core.operators.ingest.Transformer
+import org.vitrivr.engine.core.operators.ingest.TransformerFactory
 import org.vitrivr.engine.core.source.Source
 import java.time.Duration
 import java.util.*
@@ -23,61 +21,40 @@ import java.util.*
  * Segments a content flow into segments of a specified target temporal duration.
  * Discards all non [SourcedContent.Temporal] content.
  */
-class FixedDurationSegmenter : SegmenterFactory {
-
+class FixedDurationSegmenter : TransformerFactory {
     /**
-     * The [AbstractSegmenter] returned by this [FixedDurationSegmenter].
+     * Creates a new [Transformer] instance from this [FixedDurationSegmenter].
+     *
+     * @param name The name of the [Transformer]
+     * @param input The input [Operator].
+     * @param context The [IndexContext] to use.
      */
-    private fun internalNewOperator(input: Operator<ContentElement<*>>, context: IndexContext, parameters: Map<String, Any> = emptyMap()): Segmenter {
+    override fun newTransformer(name: String, input: Operator<Ingested>, context: IndexContext): Transformer {
         val duration = Duration.ofSeconds(
-            (parameters["duration"] as String? ?: throw IllegalArgumentException("'duration' must be specified")).toLong()
+            (context[name, "duration"] ?: throw IllegalArgumentException("Property 'duration' must be specified")).toLong()
         )
         val lookAheadTime = Duration.ofSeconds(
-            (parameters["lookAheadTime"] as String? ?: throw IllegalArgumentException("'lookAheadTime' must be specified")).toLong()
+            (context[name, "lookAheadTime"] ?: throw IllegalArgumentException("Property 'lookAheadTime' must be specified")).toLong()
         )
         return Instance(input, context, duration, lookAheadTime)
     }
 
     /**
-     * Creates a new [Segmenter] instance from this [SegmenterFactory].
-     *
-     * @param input The input [Transformer].
-     * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
-     */
-    override fun newOperator(input: Transformer, context: IndexContext, parameters: Map<String, String>): Segmenter = internalNewOperator(input, context, parameters)
-
-    /**
-     * Creates a new [Segmenter] instance from this [SegmenterFactory].
-     *
-     * @param input The input [Segmenter].
-     * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
-     */
-    override fun newOperator(input: Decoder, context: IndexContext, parameters: Map<String, String>): Segmenter = internalNewOperator(input, context, parameters)
-
-    /**
-     * The [AbstractSegmenter] returned by this [FixedDurationSegmenter].
+     * The [Transformer] returned by this [FixedDurationSegmenter].
      */
     private class Instance(
         /** The input [Operator]. */
-        input: Operator<ContentElement<*>>,
+        override val input: Operator<Ingested>,
 
         /** The [IndexContext] used by this [Instance]. */
-        context: IndexContext,
+        private val context: IndexContext,
 
         /** The target duration of the segments to be created */
         length: Duration,
 
         /** Size of the time window beyond the target duration to be considered for incoming content */
         lookAheadTime: Duration = Duration.ofSeconds(1)
-    ) : AbstractSegmenter(input, context) {
-
-        private val logger: KLogger = KotlinLogging.logger {}
-
-        /** A [Mutex] to make sure, that only a single thread enters the critical section of this [FixedDurationSegmenter]. */
-        private val mutex = Mutex()
-
+    ) : Transformer {
         /** The desired target duration in ns. */
         private val lengthNanos = length.toNanos()
 
@@ -87,93 +64,76 @@ class FixedDurationSegmenter : SegmenterFactory {
         /** Cache of [SourcedContent.Temporal] elements. */
         private val cache = LinkedList<ContentElement<*>>()
 
-        /** The last start timestamp encountered by this [FixedDurationSegmenter]. */
-        private var lastStartTime: Long = 0
-
-        /** Reference to the last [Source] encountered by this [FixedDurationSegmenter]. */
-        private var lastSource: Source? = null
-
-        /** Tracks if the current source retrievable has already been persisted. */
-        private var sourceWritten = false
-
-
-        override suspend fun segment(upstream: Flow<ContentElement<*>>, downstream: ProducerScope<Retrievable>) {
-            upstream.collect { content ->
-                this.mutex.lock()
-                try {
-                    if (content is SourcedContent.Temporal) {
-                        if (content.source != this.lastSource) {
-                            while (this.cache.isNotEmpty()) {
-                                sendFromCache(downstream)
-                            }
-                            this.lastSource = content.source
-                            this.lastStartTime = 0
-                            this.sourceWritten = false
-                            logger.info { "Starting to segment new source ${lastSource?.name} (${lastSource?.sourceId})" }
-                        }
-                        this.cache.add(content)
-                        val cutOffTime = this.lastStartTime + this.lengthNanos + this.lookAheadNanos
-                        if (content.timepointNs >= cutOffTime) {
-                            sendFromCache(downstream)
-                        }
-                    }
-                } finally {
-                    this.mutex.unlock()
-                }
-            }
-        }
 
         /**
-         * Finishes the segmentation process by sending all remaining content from the cache.
+         *
          */
-        override suspend fun finish(downstream: ProducerScope<Retrievable>) {
+        override fun toFlow(scope: CoroutineScope): Flow<Ingested> = channelFlow {
+            val downstream = this
+
+            /* Prepare necessary data structures. */
+            var lastSource: Source? = null
+            var lastStartTime = 0L
+            val cache = LinkedList<Ingested>()
+
+            /* Collect upstream flow. */
+            this@Instance.input.toFlow(scope).collect { ingested ->
+                val timestamp = ingested.filteredAttribute(TimestampAttribute::class.java) ?: return@collect
+                val source = ingested.filteredAttribute(SourceAttribute::class.java)?.source ?: return@collect
+
+                /* Check if source has changed. */
+                if (lastSource != source) {
+                    while (this@Instance.cache.isNotEmpty()) {
+                        sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos)
+                        lastSource = source
+                        lastStartTime = 0L
+                    }
+                }
+
+                /* Add item to cache. */
+                cache.add(ingested)
+
+                /* Check if cut-off time has been exceeded. */
+                val cutOffTime = lastStartTime + this@Instance.lengthNanos + this@Instance.lookAheadNanos
+                if (timestamp.timestampNs >= cutOffTime) {
+                    sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos)
+                    lastStartTime += this@Instance.lengthNanos
+                }
+            }
+
+            /* Drain remaining items in cache. */
             while (cache.isNotEmpty()) {
-                sendFromCache(downstream)
+                sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos)
             }
         }
 
         /**
          *
          */
-        private suspend fun sendFromCache(downstream: ProducerScope<Retrievable>) {
-            val source = this.lastSource
-            val nextStartTime = lastStartTime + lengthNanos
-            require(source != null) { "Last source is null. This is a programmer's error!" }
-
-            /* Generate source content. */
-            val sourceRetrievable = Ingested(source.sourceId, "source:${source.type.toString().lowercase()}", false)
-
-            sourceRetrievable.addAttribute(SourceAttribute(source))
-
-            /* Persist source retrievable and send it downstream */
-            if (!this.sourceWritten) {
-                downstream.send(sourceRetrievable)
-                this.sourceWritten = true
-            }
-
-
+        private suspend fun sendFromCache(downstream: ProducerScope<Ingested>, cache: LinkedList<Ingested>, nextStartTime: Long) {
             /* Drain cache. */
-            val content = LinkedList<ContentElement<*>>()
-            this.cache.removeIf {
-                require(it is SourcedContent.Temporal) { "Cache contains non-temporal content. This is a programmer's error!" }
-                if (it.timepointNs < nextStartTime) {
-                    content.add(it)
+            val emit = LinkedList<Ingested>()
+            cache.removeIf {
+                val timestamp = it.filteredAttribute(TimestampAttribute::class.java) ?: return@removeIf true
+                if (timestamp.timestampNs < nextStartTime) {
+                    emit.add(it)
                     true
                 } else {
                     false
                 }
             }
 
-            /* Prepare retrievable. */
-            val retrievable = Ingested(UUID.randomUUID(), "segment", false)
-            content.forEach { retrievable.addAttribute(ContentAttribute(it)) }
-            retrievable.addRelationship(Relationship.ByRef(retrievable, "partOf", sourceRetrievable, false))
+            /* Prepare new ingested. */
+            val ingested = Ingested(UUID.randomUUID(), emit.first().type, false)
+            for (emitted in emit) {
+                emitted.content.forEach { ingested.addContent(it) }
+                emitted.descriptors.forEach { ingested.addDescriptor(it) }
+                emitted.relationships.forEach { ingested.addRelationship(it) }
+                emitted.attributes.forEach { ingested.addAttribute(it) }
+            }
 
             /* Send retrievable downstream. */
-            downstream.send(retrievable)
-
-            /* Update last start time. */
-            this.lastStartTime = nextStartTime
+            downstream.send(ingested)
         }
     }
 }

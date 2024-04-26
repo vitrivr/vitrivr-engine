@@ -7,39 +7,38 @@ import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.decorators.TemporalContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
-import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.Aggregator
-import org.vitrivr.engine.core.operators.ingest.AggregatorFactory
-import org.vitrivr.engine.core.operators.ingest.Segmenter
+import org.vitrivr.engine.core.operators.ingest.Transformer
+import org.vitrivr.engine.core.operators.ingest.TransformerFactory
 import org.vitrivr.engine.core.util.extension.getRGBArray
 import org.vitrivr.engine.core.util.extension.setRGBArray
 import org.vitrivr.engine.index.aggregators.AbstractAggregator
 import java.awt.image.BufferedImage
 
 /**
- * A [Aggregator] that returns an average image of all [ImageContent].
+ * A [Transformer] that merges all [ImageContent] found in an [Ingested] into an average [ImageContent].
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
-class AverageImageContentAggregator : AggregatorFactory {
+class AverageImageContentAggregator : TransformerFactory {
 
     /**
      * Returns an [AverageImageContentAggregator.Instance].
      *
-     * @param input The [Segmenter] to use as input.
+     * @param name The name of the [Transformer]
+     * @param input The input [Operator] .
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      * @return [AverageImageContentAggregator.Instance]
      */
-    override fun newOperator(input: Segmenter, context: IndexContext, parameters: Map<String, String>): Aggregator = Instance(input, context)
+    override fun newTransformer(name: String, input: Operator<Ingested>, context: IndexContext): Transformer = Instance(input, context)
 
     /**
-     * The [Instance] returns by the [AggregatorFactory]
+     * The [Instance] returns by the [AverageImageContentAggregator]
      */
-    private class Instance(override val input: Operator<Retrievable>, context: IndexContext) : AbstractAggregator(input, context) {
+    private class Instance(override val input: Operator<Ingested>, context: IndexContext) : AbstractAggregator(input, context) {
         override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> {
             /* Filter out images. */
             val images = content.filterIsInstance<ImageContent>()

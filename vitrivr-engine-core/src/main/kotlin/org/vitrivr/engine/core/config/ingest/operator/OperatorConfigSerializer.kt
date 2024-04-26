@@ -22,9 +22,7 @@ object OperatorConfigSerializer : JsonContentPolymorphicSerializer<OperatorConfi
             OperatorType.TRANSFORMER -> TransformerConfig.serializer()
             OperatorType.EXTRACTOR -> ExtractorConfig.serializer()
             OperatorType.EXPORTER -> ExporterConfig.serializer()
-            OperatorType.AGGREGATOR -> AggregatorConfig.serializer()
             OperatorType.ENUMERATOR -> EnumeratorConfig.serializer()
-            OperatorType.SEGMENTER -> SegmenterConfig.serializer()
             OperatorType.OPERATOR -> TODO()
             OperatorType.RETRIEVER -> TODO()
         }
@@ -44,9 +42,7 @@ object FactoryBuildableOperatorConfigSerializer : JsonContentPolymorphicSerializ
         return when (OperatorType.valueOf(typeName)) {
             OperatorType.DECODER -> DecoderConfig.serializer()
             OperatorType.TRANSFORMER -> TransformerConfig.serializer()
-            OperatorType.AGGREGATOR -> AggregatorConfig.serializer()
             OperatorType.ENUMERATOR -> EnumeratorConfig.serializer()
-            OperatorType.SEGMENTER -> SegmenterConfig.serializer()
             OperatorType.OPERATOR -> TODO()
             OperatorType.RETRIEVER -> TODO()
             else -> throw IllegalArgumentException("A FactoryBuildableOperatorConfig with type ${typeName} has been found, which is not supported.")

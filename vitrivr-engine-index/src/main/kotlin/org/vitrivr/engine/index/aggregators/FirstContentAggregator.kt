@@ -2,34 +2,33 @@ package org.vitrivr.engine.index.aggregators
 
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.Aggregator
-import org.vitrivr.engine.core.operators.ingest.AggregatorFactory
-import org.vitrivr.engine.core.operators.ingest.Segmenter
+import org.vitrivr.engine.core.operators.ingest.Transformer
+import org.vitrivr.engine.core.operators.ingest.TransformerFactory
 
 /**
- * A [Aggregator] that returns the first [ContentElement] of each type.
+ * A [Transformer] that selects the first [ContentElement] of each type in an [Ingested] and drops all the others.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
-class FirstContentAggregator : AggregatorFactory {
+class FirstContentAggregator : TransformerFactory {
 
     /**
      * Returns an [FirstContentAggregator.Instance].
      *
-     * @param input The [Segmenter] to use as input.
+     * @param name The name of the [Transformer]
+     * @param input The input [Operator]
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
-     * @return [AllContentAggregator.Instance]
+     * @return [FirstContentAggregator.Instance]
      */
-    override fun newOperator(input: Segmenter, context: IndexContext, parameters: Map<String, String>): Aggregator = Instance(input, context)
+    override fun newTransformer(name: String, input: Operator<Ingested>, context: IndexContext): Transformer = Instance(input, context)
 
     /**
-     * The [Instance] returns by the [AggregatorFactory]
+     * The [Instance] returned by the [FirstContentAggregator]
      */
-    private class Instance(override val input: Operator<Retrievable>, context: IndexContext) : AbstractAggregator(input, context) {
+    private class Instance(override val input: Operator<Ingested>, context: IndexContext) : AbstractAggregator(input, context) {
         override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> = content.groupBy { it.type }.mapNotNull { (_, elements) -> elements.firstOrNull() }
     }
 }

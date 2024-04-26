@@ -1,0 +1,49 @@
+{
+  "schemas": [
+    {
+      "name": "vitrivr",
+      "connection": {
+        "database": "CottontailConnectionProvider",
+        "parameters": {
+          "Host": "127.0.0.1",
+          "port": "1865"
+        }
+      },
+      "fields": [
+        {
+          "name": "averagecolor",
+          "factory": "AverageColor"
+        },
+        {
+          "name": "file",
+          "factory": "FileSourceMetadata"
+        }
+      ],
+      "resolvers": {
+        "disk": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "./thumbnails/vitrivr"
+          }
+        }
+      },
+      "exporters": [
+        {
+          "name": "thumbnail",
+          "factory": "ThumbnailExporter",
+          "resolverName": "disk",
+          "parameters": {
+            "maxSideResolution": "400",
+            "mimeType": "JPG"
+          }
+        }
+      ],
+      "extractionPipelines": [
+        {
+          "name": "ingestion",
+          "path": "./config-ingestion.json"
+        }
+      ]
+    }
+  ]
+}

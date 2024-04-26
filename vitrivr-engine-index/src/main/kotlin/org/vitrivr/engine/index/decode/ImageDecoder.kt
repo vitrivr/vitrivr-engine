@@ -8,8 +8,9 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.mapNotNull
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.Content
-import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.element.ImageContent
+import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.operators.ingest.DecoderFactory
 import org.vitrivr.engine.core.operators.ingest.Enumerator
@@ -29,11 +30,11 @@ class ImageDecoder : DecoderFactory {
     /**
      * Creates a new [Decoder] instance from this [ImageDecoder].
      *
+     * @param name the name of the [Decoder]
      * @param input The input [Enumerator].
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      */
-    override fun newOperator(input: Enumerator, context: IndexContext, parameters: Map<String, String>): Decoder = Instance(input, context)
+    override fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder = Instance(input, context)
 
     /**
      * The [Decoder] returned by this [ImageDecoder].
@@ -51,27 +52,26 @@ class ImageDecoder : DecoderFactory {
          * @param scope The [CoroutineScope] used for conversion.
          * @return [Flow] of [Content]
          */
-        override fun toFlow(scope: CoroutineScope): Flow<ImageContent> = this.input.toFlow(scope).filter {
+        override fun toFlow(scope: CoroutineScope): Flow<Ingested> = this.input.toFlow(scope).filter {
             it.type == MediaType.IMAGE
         }.mapNotNull { source ->
             logger.debug { "In flow: Decoding source ${source.name} (${source.sourceId})" }
             try {
-                val image = source.newInputStream().use {
+                val content = source.newInputStream().use {
                     this.context.contentFactory.newImageContent(ImageIO.read(it))
                 }
-                ImageContentWithSource(image, source)
+                val ingested = Ingested(source.sourceId, source.type.toString(), false)
+
+                /* Append source and content to ingested. */
+                ingested.addAttribute(SourceAttribute(source))
+                ingested.addContent(content)
+
+                /* Return ingested. */
+                ingested
             } catch (e: IOException) {
                 logger.error(e) { "Failed to decode image from $source due to an IO exception." }
                 null
             }
         }
-
-        /**
-         * An internal class that represents a single image associated with a [Source].
-         *
-         * @see ImageContent
-         * @see SourcedContent.Temporal
-         */
-        class ImageContentWithSource(image: ImageContent, override val source: Source) : ImageContent by image, SourcedContent
     }
 }

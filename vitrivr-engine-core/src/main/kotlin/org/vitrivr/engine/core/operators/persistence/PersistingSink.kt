@@ -12,7 +12,6 @@ import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
-import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAttribute
 import org.vitrivr.engine.core.operators.Operator
 
 /**
@@ -60,9 +59,9 @@ class PersistingSink(override val input: Operator<Ingested>, val context: IndexC
         persisted.add(retrievable.id)
 
         /* Persist descriptors. */
-        for (descriptor in retrievable.filteredAttributes(DescriptorAttribute::class.java)) {
-            val writer = descriptor.descriptor.field?.let { field -> this.descriptorWriters.computeIfAbsent(field) { it.getWriter() } } as? DescriptorWriter<Descriptor>
-            writer?.add(descriptor.descriptor)
+        for (descriptor in retrievable.descriptors) {
+            val writer = descriptor.field?.let { field -> this.descriptorWriters.computeIfAbsent(field) { it.getWriter() } } as? DescriptorWriter<Descriptor>
+            writer?.add(descriptor)
         }
 
         /* Persist relationships. */

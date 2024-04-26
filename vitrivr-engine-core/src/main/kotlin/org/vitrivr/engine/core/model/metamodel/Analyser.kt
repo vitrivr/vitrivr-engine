@@ -1,14 +1,11 @@
 package org.vitrivr.engine.core.model.metamodel
 
-import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.Extractor
+import org.vitrivr.engine.core.operators.ingest.ExtractorFactory
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import kotlin.reflect.KClass
 
@@ -20,9 +17,9 @@ import kotlin.reflect.KClass
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.3.0
+ * @version 1.4.0
  */
-interface Analyser<C: ContentElement<*>, D: Descriptor> {
+interface Analyser<C : ContentElement<*>, D : Descriptor> : ExtractorFactory<C, D> {
     /** The [KClass]es of the [ContentElement] accepted by this [Analyser].  */
     val contentClasses: Set<KClass<out ContentElement<*>>>
 
@@ -37,20 +34,6 @@ interface Analyser<C: ContentElement<*>, D: Descriptor> {
      * @return A [Descriptor] specimen of type [D].
      */
     fun prototype(field: Schema.Field<*, *>): D
-
-    /**
-     * Generates and returns a new [Extractor] instance for this [Analyser].
-     *
-     * Some [Analyser]s may not come with their own [Extractor], in which case the implementation of this method should throw an [UnsupportedOperationException]
-     *
-     * @param field The [Schema.Field] to create an [Extractor] for. Can be null, in which case the resulting descriptor won't be stored.
-     * @param input The [Operator] that acts as input to the new [Extractor].
-     * @param context The [IndexContext] to use with the [Extractor].
-     *
-     * @return A new [Extractor] instance for this [Analyser]
-     * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
-     */
-    fun newExtractor(field: Schema.Field<C, D>?, input: Operator<Retrievable>, context: IndexContext): Extractor<C, D>
 
     /**
      * Generates and returns a new [Retriever] instance for this [Analyser].

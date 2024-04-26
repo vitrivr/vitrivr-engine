@@ -11,7 +11,7 @@ import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
-import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -59,7 +59,7 @@ class DINO : ExternalAnalyser<ImageContent,FloatVectorDescriptor>() {
      * @return A new [Extractor] instance for this [DINO]
      * @throws [UnsupportedOperationException], if this [DINO] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>?, input: Operator<Retrievable>, context: IndexContext)
+    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>?, input: Operator<Ingested>, context: IndexContext)
         = DINOExtractor(input, field, context)
 
     /**

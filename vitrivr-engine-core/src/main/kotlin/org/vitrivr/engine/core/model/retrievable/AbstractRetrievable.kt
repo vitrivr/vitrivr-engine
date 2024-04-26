@@ -1,5 +1,7 @@
 package org.vitrivr.engine.core.model.retrievable
 
+import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.attributes.MergingRetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
@@ -10,7 +12,7 @@ import java.util.*
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.2.0
+ * @version 2.0.0
  */
 abstract class AbstractRetrievable(override val id: UUID, override val type: String?, override val transient: Boolean) : Retrievable {
 
@@ -18,11 +20,25 @@ abstract class AbstractRetrievable(override val id: UUID, override val type: Str
         retrievable.attributes.forEach { this.addAttribute(it) }
     }
 
-    /** A synchronized set of [RetrievableAttribute]s held by this [AbstractRetrievable]. */
+    /** A set of [ContentElement]s held by this [AbstractRetrievable]. */
+    private val contentList = mutableListOf<ContentElement<*>>()
+
+    /** A set of [Descriptor]s held by this [AbstractRetrievable]. */
+    private val descriptorSet = mutableSetOf<Descriptor>()
+
+    /** A set of [RetrievableAttribute]s held by this [AbstractRetrievable]. */
     private val attributeSet = mutableSetOf<RetrievableAttribute>()
 
-    /** A synchronized set of [Relationship]s. */
+    /** A set of [Relationship]s. */
     private val relationshipSet = mutableSetOf<Relationship>()
+
+    /** [Collection] of [ContentElement]s held by this [AbstractRetrievable]. */
+    override val content: List<ContentElement<*>>
+        get() = Collections.unmodifiableList(this.contentList)
+
+    /** [Collection] of [Descriptor]s held by this [AbstractRetrievable]. */
+    override val descriptors: Collection<Descriptor>
+        get() = Collections.unmodifiableSet(this.descriptorSet)
 
     /** [Collection] of [RetrievableAttribute]s held by this [AbstractRetrievable]. */
     override val attributes: Collection<RetrievableAttribute>
@@ -94,6 +110,49 @@ abstract class AbstractRetrievable(override val id: UUID, override val type: Str
      */
     @Synchronized
     override fun <T : RetrievableAttribute> filteredAttribute(c: Class<T>): T? = this.attributeSet.filterIsInstance(c).firstOrNull()
+    inline fun <reified T : RetrievableAttribute> filteredAttribute(): T? = filteredAttribute(T::class.java)
+
+    /**
+     * Adds a [ContentElement] to this [AbstractRetrievable].
+     *
+     * @param content [ContentElement] to add.
+     * @return True on success, false otherwise.
+     */
+    @Synchronized
+    override fun addContent(content: ContentElement<*>): Boolean = this.contentList.add(content)
+
+    /**
+     * Removes a [ContentElement] from this [AbstractRetrievable].
+     *
+     * @param content [ContentElement] to remove.
+     * @return True on success, false otherwise.
+     */
+    @Synchronized
+    override fun removeContent(content: ContentElement<*>): Boolean = this.contentList.remove(content)
+
+    /**
+     * Removes all [ContentElement] associated with this [AbstractRetrievable].
+     */
+    @Synchronized
+    override fun clearContent() = this.contentList.clear()
+
+    /**
+     * Adds a [Descriptor] to this [AbstractRetrievable].
+     *
+     * @param descriptor [Descriptor] to add.
+     * @return True on success, false otherwise.
+     */
+    @Synchronized
+    override fun addDescriptor(descriptor: Descriptor): Boolean = this.descriptorSet.add(descriptor)
+
+    /**
+     * Removes a [Descriptor] from this [AbstractRetrievable].
+     *
+     * @param descriptor [Descriptor] to remove.
+     * @return True on success, false otherwise.
+     */
+    @Synchronized
+    override fun removeDescriptor(descriptor: Descriptor): Boolean = this.descriptorSet.remove(descriptor)
 
     /**
      * Adds a [Relationship] to this [AbstractRetrievable].
@@ -118,5 +177,5 @@ abstract class AbstractRetrievable(override val id: UUID, override val type: Str
     @Synchronized
     override fun removeRelationship(relationship: Relationship): Boolean = this.relationshipSet.remove(relationship)
 
-    inline fun <reified T : RetrievableAttribute> filteredAttribute(): T? = filteredAttribute(T::class.java)
+
 }

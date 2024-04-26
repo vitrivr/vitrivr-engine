@@ -13,7 +13,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
-import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -64,7 +64,7 @@ class CLIP : ExternalAnalyser<ContentElement<*>,FloatVectorDescriptor>() {
      * @return A new [Extractor] instance for this [CLIP]
      * @throws [UnsupportedOperationException], if this [CLIP] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>?, input: Operator<Retrievable>, context: IndexContext)
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>?, input: Operator<Ingested>, context: IndexContext)
         = CLIPExtractor(input, field, context)
 
     /**

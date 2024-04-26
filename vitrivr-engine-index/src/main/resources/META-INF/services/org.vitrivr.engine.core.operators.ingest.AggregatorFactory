@@ -1,7 +1,7 @@
 org.vitrivr.engine.index.aggregators.AllContentAggregator
 org.vitrivr.engine.index.aggregators.FirstContentAggregator
 org.vitrivr.engine.index.aggregators.LastContentAggregator
-org.vitrivr.engine.index.aggregators.CenterContentAggregator
+org.vitrivr.engine.index.aggregators.MiddleContentAggregator
 org.vitrivr.engine.index.aggregators.image.AverageImageContentAggregator
 org.vitrivr.engine.index.aggregators.image.RepresentativeImageContentAggregator
 
