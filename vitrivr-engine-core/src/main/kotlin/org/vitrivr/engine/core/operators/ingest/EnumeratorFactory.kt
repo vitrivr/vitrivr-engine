@@ -1,8 +1,8 @@
 package org.vitrivr.engine.core.operators.ingest
 
 import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.source.MediaType
 import java.util.stream.Stream
-import java.util.zip.CheckedInputStream
 
 /**
  * A factory object for a specific [Enumerator] type.
@@ -15,12 +15,10 @@ interface EnumeratorFactory {
      * Creates a new [Enumerator] instance from this [EnumeratorFactory].
      *
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      */
-    fun newOperator(context: IndexContext, parameters: Map<String, String> = emptyMap()): Enumerator{
-        return newOperator(context, parameters, null)
+    fun newOperator(name: String, context: IndexContext, mediaTypes: List<MediaType>): Enumerator {
+        return newOperator(name, context, mediaTypes, null)
     }
-    fun newOperator(context: IndexContext, parameters: Map<String, String> = emptyMap(), inputs: Stream<*>? = null): Enumerator {
-        return newOperator(context, parameters)
-    }
+
+    fun newOperator(name: String, context: IndexContext, mediaTypes: List<MediaType>, inputs: Stream<*>? = null): Enumerator
 }

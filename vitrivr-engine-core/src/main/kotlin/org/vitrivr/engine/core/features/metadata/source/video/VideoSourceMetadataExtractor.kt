@@ -6,6 +6,7 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.types.Value
@@ -16,11 +17,12 @@ import org.vitrivr.engine.core.source.file.FileSource
 import java.util.*
 
 /**
+ * An [Extractor] that extracts [VideoSourceMetadataDescriptor]s from [Ingested] objects.
  *
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class VideoSourceMetadataExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>?) : AbstractExtractor<ContentElement<*>, VideoSourceMetadataDescriptor>(input, field) {
+class VideoSourceMetadataExtractor(input: Operator<Ingested>, field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>?) : AbstractExtractor<ContentElement<*>, VideoSourceMetadataDescriptor>(input, field) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *

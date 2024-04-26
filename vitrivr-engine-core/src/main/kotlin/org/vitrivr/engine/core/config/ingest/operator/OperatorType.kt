@@ -10,7 +10,6 @@ import org.vitrivr.engine.core.operators.ingest.*
  */
 @Serializable
 enum class OperatorType {
-
     /**
      * [OperatorType] for a [OperatorConfig] describing an [Enumerator]
      */
@@ -30,12 +29,6 @@ enum class OperatorType {
     TRANSFORMER,
 
     /**
-     * [OperatorType] for a [OperatorConfig] describing a [Segmenter]
-     */
-    @SerialName("SEGMENTER")
-    SEGMENTER,
-
-    /**
      * [OperatorType] for a [OperatorConfig] describing a [Extractor]
      */
     @SerialName("EXTRACTOR")
@@ -48,13 +41,7 @@ enum class OperatorType {
     EXPORTER,
 
     /**
-     * [OperatorType] for a [OperatorConfig] describing a [Aggregator]
-     */
-    @SerialName("AGGREGATOR")
-    AGGREGATOR,
-
-    /**
-     * [OperatorType] for a [OperatorConfig] describing a [Operator]
+     * [OperatorType] for a [OperatorConfig] describing an [Operator]
      */
     @SerialName("OPERATOR")
     OPERATOR,

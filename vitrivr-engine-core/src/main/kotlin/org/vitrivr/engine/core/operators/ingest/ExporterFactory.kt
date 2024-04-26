@@ -1,7 +1,7 @@
 package org.vitrivr.engine.core.operators.ingest
 
 import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.operators.Operator
 
 /**
@@ -14,9 +14,9 @@ interface ExporterFactory {
     /**
      * Creates a new [Exporter] instance from this [ExporterFactory].
      *
+     * @param name The name of the [Exporter]
      * @param input The input [Enumerator].
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      */
-    fun newOperator(input: Operator<Retrievable>, context: IndexContext, parameters: Map<String, String>): Exporter
+    fun newExporter(name: String, input: Operator<Ingested>, context: IndexContext): Exporter
 }

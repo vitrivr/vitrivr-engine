@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.config.ingest.operator
 
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.operators.ingest.*
+import org.vitrivr.engine.core.source.MediaType
 
 /**
  * Configuration for ingestion operators, as defined in the [org.vitrivr.engine.core.operators.ingest] package.
@@ -16,10 +17,6 @@ sealed class OperatorConfig {
      */
     abstract val type: OperatorType
 
-    /**
-     * Additional parameters, operator dependent.
-     */
-    abstract val parameters: Map<String, String>
 }
 
 sealed class FactoryBuildableOperatorConfig : OperatorConfig() {
@@ -36,7 +33,6 @@ sealed class FactoryBuildableOperatorConfig : OperatorConfig() {
 @Serializable
 data class DecoderConfig(
     override val factory: String,
-    override val parameters: Map<String, String> = mapOf()
 ) : FactoryBuildableOperatorConfig() {
     override val type = OperatorType.DECODER
 }
@@ -47,9 +43,9 @@ data class DecoderConfig(
 @Serializable
 data class EnumeratorConfig(
     override val factory: String,
-    override val parameters: Map<String, String> = mapOf()
 ) : FactoryBuildableOperatorConfig() {
     override val type = OperatorType.ENUMERATOR
+    val mediaTypes: List<MediaType> = emptyList()
 }
 
 
@@ -58,19 +54,9 @@ data class EnumeratorConfig(
  */
 @Serializable
 data class TransformerConfig(
-    override val factory: String, override val parameters: Map<String, String> = mapOf()
+    override val factory: String,
 ) : FactoryBuildableOperatorConfig() {
     override val type = OperatorType.TRANSFORMER
-}
-
-/**
- * Configuration for a [Segmenter].
- */
-@Serializable
-data class SegmenterConfig(
-    override val factory: String, override val parameters: Map<String, String> = mapOf()
-) : FactoryBuildableOperatorConfig() {
-    override val type = OperatorType.SEGMENTER
 }
 
 /**
@@ -83,7 +69,6 @@ data class ExtractorConfig(
      */
     val fieldName: String,
     val factory: String? = null,
-    override val parameters: Map<String, String> = mapOf(),
 
     ) : OperatorConfig() {
     override val type = OperatorType.EXTRACTOR
@@ -99,7 +84,7 @@ data class ExporterConfig(
      * Name of an exporter as defined in the schema
      */
     val exporterName: String? = null,
-    val factory: String? = null, override val parameters: Map<String, String> = mapOf()
+    val factory: String? = null,
 ) : OperatorConfig() {
     override val type = OperatorType.EXPORTER
 
@@ -110,14 +95,4 @@ data class ExporterConfig(
         )
         { "An ExporterConfig must have either an exporter name (defined in the schema) or a factory name" }
     }
-}
-
-/**
- * Configuration for an [Aggregator].
- */
-@Serializable
-data class AggregatorConfig(
-    override val factory: String, override val parameters: Map<String, String> = mapOf()
-) : FactoryBuildableOperatorConfig() {
-    override val type = OperatorType.AGGREGATOR
 }

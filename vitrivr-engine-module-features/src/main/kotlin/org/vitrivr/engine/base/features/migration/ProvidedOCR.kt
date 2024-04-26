@@ -7,7 +7,7 @@ import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -26,7 +26,7 @@ class ProvidedOCR : Analyser<ContentElement<*>, StringDescriptor> {
         TODO("Not yet implemented")
     }
 
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, StringDescriptor>?, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, StringDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, StringDescriptor>?, input: Operator<Ingested>, context: IndexContext): Extractor<ContentElement<*>, StringDescriptor> {
         TODO("Not yet implemented")
     }
 }

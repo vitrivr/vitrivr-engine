@@ -33,7 +33,6 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
 ) {
 
 
-
     init {
         this.subcommands(
             About(),

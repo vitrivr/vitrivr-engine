@@ -7,7 +7,7 @@ import org.vitrivr.engine.core.model.descriptor.scalar.FloatDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -24,7 +24,7 @@ class VideoDuration : Analyser<ContentElement<*>, FloatDescriptor> {
     override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, FloatDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, FloatDescriptor> {
         TODO("Not yet implemented")
     }
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatDescriptor>?, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, FloatDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatDescriptor>?, input: Operator<Ingested>, context: IndexContext): Extractor<ContentElement<*>, FloatDescriptor> {
         TODO("Not yet implemented")
     }
 }

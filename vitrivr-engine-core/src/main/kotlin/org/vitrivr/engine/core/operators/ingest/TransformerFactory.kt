@@ -1,6 +1,8 @@
 package org.vitrivr.engine.core.operators.ingest
 
 import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.operators.Operator
 
 /**
  * A factory object for a specific [Transformer] type.
@@ -10,20 +12,11 @@ import org.vitrivr.engine.core.context.IndexContext
  */
 interface TransformerFactory {
     /**
-     * Creates a new [Transformer] instance from this [DecoderFactory].
+     * Creates a new [Transformer] instance from this [TransformerFactory].
      *
-     * @param input The input [Decoder].
+     * @param name The name of the [Transformer]
+     * @param input The input [Operator].
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      */
-    fun newOperator(input: Decoder, context: IndexContext, parameters: Map<String, String> = emptyMap()): Transformer
-
-    /**
-     * Creates a new [Transformer] instance from this [DecoderFactory].
-     *
-     * @param input The input [Transformer].
-     * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
-     */
-    fun newOperator(input: Transformer, context: IndexContext, parameters: Map<String, String> = emptyMap()): Transformer
+    fun newTransformer(name: String, input: Operator<Ingested>, context: IndexContext): Transformer
 }

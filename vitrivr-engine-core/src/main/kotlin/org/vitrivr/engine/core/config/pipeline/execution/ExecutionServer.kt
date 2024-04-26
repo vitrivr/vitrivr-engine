@@ -4,11 +4,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.toList
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.AbstractSegmenter
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
@@ -85,7 +83,7 @@ class ExecutionServer {
         val jobId = UUID.randomUUID()
         val scope = CoroutineScope(this@ExecutionServer.dispatcher) + CoroutineName("index-job-$jobId")
         runBlocking {
-            val jobs = pipeline.getLeaves().map { e -> scope.launch { e.toFlow(this).takeWhile { it != AbstractSegmenter.TerminalRetrievable }.collect() } }
+            val jobs = pipeline.getLeaves().map { e -> scope.launch { e.toFlow(this).collect() } }
             jobs.forEach { it.join() }
         }
     }
@@ -101,7 +99,7 @@ class ExecutionServer {
         val scope = CoroutineScope(this@ExecutionServer.dispatcher) + CoroutineName("index-job-$jobId")
         val job = scope.launch {
             try {
-                val jobs = pipeline.getLeaves().map { e -> this.launch { e.toFlow(scope).cancellable().takeWhile { it != AbstractSegmenter.TerminalRetrievable }.collect() } }
+                val jobs = pipeline.getLeaves().map { e -> this.launch { e.toFlow(scope).cancellable().collect() } }
                 jobs.forEach { it.join() }
                 this@ExecutionServer.jobHistory.add(Triple(jobId, ExecutionStatus.COMPLETED, System.currentTimeMillis()))
             } catch (e: Throwable) {
@@ -119,7 +117,7 @@ class ExecutionServer {
     }
 
     /**
-     * Executes a [RetrievalPipeline] in a blocking fashion, i.e., the call will block until the [IndexingPipeline] has been executed.
+     * Executes a [RetrievalPipeline] in a blocking fashion, i.e., the call will block until the [RetrievalPipeline] has been executed.
 
      * @param query The [Operator] to execute.
      * @return The resulting [List] of [Retrieved]

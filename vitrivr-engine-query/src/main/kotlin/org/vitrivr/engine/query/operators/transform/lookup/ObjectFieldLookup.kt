@@ -8,21 +8,20 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrieved
-import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Transformer
 
 /**
  * Appends [DescriptorAttribute] to a [Retrieved] in a specified object [Relationship] based on lookup values of a [Schema.Field], if available.
  *
- * @version 1.0.0
+ * @version 1.0.1
  * @author Luca Rossetto
  * @author Ralph Gasser
  */
 class ObjectFieldLookup(override val input: Operator<Retrieved>, private val reader: DescriptorReader<*>, private val predicates: Set<String>) : Transformer {
     override fun toFlow(scope: CoroutineScope): Flow<Retrieved> = flow {
         /* Parse input IDs.*/
-        val inputRetrieved = input.toFlow(scope).toList()
+        val inputRetrieved = this@ObjectFieldLookup.input.toFlow(scope).toList()
 
         /* Determine retrievables that should be enriched. */
         val enrich = inputRetrieved.flatMap { retrieved ->
@@ -46,7 +45,7 @@ class ObjectFieldLookup(override val input: Operator<Retrieved>, private val rea
         enrich.forEach { (k, v) ->
             val descriptor = descriptors[k]
             if (descriptor != null) {
-                v.addAttribute(DescriptorAttribute(descriptor))
+                v.addDescriptor(descriptor)
             }
         }
 
