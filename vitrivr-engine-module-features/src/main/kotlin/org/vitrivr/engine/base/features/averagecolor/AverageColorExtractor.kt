@@ -1,5 +1,7 @@
 package org.vitrivr.engine.base.features.averagecolor
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataExtractor
 import org.vitrivr.engine.core.model.content.ContentType
@@ -22,6 +24,9 @@ import org.vitrivr.engine.core.source.file.FileSource
  * @version 1.0.0
  */
 class AverageColorExtractor(input: Operator<Retrievable>, field: Schema.Field<ImageContent, FloatVectorDescriptor>, persisting: Boolean = true) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, field, persisting) {
+
+    private val logger: KLogger = KotlinLogging.logger {}
+
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
@@ -39,7 +44,11 @@ class AverageColorExtractor(input: Operator<Retrievable>, field: Schema.Field<Im
      * @return List of resulting [Descriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
+
+        logger.debug { "In flow: Extracting average color from ${retrievable.id} with ${retrievable.type}" }
+
         val content = retrievable.filteredAttributes(ContentAttribute::class.java).map { it.content }.filterIsInstance<ImageContent>()
         return (this.field.analyser as AverageColor).analyse(content).map { it.copy(retrievableId = retrievable.id) }
+
     }
 }

@@ -1,54 +1,95 @@
 {
+  "schema": "PTT",
   "context": {
-    "contentFactory": "InMemoryContentFactory",
-    "resolverFactory": "DiskResolver",
-    "parameters": {
-      "location": "../data"
+    "contentFactory": {
+      "factory": "CachedContentFactory",
+      "parameters": {
+        "location": "../cache"
+      }
+    },
+    "resolver": {
+      "factory": "DiskResolver",
+      "parameters": {
+        "location": "../data"
+      }
     }
   },
-  "schema": "FES-test",
   "enumerator": {
-    "name": "FileSystemEnumerator",
+    "type": "ENUMERATOR",
+    "factory": "FileSystemEnumerator",
     "parameters": {
       "path": "../objects",
-      "depth": "5",
-      "mediaTypes": "VIDEO"
-    },
-    "next": {
-      "name": "VideoDecoder",
+      "mediaTypes": "IMAGE;VIDEO",
+      "depth": "5"
+    }
+  },
+  "decoder": {
+    "factory": "VideoDecoder"
+  },
+  "operators": {
+    "seg": {
+      "type": "SEGMENTER",
+      "factory": "FixedDurationSegmenter",
       "parameters": {
-        "audio": "true",
-        "video": "true",
-        "sample.video": "10"
-      },
-      "nextSegmenter": {
-        "name": "FixedDurationSegmenter",
-        "parameters": {
-          "duration": "3",
-          "lookAheadTime": "1"
-        },
-        "aggregators": [
-          {
-            "name": "CenterContentAggregator",
-              "nextExtractor": {
-                "fieldName": "clip",
-                "nextExtractor": {
-                  "fieldName": "ocr",
-                  "nextExtractor": {
-                    "fieldName": "asr",
-                    "nextExtractor": {
-                      "fieldName": "document_type",
-                      "nextExtractor": {
-                        "fieldName": "caption"
-                      }
-                    }
-                  }
-                }
-              }
-
-          }
-        ]
+        "duration": "10",
+        "lookAheadTime": "1"
       }
+    },
+    "centerContent": {
+      "type": "AGGREGATOR",
+      "factory": "CenterContentAggregator"
+    },
+    "fileMeta": {
+      "type": "EXTRACTOR",
+      "fieldName": "file"
+    },
+    "asr": {
+      "type": "EXTRACTOR",
+      "fieldName": "asr"
+    },
+    "clip": {
+      "type": "EXTRACTOR",
+      "fieldName": "clip"
+    },
+    "document_type": {
+      "type": "EXTRACTOR",
+      "fieldName": "document_type"
+    },
+    "ocr": {
+      "type": "EXTRACTOR",
+      "fieldName": "ocr"
+    },
+    "caption": {
+      "type": "EXTRACTOR",
+      "fieldName": "caption"
+    }
+
+  },
+
+  "operations": {
+    "stage1": {
+      "operator": "seg"
+    },
+    "stage2": {
+      "operator": "centerContent"
+    },
+    "stage4": {
+      "operator": "clip"
+    },
+    "stage5": {
+      "operator": "asr"
+    },
+    "stage6": {
+      "operator": "document_type"
+    },
+    "stage7": {
+      "operator": "ocr"
+    },
+    "stage8": {
+      "operator": "caption"
+    },
+    "stage9": {
+      "operator": "fileMeta"
     }
   }
 }
