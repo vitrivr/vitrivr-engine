@@ -43,11 +43,6 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
     val pipelineDefTree = Tree<Pair<String,OperatorConfig>>()
 
     /**
-     * Internal flag whether [pipelineDef] is valid.
-     */
-    private var pipelineDefValid = false
-
-    /**
      * Internal list of [Operator]s
      */
     private val operators = mutableMapOf<String,Operator<*>>()

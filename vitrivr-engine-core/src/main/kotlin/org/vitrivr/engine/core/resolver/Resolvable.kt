@@ -24,7 +24,7 @@ interface Resolvable {
      *
      * @return URI of the resource.
      */
-    val uri: Path
+    val path: Path
 
 
     /**
