@@ -20,8 +20,8 @@ import org.vitrivr.engine.core.source.Source
  * @version 1.0.0
  */
 class ContentSamplingTransformer : TransformerFactory {
-    override fun newOperator(input: Decoder, context: IndexContext, parameters: Map<String, String>): Transformer = Instance(input, parameters["sample"]?.toIntOrNull() ?: 10)
-    override fun newOperator(input: Transformer, context: IndexContext, parameters: Map<String, String>): Transformer = Instance(input, parameters["sample"]?.toIntOrNull() ?: 10)
+    override fun newOperator(name: String, input: Decoder, context: IndexContext, ): Transformer = Instance(input, context[name,"sample"]?.toIntOrNull() ?: 10)
+    override fun newOperator(name: String, input: Transformer, context: IndexContext): Transformer = Instance(input, context[name,"sample"]?.toIntOrNull() ?: 10)
 
     private class Instance(override val input: Operator<ContentElement<*>>, private val sample: Int) : Transformer {
         override fun toFlow(scope: CoroutineScope): Flow<ContentElement<*>> {
