@@ -10,7 +10,7 @@ import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
-import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -34,7 +34,7 @@ class ASR : Analyser<ContentElement<*>, StringDescriptor> {
      *
      * Always throws an [UnsupportedOperationException].
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, StringDescriptor>?, input: Operator<Ingested>, context: IndexContext): Extractor<ContentElement<*>, StringDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, StringDescriptor>?, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, StringDescriptor> {
         throw UnsupportedOperationException("OCR does not allow for extraction.")
     }
 

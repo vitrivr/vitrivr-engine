@@ -4,11 +4,11 @@
     "contentFactory": "InMemoryContentFactory",
     "resolverName": "disk",
     "local": {
-      "enumerator": {
-        "path": "./your/media/path",
+      "stage0": {
+        "path": "/Volumes/V3C1/V3C1/videos",
         "depth": "1"
       },
-      "thumbs": {
+      "stage4": {
         "maxSideResolution": "350",
         "mimeType": "JPG"
       }
@@ -25,14 +25,6 @@
     "decoder": {
       "type": "DECODER",
       "factory": "ImageDecoder"
-    },
-    "pass": {
-      "type": "SEGMENTER",
-      "factory": "PassThroughSegmenter"
-    },
-    "allContent": {
-      "type": "AGGREGATOR",
-      "factory": "AllContentAggregator"
     },
     "avgColor": {
       "type": "EXTRACTOR",
@@ -64,27 +56,21 @@
       ]
     },
     "stage3": {
-      "operator": "allContent",
+      "operator": "avgColor",
       "inputs": [
         "stage2"
       ]
     },
     "stage4": {
-      "operator": "avgColor",
+      "operator": "thumbs",
       "inputs": [
         "stage3"
       ]
     },
     "stage5": {
-      "operator": "thumbs",
-      "inputs": [
-        "stage4"
-      ]
-    },
-    "stage6": {
       "operator": "fileMeta",
       "inputs": [
-        "stage5"
+        "stage4"
       ]
     }
   }

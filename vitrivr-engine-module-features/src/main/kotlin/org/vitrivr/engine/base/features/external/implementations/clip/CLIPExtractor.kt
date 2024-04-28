@@ -10,7 +10,6 @@ import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -24,7 +23,7 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Rahel Arnold
  * @version 1.2.1
  */
-class CLIPExtractor(input: Operator<Ingested>, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>?, context: IndexContext) : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor>(input, field) {
+class CLIPExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>?, context: IndexContext) : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor>(input, field) {
 
     /** The host of the external [CLIP] service. */
     private val host: String = (field?.parameters?.get(HOST_PARAMETER_NAME) ?: (context.getProperty("", HOST_PARAMETER_NAME))) ?: HOST_PARAMETER_DEFAULT

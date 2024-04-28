@@ -1,13 +1,14 @@
 package org.vitrivr.engine.core.features.metadata.temporal
 
 import org.vitrivr.engine.core.features.AbstractExtractor
-import org.vitrivr.engine.core.model.content.decorators.TemporalContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadataDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.time.TimerangeAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.time.TimestampAttribute
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -17,11 +18,11 @@ import java.util.*
  * An [Extractor] that extracts [TemporalMetadataDescriptor]s from [Ingested] objects.
  *
  * @author Ralph Gasser
- * @version 1.1.1
+ * @version 1.2.0
  */
-class TemporalMetadataExtractor(input: Operator<Ingested>, field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>?) : AbstractExtractor<ContentElement<*>, TemporalMetadataDescriptor>(input, field) {
+class TemporalMetadataExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>?) : AbstractExtractor<ContentElement<*>, TemporalMetadataDescriptor>(input, field) {
 
-    override fun matches(retrievable: Retrievable): Boolean = retrievable.content.isNotEmpty()
+    override fun matches(retrievable: Retrievable): Boolean = retrievable.hasAttribute(TimestampAttribute::class.java) || retrievable.hasAttribute(TimerangeAttribute::class.java)
 
     /**
      * Internal method to perform extraction on [Retrievable].
@@ -30,13 +31,13 @@ class TemporalMetadataExtractor(input: Operator<Ingested>, field: Schema.Field<C
      * @return List of resulting [Descriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<TemporalMetadataDescriptor> {
-        val content = retrievable.content
-        val descriptors = content.filterIsInstance<TemporalContent>().map { c ->
-            when (c) {
-                is TemporalContent.Timepoint -> TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, Value.Long(c.timepointNs), Value.Long(c.timepointNs), this@TemporalMetadataExtractor.field)
-                is TemporalContent.TimeSpan -> TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, Value.Long(c.startNs), Value.Long(c.endNs), this@TemporalMetadataExtractor.field)
-            }
+        if (retrievable.hasAttribute(TimestampAttribute::class.java)) {
+            val timestamp = retrievable.filteredAttribute(TimestampAttribute::class.java)!!
+            return listOf(TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, Value.Long(timestamp.timestampNs), Value.Long(timestamp.timestampNs), this@TemporalMetadataExtractor.field))
+        } else if (retrievable.hasAttribute(TimerangeAttribute::class.java)) {
+            val span = retrievable.filteredAttribute(TimerangeAttribute::class.java)!!
+            return listOf(TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, Value.Long(span.startNs), Value.Long(span.endNs), this@TemporalMetadataExtractor.field))
         }
-        return descriptors
+        return emptyList()
     }
 }

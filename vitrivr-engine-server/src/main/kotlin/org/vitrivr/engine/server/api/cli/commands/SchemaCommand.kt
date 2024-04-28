@@ -12,7 +12,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.config.ingest.IngestionConfig
 import org.vitrivr.engine.core.config.ingest.IngestionPipelineBuilder
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
-import org.vitrivr.engine.core.config.pipeline.execution.IndexingPipeline
 import org.vitrivr.engine.core.database.Initializer
 import org.vitrivr.engine.core.model.metamodel.Schema
 import java.nio.file.Path
@@ -128,7 +127,7 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
 
 
         override fun run() {
-            val pipeline: IndexingPipeline = if (name != null) {
+            val pipeline = if (name != null) {
                 this.schema.getIngestionPipelineBuilder(name!!).build()
             } else if (input != null) {
                 /* Read configuration file. */
@@ -149,7 +148,7 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
                 System.err.println("Requires either -n / --name: Name of the ingestion config defined on the schema or -c / --config the path to a ingestion config")
                 return
             }
-            val uuid = this.executor.extractAsync(pipeline)
+            val uuid = this.executor.extractAsync(pipeline.first())
             logger.info { "Started extraction job with UUID $uuid." }
         }
     }

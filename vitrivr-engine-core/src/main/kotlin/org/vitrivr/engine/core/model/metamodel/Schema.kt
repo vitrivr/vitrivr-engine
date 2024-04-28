@@ -2,7 +2,6 @@ package org.vitrivr.engine.core.model.metamodel
 
 import org.vitrivr.engine.core.config.ingest.IngestionConfig
 import org.vitrivr.engine.core.config.ingest.IngestionPipelineBuilder
-import org.vitrivr.engine.core.config.pipeline.execution.IndexingPipeline
 import org.vitrivr.engine.core.config.schema.SchemaConfig
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
@@ -14,9 +13,9 @@ import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.ExporterFactory
+import org.vitrivr.engine.core.operators.general.ExporterFactory
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.core.resolver.Resolver
@@ -172,7 +171,7 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * @param context The [IndexContext] to use with the [Extractor].
          * @return [Extractor] instance.
          */
-        fun getExtractor(input: Operator<Ingested>, context: IndexContext): Extractor<C, D> = this.analyser.newExtractor(this, input, context)
+        fun getExtractor(input: Operator<Retrievable>, context: IndexContext): Extractor<C, D> = this.analyser.newExtractor(this, input, context)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field] and the provided [Query].
@@ -254,13 +253,13 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
             get() = this@Schema
 
         /**
-         * Convenience method to generate and return a [org.vitrivr.engine.core.operators.ingest.Exporter ] for this [Exporter].
+         * Convenience method to generate and return a [org.vitrivr.engine.core.operators.general.Exporter ] for this [Exporter].
          *
          * @param input The [Operator] to use as input.
          * @param context The [IndexContext] to use.
          * @return [DescriptorReader]
          */
-        fun getExporter(input: Operator<Ingested>, context: IndexContext): org.vitrivr.engine.core.operators.ingest.Exporter {
+        fun getExporter(input: Operator<Retrievable>, context: IndexContext): org.vitrivr.engine.core.operators.general.Exporter {
             if (parameters.isNotEmpty()) {
                 /* Case this is newly defined in the schema */
                 parameters.entries.forEach {

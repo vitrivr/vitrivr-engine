@@ -6,8 +6,9 @@ import kotlinx.coroutines.flow.map
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.Transformer
+import org.vitrivr.engine.core.operators.general.Transformer
 
 /**
  * An abstract [Transformer] implementation for aggregators; aggregators are used to aggregate the content of [Ingested] objects.
@@ -15,7 +16,7 @@ import org.vitrivr.engine.core.operators.ingest.Transformer
  * @author Ralph Gasser
  * @version 1.1.0
  */
-abstract class AbstractAggregator(override val input: Operator<Ingested>, protected val context: IndexContext) : Transformer {
+abstract class AbstractAggregator(override val input: Operator<Retrievable>, protected val context: IndexContext) : Transformer {
     /**
      *  Creates a flow for this [AbstractAggregator].
      *
@@ -23,7 +24,7 @@ abstract class AbstractAggregator(override val input: Operator<Ingested>, protec
      *
      *  @param scope [CoroutineScope] to use for the [Flow].
      */
-    override fun toFlow(scope: CoroutineScope): Flow<Ingested> = this.input.toFlow(scope).map {
+    override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).map {
         if (it.content.isNotEmpty()) {
             val aggregated = this.aggregate(it.content)
             it.clearContent()

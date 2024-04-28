@@ -9,10 +9,12 @@ data class TreeNode<T>(
      * The name of the node.
      */
     val name: String,
+
     /**
      * The value of this [TreeNode].
      */
     val value: T,
+
     /**
      * The children of this [TreeNode]. If this is empty, this [TreeNode] is a leaf.
      */

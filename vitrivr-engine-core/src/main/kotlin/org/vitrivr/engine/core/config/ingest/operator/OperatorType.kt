@@ -41,12 +41,6 @@ enum class OperatorType {
     EXPORTER,
 
     /**
-     * [OperatorType] for a [OperatorConfig] describing an [Operator]
-     */
-    @SerialName("OPERATOR")
-    OPERATOR,
-
-    /**
      * [OperatorType] for a [OperatorConfig] describing a [Retriever]
      */
     @SerialName("RETRIEVER")
