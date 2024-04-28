@@ -22,6 +22,7 @@ import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourc
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
+import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
@@ -458,12 +459,8 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
             if ((index + 1) % batchSize == 0 || index == segments.size - 1) {
                 retrievableWriter.addAll(ingestedList)
                 retrievableWriter.connectAll(
-                    ingestedList.map { it.id },
-                    "isPartOf",
-                    parentIdList.map {
-                        RetrievableId.fromString(it)
-                            ?: throw IllegalArgumentException("Could not find retrievable id for segment $it")
-                    })
+                    ingestedList.zip(parentIdList).map { Relationship.ById(it.first.id, "isPartOf", RetrievableId.fromString(it.second) ?: throw IllegalArgumentException("Could not find retrievable id for segment $it"), false) }
+                )
                 temporalmetadatawriter.addAll(temporalMetadataList)
 
                 // Clear the lists for the next batch
