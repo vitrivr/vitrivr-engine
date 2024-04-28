@@ -9,7 +9,6 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.filter
 import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.Frame
 import org.bytedeco.javacv.FrameGrabber
@@ -20,6 +19,7 @@ import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimerangeAttribute
 import org.vitrivr.engine.core.operators.ingest.Decoder
@@ -75,92 +75,93 @@ class VideoDecoder : DecoderFactory {
          * @param scope The [CoroutineScope] used for conversion.
          * @return [Flow] of [Content]
          */
-        override fun toFlow(scope: CoroutineScope): Flow<Ingested> {
-            val input = this@Instance.input.toFlow(scope).filter { it.type == MediaType.VIDEO }
-            return channelFlow {
-                val channel = this
-                input.collect { source ->
-                    var windowEnd = TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
+        override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = channelFlow {
+            val channel = this
+            this@Instance.input.toFlow(scope).collect { sourceRetrievable ->
+                /* Extract source. */
+                val source = sourceRetrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@collect
+                if (source.type != MediaType.VIDEO) {
+                    logger.debug { "In flow: Skipping source ${source.name} (${source.sourceId}) because it is not of type VIDEO." }
+                    return@collect
+                }
 
-                    /* Create source ingested. */
-                    val sourceIngested = Ingested(source.sourceId, "source:${source.type}", false)
-                    sourceIngested.addAttribute(SourceAttribute(source))
+                /*Determine end of time window. */
+                var windowEnd = TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
 
-                    /* Decode video and audio. */
-                    source.newInputStream().use { input ->
-                        FFmpegFrameGrabber(input).use { grabber ->
-                            /* Configure FFmpegFrameGrabber. */
-                            grabber.imageMode = FrameGrabber.ImageMode.COLOR
-                            grabber.sampleMode = FrameGrabber.SampleMode.SHORT
+                /* Decode video and audio. */
+                source.newInputStream().use { input ->
+                    FFmpegFrameGrabber(input).use { grabber ->
+                        /* Configure FFmpegFrameGrabber. */
+                        grabber.imageMode = FrameGrabber.ImageMode.COLOR
+                        grabber.sampleMode = FrameGrabber.SampleMode.SHORT
 
-                            logger.info { "Start decoding source ${source.name} (${source.sourceId})" }
-                            try {
-                                grabber.start()
+                        logger.info { "Start decoding source ${source.name} (${source.sourceId})" }
+                        try {
+                            grabber.start()
 
-                                /* Extract and enrich source metadata. */
-                                source.metadata[Metadata.METADATA_KEY_VIDEO_FPS] = grabber.videoFrameRate
-                                source.metadata[Metadata.METADATA_KEY_IMAGE_WIDTH] = grabber.imageWidth
-                                source.metadata[Metadata.METADATA_KEY_IMAGE_HEIGHT] = grabber.imageHeight
-                                source.metadata[Metadata.METADATA_KEY_AUDIO_CHANNELS] = grabber.audioChannels
-                                source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLERATE] = grabber.sampleRate
-                                source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLESIZE] = grabber.sampleFormat
+                            /* Extract and enrich source metadata. */
+                            source.metadata[Metadata.METADATA_KEY_VIDEO_FPS] = grabber.videoFrameRate
+                            source.metadata[Metadata.METADATA_KEY_IMAGE_WIDTH] = grabber.imageWidth
+                            source.metadata[Metadata.METADATA_KEY_IMAGE_HEIGHT] = grabber.imageHeight
+                            source.metadata[Metadata.METADATA_KEY_AUDIO_CHANNELS] = grabber.audioChannels
+                            source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLERATE] = grabber.sampleRate
+                            source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLESIZE] = grabber.sampleFormat
 
-                                /* Start extraction of frames. */
-                                val imageBuffer = LinkedList<Pair<BufferedImage, Long>>()
-                                val audioBuffer = LinkedList<Pair<ShortBuffer, Long>>()
+                            /* Start extraction of frames. */
+                            val imageBuffer = LinkedList<Pair<BufferedImage, Long>>()
+                            val audioBuffer = LinkedList<Pair<ShortBuffer, Long>>()
 
-                                /* Flags indicating that video / audio is ready to be emitted. */
-                                var videoReady = !this@Instance.video
-                                var audioReady = !this@Instance.audio
+                            /* Flags indicating that video / audio is ready to be emitted. */
+                            var videoReady = !this@Instance.video
+                            var audioReady = !this@Instance.audio
 
-                                do {
-                                    val frame = grabber.grabFrame(this@Instance.audio, this@Instance.video, true, this@Instance.keyFrames, true) ?: break
-                                    when (frame.type) {
-                                        Frame.Type.VIDEO -> {
-                                            imageBuffer.add(Java2DFrameConverter().use { it.convert(frame) to frame.timestamp })
-                                            if (frame.timestamp > windowEnd) videoReady = true
-                                        }
-
-                                        Frame.Type.AUDIO -> {
-                                            val samples = frame.samples.firstOrNull() as? ShortBuffer
-                                            if (samples != null) {
-                                                audioBuffer.add(ShortBuffer.allocate(samples.limit()).put(samples) to frame.timestamp)
-                                            }
-                                            if (frame.timestamp > windowEnd) audioReady = true
-                                        }
-
-                                        else -> { /* No op. */
-                                        }
+                            do {
+                                val frame = grabber.grabFrame(this@Instance.audio, this@Instance.video, true, this@Instance.keyFrames, true) ?: break
+                                when (frame.type) {
+                                    Frame.Type.VIDEO -> {
+                                        imageBuffer.add(Java2DFrameConverter().use { it.convert(frame) to frame.timestamp })
+                                        if (frame.timestamp > windowEnd) videoReady = true
                                     }
 
-                                    /* If enough frames have been collected, emit them. */
-                                    if (videoReady && audioReady) {
-                                        emit(imageBuffer, audioBuffer, grabber, windowEnd, sourceIngested, channel)
-
-                                        /* Reset counters and flags. */
-                                        videoReady = !this@Instance.video
-                                        audioReady = !this@Instance.audio
-
-                                        /* Update window end. */
-                                        windowEnd += TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
+                                    Frame.Type.AUDIO -> {
+                                        val samples = frame.samples.firstOrNull() as? ShortBuffer
+                                        if (samples != null) {
+                                            audioBuffer.add(ShortBuffer.allocate(samples.limit()).put(samples) to frame.timestamp)
+                                        }
+                                        if (frame.timestamp > windowEnd) audioReady = true
                                     }
-                                } while (true)
-                            } catch (exception: Exception) {
-                                logger.error(exception) { "An error occurred while decoding video from source $source. Skipping..." }
-                            } finally {
-                                grabber.stop()
-                                logger.info { "Finished decoding source ${source.name} (${source.sourceId})" }
-                            }
+
+                                    else -> { /* No op. */
+                                    }
+                                }
+
+                                /* If enough frames have been collected, emit them. */
+                                if (videoReady && audioReady) {
+                                    emit(imageBuffer, audioBuffer, grabber, windowEnd, sourceRetrievable, channel)
+
+                                    /* Reset counters and flags. */
+                                    videoReady = !this@Instance.video
+                                    audioReady = !this@Instance.audio
+
+                                    /* Update window end. */
+                                    windowEnd += TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
+                                }
+                            } while (true)
+                        } catch (exception: Exception) {
+                            logger.error(exception) { "An error occurred while decoding video from source $source. Skipping..." }
+                        } finally {
+                            grabber.stop()
+                            logger.info { "Finished decoding source ${source.name} (${source.sourceId})" }
                         }
                     }
-
-                    /* Send source as a signal that decoding is done. */
-                    send(sourceIngested)
                 }
-            }.buffer(capacity = RENDEZVOUS, onBufferOverflow = BufferOverflow.SUSPEND)
-        }
 
-        private suspend fun emit(imageBuffer: LinkedList<Pair<BufferedImage, Long>>, audioBuffer: LinkedList<Pair<ShortBuffer, Long>>, grabber: FrameGrabber, timestampEnd: Long, source: Ingested, channel: ProducerScope<Ingested>) {
+                /* Send source as a signal that decoding is done. */
+                send(sourceRetrievable)
+            }
+        }.buffer(capacity = RENDEZVOUS, onBufferOverflow = BufferOverflow.SUSPEND)
+
+        private suspend fun emit(imageBuffer: LinkedList<Pair<BufferedImage, Long>>, audioBuffer: LinkedList<Pair<ShortBuffer, Long>>, grabber: FrameGrabber, timestampEnd: Long, source: Retrievable, channel: ProducerScope<Retrievable>) {
             /* Audio samples. */
             var audioSize = 0
             val emitImage = mutableListOf<BufferedImage>()
@@ -187,7 +188,7 @@ class VideoDecoder : DecoderFactory {
 
             /* Prepare ingested with relationship to source. */
             val ingested = Ingested(UUID.randomUUID(), "SEGMENT", false)
-            source.filteredAttribute<SourceAttribute>()?.let { ingested.addAttribute(it) }
+            source.filteredAttribute(SourceAttribute::class.java)?.let { ingested.addAttribute(it) }
             ingested.addRelationship(Relationship.ByRef(ingested, "partOf", source, false))
             ingested.addAttribute(TimerangeAttribute(timestampEnd - this@Instance.timeWindowMs, timestampEnd, TimeUnit.MILLISECONDS))
 

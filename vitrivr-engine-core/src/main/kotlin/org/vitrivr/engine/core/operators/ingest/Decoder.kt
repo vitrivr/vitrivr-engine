@@ -15,4 +15,4 @@ import org.vitrivr.engine.core.source.Source
  * @author Ralph Gasser
  * @version 1.1.0
  */
-interface Decoder : Operator.Unary<Source, Retrievable>
+interface Decoder : Operator.Unary<Retrievable, Retrievable>
