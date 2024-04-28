@@ -13,7 +13,6 @@ import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.source.MediaType
-import org.vitrivr.engine.core.source.file.FileSource
 import java.util.*
 
 /**
@@ -22,11 +21,11 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class VideoSourceMetadataExtractor(input: Operator<Ingested>, field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>?) : AbstractExtractor<ContentElement<*>, VideoSourceMetadataDescriptor>(input, field) {
+class VideoSourceMetadataExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>?) : AbstractExtractor<ContentElement<*>, VideoSourceMetadataDescriptor>(input, field) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
-     * [FileSourceMetadataExtractor] implementation only works with [RetrievableWithSource] that contain a [FileSource].
+     * [FileSourceMetadataExtractor] implementation only works with [Retrievable] that contain a [SourceAttribute].
      *
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,

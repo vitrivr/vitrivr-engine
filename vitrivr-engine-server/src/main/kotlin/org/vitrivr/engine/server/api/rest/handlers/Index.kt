@@ -51,7 +51,7 @@ fun executeIngest(ctx: Context, schema: Schema, executor: ExecutionServer) {
         val pipeline = pipelineBuilder.build(stream)
 
         /* Schedule pipeline and return job Id. */
-        val jobId = executor.extractAsync(pipeline)
+        val jobId = executor.extractAsync(pipeline.first())
         ctx.json(IngestStatus(jobId.toString(), executor.status(jobId), System.currentTimeMillis()))
     } catch (e: Exception) {
         throw ErrorStatusException(400, "Invalid request: ${e.message}")

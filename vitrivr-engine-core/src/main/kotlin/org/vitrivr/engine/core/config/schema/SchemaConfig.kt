@@ -2,7 +2,7 @@ package org.vitrivr.engine.core.config.schema
 
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.operators.ingest.Exporter
+import org.vitrivr.engine.core.operators.general.Exporter
 import org.vitrivr.engine.core.resolver.Resolver
 
 

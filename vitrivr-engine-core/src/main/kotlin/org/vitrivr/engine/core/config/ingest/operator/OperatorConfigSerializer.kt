@@ -8,44 +8,23 @@ import kotlinx.serialization.json.jsonPrimitive
 
 
 /**
- * A [JsonContentPolymorphicSerializer] for [OperatorConfig]s.
- * Deserialisation builds on the [OperatorConfig.type] property.
+ * A [JsonContentPolymorphicSerializer] for [OperatorConfig]s. Deserialisation builds on the [OperatorConfig.type] property.
+ *
+ * @author Loris Sauter
+ * @version 1.0.0
  */
 object OperatorConfigSerializer : JsonContentPolymorphicSerializer<OperatorConfig>(OperatorConfig::class) {
-
     override fun selectDeserializer(element: JsonElement): DeserializationStrategy<OperatorConfig> {
         val typeName = element.jsonObject["type"]?.jsonPrimitive?.content?.uppercase()
             ?: throw IllegalArgumentException("An OperatorConfig requries a type, but none found.")
 
         return when (OperatorType.valueOf(typeName)) {
-            OperatorType.DECODER -> DecoderConfig.serializer()
-            OperatorType.TRANSFORMER -> TransformerConfig.serializer()
-            OperatorType.EXTRACTOR -> ExtractorConfig.serializer()
-            OperatorType.EXPORTER -> ExporterConfig.serializer()
-            OperatorType.ENUMERATOR -> EnumeratorConfig.serializer()
-            OperatorType.OPERATOR -> TODO()
+            OperatorType.DECODER -> OperatorConfig.Decoder.serializer()
+            OperatorType.TRANSFORMER -> OperatorConfig.Transformer.serializer()
+            OperatorType.EXTRACTOR -> OperatorConfig.Extractor.serializer()
+            OperatorType.EXPORTER -> OperatorConfig.Exporter.serializer()
+            OperatorType.ENUMERATOR -> OperatorConfig.Enumerator.serializer()
             OperatorType.RETRIEVER -> TODO()
-        }
-    }
-}
-
-/**
- * A [JsonContentPolymorphicSerializer] for [FactoryBuildableOperatorConfig]s.
- * Deserialisation builds on the [FactoryBuildableOperatorConfig.type] property.
- */
-object FactoryBuildableOperatorConfigSerializer : JsonContentPolymorphicSerializer<FactoryBuildableOperatorConfig>(FactoryBuildableOperatorConfig::class) {
-
-    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<FactoryBuildableOperatorConfig> {
-        val typeName = element.jsonObject["type"]?.jsonPrimitive?.content?.uppercase()
-            ?: throw IllegalArgumentException("An OperatorConfig requries a type, but none found.")
-
-        return when (OperatorType.valueOf(typeName)) {
-            OperatorType.DECODER -> DecoderConfig.serializer()
-            OperatorType.TRANSFORMER -> TransformerConfig.serializer()
-            OperatorType.ENUMERATOR -> EnumeratorConfig.serializer()
-            OperatorType.OPERATOR -> TODO()
-            OperatorType.RETRIEVER -> TODO()
-            else -> throw IllegalArgumentException("A FactoryBuildableOperatorConfig with type ${typeName} has been found, which is not supported.")
         }
     }
 }

@@ -9,7 +9,7 @@ import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
-import org.vitrivr.engine.core.operators.ingest.ExporterFactory
+import org.vitrivr.engine.core.operators.general.ExporterFactory
 import org.vitrivr.engine.core.resolver.ResolverFactory
 import org.vitrivr.engine.core.util.extension.loadServiceForName
 import java.nio.file.Paths
@@ -73,12 +73,6 @@ class SchemaManager {
             )
         }
         config.extractionPipelines.map {
-            /*val indexConfig = IndexConfig.read(Paths.get(it.path))
-                ?: throw IllegalArgumentException("Failed to read pipeline configuration from '${it.path}'.")
-            if (indexConfig.schema != schema.name) {
-                throw IllegalArgumentException("Schema name in pipeline configuration '${indexConfig.schema}' does not match schema name '${schema.name}'.")
-            }
-            schema.addPipeline(it.name, indexConfig)*/
             val indexConfig = IngestionConfig.read(Paths.get(it.path))
                 ?: throw IllegalArgumentException("Failed to read pipeline configuration from '${it.path}'.")
             if (indexConfig.schema != schema.name) {

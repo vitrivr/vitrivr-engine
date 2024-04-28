@@ -4,7 +4,7 @@ import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 
 /**
@@ -15,11 +15,11 @@ import org.vitrivr.engine.core.operators.Operator
  */
 interface ExtractorFactory<C : ContentElement<*>, D : Descriptor> {
     /**
-     * Creates a new [Transformer] instance from this [TransformerFactory].
+     * Creates a new [Extractor] instance from this [ExtractorFactory].
      *
      * @param field The [Schema.Field] to create the [Extractor] for.
      * @param input The input [Operator].
      * @param context The [IndexContext] to use.
      */
-    fun newExtractor(field: Schema.Field<C, D>?, input: Operator<Ingested>, context: IndexContext): Extractor<C, D>
+    fun newExtractor(field: Schema.Field<C, D>?, input: Operator<Retrievable>, context: IndexContext): Extractor<C, D>
 }

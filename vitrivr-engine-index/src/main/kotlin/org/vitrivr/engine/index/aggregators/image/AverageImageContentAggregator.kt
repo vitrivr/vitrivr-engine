@@ -8,9 +8,10 @@ import org.vitrivr.engine.core.model.content.decorators.TemporalContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.Transformer
-import org.vitrivr.engine.core.operators.ingest.TransformerFactory
+import org.vitrivr.engine.core.operators.general.Transformer
+import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.util.extension.getRGBArray
 import org.vitrivr.engine.core.util.extension.setRGBArray
 import org.vitrivr.engine.index.aggregators.AbstractAggregator
@@ -33,12 +34,12 @@ class AverageImageContentAggregator : TransformerFactory {
      * @param context The [IndexContext] to use.
      * @return [AverageImageContentAggregator.Instance]
      */
-    override fun newTransformer(name: String, input: Operator<Ingested>, context: IndexContext): Transformer = Instance(input, context)
+    override fun newTransformer(name: String, input: Operator<Retrievable>, context: IndexContext): Transformer = Instance(input, context)
 
     /**
      * The [Instance] returns by the [AverageImageContentAggregator]
      */
-    private class Instance(override val input: Operator<Ingested>, context: IndexContext) : AbstractAggregator(input, context) {
+    private class Instance(override val input: Operator<Retrievable>, context: IndexContext) : AbstractAggregator(input, context) {
         override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> {
             /* Filter out images. */
             val images = content.filterIsInstance<ImageContent>()

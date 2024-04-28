@@ -1,8 +1,8 @@
-package org.vitrivr.engine.core.operators.ingest
+package org.vitrivr.engine.core.operators.general
 
 import kotlinx.coroutines.flow.Flow
 import org.vitrivr.engine.core.model.content.Content
-import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 
 /**
@@ -14,4 +14,4 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.1.0
  */
-interface Transformer : Operator.Unary<Ingested, Ingested>
+interface Transformer : Operator.Unary<Retrievable, Retrievable>

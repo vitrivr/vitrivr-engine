@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.onEach
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -19,7 +18,7 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Ralph Gasser
  * @version 1.1.0
  */
-abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final override val input: Operator<Ingested>, final override val field: Schema.Field<C, D>? = null) : Extractor<C, D> {
+abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final override val input: Operator<Retrievable>, final override val field: Schema.Field<C, D>? = null) : Extractor<C, D> {
 
     protected val logger: KLogger = KotlinLogging.logger {}
 
@@ -32,7 +31,7 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final ov
      *
      * @return [Flow] of [Retrievable]
      */
-    final override fun toFlow(scope: CoroutineScope): Flow<Ingested> = this.input.toFlow(scope).onEach { retrievable ->
+    final override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
         if (this.matches(retrievable)) {
             /* Perform extraction. */
             logger.debug{"Extraction for retrievable: $retrievable" }

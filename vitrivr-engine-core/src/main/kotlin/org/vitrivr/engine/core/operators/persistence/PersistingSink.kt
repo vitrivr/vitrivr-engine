@@ -11,7 +11,6 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.operators.Operator
 
 /**
@@ -20,7 +19,7 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class PersistingSink(override val input: Operator<Ingested>, val context: IndexContext): Operator.Sink<Ingested> {
+class PersistingSink(override val input: Operator<Retrievable>, val context: IndexContext) : Operator.Sink<Retrievable> {
 
     /** The [RetrievableWriter] instance used by this [PersistingSink]. */
     private val writer: RetrievableWriter by lazy {
@@ -37,9 +36,8 @@ class PersistingSink(override val input: Operator<Ingested>, val context: IndexC
      * @return [Flow]
      */
     override fun toFlow(scope: CoroutineScope): Flow<Unit> = flow {
-        val persisted = mutableSetOf<RetrievableId>() /* Set of retrievable Ids that have been persisted. */
         this@PersistingSink.input.toFlow(scope).collect {
-            persist(it, persisted)
+            persist(it, mutableSetOf())
         }
         emit(Unit)
     }
@@ -48,15 +46,14 @@ class PersistingSink(override val input: Operator<Ingested>, val context: IndexC
      * This method persists [Retrievable]s and all associated [DescriptorAttribute]s and [Relationship]s.
      *
      * @param retrievable [Retrievable] to persist.
-     * @param persisted A [MutableSet] of all [Retrievable]
+     * @param persisted A [MutableSet] of all [Relationship]s that were already persisted.
      */
-    private fun persist(retrievable: Retrievable, persisted: MutableSet<RetrievableId>) {
+    private fun persist(retrievable: Retrievable, persisted: MutableSet<Relationship>) {
         /* Transient retrievable and retrievable that have already been persisted are ignored. */
-        if (retrievable.transient || retrievable.id in persisted) return
+        if (retrievable.transient) return
 
         /* Persist retrievable and add it to list of persisted retrievable. */
         if (!this.writer.add(retrievable)) return
-        persisted.add(retrievable.id)
 
         /* Persist descriptors. */
         for (descriptor in retrievable.descriptors) {
@@ -67,11 +64,17 @@ class PersistingSink(override val input: Operator<Ingested>, val context: IndexC
         /* Persist relationships. */
         for (relationship in retrievable.relationships) {
             if (!relationship.transient) {
-                if (relationship is Relationship.ByRef) {
-                    this.persist(relationship.subject, persisted)
-                    this.persist(relationship.`object`, persisted)
+                if (relationship !in persisted) {
+                    if (relationship is Relationship.ByRef) {
+                        if (relationship.subjectId == retrievable.id) {
+                            this.persist(relationship.`object`, persisted)
+                        } else if (relationship.objectId == retrievable.id) {
+                            this.persist(relationship.subject, persisted)
+                        }
+                    }
+                    this.writer.connect(relationship.subjectId, relationship.predicate, relationship.objectId)
+                    persisted.add(relationship)
                 }
-                this.writer.connect(relationship.subjectId, relationship.predicate, relationship.objectId)
             }
         }
     }

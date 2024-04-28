@@ -15,5 +15,4 @@ class IngestionContextConfig(
     val resolverName: String,
     override val local: Map<String, Map<String, String>> = emptyMap(),
     override val global: Map<String, String> = emptyMap()
-) : Context() {
-}
+) : Context()

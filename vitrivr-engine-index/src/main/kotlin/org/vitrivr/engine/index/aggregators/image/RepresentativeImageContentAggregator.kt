@@ -6,9 +6,10 @@ import org.vitrivr.engine.core.model.color.RGBByteColorContainer
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.Transformer
-import org.vitrivr.engine.core.operators.ingest.TransformerFactory
+import org.vitrivr.engine.core.operators.general.Transformer
+import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.util.extension.getRGBArray
 import org.vitrivr.engine.index.aggregators.AbstractAggregator
 
@@ -29,13 +30,13 @@ class RepresentativeImageContentAggregator : TransformerFactory {
      * @param context The [IndexContext] to use.
      * @return [RepresentativeImageContentAggregator.Instance]
      */
-    override fun newTransformer(name: String, input: Operator<Ingested>, context: IndexContext): Transformer = Instance(input, context)
+    override fun newTransformer(name: String, input: Operator<Retrievable>, context: IndexContext): Transformer = Instance(input, context)
 
 
     /**
      * The [Instance] returns by the [RepresentativeImageContentAggregator]
      */
-    private class Instance(override val input: Operator<Ingested>, context: IndexContext) : AbstractAggregator(input, context) {
+    private class Instance(override val input: Operator<Retrievable>, context: IndexContext) : AbstractAggregator(input, context) {
         override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> {
             val images = content.filterIsInstance<ImageContent>()
             if (images.isEmpty()) {

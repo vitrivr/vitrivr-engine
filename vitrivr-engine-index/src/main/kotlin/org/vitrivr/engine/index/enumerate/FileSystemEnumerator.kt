@@ -42,7 +42,7 @@ class FileSystemEnumerator : EnumeratorFactory {
         context: IndexContext,
         mediaTypes: List<MediaType>
     ): Enumerator {
-        val path = Path(context[name, "path"] ?: throw IllegalArgumentException("Path is required"))
+        val path = Path(context[name, "path"] ?: throw IllegalArgumentException("Path is required."))
         val depth = (context[name, "depth"] ?: Int.MAX_VALUE.toString()).toInt()
         val skip = context[name, "skip"]?.toLongOrNull() ?: 0L
         val limit = context[name, "limit"]?.toLongOrNull() ?: Long.MAX_VALUE
@@ -92,7 +92,6 @@ class FileSystemEnumerator : EnumeratorFactory {
                 return@flow
             }
             for (element in stream) {
-
                 val type = MimeType.getMimeType(element) ?: continue
                 if (type.mediaType in this@Instance.mediaTypes) {
                     val file = try {

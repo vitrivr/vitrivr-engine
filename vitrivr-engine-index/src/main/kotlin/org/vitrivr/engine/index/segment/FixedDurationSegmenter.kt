@@ -8,11 +8,12 @@ import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
-import org.vitrivr.engine.core.model.retrievable.attributes.TimestampAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.time.TimestampAttribute
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.Transformer
-import org.vitrivr.engine.core.operators.ingest.TransformerFactory
+import org.vitrivr.engine.core.operators.general.Transformer
+import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.source.Source
 import java.time.Duration
 import java.util.*
@@ -29,7 +30,7 @@ class FixedDurationSegmenter : TransformerFactory {
      * @param input The input [Operator].
      * @param context The [IndexContext] to use.
      */
-    override fun newTransformer(name: String, input: Operator<Ingested>, context: IndexContext): Transformer {
+    override fun newTransformer(name: String, input: Operator<Retrievable>, context: IndexContext): Transformer {
         val duration = Duration.ofSeconds(
             (context[name, "duration"] ?: throw IllegalArgumentException("Property 'duration' must be specified")).toLong()
         )
@@ -44,7 +45,7 @@ class FixedDurationSegmenter : TransformerFactory {
      */
     private class Instance(
         /** The input [Operator]. */
-        override val input: Operator<Ingested>,
+        override val input: Operator<Retrievable>,
 
         /** The [IndexContext] used by this [Instance]. */
         private val context: IndexContext,
@@ -68,13 +69,13 @@ class FixedDurationSegmenter : TransformerFactory {
         /**
          *
          */
-        override fun toFlow(scope: CoroutineScope): Flow<Ingested> = channelFlow {
+        override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = channelFlow {
             val downstream = this
 
             /* Prepare necessary data structures. */
             var lastSource: Source? = null
             var lastStartTime = 0L
-            val cache = LinkedList<Ingested>()
+            val cache = LinkedList<Retrievable>()
 
             /* Collect upstream flow. */
             this@Instance.input.toFlow(scope).collect { ingested ->
@@ -110,9 +111,9 @@ class FixedDurationSegmenter : TransformerFactory {
         /**
          *
          */
-        private suspend fun sendFromCache(downstream: ProducerScope<Ingested>, cache: LinkedList<Ingested>, nextStartTime: Long) {
+        private suspend fun sendFromCache(downstream: ProducerScope<Retrievable>, cache: LinkedList<Retrievable>, nextStartTime: Long) {
             /* Drain cache. */
-            val emit = LinkedList<Ingested>()
+            val emit = LinkedList<Retrievable>()
             cache.removeIf {
                 val timestamp = it.filteredAttribute(TimestampAttribute::class.java) ?: return@removeIf true
                 if (timestamp.timestampNs < nextStartTime) {

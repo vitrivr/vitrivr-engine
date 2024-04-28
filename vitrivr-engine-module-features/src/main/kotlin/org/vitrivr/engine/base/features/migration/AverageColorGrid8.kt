@@ -7,7 +7,7 @@ import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -26,7 +26,7 @@ class AverageColorGrid8 : Analyser<ContentElement<*>, FloatVectorDescriptor> {
         TODO("Not yet implemented")
     }
 
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>?, input: Operator<Ingested>, context: IndexContext): Extractor<ContentElement<*>, FloatVectorDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>?, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, FloatVectorDescriptor> {
         TODO("Not yet implemented")
     }
 }
