@@ -43,7 +43,7 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
     override fun add(item: Retrievable): Boolean {
         val insert = Insert(this.entityName)
             .value(RETRIEVABLE_ID_COLUMN_NAME, UuidValue(item.id))
-            .any(RETRIEVABLE_TYPE_COLUMN_NAME, item.type?.let { StringValue(it) })
+            .value(RETRIEVABLE_TYPE_COLUMN_NAME, item.type?.let { StringValue(it) })
         return try {
             return this.connection.client.insert(insert).use {
                 it.hasNext()
@@ -65,7 +65,7 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
         val insert = BatchInsert(this.entityName).columns(RETRIEVABLE_ID_COLUMN_NAME, RETRIEVABLE_TYPE_COLUMN_NAME)
         for (item in items) {
             size += 1
-            insert.any(item.id, item.type)
+            insert.values(UuidValue(item.id), item.type?.let { StringValue(it) })
         }
 
         /* Insert values. */

@@ -36,45 +36,61 @@ class PersistingSink(override val input: Operator<Retrievable>, val context: Ind
      * @return [Flow]
      */
     override fun toFlow(scope: CoroutineScope): Flow<Unit> = flow {
-        this@PersistingSink.input.toFlow(scope).collect {
-            persist(it, mutableSetOf())
-        }
+        this@PersistingSink.input.toFlow(scope).collect { persist(it) }
         emit(Unit)
     }
 
     /**
-     * This method persists [Retrievable]s and all associated [DescriptorAttribute]s and [Relationship]s.
+     * This method persists [Retrievable]s and all associated [Descriptor]s and [Relationship]s.
      *
      * @param retrievable [Retrievable] to persist.
-     * @param persisted A [MutableSet] of all [Relationship]s that were already persisted.
      */
-    private fun persist(retrievable: Retrievable, persisted: MutableSet<Relationship>) {
+    @Suppress("UNCHECKED_CAST")
+    private fun persist(retrievable: Retrievable) {
         /* Transient retrievable and retrievable that have already been persisted are ignored. */
         if (retrievable.transient) return
 
-        /* Persist retrievable and add it to list of persisted retrievable. */
-        if (!this.writer.add(retrievable)) return
+        /* Collection all entites that should be persisted. */
+        val retrievables = mutableSetOf<Retrievable>()
+        val relationships = mutableSetOf<Relationship>()
+        val descriptors = mutableMapOf<Schema.Field<*, *>, MutableSet<Descriptor>>()
+        collect(retrievable, Triple(retrievables, relationships, descriptors))
 
-        /* Persist descriptors. */
-        for (descriptor in retrievable.descriptors) {
-            val writer = descriptor.field?.let { field -> this.descriptorWriters.computeIfAbsent(field) { it.getWriter() } } as? DescriptorWriter<Descriptor>
-            writer?.add(descriptor)
+        /* Write entities to database. */
+        this.writer.addAll(retrievables)
+        this.writer.connectAll(relationships)
+        for ((f, d) in descriptors) {
+            val writer = f.let { field -> this.descriptorWriters.computeIfAbsent(field) { it.getWriter() } } as? DescriptorWriter<Descriptor>
+            writer?.addAll(d)
         }
+    }
 
-        /* Persist relationships. */
+    /**
+     * Collects all [Retrievable]s, [Relationship]s and [Descriptor]s that are reachable from the given [Retrievable] and should be persisted.s
+     */
+    private fun collect(retrievable: Retrievable, into: Triple<MutableSet<Retrievable>, MutableSet<Relationship>, MutableMap<Schema.Field<*, *>, MutableSet<Descriptor>>>) {
+        if (retrievable.transient) return
+
+        /* Add retrievable. */
+        into.first.add(retrievable)
+
+        /* Add relationships. */
         for (relationship in retrievable.relationships) {
             if (!relationship.transient) {
-                if (relationship !in persisted) {
-                    if (relationship is Relationship.ByRef) {
-                        if (relationship.subjectId == retrievable.id) {
-                            this.persist(relationship.`object`, persisted)
-                        } else if (relationship.objectId == retrievable.id) {
-                            this.persist(relationship.subject, persisted)
-                        }
-                    }
-                    this.writer.connect(relationship.subjectId, relationship.predicate, relationship.objectId)
-                    persisted.add(relationship)
+                into.second.add(relationship)
+                if (relationship.subjectId == retrievable.id && relationship is Relationship.WithObject && !into.first.contains(relationship.`object`)) {
+                    collect(relationship.`object`, into)
+                } else if (relationship.objectId == retrievable.id && relationship is Relationship.WithSubject && !into.first.contains(relationship.subject)) {
+                    collect(relationship.subject, into)
                 }
+            }
+        }
+
+        /* Add descriptors. */
+        for (descriptor in retrievable.descriptors) {
+            val field = descriptor.field
+            if (field != null) {
+                into.third.compute(field) { _, v -> (v ?: mutableSetOf()).apply { add(descriptor) } }
             }
         }
     }
