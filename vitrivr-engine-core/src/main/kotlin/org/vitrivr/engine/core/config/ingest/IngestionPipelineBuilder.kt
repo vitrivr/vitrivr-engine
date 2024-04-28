@@ -52,6 +52,7 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
      * @param stream If there is a specific stream the built [Enumerator] should process.
      * @return A [List] of terminal [Operator.Sink], ready to be processed.
      */
+    @Suppress("UNCHECKED_CAST")
     fun build(stream: Stream<*>? = null): List<Operator.Sink<Retrievable>> {
         return parseOperations().map { root ->
             val config = root.opConfig as? OperatorConfig.Enumerator ?: throw IllegalArgumentException("Root stage must always be an enumerator!")
@@ -122,7 +123,7 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
      *
      * @return A list of root [Operation]s that represent the pipeline definition.
      */
-    private fun parseOperations(): List<Operation> {
+    fun parseOperations(): List<Operation> {
         logger.debug { "Starting building operator tree(s)" }
 
         /* Find operations without inputs, these are (by definition) enumerators / entry points */

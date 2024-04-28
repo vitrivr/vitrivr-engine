@@ -17,7 +17,6 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  *
  * @param field Schema field for which the extractor generates descriptors.
  * @param input Operator representing the input data source.
- * @param persisting Flag indicating whether the descriptors should be persisted.
  *
  * @author Rahel Arnold
  * @version 1.1.1

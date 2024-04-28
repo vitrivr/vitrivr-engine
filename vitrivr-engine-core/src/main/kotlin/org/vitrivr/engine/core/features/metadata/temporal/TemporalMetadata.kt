@@ -1,7 +1,5 @@
 package org.vitrivr.engine.core.features.metadata.temporal
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadata
@@ -23,9 +21,6 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-
-private val logger: KLogger = KotlinLogging.logger {}
-
 class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = TemporalMetadataDescriptor::class

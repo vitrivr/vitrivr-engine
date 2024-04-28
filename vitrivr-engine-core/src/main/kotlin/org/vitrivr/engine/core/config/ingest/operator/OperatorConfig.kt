@@ -2,12 +2,13 @@ package org.vitrivr.engine.core.config.ingest.operator
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.vitrivr.engine.core.operators.ingest.*
 import org.vitrivr.engine.core.source.MediaType
 
 /**
  * Configuration for ingestion operators, as defined in the [org.vitrivr.engine.core.operators.ingest] package.
- * This is the definition of the operators, whereas the [OperationsConfig] defines the actual pipeline
+ *
+ * @author Loris Sauter
+ * @version 1.0.0
  */
 @Serializable
 sealed interface OperatorConfig {

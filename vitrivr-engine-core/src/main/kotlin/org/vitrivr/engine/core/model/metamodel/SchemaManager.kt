@@ -1,7 +1,5 @@
 package org.vitrivr.engine.core.model.metamodel
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.ExperimentalSerializationApi
 import org.vitrivr.engine.core.config.ingest.IngestionConfig
 import org.vitrivr.engine.core.config.schema.SchemaConfig
@@ -16,8 +14,6 @@ import java.nio.file.Paths
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
-
-private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * The central [Schema] manager used by vitrivr.
