@@ -74,11 +74,11 @@ class ExecutionServer {
     }
 
     /**
-     * Executes an extraction [IndexingPipeline] in a blocking fashion, i.e., the call will block until the [IndexingPipeline] has been executed.
+     * Executes an extraction [Operator.Sink] in a blocking fashion, i.e., the call will block until the [Operator.Sink] has been executed.
      *
      * This is mainly for testing purposes!
      *
-     * @param sink The [IndexingPipeline] to execute.
+     * @param sink The [Operator.Sink] to execute.
      */
     fun extract(sink: Operator.Sink<Ingested>) {
         val jobId = UUID.randomUUID()
