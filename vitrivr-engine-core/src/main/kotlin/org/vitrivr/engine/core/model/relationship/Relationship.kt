@@ -21,8 +21,6 @@ sealed interface Relationship: Persistable {
     /** The [RetrievableId] pointing to the object [Retrievable]. */
     val objectId: RetrievableId
 
-    fun opposite(): Relationship
-
     sealed interface WithSubject : Relationship {
         val subject: Retrievable
     }
@@ -46,27 +44,20 @@ sealed interface Relationship: Persistable {
 
         override val objectId: RetrievableId
             get() = this.`object`.id
-
-        override fun opposite(): Relationship = ByRef(this.`object`, this.predicate, this.subject, this.transient)
     }
 
     /** A [Relationship] by ID. */
-    data class ById(override val subjectId: RetrievableId, override val predicate: String, override val objectId: RetrievableId, override val transient: Boolean) : Relationship {
-        override fun opposite(): Relationship = ById(this.objectId, this.predicate, this.subjectId, this.transient)
-    }
+    data class ById(override val subjectId: RetrievableId, override val predicate: String, override val objectId: RetrievableId, override val transient: Boolean) : Relationship
 
     /** A [Relationship] where subject is provided by reference to another [Retrievable] and object by an ID. */
     data class BySubRefObjId(override val subject: Retrievable, override val predicate: String, override val objectId: RetrievableId, override val transient: Boolean) : WithSubject {
         override val subjectId: RetrievableId
             get() = this.subject.id
-        override fun opposite(): Relationship = BySubIdObjRef(this.objectId, this.predicate, this.subject, this.transient)
-
     }
 
     /** A [Relationship] where subject is provided by ID and object by reference to another [Retrievable]. */
     data class BySubIdObjRef(override val subjectId: RetrievableId, override val predicate: String, override val `object`: Retrievable, override val transient: Boolean) : WithObject {
         override val objectId: RetrievableId
             get() = this.`object`.id
-        override fun opposite(): Relationship = BySubRefObjId(this.`object`, this.predicate, this.subjectId, this.transient)
     }
 }
