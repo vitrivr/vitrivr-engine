@@ -207,8 +207,8 @@ class VideoDecoder : DecoderFactory {
             }
 
             /* Prepare and append image content element. */
-            if (emitImage.size > 0) {
-                ingested.addContent(emitImage.last().let { this.context.contentFactory.newImageContent(it) })
+            for (image in emitImage) {
+                ingested.addContent(this.context.contentFactory.newImageContent(image))
             }
 
             /* Emit ingested. */
