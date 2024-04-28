@@ -1,5 +1,5 @@
 {
-  "schema": "V3C1",
+  "schema": "vitrivr",
   "context": {
     "contentFactory": "InMemoryContentFactory",
     "resolverName": "disk",
