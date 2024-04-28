@@ -25,10 +25,6 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @version 1.0.1
  */
 class ThumbnailExporter : ExporterFactory {
-
-    private val logger: KLogger = KotlinLogging.logger {}
-
-
     companion object {
         val SUPPORTED = setOf(MimeType.JPEG, MimeType.JPG, MimeType.PNG)
     }
@@ -86,7 +82,6 @@ class ThumbnailExporter : ExporterFactory {
                         it.write(imgBytes)
                     }
                 }
-
             }
         }
     }
