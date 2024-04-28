@@ -16,10 +16,6 @@ import java.util.*
  */
 abstract class AbstractRetrievable(override val id: UUID, override val type: String?, override val transient: Boolean) : Retrievable {
 
-    constructor(retrievable: Retrievable) : this(retrievable.id, retrievable.type, retrievable.transient) {
-        retrievable.attributes.forEach { this.addAttribute(it) }
-    }
-
     /** A set of [ContentElement]s held by this [AbstractRetrievable]. */
     private val contentList = mutableListOf<ContentElement<*>>()
 
