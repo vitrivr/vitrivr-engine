@@ -90,6 +90,7 @@ class VideoDecoder : DecoderFactory {
 
                 /* Decode video and audio. */
                 source.newInputStream().use { input ->
+                    var error = false
                     FFmpegFrameGrabber(input).use { grabber ->
                         /* Configure FFmpegFrameGrabber. */
                         grabber.imageMode = FrameGrabber.ImageMode.COLOR
@@ -147,17 +148,20 @@ class VideoDecoder : DecoderFactory {
                                     windowEnd += TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
                                 }
                             } while (true)
+                            logger.info { "Finished decoding video from source '${source.name}' (${source.sourceId})." }
                         } catch (exception: Exception) {
-                            logger.error(exception) { "An error occurred while decoding video from source $source. Skipping..." }
+                            error = true
+                            logger.error(exception) { "Failed to decode video from source '${source.name}' (${source.sourceId})." }
                         } finally {
                             grabber.stop()
-                            logger.info { "Finished decoding source ${source.name} (${source.sourceId})" }
+                        }
+
+                        /* Send source retrievable downstream as a signal that file has been decoded. */
+                        if (!error) {
+                            send(sourceRetrievable)
                         }
                     }
                 }
-
-                /* Send source as a signal that decoding is done. */
-                send(sourceRetrievable)
             }
         }.buffer(capacity = RENDEZVOUS, onBufferOverflow = BufferOverflow.SUSPEND)
 

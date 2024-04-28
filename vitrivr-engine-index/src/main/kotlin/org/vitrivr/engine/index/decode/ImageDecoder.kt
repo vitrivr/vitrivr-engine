@@ -53,11 +53,12 @@ class ImageDecoder : DecoderFactory {
                     this.context.contentFactory.newImageContent(ImageIO.read(it))
                 }
                 sourceRetrievable.addContent(content)
+                logger.info { "Finished decoding image from source '${source.name}' (${source.sourceId})." }
 
                 /* Return ingested. */
                 sourceRetrievable
             } catch (e: IOException) {
-                logger.error(e) { "Failed to decode image from $source due to an IO exception." }
+                logger.error(e) { "Failed to decode image from source '${source.name}' (${source.sourceId})." }
                 null
             }
         }
