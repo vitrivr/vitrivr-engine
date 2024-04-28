@@ -124,10 +124,12 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
     fun getExporter(name: String) = this.exporters.firstOrNull { it.name == name }
 
     /**
-     * Get the [IngestionPipelineBuilder] associated with the provided name to build the [IndexingPipeline].
+     * Get the [IngestionPipelineBuilder] associated with the provided name to build the indexing pipeline
+     *
      * @param name The name of the ingestion pipeline configuration, essentially the [SchemaConfig]
+     * @return [IngestionPipelineBuilder] instance
      */
-    fun getIngestionPipelineBuilder(name: String) = ingestionPipelineBuilders[name] ?: throw IllegalArgumentException("No ingestion pipeline builder with the name '$name' found in schema '${this.name}'")
+    fun getIngestionPipelineBuilder(name: String) = this.ingestionPipelineBuilders[name] ?: throw IllegalArgumentException("No ingestion pipeline builder with the name '$name' found in schema '${this.name}'")
 
     /**
      * Closes this [Schema] and the associated database [Connection].

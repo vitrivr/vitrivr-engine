@@ -54,13 +54,11 @@ class DINO : ExternalAnalyser<ImageContent,FloatVectorDescriptor>() {
      * @param field The [Schema.Field] to create an [Extractor] for.
      * @param input The [Operator] that acts as input to the new [Extractor].
      * @param context The [IndexContext] to use with the [Extractor].
-     * @param persisting True, if the results of the [Extractor] should be persisted.
      *
      * @return A new [Extractor] instance for this [DINO]
      * @throws [UnsupportedOperationException], if this [DINO] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>?, input: Operator<Retrievable>, context: IndexContext)
-        = DINOExtractor(input, field, context)
+    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>?, input: Operator<Retrievable>, context: IndexContext) = DINOExtractor(input, field, context)
 
     /**
      * Generates and returns a new [DINORetriever] instance for this [DINO].

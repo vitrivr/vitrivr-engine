@@ -7,12 +7,7 @@ import org.vitrivr.engine.core.config.ingest.operator.OperatorConfig
 import org.vitrivr.engine.core.operators.transform.shape.MergeType
 
 /**
- * The [OperationConfig] describes the ingestion pipeline in the form of [OperatorConfig] names.
- *
- * Currently, this is simply an ordered list (see [IndexingPipeline].
- *
- * In the future there might be cases where a tree (or graph) structure is desirable and explicitly
- * the results of one operator can be passed to the next one.
+ * The [OperationConfig] describes the ingestion pipeline in the form of [OperatorConfig] names, its inputs and [MergeType].
  *
  * @see IngestionConfig
  * @see IngestionPipelineBuilder

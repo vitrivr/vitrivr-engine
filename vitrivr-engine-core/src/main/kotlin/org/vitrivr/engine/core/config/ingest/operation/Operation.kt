@@ -7,8 +7,6 @@ import java.util.*
 /**
  * This [Operation] class represents a single operation in the ingest pipeline.
  *
- * It is used by the [IngestionPipelineBuilder] to build a directed acyclic graph (DAG) of operations.
- *
  * @author Ralph Gasser
  * @version 1.0.0
  */
@@ -46,31 +44,5 @@ data class Operation(val name: String, val opName: String, val opConfig: Operato
     fun addOutput(operation: Operation) {
         this._output.add(operation)
         operation._input.add(this)
-    }
-
-    /**
-     * Finds the root [Operation] of this [Operation].
-     *
-     * @return Root [Operation].
-     */
-    fun findRoot(): Operation {
-        if (this._input.isEmpty()) {
-            return this
-        }
-        return this._input.first().findRoot()
-    }
-
-    /**
-     * Finds the terminal base [Operation]s of this [Operation].
-     *
-     * @return Root [Operation].
-     */
-    fun findBase(list: MutableList<Operation> = mutableListOf()): List<Operation> {
-        if (this._output.isEmpty()) {
-            list.add(this)
-        } else {
-            this._output.forEach { it.findBase(list) }
-        }
-        return list
     }
 }

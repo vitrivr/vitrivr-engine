@@ -37,7 +37,7 @@ class FixedDurationSegmenter : TransformerFactory {
         val lookAheadTime = Duration.ofSeconds(
             (context[name, "lookAheadTime"] ?: throw IllegalArgumentException("Property 'lookAheadTime' must be specified")).toLong()
         )
-        return Instance(input, context, duration, lookAheadTime)
+        return Instance(input, duration, lookAheadTime)
     }
 
     /**
@@ -46,9 +46,6 @@ class FixedDurationSegmenter : TransformerFactory {
     private class Instance(
         /** The input [Operator]. */
         override val input: Operator<Retrievable>,
-
-        /** The [IndexContext] used by this [Instance]. */
-        private val context: IndexContext,
 
         /** The target duration of the segments to be created */
         length: Duration,
@@ -64,7 +61,6 @@ class FixedDurationSegmenter : TransformerFactory {
 
         /** Cache of [SourcedContent.Temporal] elements. */
         private val cache = LinkedList<ContentElement<*>>()
-
 
         /**
          *

@@ -1,7 +1,5 @@
 package org.vitrivr.engine.core.features.metadata.source.file
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -13,8 +11,6 @@ import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Retriever
-
-private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * Implementation of the [FileSourceMetadata] [Analyser], which derives metadata information from file-based retrievables
