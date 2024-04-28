@@ -165,7 +165,16 @@ abstract class AbstractRetrievable(override val id: UUID, override val type: Str
         check(relationship.subjectId == this.id || relationship.objectId == this.id) {
             "Relationship is not related to current retrievable and therefore cannot be added."
         }
-        return this.relationshipSet.add(relationship)
+        if (this.relationshipSet.add(relationship)) {
+            if (relationship.subjectId == this.id && relationship is Relationship.WithObject) {
+                relationship.`object`.addRelationship(relationship)
+            } else if (relationship.objectId == this.id && relationship is Relationship.WithSubject) {
+                relationship.subject.addRelationship(relationship)
+            }
+            return true
+        } else {
+            return false
+        }
     }
 
     /**
