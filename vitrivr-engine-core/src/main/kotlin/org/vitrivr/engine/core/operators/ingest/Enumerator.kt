@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.operators.ingest
 
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.source.Source
 
@@ -13,6 +14,4 @@ import org.vitrivr.engine.core.source.Source
  * @author Ralph Gasser
  * @vesion 1.0.0
  */
-interface Enumerator: Operator.Nullary<Source> {
-
-}
+interface Enumerator : Operator.Nullary<Retrievable>
