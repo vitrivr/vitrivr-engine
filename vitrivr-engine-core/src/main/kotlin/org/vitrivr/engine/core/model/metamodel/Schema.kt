@@ -243,12 +243,7 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      *
      * An [Exporter] always has a unique name and is backed by an existing [ExporterFactory] and an existing [ResolverFactory].
      */
-    inner class Exporter(
-        val name: String,
-        private val factory: ExporterFactory,
-        private val parameters: Map<String, String> = emptyMap(),
-        val resolver: Resolver
-    ) {
+    inner class Exporter(val name: String, private val factory: ExporterFactory, private val parameters: Map<String, String> = emptyMap(), val resolver: Resolver) {
         val schema: Schema
             get() = this@Schema
 
@@ -260,14 +255,23 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * @return [DescriptorReader]
          */
         fun getExporter(input: Operator<Retrievable>, context: IndexContext): org.vitrivr.engine.core.operators.general.Exporter {
-            if (parameters.isNotEmpty()) {
+            val newContext = if (parameters.isNotEmpty()) {
                 /* Case this is newly defined in the schema */
-                parameters.entries.forEach {
-                    context.setLocalProperty(name, it.key, it.value)
+                val params = if (context.local.containsKey(name)) {
+                    val map = context.local[name]?.toMutableMap() ?: mutableMapOf()
+                    map.putAll(parameters)
+                    map
+                } else {
+                    parameters
                 }
+                val newLocal = context.local.toMutableMap()
+                newLocal[name] = params
+                IndexContext(context.schema, context.contentFactory, context.resolver, newLocal, context.global)
+            } else {
+                /* Other case: this is from the ingestion side of things, but referenced */
+                context
             }
-            /* Other case: this is from the ingestion side of things, but referenced */
-            return this.factory.newExporter(name, input, context)
+            return this.factory.newExporter(name, input, newContext)
         }
     }
 }
