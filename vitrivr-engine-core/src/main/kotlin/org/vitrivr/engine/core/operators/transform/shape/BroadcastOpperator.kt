@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.operators.shape
+package org.vitrivr.engine.core.operators.transform.shape
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharedFlow
@@ -23,7 +23,8 @@ class BroadcastOpperator<I>(override val input: Operator<I>) : Operator.Unary<I,
     @Synchronized
     override fun toFlow(scope: CoroutineScope): SharedFlow<I> {
         if (this.sharedFlow == null) {
-            this.sharedFlow = this.input.toFlow(scope).shareIn(scope, SharingStarted.Lazily, 0)
+            val parentScope = CoroutineScope(scope.coroutineContext)
+            this.sharedFlow = this.input.toFlow(parentScope).shareIn(parentScope, SharingStarted.Lazily, 0)
         }
         return this.sharedFlow!!
     }
