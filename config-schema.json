@@ -17,6 +17,14 @@
         {
           "name": "file",
           "factory": "FileSourceMetadata"
+        },
+        {
+          "name": "time",
+          "factory": "TemporalMetadata"
+        },
+        {
+          "name": "video",
+          "factory": "VideoSourceMetadata"
         }
       ],
       "resolvers": {
