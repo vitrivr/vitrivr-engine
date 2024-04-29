@@ -12,18 +12,18 @@ interface TransformerFactory {
     /**
      * Creates a new [Transformer] instance from this [DecoderFactory].
      *
+     * @param name The name of the [Transformer]
      * @param input The input [Decoder].
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      */
-    fun newOperator(input: Decoder, context: IndexContext, parameters: Map<String, String> = emptyMap()): Transformer
+    fun newOperator(name: String, input: Decoder, context: IndexContext): Transformer
 
     /**
      * Creates a new [Transformer] instance from this [DecoderFactory].
      *
+     * @param name The name of the [Transformer]
      * @param input The input [Transformer].
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      */
-    fun newOperator(input: Transformer, context: IndexContext, parameters: Map<String, String> = emptyMap()): Transformer
+    fun newOperator(name: String, input: Transformer, context: IndexContext): Transformer
 }

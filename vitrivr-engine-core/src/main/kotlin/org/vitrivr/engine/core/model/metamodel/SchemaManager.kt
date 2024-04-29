@@ -3,10 +3,7 @@ package org.vitrivr.engine.core.model.metamodel
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.decodeFromStream
-import org.vitrivr.engine.core.config.IndexConfig
-import org.vitrivr.engine.core.config.SchemaConfig
+import org.vitrivr.engine.core.config.schema.SchemaConfig
 import org.vitrivr.engine.core.config.ingest.IngestionConfig
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
@@ -15,13 +12,10 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.operators.ingest.ExporterFactory
 import org.vitrivr.engine.core.resolver.ResolverFactory
 import org.vitrivr.engine.core.util.extension.loadServiceForName
-import java.nio.file.Files
 import java.nio.file.Paths
-import java.nio.file.StandardOpenOption
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
-import kotlin.system.exitProcess
 
 private val logger: KLogger = KotlinLogging.logger {}
 
@@ -67,12 +61,15 @@ class SchemaManager {
             @Suppress("UNCHECKED_CAST")
             schema.addField(it.name, analyser as Analyser<ContentElement<*>, Descriptor>, it.parameters)
         }
+        config.resolvers.map{
+            schema.addResolver(it.key, (loadServiceForName<ResolverFactory>(it.value.factory) ?: throw IllegalArgumentException("Failed to find resolver factory implementation for '${it.value.factory}'.")).newResolver(schema, it.value.parameters),)
+        }
         config.exporters.map {
             schema.addExporter(
                 it.name,
                 loadServiceForName<ExporterFactory>(it.factory) ?: throw IllegalArgumentException("Failed to find exporter factory implementation for '${it.factory}'."),
                 it.parameters,
-                (loadServiceForName<ResolverFactory>(it.resolver.factory) ?: throw IllegalArgumentException("Failed to find resolver factory implementation for '${it.resolver.factory}'.")).newResolver(schema, it.resolver.parameters),
+                it.resolverName
             )
         }
         config.extractionPipelines.map {

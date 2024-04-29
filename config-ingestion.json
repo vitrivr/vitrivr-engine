@@ -1,0 +1,57 @@
+{
+  "schema": "vitrivr",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverName": "disk",
+    "local": {
+      "enumerator": {
+        "path": "./your/media/path",
+        "depth": "1"
+      },
+      "thumbs": {
+        "maxSideResolution": "350",
+        "mimeType": "JPG"
+      }
+    }
+  },
+  "operators": {
+    "enumerator": {
+      "type": "ENUMERATOR",
+      "factory": "FileSystemEnumerator",
+      "mediaTypes": ["IMAGE"]
+    },
+    "decoder": {
+      "type": "DECODER",
+      "factory": "ImageDecoder"
+    },
+    "pass": {
+      "type": "SEGMENTER",
+      "factory": "PassThroughSegmenter"
+    },
+    "allContent": {
+      "type": "AGGREGATOR",
+      "factory": "AllContentAggregator"
+    },
+    "avgColor": {
+      "type": "EXTRACTOR",
+      "fieldName": "averagecolor"
+    },
+    "thumbs": {
+      "type": "EXPORTER",
+      "exporterName": "thumbnail"
+    },
+    "fileMeta": {
+      "type": "EXTRACTOR",
+      "fieldName": "file"
+    }
+  },
+  "operations": {
+    "stage0": {"operator": "enumerator"},
+    "stage1": {"operator": "decoder", "inputs": ["stage0"]},
+    "stage2": {"operator": "pass", "inputs": ["stage1"]},
+    "stage3": {"operator": "allContent", "inputs": ["stage2"]},
+    "stage4": {"operator": "avgColor", "inputs": ["stage3"]},
+    "stage5": {"operator": "thumbs", "inputs": ["stage4"]},
+    "stage6": {"operator": "fileMeta", "inputs": ["stage5"]}
+  }
+}

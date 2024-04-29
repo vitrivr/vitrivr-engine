@@ -30,24 +30,24 @@ class ThumbnailExporter : ExporterFactory {
     /**
      * Creates a new [Exporter] instance from this [ThumbnailExporter].
      *
+     * @param name The name of the [Exporter]
      * @param input The [Operator] to acting as an input.
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      */
     override fun newOperator(
+        name: String,
         input: Operator<Retrievable>,
-        context: IndexContext,
-        parameters: Map<String, String>
+        context: IndexContext
     ): Exporter {
-        logger.debug { "Creating new ThumbnailExporter with parameters $parameters." }
-        val maxSideResolution = parameters["maxSideResolution"]?.toIntOrNull() ?: 400
-        val mimeType = parameters["mimeType"]?.let {
+        val maxSideResolution = context[name, "maxSideResolution"]?.toIntOrNull() ?: 400
+        val mimeType = context[name, "mimeType"]?.let {
             try {
                 MimeType.valueOf(it.uppercase())
             } catch (e: java.lang.IllegalArgumentException) {
                 null
             }
         } ?: MimeType.JPG
+        logger.debug { "Creating new ThumbnailExporter with maxSideResolution=$maxSideResolution and mimeType=$mimeType." }
         return Instance(input, context, maxSideResolution, mimeType)
     }
 
@@ -72,35 +72,40 @@ class ThumbnailExporter : ExporterFactory {
             ) { "ThumbnailExporter only support image formats JPEG and PNG." }
         }
 
-        override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).map { retrievable ->
-            val resolvable = this.context.resolver.resolve(retrievable.id)
-            val content = retrievable.filteredAttributes(ContentAttribute::class.java).map { it.content }
-                .filterIsInstance<ImageContent>().firstOrNull()
-            if (resolvable != null && content != null) {
-                val writer = when (mimeType) {
-                    MimeType.JPEG,
-                    MimeType.JPG -> JpegWriter()
+        override fun toFlow(scope: CoroutineScope): Flow<Retrievable> =
+            this.input.toFlow(scope).map { retrievable ->
+                val resolvable = this.context.resolver.resolve(retrievable.id)
+                val contents =
+                    retrievable.filteredAttributes(ContentAttribute::class.java).map { it.content }
+                        .filterIsInstance<ImageContent>()
+                if (resolvable != null && contents.isNotEmpty()) {
+                    val writer = when (mimeType) {
+                        MimeType.JPEG,
+                        MimeType.JPG -> JpegWriter()
 
-                    MimeType.PNG -> PngWriter()
-                    else -> throw IllegalArgumentException("Unsupported mime type $mimeType")
-                }
-
-                logger.debug { "Generating thumbnail for ${retrievable.id} with ${retrievable.type} and resolution $maxResolution. Storing it in ${resolvable.uri} with ${resolvable::class.simpleName}." }
-
-                val imgBytes = ImmutableImage.fromAwt(content.content).let {
-                    if (it.width > it.height) {
-                        it.scaleToWidth(maxResolution)
-                    } else {
-                        it.scaleToHeight(maxResolution)
+                        MimeType.PNG -> PngWriter()
+                        else -> throw IllegalArgumentException("Unsupported mime type $mimeType")
                     }
-                }.bytes(writer)
-                resolvable.openOutputStream().use {
-                    it.write(imgBytes)
-                }
 
+                    logger.debug { "Generating thumbnail(s) for ${retrievable.id} with ${retrievable.type} and resolution $maxResolution. Storing it in ${resolvable.path} with ${resolvable::class.simpleName}." }
+
+                    contents.forEach { cnt ->
+
+                        val imgBytes = ImmutableImage.fromAwt(cnt.content).let {
+                            if (it.width > it.height) {
+                                it.scaleToWidth(maxResolution)
+                            } else {
+                                it.scaleToHeight(maxResolution)
+                            }
+                        }.bytes(writer)
+                        resolvable.openOutputStream().use {
+                            it.write(imgBytes)
+                        }
+                    }
+
+                }
+                retrievable
             }
-            retrievable
-        }
     }
 }
 
