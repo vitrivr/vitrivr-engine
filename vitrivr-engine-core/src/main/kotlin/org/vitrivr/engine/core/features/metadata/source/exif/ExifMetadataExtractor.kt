@@ -74,15 +74,21 @@ class ExifMetadataExtractor(
                 val tagname = tag.tagName.replace(NON_ALPHANUMERIC_REGEX, "")
                 val fullname = "${directory.name.replace(NON_ALPHANUMERIC_REGEX, "")}_$tagname"
 
-                when (fullname) {
-                    "ExifSubIFD_UserComment" -> tag.description.takeIf { it.isNotEmpty() }?.let {
-                        JsonParser.parseString(it).asJsonObject.entrySet().forEach { (key, value) ->
-                            this.field.parameters[key]?.let {
-                                columnValues[key] = convertTypeJson(value, Type.valueOf(it))
+                if (fullname == "ExifSubIFD_UserComment") {
+                    if (fullname !in this.field.parameters) {
+                        tag.description.takeIf { it.isNotEmpty() }?.let {
+                            JsonParser.parseString(it).asJsonObject.entrySet().forEach { (key, value) ->
+                                this.field.parameters[key]?.let {
+                                    columnValues[key] = convertTypeJson(value, Type.valueOf(it))
+                                }
                             }
                         }
                     }
-                    else -> this.field.parameters[fullname]?.let {
+                    else {
+                        columnValues[fullname] = Value.String(tag.description)
+                    }
+                } else {
+                    this.field.parameters[fullname]?.let {
                         val type = Type.valueOf(it)
                         columnValues[fullname] = convertType(directory, tag.tagType, type)
                     }
