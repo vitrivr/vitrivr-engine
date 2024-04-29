@@ -12,13 +12,13 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class BroadcastOpperator<I>(override val input: Operator<I>) : Operator.Unary<I, I> {
+class BroadcastOperator<I>(override val input: Operator<I>) : Operator.Unary<I, I> {
 
-    /** Reference to the [SharedFlow] backing this [BroadcastOpperator]. */
+    /** Reference to the [SharedFlow] backing this [BroadcastOperator]. */
     private var sharedFlow: SharedFlow<I>? = null
 
     /**
-     * Generates a [SharedFlow] from this [BroadcastOpperator].
+     * Generates a [SharedFlow] from this [BroadcastOperator].
      */
     @Synchronized
     override fun toFlow(scope: CoroutineScope): SharedFlow<I> {
