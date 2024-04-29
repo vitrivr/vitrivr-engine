@@ -41,17 +41,17 @@ private fun convertType(directory: Directory, tagType: Int, type: Type): Value<*
         else -> throw IllegalArgumentException("Unsupported type: $type")
     }
 
-private fun convertTypeJson(obj: JsonElement, type: Type): Value<*> =
+private fun JsonElement.convertType(type: Type): Value<*> =
     when (type) {
-        Type.STRING -> Value.String(obj.asString)
-        Type.BOOLEAN -> Value.Boolean(obj.asBoolean)
-        Type.BYTE -> Value.Byte(obj.asByte)
-        Type.SHORT -> Value.Short(obj.asShort)
-        Type.INT -> Value.Int(obj.asInt)
-        Type.LONG -> Value.Long(obj.asLong)
-        Type.FLOAT -> Value.Float(obj.asFloat)
-        Type.DOUBLE -> Value.Double(obj.asDouble)
-        Type.DATETIME -> Value.DateTime(convertDate(obj.asString))
+        Type.STRING -> Value.String(this.asString)
+        Type.BOOLEAN -> Value.Boolean(this.asBoolean)
+        Type.BYTE -> Value.Byte(this.asByte)
+        Type.SHORT -> Value.Short(this.asShort)
+        Type.INT -> Value.Int(this.asInt)
+        Type.LONG -> Value.Long(this.asLong)
+        Type.FLOAT -> Value.Float(this.asFloat)
+        Type.DOUBLE -> Value.Double(this.asDouble)
+        Type.DATETIME -> Value.DateTime(convertDate(this.asString))
         else -> throw IllegalArgumentException("Unsupported type: $type")
     }
 
@@ -83,10 +83,11 @@ class ExifMetadataExtractor(
                         val json = JsonParser.parseString(tag.description).asJsonObject
                         json.entrySet().forEach { (key, value) ->
                             this.field.parameters[key]?.let {
-                                columnValues[key] = convertTypeJson(value, Type.valueOf(it))
+                                columnValues[key] = value.convertType(Type.valueOf(it))
                             }
                         }
                     } catch (e: JsonParseException) {
+                        logger.warn { "Failed to parse JSON from UserComment: ${tag.description}" }
                         continue
                     }
                 } else {

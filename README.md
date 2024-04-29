@@ -133,8 +133,8 @@ which requires the parameter `host` with an endpoint as value.
 Other fields are for (technical) metadata such as the [`FileSourceMetadata`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/features/metadata/source/file/FileSourceMetadata.kt),
 which additionally stores the file's path and size.
 
-For exif metadata, the [`ExifMetadata`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/features/metadata/source/exif/ExifMetadata.kt) Analyser can be used. For each exif tag that should be included, a field parameter with the name "{EXIF_DIRECTORY_NAME}_{TAG_NAME}" must be set to a type. Keys that do not match an exif tag via the aforementioned pattern are interpreted to be custom metadata tags that are stored in the exif UserComment tag in JSON format. Here is an example with custom "time_zone" metadata:
-```dtd
+For exif metadata, the [`ExifMetadata`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/features/metadata/source/exif/ExifMetadata.kt) Analyser can be used. For each exif tag that should be included, a parameter with the name "{EXIF_DIRECTORY_NAME}_{TAG_NAME}" must be set to a type. Keys that do not match an exif tag via the aforementioned pattern are interpreted to be custom metadata tags that are stored in the exif UserComment tag in JSON format. Each parameter corresponds to a sub-field. Here is an example with custom "time_zone" metadata:
+```json
         {
           "name": "exif",
           "factory": "ExifMetadata",
@@ -148,7 +148,7 @@ For exif metadata, the [`ExifMetadata`](/vitrivr-engine-core/src/main/kotlin/org
         }
 ```
 For extraction, the exif UserComment of images might look like this:
-```dtd
+```json
 {"time_zone": "Europe/Berlin", "hours_awake": 12}
 ```
 
