@@ -4,6 +4,7 @@ import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.Directory
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.google.gson.JsonParseException
 import com.google.gson.JsonParser
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -75,17 +76,18 @@ class ExifMetadataExtractor(
                 val fullname = "${directory.name.replace(NON_ALPHANUMERIC_REGEX, "")}_$tagname"
 
                 if (fullname == "ExifSubIFD_UserComment") {
-                    if (fullname !in this.field.parameters) {
-                        tag.description.takeIf { it.isNotEmpty() }?.let {
-                            JsonParser.parseString(it).asJsonObject.entrySet().forEach { (key, value) ->
-                                this.field.parameters[key]?.let {
-                                    columnValues[key] = convertTypeJson(value, Type.valueOf(it))
-                                }
+                    if (fullname in this.field.parameters){
+                        columnValues[fullname] = Value.String(tag.description)
+                    }
+                    try {
+                        val json = JsonParser.parseString(tag.description).asJsonObject
+                        json.entrySet().forEach { (key, value) ->
+                            this.field.parameters[key]?.let {
+                                columnValues[key] = convertTypeJson(value, Type.valueOf(it))
                             }
                         }
-                    }
-                    else {
-                        columnValues[fullname] = Value.String(tag.description)
+                    } catch (e: JsonParseException) {
+                        continue
                     }
                 } else {
                     this.field.parameters[fullname]?.let {
