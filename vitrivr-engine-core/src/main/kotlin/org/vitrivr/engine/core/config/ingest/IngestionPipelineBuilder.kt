@@ -18,7 +18,7 @@ import org.vitrivr.engine.core.operators.general.Transformer
 import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.operators.ingest.*
 import org.vitrivr.engine.core.operators.persistence.PersistingSink
-import org.vitrivr.engine.core.operators.transform.shape.BroadcastOpperator
+import org.vitrivr.engine.core.operators.transform.shape.BroadcastOperator
 import org.vitrivr.engine.core.operators.transform.shape.CombineOperator
 import org.vitrivr.engine.core.operators.transform.shape.ConcatOperator
 import org.vitrivr.engine.core.operators.transform.shape.MergeOperator
@@ -108,7 +108,7 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
         /* Prepare and cache operator. */
         var operator = buildOperator(operation.opName, op, operation.opConfig)
         if (operation.output.size > 1) {
-            operator = BroadcastOpperator(operator)
+            operator = BroadcastOperator(operator)
         }
         memoizationTable[operation.name] = operator
 
