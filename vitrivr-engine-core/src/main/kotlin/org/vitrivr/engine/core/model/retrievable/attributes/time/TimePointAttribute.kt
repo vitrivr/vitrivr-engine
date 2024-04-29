@@ -9,8 +9,8 @@ import java.util.concurrent.TimeUnit
  * @author Ralph Gasser
  * @version 1.0.0
  */
-data class TimestampAttribute(val timestampNs: Long) : RetrievableAttribute, Comparable<TimestampAttribute> {
+data class TimePointAttribute(val timepointNs: Long) : RetrievableAttribute, Comparable<TimePointAttribute> {
     constructor(timestamp: Long, unit: TimeUnit) : this(unit.toNanos(timestamp))
 
-    override fun compareTo(other: TimestampAttribute): Int = this.timestampNs.compareTo(other.timestampNs)
+    override fun compareTo(other: TimePointAttribute): Int = this.timepointNs.compareTo(other.timepointNs)
 }

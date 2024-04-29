@@ -9,8 +9,8 @@ import java.util.concurrent.TimeUnit
  * @author Ralph Gasser
  * @version 1.0.0
  */
-data class TimerangeAttribute(val startNs: Long, val endNs: Long) : RetrievableAttribute {
+data class TimeRangeAttribute(val startNs: Long, val endNs: Long) : RetrievableAttribute {
     constructor(start: Long, end: Long, unit: TimeUnit) : this(unit.toNanos(start), unit.toNanos(end))
 
-    fun contains(timestamp: TimestampAttribute): Boolean = timestamp.timestampNs in this.startNs..this.endNs
+    fun contains(timestamp: TimePointAttribute): Boolean = timestamp.timepointNs in this.startNs..this.endNs
 }

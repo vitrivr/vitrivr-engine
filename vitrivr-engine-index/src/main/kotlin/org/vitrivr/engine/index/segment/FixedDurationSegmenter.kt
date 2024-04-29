@@ -10,7 +10,7 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
-import org.vitrivr.engine.core.model.retrievable.attributes.time.TimestampAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.time.TimePointAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 import org.vitrivr.engine.core.operators.general.TransformerFactory
@@ -75,7 +75,7 @@ class FixedDurationSegmenter : TransformerFactory {
 
             /* Collect upstream flow. */
             this@Instance.input.toFlow(scope).collect { ingested ->
-                val timestamp = ingested.filteredAttribute(TimestampAttribute::class.java) ?: return@collect
+                val timestamp = ingested.filteredAttribute(TimePointAttribute::class.java) ?: return@collect
                 val source = ingested.filteredAttribute(SourceAttribute::class.java)?.source ?: return@collect
 
                 /* Check if source has changed. */
@@ -92,7 +92,7 @@ class FixedDurationSegmenter : TransformerFactory {
 
                 /* Check if cut-off time has been exceeded. */
                 val cutOffTime = lastStartTime + this@Instance.lengthNanos + this@Instance.lookAheadNanos
-                if (timestamp.timestampNs >= cutOffTime) {
+                if (timestamp.timepointNs >= cutOffTime) {
                     sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos)
                     lastStartTime += this@Instance.lengthNanos
                 }
@@ -111,8 +111,8 @@ class FixedDurationSegmenter : TransformerFactory {
             /* Drain cache. */
             val emit = LinkedList<Retrievable>()
             cache.removeIf {
-                val timestamp = it.filteredAttribute(TimestampAttribute::class.java) ?: return@removeIf true
-                if (timestamp.timestampNs < nextStartTime) {
+                val timestamp = it.filteredAttribute(TimePointAttribute::class.java) ?: return@removeIf true
+                if (timestamp.timepointNs < nextStartTime) {
                     emit.add(it)
                     true
                 } else {
