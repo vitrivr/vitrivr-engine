@@ -41,7 +41,7 @@ class FileSystemEnumerator : EnumeratorFactory {
      * @param name The name of the [Enumerator]
      * @param context The [IndexContext] to use.
      */
-    override fun newOperator(name: String, context: IndexContext, mediaTypes: List<MediaType>): Enumerator {
+    override fun newEnumerator(name: String, context: IndexContext, mediaTypes: List<MediaType>): Enumerator {
         val path = Path(context[name, "path"] ?: throw IllegalArgumentException("Path is required."))
         val depth = (context[name, "depth"] ?: Int.MAX_VALUE.toString()).toInt()
         val skip = context[name, "skip"]?.toLongOrNull() ?: 0L
@@ -57,8 +57,8 @@ class FileSystemEnumerator : EnumeratorFactory {
      * @param context The [IndexContext] to use.
      * @param inputs Is ignored.
      */
-    override fun newOperator(name: String, context: IndexContext, mediaTypes: List<MediaType>, inputs: Stream<*>?): Enumerator {
-        return newOperator(name, context, mediaTypes)
+    override fun newEnumerator(name: String, context: IndexContext, mediaTypes: List<MediaType>, inputs: Stream<*>?): Enumerator {
+        return newEnumerator(name, context, mediaTypes)
     }
 
     /**

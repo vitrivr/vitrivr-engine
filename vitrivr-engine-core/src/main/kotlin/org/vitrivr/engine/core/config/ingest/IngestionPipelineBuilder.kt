@@ -183,9 +183,9 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
     private fun buildEnumerator(name: String, config: OperatorConfig.Enumerator, stream: Stream<*>? = null): Enumerator {
         val factory = loadFactory<EnumeratorFactory>(config.factory)
         return if (stream == null) {
-            factory.newOperator(name, context, config.mediaTypes)
+            factory.newEnumerator(name, context, config.mediaTypes)
         } else {
-            factory.newOperator(name, context, config.mediaTypes, stream)
+            factory.newEnumerator(name, context, config.mediaTypes, stream)
         }.apply {
             logger.info {
                 "Instantiated new ${

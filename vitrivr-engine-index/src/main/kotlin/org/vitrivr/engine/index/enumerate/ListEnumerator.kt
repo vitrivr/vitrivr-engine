@@ -27,7 +27,7 @@ class ListEnumerator : EnumeratorFactory {
      * @param name The name of the [Enumerator]
      * @param context The [IndexContext] to use.
      */
-    override fun newOperator(name: String, context: IndexContext, mediaTypes: List<MediaType>): Enumerator {
+    override fun newEnumerator(name: String, context: IndexContext, mediaTypes: List<MediaType>): Enumerator {
         val type = context[name, "type"]
         return Instance(type)
     }
@@ -39,8 +39,8 @@ class ListEnumerator : EnumeratorFactory {
      * @param context The [IndexContext] to use.
      * @param inputs Is ignored.
      */
-    override fun newOperator(name: String, context: IndexContext, mediaTypes: List<MediaType>, inputs: Stream<*>?): Enumerator {
-        return newOperator(name, context, mediaTypes)
+    override fun newEnumerator(name: String, context: IndexContext, mediaTypes: List<MediaType>, inputs: Stream<*>?): Enumerator {
+        return newEnumerator(name, context, mediaTypes)
     }
 
     /**

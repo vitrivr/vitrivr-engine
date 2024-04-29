@@ -39,7 +39,7 @@ class ApiEnumerator : EnumeratorFactory {
      * @param context The [IndexContext] to use.
      */
     @Suppress("UNCHECKED_CAST")
-    override fun newOperator(name: String, context: IndexContext, mediaTypes: List<MediaType>, inputs: Stream<*>?): Enumerator {
+    override fun newEnumerator(name: String, context: IndexContext, mediaTypes: List<MediaType>, inputs: Stream<*>?): Enumerator {
         val paths = inputs as Stream<Path>
         val depth = (context[name, "depth"] ?: Int.MAX_VALUE.toString()).toInt()
         val skip = context[name, "skip"]?.toLongOrNull() ?: 0L
