@@ -21,6 +21,6 @@ enum class MergeType {
     fun <T : Retrievable> operator(inputs: List<Operator<T>>) = when (this) {
         MERGE -> MergeOperator(inputs)
         COMBINE -> CombineOperator(inputs)
-        CONCAT -> TODO()
+        CONCAT -> ConcatOperator(inputs)
     }
 }
