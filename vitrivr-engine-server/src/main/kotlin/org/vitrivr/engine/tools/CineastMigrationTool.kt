@@ -8,7 +8,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import org.vitrivr.engine.core.config.SchemaConfig
+import org.vitrivr.engine.core.config.schema.SchemaConfig
 import org.vitrivr.engine.core.database.Initializer
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.DescriptorId

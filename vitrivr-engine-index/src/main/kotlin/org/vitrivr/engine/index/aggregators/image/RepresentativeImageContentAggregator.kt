@@ -25,12 +25,12 @@ class RepresentativeImageContentAggregator : AggregatorFactory {
     /**
      * Returns an [RepresentativeImageContentAggregator.Instance].
      *
+     * @param name The name of the [Aggregator]
      * @param input The [Segmenter] to use as input.
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      * @return [RepresentativeImageContentAggregator.Instance]
      */
-    override fun newOperator(input: Segmenter, context: IndexContext, parameters: Map<String, String>): Aggregator =
+    override fun newOperator(name: String, input: Segmenter, context: IndexContext): Aggregator =
         Instance(input, context)
 
     /**
