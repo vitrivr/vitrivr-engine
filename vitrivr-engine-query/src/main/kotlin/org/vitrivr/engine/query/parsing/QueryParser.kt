@@ -14,12 +14,12 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.core.operators.retrieve.Transformer
 import org.vitrivr.engine.core.operators.retrieve.TransformerFactory
 import org.vitrivr.engine.core.util.extension.loadServiceForName
-import org.vitrivr.engine.query.operators.retrieval.RetrievedLookup
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
 import org.vitrivr.engine.query.model.api.input.*
 import org.vitrivr.engine.query.model.api.operator.AggregatorDescription
 import org.vitrivr.engine.query.model.api.operator.RetrieverDescription
 import org.vitrivr.engine.query.model.api.operator.TransformerDescription
+import org.vitrivr.engine.query.operators.retrieval.RetrievedLookup
 import java.util.*
 
 /**
@@ -72,12 +72,12 @@ class QueryParser(val schema: Schema) {
             require(input.type == InputType.ID) { "Only inputs of type ID are supported for direct retrievable lookup." }
             return RetrievedLookup(this.schema.connection.getRetrievableReader(), listOf(UUID.fromString((input as RetrievableIdInputData).id)))
         }
-        val fieldAndAttributeName: Pair<String,String?> = if(operation.field?.contains(".") == true){
+        val fieldAndAttributeName: Pair<String,String?> = if (operation.field.contains(".")) {
             val f = operation.field.substringBefore(".")
             val a = operation.field.substringAfter(".")
             f to a
         }else{
-            operation.field!! to null
+            operation.field to null
         }
         val field = this.schema[fieldAndAttributeName.first] ?: throw IllegalArgumentException("Retriever '${operation.field}' not defined in schema")
 
@@ -90,7 +90,7 @@ class QueryParser(val schema: Schema) {
                 val descriptor = reader.getBy(id, "retrievableId") ?: throw IllegalArgumentException("No retrievable with id '$id' present in ${field.fieldName}")
                 field.getRetrieverForDescriptor(descriptor, description.context)
             }
-            is VectorInputData -> field.getRetrieverForDescriptor(FloatVectorDescriptor(vector = input.data.map { Value.Float(it) }, transient = true), description.context)
+            is VectorInputData -> field.getRetrieverForDescriptor(FloatVectorDescriptor(vector = input.data.map { Value.Float(it) }), description.context)
             else -> {
                 /* Is this a boolean sub-field query ? */
                 if(fieldAndAttributeName.second != null && input.comparison != null){

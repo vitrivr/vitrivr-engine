@@ -7,37 +7,37 @@ import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.decorators.TemporalContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
+import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.Aggregator
-import org.vitrivr.engine.core.operators.ingest.AggregatorFactory
-import org.vitrivr.engine.core.operators.ingest.Segmenter
+import org.vitrivr.engine.core.operators.general.Transformer
+import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.util.extension.getRGBArray
 import org.vitrivr.engine.core.util.extension.setRGBArray
 import org.vitrivr.engine.index.aggregators.AbstractAggregator
 import java.awt.image.BufferedImage
 
 /**
- * A [Aggregator] that returns an average image of all [ImageContent].
+ * A [Transformer] that merges all [ImageContent] found in an [Ingested] into an average [ImageContent].
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
-class AverageImageContentAggregator : AggregatorFactory {
+class AverageImageContentAggregator : TransformerFactory {
 
     /**
      * Returns an [AverageImageContentAggregator.Instance].
      *
-     * @param name The name of the [Aggregator]
-     * @param input The [Segmenter] to use as input.
+     * @param name The name of the [Transformer]
+     * @param input The input [Operator] .
      * @param context The [IndexContext] to use.
      * @return [AverageImageContentAggregator.Instance]
      */
-    override fun newOperator(name: String, input: Segmenter, context: IndexContext): Aggregator = Instance(input, context)
+    override fun newTransformer(name: String, input: Operator<Retrievable>, context: IndexContext): Transformer = Instance(input, context)
 
     /**
-     * The [Instance] returns by the [AggregatorFactory]
+     * The [Instance] returns by the [AverageImageContentAggregator]
      */
     private class Instance(override val input: Operator<Retrievable>, context: IndexContext) : AbstractAggregator(input, context) {
         override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> {

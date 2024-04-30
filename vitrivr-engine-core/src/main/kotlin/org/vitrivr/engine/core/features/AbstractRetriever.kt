@@ -23,6 +23,7 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
  * @version 1.0.0
  */
 abstract class AbstractRetriever<C : ContentElement<*>, D : Descriptor>(override val field: Schema.Field<C, D>, val query: Query, val context: QueryContext) : Retriever<C, D> {
+
     /** The [DescriptorReader] instance used by this [AbstractRetriever]. */
     protected val reader: DescriptorReader<D> by lazy { this.field.getReader() }
 

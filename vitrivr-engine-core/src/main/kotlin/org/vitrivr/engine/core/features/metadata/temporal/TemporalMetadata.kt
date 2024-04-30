@@ -1,7 +1,5 @@
 package org.vitrivr.engine.core.features.metadata.temporal
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadata
@@ -16,7 +14,6 @@ import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.BooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import java.util.*
 
 /**
  * Implementation of the [TemporalMetadata] [Analyser], which derives metadata information [TemporalContent].
@@ -24,9 +21,6 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-
-private val logger: KLogger = KotlinLogging.logger {}
-
 class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = TemporalMetadataDescriptor::class
@@ -42,24 +36,13 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
     /**
      * Generates and returns a new [FileSourceMetadataExtractor] for the provided [Schema.Field].
      *
-     * @param field The [Schema.Field] for which to create the [FileSourceMetadataExtractor].
+     * @param field The [Schema.Field] for which to create the [FileSourceMetadataExtractor]. Can be null.
      * @param input The input [Operator]
      * @param context The [IndexContext]
-     * @param persisting Whether the resulting [TemporalMetadataDescriptor]s should be persisted.
      *
      * @return [TemporalMetadataExtractor]
      */
-    override fun newExtractor(
-        field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>,
-        input: Operator<Retrievable>,
-        context: IndexContext,
-        persisting: Boolean,
-        parameters: Map<String, Any>
-    ): TemporalMetadataExtractor {
-        require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
-        logger.debug { "Creating new TemporalMetadataExtractor for field '${field.fieldName}' with parameters $parameters." }
-        return TemporalMetadataExtractor(input, field, persisting)
-    }
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>?, input: Operator<Retrievable>, context: IndexContext) = TemporalMetadataExtractor(input, field)
 
     /**
      * Generates and returns a new [TemporalMetadataRetriever] for the provided [Schema.Field].
