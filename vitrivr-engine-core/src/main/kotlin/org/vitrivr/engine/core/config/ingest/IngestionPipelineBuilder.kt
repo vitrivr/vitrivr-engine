@@ -166,7 +166,7 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
         return when (config) { // the when-on-type is on purpose: It enforces all branches
             is OperatorConfig.Decoder -> buildDecoder(name, parent as Enumerator, config)
             is OperatorConfig.Transformer -> buildTransformer(name, parent as Operator<Retrievable>, config) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
-            is OperatorConfig.Extractor -> buildExtractor(parent as Operator<Retrievable>, config) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
+            is OperatorConfig.Extractor -> buildExtractor(name, parent as Operator<Retrievable>, config) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
             is OperatorConfig.Exporter -> buildExporter(name, parent as Operator<Retrievable>, config) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
             else -> throw IllegalStateException("Operator type $config is not supported in this context!")
         }
@@ -259,7 +259,7 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
      * @param parent The preceding [Operator]. Has to be one of: [Exporter], [Extractor].
      * @param config: The [OperatorConfig.Extractor] describing the to-be-built [Extractor]
      */
-    private fun buildExtractor(parent: Operator<Retrievable>, config: OperatorConfig.Extractor): Extractor<*, *> {
+    private fun buildExtractor(name: String, parent: Operator<Retrievable>, config: OperatorConfig.Extractor): Extractor<*, *> {
         if (!config.fieldName.isNullOrBlank()) {
             val field = this.context.schema[config.fieldName] ?: throw IllegalArgumentException("Field '${config.fieldName}' does not exist in schema '${context.schema.name}'")
             return field.getExtractor(parent, this.context).apply {
@@ -267,7 +267,7 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
             }
         } else if (!config.factory.isNullOrBlank()) {
             val factory = loadFactory<Analyser<ContentElement<*>, Descriptor>>(config.factory)
-            return factory.newExtractor(null, parent, this.context).apply {
+            return factory.newExtractor(name, parent, this.context).apply {
                 logger.info { "Built extractor by factory: ${config.factory}" }
             }
         } else {

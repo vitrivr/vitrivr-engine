@@ -18,6 +18,7 @@ class DominantColor : Analyser<ContentElement<*>, StringDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = StringDescriptor::class
     override fun prototype(field: Schema.Field<*, *>) = StringDescriptor(id = UUID.randomUUID(), retrievableId = UUID.randomUUID(), value = Value.String(""))
+
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, StringDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, StringDescriptor> {
         TODO("Not yet implemented")
     }
@@ -26,7 +27,11 @@ class DominantColor : Analyser<ContentElement<*>, StringDescriptor> {
         TODO("Not yet implemented")
     }
 
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, StringDescriptor>?, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, StringDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, StringDescriptor> {
+        TODO("Not yet implemented")
+    }
+
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, StringDescriptor> {
         TODO("Not yet implemented")
     }
 }

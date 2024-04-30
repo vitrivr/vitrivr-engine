@@ -32,7 +32,11 @@ class SkeletonPose : Analyser<ContentElement<*>, SkeletonDescriptor> {
         TODO("Not yet implemented")
     }
 
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, SkeletonDescriptor>?, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, SkeletonDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, SkeletonDescriptor>, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, SkeletonDescriptor> {
+        TODO("Not yet implemented")
+    }
+
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, SkeletonDescriptor> {
         TODO("Not yet implemented")
     }
 }

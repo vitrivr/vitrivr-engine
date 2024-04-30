@@ -1,8 +1,5 @@
 package org.vitrivr.engine.base.features.external.implementations.clip
 
-import org.vitrivr.engine.base.features.external.ExternalAnalyser.Companion.HOST_PARAMETER_DEFAULT
-import org.vitrivr.engine.base.features.external.ExternalAnalyser.Companion.HOST_PARAMETER_NAME
-import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.model.content.ContentType
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -21,13 +18,9 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @param input Operator representing the input data source.
  *
  * @author Rahel Arnold
- * @version 1.2.1
+ * @version 1.2.2
  */
-class CLIPExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>?, context: IndexContext) : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor>(input, field) {
-
-    /** The host of the external [CLIP] service. */
-    private val host: String = (field?.parameters?.get(HOST_PARAMETER_NAME) ?: (context.getProperty("", HOST_PARAMETER_NAME))) ?: HOST_PARAMETER_DEFAULT
-
+class CLIPExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>?, private val host: String) : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor>(input, field) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *

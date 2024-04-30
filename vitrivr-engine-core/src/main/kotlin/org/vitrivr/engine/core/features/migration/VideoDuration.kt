@@ -24,7 +24,11 @@ class VideoDuration : Analyser<ContentElement<*>, FloatDescriptor> {
     override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, FloatDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, FloatDescriptor> {
         TODO("Not yet implemented")
     }
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatDescriptor>?, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, FloatDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatDescriptor>, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, FloatDescriptor> {
+        TODO("Not yet implemented")
+    }
+
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, FloatDescriptor> {
         TODO("Not yet implemented")
     }
 }

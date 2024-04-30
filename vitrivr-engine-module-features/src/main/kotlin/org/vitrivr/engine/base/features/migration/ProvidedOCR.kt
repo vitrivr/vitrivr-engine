@@ -26,7 +26,11 @@ class ProvidedOCR : Analyser<ContentElement<*>, StringDescriptor> {
         TODO("Not yet implemented")
     }
 
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, StringDescriptor>?, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, StringDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, StringDescriptor> {
+        TODO("Not yet implemented")
+    }
+
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, StringDescriptor> {
         TODO("Not yet implemented")
     }
 }

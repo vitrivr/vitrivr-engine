@@ -34,7 +34,16 @@ class ASR : Analyser<ContentElement<*>, StringDescriptor> {
      *
      * Always throws an [UnsupportedOperationException].
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, StringDescriptor>?, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, StringDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, StringDescriptor> {
+        throw UnsupportedOperationException("OCR does not allow for extraction.")
+    }
+
+    /**
+     * This feature does not support extraction.
+     *
+     * Always throws an [UnsupportedOperationException].
+     */
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, StringDescriptor> {
         throw UnsupportedOperationException("OCR does not allow for extraction.")
     }
 

@@ -53,7 +53,19 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>?, input: Operator<Retrievable>, context: IndexContext) = AverageColorExtractor(input, field)
+    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext) = AverageColorExtractor(input, field)
+
+    /**
+     * Generates and returns a new [AverageColorExtractor] instance for this [AverageColor].
+     *
+     * @param name The name of the [AverageColorExtractor].
+     * @param input The [Operator] that acts as input to the new [Extractor].
+     * @param context The [IndexContext] to use with the [Extractor].
+     *
+     * @return A new [Extractor] instance for this [Analyser]
+     * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
+     */
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, FloatVectorDescriptor> = AverageColorExtractor(input, null)
 
     /**
      * Generates and returns a new [AverageColorRetriever] instance for this [AverageColor].
