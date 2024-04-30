@@ -1,7 +1,5 @@
 package org.vitrivr.engine.base.features.external.implementations.dino
 
-import org.vitrivr.engine.base.features.external.ExternalAnalyser
-import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.model.content.ContentType
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -21,14 +19,7 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Rahel Arnold
  * @version 1.1.1
  */
-class DINOExtractor(input: Operator<Retrievable>, field: Schema.Field<ImageContent, FloatVectorDescriptor>?, context: IndexContext) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, field) {
-
-    /** The host of the external [DINO] service. */
-    private val host: String = (field?.parameters?.get(ExternalAnalyser.HOST_PARAMETER_NAME) ?: (context.getProperty("",
-        ExternalAnalyser.HOST_PARAMETER_NAME
-    ))) ?: ExternalAnalyser.HOST_PARAMETER_DEFAULT
-
-
+class DINOExtractor(input: Operator<Retrievable>, field: Schema.Field<ImageContent, FloatVectorDescriptor>?, private val host: String) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, field) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *

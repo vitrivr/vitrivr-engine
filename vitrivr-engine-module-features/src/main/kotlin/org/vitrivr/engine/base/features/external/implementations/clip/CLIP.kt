@@ -64,8 +64,25 @@ class CLIP : ExternalAnalyser<ContentElement<*>,FloatVectorDescriptor>() {
      * @return A new [Extractor] instance for this [CLIP]
      * @throws [UnsupportedOperationException], if this [CLIP] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>?, input: Operator<Retrievable>, context: IndexContext)
-        = CLIPExtractor(input, field, context)
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext): CLIPExtractor {
+        val host: String = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
+        return CLIPExtractor(input, null, host)
+    }
+
+    /**
+     * Generates and returns a new [Extractor] instance for this [CLIP].
+     *
+     * @param name The [Schema.Field] to create an [Extractor] for.
+     * @param input The [Operator] that acts as input to the new [Extractor].
+     * @param context The [IndexContext] to use with the [Extractor].
+     *
+     * @return A new [Extractor] instance for this [CLIP]
+     * @throws [UnsupportedOperationException], if this [CLIP] does not support the creation of an [Extractor] instance.
+     */
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): CLIPExtractor {
+        val host: String = context.getProperty(name, HOST_PARAMETER_NAME) ?: HOST_PARAMETER_DEFAULT
+        return CLIPExtractor(input, null, host)
+    }
 
     /**
      * Generates and returns a new [Retriever] instance for this [CLIP].

@@ -42,7 +42,18 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
      *
      * @return [TemporalMetadataExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>?, input: Operator<Retrievable>, context: IndexContext) = TemporalMetadataExtractor(input, field)
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext) = TemporalMetadataExtractor(input, field)
+
+    /**
+     * Generates and returns a new [FileSourceMetadataExtractor] for the provided [Schema.Field].
+     *
+     * @param name The name of the [FileSourceMetadataExtractor].
+     * @param input The input [Operator]
+     * @param context The [IndexContext]
+     *
+     * @return [TemporalMetadataExtractor]
+     */
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = TemporalMetadataExtractor(input, null)
 
     /**
      * Generates and returns a new [TemporalMetadataRetriever] for the provided [Schema.Field].

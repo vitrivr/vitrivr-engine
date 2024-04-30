@@ -39,7 +39,18 @@ class FileSourceMetadata : Analyser<ContentElement<*>, FileSourceMetadataDescrip
      *
      * @return [FileSourceMetadataExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>?, input: Operator<Retrievable>, context: IndexContext) = FileSourceMetadataExtractor(input, field)
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext) = FileSourceMetadataExtractor(input, field)
+
+    /**
+     * Generates and returns a new [FileSourceMetadataExtractor] for the provided [Schema.Field].
+     *
+     * @param name The name of the [FileSourceMetadataExtractor].
+     * @param input The input [Operator]
+     * @param context The [IndexContext]
+     *
+     * @return [FileSourceMetadataExtractor]
+     */
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = FileSourceMetadataExtractor(input, null)
 
     /**
      * Generates and returns a new [FileSourceMetadataRetriever] for the provided [Schema.Field].

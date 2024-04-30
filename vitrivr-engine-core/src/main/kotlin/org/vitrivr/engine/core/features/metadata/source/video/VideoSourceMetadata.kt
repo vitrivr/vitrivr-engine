@@ -14,6 +14,7 @@ import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.BooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.ingest.Extractor
 
 /**
  * Implementation of the [VideoSourceMetadata] [Analyser], which derives metadata information from a [Retrievable].
@@ -42,7 +43,18 @@ class VideoSourceMetadata : Analyser<ContentElement<*>, VideoSourceMetadataDescr
      *
      * @return [FileSourceMetadataExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>?, input: Operator<Retrievable>, context: IndexContext) = VideoSourceMetadataExtractor(input, field)
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext) = VideoSourceMetadataExtractor(input, field)
+
+    /**
+     * Generates and returns a new [FileSourceMetadataExtractor] for the provided [Schema.Field].
+     *
+     * @param name The name of the [FileSourceMetadataExtractor].
+     * @param input The input [Operator]
+     * @param context The [IndexContext]
+     *
+     * @return [FileSourceMetadataExtractor]
+     */
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, VideoSourceMetadataDescriptor> = VideoSourceMetadataExtractor(input, null)
 
     /**
      * Generates and returns a new [VideoSourceMetadataRetriever] for the provided [Schema.Field].

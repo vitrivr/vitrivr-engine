@@ -11,7 +11,7 @@ import org.vitrivr.engine.core.operators.Operator
  * A factory object for a specific [Extractor] type.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 interface ExtractorFactory<C : ContentElement<*>, D : Descriptor> {
     /**
@@ -21,5 +21,14 @@ interface ExtractorFactory<C : ContentElement<*>, D : Descriptor> {
      * @param input The input [Operator].
      * @param context The [IndexContext] to use.
      */
-    fun newExtractor(field: Schema.Field<C, D>?, input: Operator<Retrievable>, context: IndexContext): Extractor<C, D>
+    fun newExtractor(field: Schema.Field<C, D>, input: Operator<Retrievable>, context: IndexContext): Extractor<C, D>
+
+    /**
+     * Creates a new [Extractor] instance from this [ExtractorFactory].
+     *
+     * @param name The name of the [Operator].
+     * @param input The input [Operator].
+     * @param context The [IndexContext] to use.
+     */
+    fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<C, D>
 }

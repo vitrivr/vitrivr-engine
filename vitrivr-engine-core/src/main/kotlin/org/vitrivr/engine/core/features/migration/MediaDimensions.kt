@@ -24,7 +24,11 @@ class  MediaDimensions : Analyser<ContentElement<*>, MediaDimensionsDescriptor> 
         TODO("Not yet implemented")
     }
 
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, MediaDimensionsDescriptor>?, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, MediaDimensionsDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, MediaDimensionsDescriptor>, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, MediaDimensionsDescriptor> {
+        TODO("Not yet implemented")
+    }
+
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, MediaDimensionsDescriptor> {
         TODO("Not yet implemented")
     }
 }
