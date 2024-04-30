@@ -1,23 +1,19 @@
 package org.vitrivr.engine.core.model.metamodel
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.ExperimentalSerializationApi
-import org.vitrivr.engine.core.config.schema.SchemaConfig
 import org.vitrivr.engine.core.config.ingest.IngestionConfig
+import org.vitrivr.engine.core.config.schema.SchemaConfig
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
-import org.vitrivr.engine.core.operators.ingest.ExporterFactory
+import org.vitrivr.engine.core.operators.general.ExporterFactory
 import org.vitrivr.engine.core.resolver.ResolverFactory
 import org.vitrivr.engine.core.util.extension.loadServiceForName
 import java.nio.file.Paths
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
-
-private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * The central [Schema] manager used by vitrivr.
@@ -61,8 +57,8 @@ class SchemaManager {
             @Suppress("UNCHECKED_CAST")
             schema.addField(it.name, analyser as Analyser<ContentElement<*>, Descriptor>, it.parameters)
         }
-        config.resolvers.map{
-            schema.addResolver(it.key, (loadServiceForName<ResolverFactory>(it.value.factory) ?: throw IllegalArgumentException("Failed to find resolver factory implementation for '${it.value.factory}'.")).newResolver(schema, it.value.parameters),)
+        config.resolvers.map {
+            schema.addResolver(it.key, (loadServiceForName<ResolverFactory>(it.value.factory) ?: throw IllegalArgumentException("Failed to find resolver factory implementation for '${it.value.factory}'.")).newResolver(schema, it.value.parameters))
         }
         config.exporters.map {
             schema.addExporter(
@@ -73,12 +69,6 @@ class SchemaManager {
             )
         }
         config.extractionPipelines.map {
-            /*val indexConfig = IndexConfig.read(Paths.get(it.path))
-                ?: throw IllegalArgumentException("Failed to read pipeline configuration from '${it.path}'.")
-            if (indexConfig.schema != schema.name) {
-                throw IllegalArgumentException("Schema name in pipeline configuration '${indexConfig.schema}' does not match schema name '${schema.name}'.")
-            }
-            schema.addPipeline(it.name, indexConfig)*/
             val indexConfig = IngestionConfig.read(Paths.get(it.path))
                 ?: throw IllegalArgumentException("Failed to read pipeline configuration from '${it.path}'.")
             if (indexConfig.schema != schema.name) {

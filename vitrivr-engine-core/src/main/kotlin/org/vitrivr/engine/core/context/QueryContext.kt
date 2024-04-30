@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 class QueryContext(
     override val local: Map<String, Map<String, String>> = emptyMap(),
     override val global: Map<String, String> = emptyMap()
-): Context() {
+) : Context() {
 }

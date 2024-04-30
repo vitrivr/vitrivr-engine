@@ -9,8 +9,9 @@ import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 
-class MockConnection(schemaName: String,
-                     provider: ConnectionProvider = MockConnectionProvider(schemaName)
+class MockConnection(
+    schemaName: String,
+    provider: ConnectionProvider = MockConnectionProvider(schemaName)
 ) : AbstractConnection(schemaName, provider) {
     override val provider: ConnectionProvider
         get() = TODO("Not yet implemented")

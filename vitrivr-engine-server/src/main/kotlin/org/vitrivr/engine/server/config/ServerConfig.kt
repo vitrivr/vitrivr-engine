@@ -23,7 +23,7 @@ data class ServerConfig(
 ) {
     companion object {
         /** Default path to fall back to. */
-        const val DEFAULT_SCHEMA_PATH = "./config.json"
+        const val DEFAULT_SCHEMA_PATH = "./config-schema.json"
 
         /**
          * Tries to read a [ServerConfig] from a file specified by the given [Path].

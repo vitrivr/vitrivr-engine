@@ -3,7 +3,7 @@ package org.vitrivr.engine.core.model.descriptor.struct.metadata
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
-import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSourceMetadataDescriptor
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
@@ -20,7 +20,7 @@ data class TemporalMetadataDescriptor(
     override val retrievableId: RetrievableId, //retrievable Id must come first, due to reflection
     val startNs: Value.Long,
     val endNs: Value.Long,
-    override val transient: Boolean = false
+    override val field: Schema.Field<*, TemporalMetadataDescriptor>? = null
 ) : StructDescriptor {
 
     companion object {

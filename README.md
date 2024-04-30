@@ -476,9 +476,13 @@ There are different _types_ of operators:
 
 * [`Enumerator`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Enumerator.kt) which emit items to ingest.
 * [`Decoder`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Decoder.kt) which decode the file sources such that the content is available for ingestion.
-* [`Segmenter`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Segmenter.kt) which segment incoming content and emit _n_ [`Retrievable`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/retrievable/Retrievable.kt)s, resulting in a 1:n mapping.
-* [`Transformer`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Segmenter.kt), [`Extractor`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Extractor.kt), and [`Exporter`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Exporter.kt), which all process one retrievable and emit _one_ [`Retrievable`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/retrievable/Retrievable.kt)s, resulting in a 1:1 mapping.
-* [`Aggregator`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Aggregator.kt) which aggregate _n_ incoming retrievables and emit one [`Retrievable`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/retrievable/Retrievable.kt)s, resulting in a n:1 mapping.
+* [`Segmenter`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Segmenter.kt) which segment incoming content and emit
+  _n_ [`Retrievable`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/retrievable/Retrievable.kt)s, resulting in a 1:n mapping.
+* [`Transformer`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Segmenter.kt), [`Extractor`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Extractor.kt),
+  and [`Exporter`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Exporter.kt), which all process one retrievable and emit
+  _one_ [`Retrievable`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/retrievable/Retrievable.kt)s, resulting in a 1:1 mapping.
+* [`Aggregator`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Aggregator.kt) which aggregate _n_ incoming retrievables and emit
+  one [`Retrievable`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/retrievable/Retrievable.kt)s, resulting in a n:1 mapping.
 
 Notably, `Extractor`s are backed by a schema's field and `Exporter`s are also referenced by name from the _schema_.
 
@@ -537,6 +541,7 @@ For an image only ingestion, we could set-up the configuration as follows (`skip
   }
 }
 ```
+
 **Enumerator**:
 ```json
 {
@@ -584,7 +589,7 @@ its [`OperatorConfig`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/co
 The `type` property is mandatory, equally so the `factory`, which has to point to a [`SegmenterFactory`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/SegmenterFactory.kt) implementation.
 The context-parameters are optional and implementation dependent.
 
-See [implementations](vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/segment/) 
+See [implementations](vitrivr-engine-index/src/main/kotlin/org/vitrivr/engine/index/segment/)
 
 ##### Index Operators Configuration: Transformer
 
@@ -633,7 +638,6 @@ its [`OperatorConfig`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/co
 ```
 
 The `type` property is mandatory, equally so the `fieldName`, which has to point to a _field_ as defined on the _schema_.
-
 
 See [implementations](vitrivr-engine-module-features/src/main/kotlin/org/vitrivr/engine/base/features/)
 
@@ -705,7 +709,7 @@ Currently, there are the following rules to build such a pipeline:
 1. The first _operation_ **must** be a `ENUMERATOR`
 2. Following an `ENUMERATOR`, there **must** come a `DECODER`
 3. Following a `DECODER`, there **must** either be a `TRANSFORMER` or `SEGMENTER`
-4. `TRANSFORMER`s and `SEGMENTER`s can be daisy-chained 
+4. `TRANSFORMER`s and `SEGMENTER`s can be daisy-chained
 5. A `SEGMENTER` must be followed by one or more `AGGREGATOR`s, multiple `AGGREGATORS` results in branching.
 6. An `AGGREGATOR` must be followed by either a `EXTRACTOR` or `EXPORTER`
 7. `EXPORTER`s and `EXTRACTOR`s can be daisy-chained

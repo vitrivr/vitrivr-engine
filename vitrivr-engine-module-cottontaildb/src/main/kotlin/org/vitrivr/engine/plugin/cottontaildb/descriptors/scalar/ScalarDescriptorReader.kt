@@ -9,7 +9,6 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
-import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAttribute
 import org.vitrivr.engine.core.model.types.toValue
 import org.vitrivr.engine.plugin.cottontaildb.*
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorReader
@@ -45,7 +44,7 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
             val descriptor = this.tupleToDescriptor(it)
             if (descriptor.retrievableId != null) {
                 val retrieved = Retrieved(descriptor.retrievableId!!, null, false)
-                retrieved.addAttribute(DescriptorAttribute(descriptor))
+                retrieved.addDescriptor(descriptor)
                 retrieved
             } else {
                 null

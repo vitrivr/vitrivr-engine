@@ -1,7 +1,5 @@
 package org.vitrivr.engine.core.features.metadata.source.file
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -24,15 +22,7 @@ import kotlin.io.path.absolutePathString
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class FileSourceMetadataExtractor(
-    input: Operator<Retrievable>,
-    field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>,
-    persisting: Boolean = true
-) : AbstractExtractor<ContentElement<*>, FileSourceMetadataDescriptor>(input, field, persisting, bufferSize = 1) {
-
-    private val logger: KLogger = KotlinLogging.logger {}
-
-
+class FileSourceMetadataExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>?) : AbstractExtractor<ContentElement<*>, FileSourceMetadataDescriptor>(input, field) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
@@ -53,16 +43,13 @@ class FileSourceMetadataExtractor(
     override fun extract(retrievable: Retrievable): List<FileSourceMetadataDescriptor> {
         val source = retrievable.filteredAttribute(SourceAttribute::class.java)?.source as? FileSource
             ?: throw IllegalArgumentException("Incoming retrievable is not a retrievable with file source. This is a programmer's error!")
-
-        logger.debug { "In flow: Extracting metadata from ${retrievable.id} with ${retrievable.type}" }
-
         return listOf(
             FileSourceMetadataDescriptor(
                 id = UUID.randomUUID(),
                 retrievableId = retrievable.id,
                 path = Value.String(source.path.absolutePathString()),
                 size = Value.Long(Files.size(source.path)),
-                transient = !persisting
+                this@FileSourceMetadataExtractor.field
             )
         )
     }

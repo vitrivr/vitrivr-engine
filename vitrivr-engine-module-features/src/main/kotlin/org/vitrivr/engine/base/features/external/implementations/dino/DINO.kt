@@ -1,7 +1,6 @@
 package org.vitrivr.engine.base.features.external.implementations.dino
 
 import org.vitrivr.engine.base.features.external.ExternalAnalyser
-import org.vitrivr.engine.base.features.external.common.ExternalWithFloatVectorDescriptorAnalyser
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.Content
@@ -25,17 +24,29 @@ import java.util.*
  * @author Rahel Arnold
  * @version 1.0.0
  */
-class DINO : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
+class DINO : ExternalAnalyser<ImageContent,FloatVectorDescriptor>() {
 
     override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = FloatVectorDescriptor::class
+
+    companion object {
+        /**
+         * Requests the DINO feature descriptor for the given [ContentElement].
+         *
+         * @param content The [ContentElement] for which to request the CLIP feature descriptor.
+         * @param hostname The hostname of the external feature descriptor service.
+         * @return DINO feature descriptor.
+         */
+        fun analyse(content: ContentElement<*>, hostname: String): FloatVectorDescriptor
+            = httpRequest(content, "$hostname/extract/dino") ?: throw IllegalArgumentException("Failed to generate DINO descriptor.")
+    }
 
     /**
      * Generates a prototypical [FloatVectorDescriptor] for this [DINO].
      *
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(384) { Value.Float(0.0f) }, true)
+    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(384) { Value.Float(0.0f) })
 
     /**
      * Generates and returns a new [Extractor] instance for this [DINO].
@@ -43,15 +54,11 @@ class DINO : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
      * @param field The [Schema.Field] to create an [Extractor] for.
      * @param input The [Operator] that acts as input to the new [Extractor].
      * @param context The [IndexContext] to use with the [Extractor].
-     * @param persisting True, if the results of the [Extractor] should be persisted.
      *
      * @return A new [Extractor] instance for this [DINO]
      * @throws [UnsupportedOperationException], if this [DINO] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): Extractor<ImageContent, FloatVectorDescriptor> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        return DINOExtractor(input, field, persisting)
-    }
+    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>?, input: Operator<Retrievable>, context: IndexContext) = DINOExtractor(input, field, context)
 
     /**
      * Generates and returns a new [DINORetriever] instance for this [DINO].
@@ -108,16 +115,5 @@ class DINO : ExternalWithFloatVectorDescriptorAnalyser<ImageContent>() {
 
         /* Return retriever. */
         return this.newRetrieverForDescriptors(field, vectors, context)
-    }
-
-    /**
-     * Requests the CLIP feature descriptor for the given [ContentElement].
-     *
-     * @param content The [ImageContent] for which to request the [DINO] feature descriptor.
-     * @param hostname The hostname of the external feature descriptor service.
-     * @return A list of CLIP feature descriptors.
-     */
-    override fun analyse(content: ImageContent, hostname: String): FloatVectorDescriptor {
-        return FloatVectorDescriptor(UUID.randomUUID(), null, httpRequest(content, "$hostname/extract/dino"), true)
     }
 }

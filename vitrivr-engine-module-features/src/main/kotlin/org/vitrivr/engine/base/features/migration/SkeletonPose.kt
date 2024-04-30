@@ -21,8 +21,7 @@ class SkeletonPose : Analyser<ContentElement<*>, SkeletonDescriptor> {
         retrievableId = java.util.UUID.randomUUID(),
         person = Value.Int(0),
         skeleton = List(12) { Value.Float(0.0f) },
-        weights = List(12) { Value.Float(0.0f) },
-        transient = true
+        weights = List(12) { Value.Float(0.0f) }
     ) // should transient be false? what is transient?
 
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, SkeletonDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, SkeletonDescriptor> {
@@ -33,7 +32,7 @@ class SkeletonPose : Analyser<ContentElement<*>, SkeletonDescriptor> {
         TODO("Not yet implemented")
     }
 
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, SkeletonDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): Extractor<ContentElement<*>, SkeletonDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, SkeletonDescriptor>?, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, SkeletonDescriptor> {
         TODO("Not yet implemented")
     }
 }
