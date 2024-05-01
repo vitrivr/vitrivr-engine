@@ -12,7 +12,7 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Aggregator
 
 class WeightedScoreFusion(
-    override val inputs: List<Operator<Retrievable>>,
+    override val inputs: List<Operator<out Retrievable>>,
     weights: List<Float>
 ) : Aggregator {
 

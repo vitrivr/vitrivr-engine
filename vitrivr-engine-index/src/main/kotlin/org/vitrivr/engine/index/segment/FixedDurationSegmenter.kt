@@ -30,7 +30,7 @@ class FixedDurationSegmenter : TransformerFactory {
      * @param input The input [Operator].
      * @param context The [Context] to use.
      */
-    override fun newTransformer(name: String, input: Operator<Retrievable>, context: Context): Transformer {
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
         val duration = Duration.ofSeconds(
             (context[name, "duration"] ?: throw IllegalArgumentException("Property 'duration' must be specified")).toLong()
         )
@@ -45,7 +45,7 @@ class FixedDurationSegmenter : TransformerFactory {
      */
     private class Instance(
         /** The input [Operator]. */
-        override val input: Operator<Retrievable>,
+        override val input: Operator<out Retrievable>,
 
         /** The target duration of the segments to be created */
         length: Duration,

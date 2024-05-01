@@ -20,7 +20,7 @@ import org.vitrivr.engine.core.operators.general.Transformer
  * @author Ralph Gasser
  */
 class RelationExpander(
-    override val input: Operator<Retrievable>,
+    override val input: Operator<out Retrievable>,
     private val incomingRelations: List<String>,
     private val outgoingRelations: List<String>,
     private val retrievableReader: RetrievableReader

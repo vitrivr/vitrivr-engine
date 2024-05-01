@@ -25,12 +25,12 @@ class FirstContentAggregator : TransformerFactory {
      * @param context The [IndexContext] to use.
      * @return [FirstContentAggregator.Instance]
      */
-    override fun newTransformer(name: String, input: Operator<Retrievable>, context: Context): Transformer = Instance(input, context)
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer = Instance(input, context)
 
     /**
      * The [Instance] returned by the [FirstContentAggregator]
      */
-    private class Instance(override val input: Operator<Retrievable>, context: Context) : AbstractAggregator(input, context) {
+    private class Instance(override val input: Operator<out Retrievable>, context: Context) : AbstractAggregator(input, context) {
         override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> = content.groupBy { it.type }.mapNotNull { (_, elements) -> elements.firstOrNull() }
     }
 }

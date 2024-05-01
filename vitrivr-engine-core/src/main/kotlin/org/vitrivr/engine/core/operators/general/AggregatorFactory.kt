@@ -6,6 +6,6 @@ import org.vitrivr.engine.core.operators.Operator
 
 interface AggregatorFactory {
 
-    fun newAggregator(name: String, inputs: List<Operator<Retrievable>>, context: Context): Aggregator
+    fun newAggregator(name: String, inputs: List<Operator<out Retrievable>>, context: Context): Aggregator
 
 }

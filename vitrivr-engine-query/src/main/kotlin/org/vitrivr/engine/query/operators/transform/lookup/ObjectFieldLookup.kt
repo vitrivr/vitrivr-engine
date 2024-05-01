@@ -19,7 +19,7 @@ import org.vitrivr.engine.core.operators.general.Transformer
  * @author Luca Rossetto
  * @author Ralph Gasser
  */
-class ObjectFieldLookup(override val input: Operator<Retrievable>, private val reader: DescriptorReader<*>, private val predicates: Set<String>) :
+class ObjectFieldLookup(override val input: Operator<out Retrievable>, private val reader: DescriptorReader<*>, private val predicates: Set<String>) :
     Transformer {
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
         /* Parse input IDs.*/

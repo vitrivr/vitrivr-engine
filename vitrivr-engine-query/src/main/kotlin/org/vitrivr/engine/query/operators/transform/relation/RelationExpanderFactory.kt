@@ -15,7 +15,7 @@ import org.vitrivr.engine.core.operators.general.TransformerFactory
  * @author Luca Rossetto
  */
 class RelationExpanderFactory : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<Retrievable>, context: Context): Transformer {
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
         require(context is QueryContext)
         val retrievableReader = context.schema.connection.getRetrievableReader()
         val incomingRelations = context[name, "incoming"]?.split(",")?.map { s -> s.trim() } ?: emptyList()

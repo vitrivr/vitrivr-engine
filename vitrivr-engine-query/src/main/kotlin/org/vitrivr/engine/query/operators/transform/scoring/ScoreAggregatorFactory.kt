@@ -10,7 +10,7 @@ import org.vitrivr.engine.core.operators.general.TransformerFactory
 class ScoreAggregatorFactory : TransformerFactory {
     override fun newTransformer(
         name: String,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ): Transformer {
 

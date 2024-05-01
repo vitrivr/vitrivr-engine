@@ -18,7 +18,7 @@ import org.vitrivr.engine.core.operators.general.TransformerFactory
  * @version 1.0.0
  */
 class MapRelationshipTransformer : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<Retrievable>, context: Context): Transformer {
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
         val predicate = context[name, "predicate"] ?: throw IllegalArgumentException("The relationship transformer requires a predicate to be specified.")
         return Instance(input, predicate)
     }
@@ -26,7 +26,7 @@ class MapRelationshipTransformer : TransformerFactory {
     /**
      * [Transformer] that extracts [Ingested] objects from a [Flow] of [Ingested] objects based on a given [Relationship].
      */
-    private class Instance(override val input: Operator<Retrievable>, val name: String) : Transformer {
+    private class Instance(override val input: Operator<out Retrievable>, val name: String) : Transformer {
         override fun toFlow(scope: CoroutineScope): Flow<Ingested> = channelFlow {
             this@Instance.input.toFlow(scope).collect { ingested ->
                 ingested.relationships.filter { it.predicate == this@Instance.name }.forEach { relationship ->
