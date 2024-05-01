@@ -9,7 +9,7 @@ import org.vitrivr.engine.core.operators.general.AggregatorFactory
 class TemporalSequenceAggregatorFactory : AggregatorFactory {
     override fun newAggregator(
         name: String,
-        inputs: List<Operator<Retrievable>>,
+        inputs: List<Operator<out Retrievable>>,
         context: Context
     ): Aggregator {
         return TemporalSequenceAggregator(

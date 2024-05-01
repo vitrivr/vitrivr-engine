@@ -16,7 +16,7 @@ import org.vitrivr.engine.core.operators.general.Transformer
  * @author Ralph Gasser
  * @version 1.1.0
  */
-abstract class AbstractAggregator(override val input: Operator<Retrievable>, protected open val context: Context) : Transformer {
+abstract class AbstractAggregator(override val input: Operator<out Retrievable>, protected open val context: Context) : Transformer {
     /**
      *  Creates a flow for this [AbstractAggregator].
      *

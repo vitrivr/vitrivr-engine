@@ -14,7 +14,7 @@ import org.vitrivr.engine.core.operators.general.TransformerFactory
  * @author Ralph Gasser
  */
 class ObjectFieldLookupFactory() : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<Retrievable>, context: Context): ObjectFieldLookup {
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): ObjectFieldLookup {
         require(context is QueryContext)
         val field = context[name, "field"] ?: throw IllegalArgumentException("Expected 'field' to be defined in properties")
         val predicates = context[name, "predicates"]?.split(",")?.toSet() ?: emptySet()

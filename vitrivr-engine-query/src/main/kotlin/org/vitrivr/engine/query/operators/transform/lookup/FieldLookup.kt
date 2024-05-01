@@ -19,7 +19,7 @@ import javax.management.Descriptor
  * @author Luca Rossetto
  * @author Ralph Gasser
  */
-class FieldLookup(override val input: Operator<Retrievable>, private val reader: DescriptorReader<*>) : Transformer {
+class FieldLookup(override val input: Operator<out Retrievable>, private val reader: DescriptorReader<*>) : Transformer {
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
         /* Parse input IDs.*/
         val inputRetrieved = input.toFlow(scope).toList()

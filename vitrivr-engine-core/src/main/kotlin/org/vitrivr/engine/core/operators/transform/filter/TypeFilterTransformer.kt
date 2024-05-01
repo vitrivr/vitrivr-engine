@@ -14,10 +14,10 @@ import org.vitrivr.engine.core.operators.general.TransformerFactory
  * @version 1.0.0
  */
 class TypeFilterTransformer : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<Retrievable>, context: Context): Transformer {
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
         val predicate = context[name, "type"] ?: throw IllegalArgumentException("The type filter transformer requires a type name.")
         return Instance(input, predicate)
     }
 
-    private class Instance(input: Operator<Retrievable>, val type: String) : AbstractFilterTransformer(input, { it.type == type })
+    private class Instance(input: Operator<out Retrievable>, val type: String) : AbstractFilterTransformer(input, { it.type == type })
 }

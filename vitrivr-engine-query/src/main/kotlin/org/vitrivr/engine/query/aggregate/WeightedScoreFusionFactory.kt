@@ -9,7 +9,7 @@ import org.vitrivr.engine.core.operators.general.AggregatorFactory
 class WeightedScoreFusionFactory : AggregatorFactory {
     override fun newAggregator(
         name: String,
-        inputs: List<Operator<Retrievable>>,
+        inputs: List<Operator<out Retrievable>>,
         context: Context
     ): Aggregator {
         val weights = context[name, "weights"]?.split(",")?.mapNotNull { s -> s.trim().toFloatOrNull() } ?: emptyList()

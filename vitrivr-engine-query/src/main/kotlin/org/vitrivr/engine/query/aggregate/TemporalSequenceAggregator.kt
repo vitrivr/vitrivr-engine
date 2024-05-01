@@ -15,7 +15,7 @@ import org.vitrivr.engine.core.operators.general.Aggregator
 import java.util.*
 
 class TemporalSequenceAggregator(
-    override val inputs: List<Operator<Retrievable>>
+    override val inputs: List<Operator<out Retrievable>>
 ) : Aggregator {
 
     companion object {

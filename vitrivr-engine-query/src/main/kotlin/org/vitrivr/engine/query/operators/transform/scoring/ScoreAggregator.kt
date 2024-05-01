@@ -10,7 +10,7 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 
 class ScoreAggregator(
-    override val input: Operator<Retrievable>,
+    override val input: Operator<out Retrievable>,
     private val aggregationMode: AggregationMode = AggregationMode.MAX,
     private val relations: Set<String> = setOf("partOf")
 ) : Transformer {

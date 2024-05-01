@@ -36,11 +36,11 @@ class QueryParser(val schema: Schema) {
      * @param description [InformationNeedDescription] to parse.
      * @return The output [Operator] of the query.
      */
-    fun parse(description: InformationNeedDescription): Operator<Retrievable> {
+    fun parse(description: InformationNeedDescription): Operator<out Retrievable> {
 
         description.context.schema = schema
 
-        val operators = mutableMapOf<String, Operator<Retrievable>>()
+        val operators = mutableMapOf<String, Operator<out Retrievable>>()
         val contentCache = mutableMapOf<String, ContentElement<*>>()
 
         /* Parse individual operators and append the to the operators map. */
@@ -65,14 +65,14 @@ class QueryParser(val schema: Schema) {
      *
      * @return [Operator] instance.
      */
-    private fun parseRetrieverOperator(description: InformationNeedDescription, operatorName: String, content: MutableMap<String, ContentElement<*>>): Operator<Retrievable> {
+    private fun parseRetrieverOperator(description: InformationNeedDescription, operatorName: String, content: MutableMap<String, ContentElement<*>>): Operator<out Retrievable> {
         /* Extract necessary information. */
         val operation = description.operations[operatorName] as? RetrieverDescription ?: throw IllegalArgumentException("Operation '$operatorName' not found in information need description.")
         val input = description.inputs[operation.input] ?: throw IllegalArgumentException("Input '${operation.input}' for operation '$operatorName' not found")
         /* Special case: handle pass-through. */
         if (operation.field == null) { //special case, handle pass-through
             require(input.type == InputType.ID) { "Only inputs of type ID are supported for direct retrievable lookup." }
-            return RetrievedLookup(this.schema.connection.getRetrievableReader(), listOf(UUID.fromString((input as RetrievableIdInputData).id))) as Operator<Retrievable> //TODO is there a nicer way to deal with this?
+            return RetrievedLookup(this.schema.connection.getRetrievableReader(), listOf(UUID.fromString((input as RetrievableIdInputData).id)))
         }
         val fieldAndAttributeName: Pair<String,String?> = if (operation.field.contains(".")) {
             val f = operation.field.substringBefore(".")
@@ -134,7 +134,7 @@ class QueryParser(val schema: Schema) {
                     field.getRetrieverForContent(content.computeIfAbsent(operation.input) { input.toContent() }, description.context)
                 }
             }
-        } as Operator<Retrievable>
+        }
     }
 
     /**
@@ -146,7 +146,7 @@ class QueryParser(val schema: Schema) {
      *
      * @return [Operator] instance.
      */
-    private fun parseTransformationOperator(description: InformationNeedDescription, operatorName: String, operators: Map<String, Operator<Retrievable>>): Operator<Retrievable> {
+    private fun parseTransformationOperator(description: InformationNeedDescription, operatorName: String, operators: Map<String, Operator<out Retrievable>>): Operator<Retrievable> {
         val operation = description.operations[operatorName] as? TransformerDescription ?: throw IllegalArgumentException("Operation '$operatorName' not found in information need description.")
         val input = operators[operation.input] ?: throw IllegalArgumentException("Input '${operation.input}' for operation '$operatorName' not found")
         val factory = loadServiceForName<TransformerFactory>(operation.transformerName + "Factory")
@@ -163,7 +163,7 @@ class QueryParser(val schema: Schema) {
      *
      * @return [Operator] instance.
      */
-    private fun parseAggregationOperator(description: InformationNeedDescription, operatorName: String, operators: Map<String, Operator<Retrievable>>): Operator<Retrievable> {
+    private fun parseAggregationOperator(description: InformationNeedDescription, operatorName: String, operators: Map<String, Operator<out Retrievable>>): Operator<Retrievable> {
         val operation = description.operations[operatorName] as? AggregatorDescription ?: throw IllegalArgumentException("Operation '$operatorName' not found in information need description.")
         require(operation.inputs.isNotEmpty()) { "Inputs of an aggregation operator cannot be empty." }
 
