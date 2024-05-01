@@ -1,7 +1,9 @@
 package org.vitrivr.engine.core.context
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.vitrivr.engine.core.model.content.factory.ContentFactory
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.resolver.Resolver
 
 /**
@@ -12,6 +14,7 @@ import org.vitrivr.engine.core.resolver.Resolver
  */
 @Serializable
 class IngestionContextConfig(
+
     /** The simple or fully qualified class name of the [ContentFactory] to be used to construct the [IndexContext] */
     val contentFactory: String,
 
@@ -23,4 +26,9 @@ class IngestionContextConfig(
 
     /** [Map] of global parameters. */
     override val global: Map<String, String> = emptyMap()
-) : Context()
+) : Context() {
+
+    @Transient
+    override lateinit var schema: Schema
+
+}

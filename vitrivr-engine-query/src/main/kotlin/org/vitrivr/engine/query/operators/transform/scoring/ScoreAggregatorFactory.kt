@@ -1,19 +1,20 @@
 package org.vitrivr.engine.query.operators.transform.scoring
 
-import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.retrieve.Transformer
-import org.vitrivr.engine.core.operators.retrieve.TransformerFactory
+import org.vitrivr.engine.core.operators.general.Transformer
+import org.vitrivr.engine.core.operators.general.TransformerFactory
+
 
 class ScoreAggregatorFactory : TransformerFactory {
     override fun newTransformer(
-        input: Operator<Retrieved>,
-        schema: Schema,
-        properties: Map<String, String>
+        name: String,
+        input: Operator<Retrievable>,
+        context: Context
     ): Transformer {
 
-        val aggregation = properties["aggregation"]?.uppercase()?.let {
+        val aggregation = context[name, "aggregation"]?.uppercase()?.let {
             try {
                 ScoreAggregator.AggregationMode.valueOf(it)
             } catch (e: IllegalArgumentException) {
@@ -21,7 +22,7 @@ class ScoreAggregatorFactory : TransformerFactory {
             }
         } ?: ScoreAggregator.AggregationMode.MAX
 
-        val relationships = properties["relationships"]?.split(",")?.map { s -> s.trim() }?.toSet() ?: setOf("partOf")
+        val relationships = context[name, "relationships"]?.split(",")?.map { s -> s.trim() }?.toSet() ?: setOf("partOf")
 
         return ScoreAggregator(input, aggregation, relationships)
     }

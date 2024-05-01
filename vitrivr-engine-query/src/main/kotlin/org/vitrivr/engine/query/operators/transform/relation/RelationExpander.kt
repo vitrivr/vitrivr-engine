@@ -6,10 +6,11 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.model.relationship.Relationship
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.retrieve.Transformer
+import org.vitrivr.engine.core.operators.general.Transformer
 
 /**
  * Appends [Relationship] to a [Retrieved] by expanding the specified incoming and outgoing relationships.
@@ -19,12 +20,12 @@ import org.vitrivr.engine.core.operators.retrieve.Transformer
  * @author Ralph Gasser
  */
 class RelationExpander(
-    override val input: Operator<Retrieved>,
+    override val input: Operator<Retrievable>,
     private val incomingRelations: List<String>,
     private val outgoingRelations: List<String>,
     private val retrievableReader: RetrievableReader
 ) : Transformer {
-    override fun toFlow(scope: CoroutineScope): Flow<Retrieved> = flow {
+    override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
         /* Collect input into list. */
         val inputRetrieved = input.toFlow(scope).toList()
 

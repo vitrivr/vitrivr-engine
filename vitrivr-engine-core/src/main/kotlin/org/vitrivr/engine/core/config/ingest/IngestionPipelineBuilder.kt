@@ -36,10 +36,10 @@ private val logger: KLogger = KotlinLogging.logger { }
  *  @author Ralph Gasser
  *  @version 2.0.0
  */
-class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) {
+class IngestionPipelineBuilder(val config: IngestionConfig) {
 
     /** The [IndexContext] */
-    private val context = IndexContextFactory.newContext(schema, config.context)
+    private val context = IndexContextFactory.newContext(config.context)
 
     /**
      * Build the indexing based this [IngestionPipelineBuilder]'s [config].

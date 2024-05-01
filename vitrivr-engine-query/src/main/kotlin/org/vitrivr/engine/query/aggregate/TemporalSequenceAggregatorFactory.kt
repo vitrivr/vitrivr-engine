@@ -1,16 +1,16 @@
 package org.vitrivr.engine.query.aggregate
 
-import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.retrieve.Aggregator
-import org.vitrivr.engine.core.operators.retrieve.AggregatorFactory
+import org.vitrivr.engine.core.operators.general.Aggregator
+import org.vitrivr.engine.core.operators.general.AggregatorFactory
 
-class TemporalSequenceAggregatorFactory : AggregatorFactory<Retrieved, Retrieved> {
+class TemporalSequenceAggregatorFactory : AggregatorFactory {
     override fun newAggregator(
-        inputs: List<Operator<Retrieved>>,
-        schema: Schema,
-        properties: Map<String, String>
+        name: String,
+        inputs: List<Operator<Retrievable>>,
+        context: Context
     ): Aggregator {
         return TemporalSequenceAggregator(
             inputs

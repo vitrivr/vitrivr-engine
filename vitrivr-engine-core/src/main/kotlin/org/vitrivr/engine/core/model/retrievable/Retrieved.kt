@@ -13,4 +13,6 @@ data class Retrieved(override val id: UUID, override val type: String?, override
     constructor(retrievable: Retrievable) : this(retrievable.id, retrievable.type, retrievable.transient) {
         retrievable.attributes.forEach { this.addAttribute(it) }
     }
+
+    override fun copy(): Retrieved = this.copy(id = id)
 }

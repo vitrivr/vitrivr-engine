@@ -3,7 +3,7 @@ package org.vitrivr.engine.core.operators.transform.filter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
-import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
@@ -20,7 +20,7 @@ import java.util.*
  * @version 1.0.0
  */
 class DistinctTransformer : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<Retrievable>, context: IndexContext): Transformer = Instance(input)
+    override fun newTransformer(name: String, input: Operator<Retrievable>, context: Context): Transformer = Instance(input)
 
     /**
      * [Transformer] that extracts [Retrievable] objects from a [Flow] of [Retrievable] objects based on a given [Relationship].
