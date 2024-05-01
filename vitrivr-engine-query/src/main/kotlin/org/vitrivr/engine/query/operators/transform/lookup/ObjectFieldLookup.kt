@@ -7,9 +7,10 @@ import kotlinx.coroutines.flow.toList
 import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.relationship.Relationship
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.retrieve.Transformer
+import org.vitrivr.engine.core.operators.general.Transformer
 
 /**
  * Appends [DescriptorAttribute] to a [Retrieved] in a specified object [Relationship] based on lookup values of a [Schema.Field], if available.
@@ -18,8 +19,9 @@ import org.vitrivr.engine.core.operators.retrieve.Transformer
  * @author Luca Rossetto
  * @author Ralph Gasser
  */
-class ObjectFieldLookup(override val input: Operator<Retrieved>, private val reader: DescriptorReader<*>, private val predicates: Set<String>) : Transformer {
-    override fun toFlow(scope: CoroutineScope): Flow<Retrieved> = flow {
+class ObjectFieldLookup(override val input: Operator<Retrievable>, private val reader: DescriptorReader<*>, private val predicates: Set<String>) :
+    Transformer {
+    override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
         /* Parse input IDs.*/
         val inputRetrieved = this@ObjectFieldLookup.input.toFlow(scope).toList()
 
