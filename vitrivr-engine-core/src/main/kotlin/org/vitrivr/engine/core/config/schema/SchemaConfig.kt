@@ -2,8 +2,8 @@ package org.vitrivr.engine.core.config.schema
 
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.operators.general.Exporter
 import org.vitrivr.engine.core.resolver.Resolver
-import org.vitrivr.engine.core.operators.ingest.Exporter
 
 
 /**
@@ -31,7 +31,7 @@ data class SchemaConfig(
      * The list of [ResolverConfig]s that are part of this [SchemaConfig].
      * @see Resolver
      */
-    val resolvers: Map<String,ResolverConfig> = emptyMap(),
+    val resolvers: Map<String, ResolverConfig> = emptyMap(),
 
     /**
      * List of [ExporterConfig]s that are part of this [SchemaConfig].

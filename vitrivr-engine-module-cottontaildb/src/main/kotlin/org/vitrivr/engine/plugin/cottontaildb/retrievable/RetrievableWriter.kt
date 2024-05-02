@@ -14,8 +14,8 @@ import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.values.StringValue
 import org.vitrivr.cottontail.core.values.UuidValue
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
+import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.plugin.cottontaildb.*
 
 private val logger: KLogger = KotlinLogging.logger {}
@@ -43,7 +43,7 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
     override fun add(item: Retrievable): Boolean {
         val insert = Insert(this.entityName)
             .value(RETRIEVABLE_ID_COLUMN_NAME, UuidValue(item.id))
-            .any(RETRIEVABLE_TYPE_COLUMN_NAME, item.type?.let { StringValue(it) })
+            .value(RETRIEVABLE_TYPE_COLUMN_NAME, item.type?.let { StringValue(it) })
         return try {
             return this.connection.client.insert(insert).use {
                 it.hasNext()
@@ -65,7 +65,7 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
         val insert = BatchInsert(this.entityName).columns(RETRIEVABLE_ID_COLUMN_NAME, RETRIEVABLE_TYPE_COLUMN_NAME)
         for (item in items) {
             size += 1
-            insert.any(item.id, item.type)
+            insert.values(UuidValue(item.id), item.type?.let { StringValue(it) })
         }
 
         /* Insert values. */
@@ -84,77 +84,6 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
      */
     override fun update(item: Retrievable): Boolean {
         TODO("Not yet implemented")
-    }
-
-    /**
-     * Connects two [Retrievable] (specified by their [RetrievableId]) through a subject predicate, object relationship.
-     *
-     * @param subject [RetrievableId] of the subject [Retrievable]
-     * @param predicate The predicate describing the relationship.
-     * @param object [RetrievableId] of the object [Retrievable]
-     * @return True on success, false otherwise.
-     */
-    override fun connect(subject: RetrievableId, predicate: String, `object`: RetrievableId): Boolean {
-        val insert = Insert(this.relationshipEntityName)
-            .value(SUBJECT_ID_COLUMN_NAME, UuidValue(subject))
-            .value(PREDICATE_COLUMN_NAME, StringValue(predicate))
-            .value(OBJECT_ID_COLUMN_NAME, UuidValue(`object`))
-
-        /* Insert values. */
-        return try {
-            this.connection.client.insert(insert)
-            true
-        } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to establish connection due to exception." }
-            false
-        }
-    }
-
-    override fun connectAll(subjects: Iterable<RetrievableId>, predicate: String, objects: Iterable<RetrievableId>): Boolean {
-        var size = 0
-        val insert = BatchInsert(this.relationshipEntityName).columns(SUBJECT_ID_COLUMN_NAME, PREDICATE_COLUMN_NAME, OBJECT_ID_COLUMN_NAME)
-        subjects.zip(objects).forEach { (subject, obj) ->
-            size += 1
-            insert.values(UuidValue(subject), StringValue(predicate), UuidValue(obj))
-        }
-
-        return try {
-            this.connection.client.insert(insert).use { it.hasNext() }
-            true
-        } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to establish connection due to exception." }
-            false
-        }
-    }
-
-
-    /**
-     * Severs the specified connection between two [Retrievable]s.
-     *
-     * @param subject [RetrievableId] of the subject [Retrievable].
-     * @param predicate The predicate describing the relationship.
-     * @param object [RetrievableId] of the object [Retrievable].
-     * @return True on success, false otherwise.
-     */
-    override fun disconnect(subject: RetrievableId, predicate: String, `object`: RetrievableId): Boolean {
-        val delete = Delete(this.relationshipEntityName).where(
-            And(
-                Compare(Column(PREDICATE_COLUMN_NAME), Compare.Operator.EQUAL, Literal(StringValue(predicate))),
-                And(
-                    Compare(Column(OBJECT_ID_COLUMN_NAME), Compare.Operator.EQUAL, Literal(UuidValue(`object`))),
-                    Compare(Column(SUBJECT_ID_COLUMN_NAME), Compare.Operator.EQUAL, Literal(UuidValue(subject)))
-                )
-            )
-        )
-
-        /* Insert values. */
-        return try {
-            this.connection.client.delete(delete)
-            true
-        } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to sever connection due to exception." }
-            false
-        }
     }
 
     /**
@@ -207,4 +136,85 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
             false
         }
     }
+
+    /**
+     * Persists a [Relationship].
+     *
+     * @param relationship [Relationship] to persist
+     * @return True on success, false otherwise.
+     */
+    override fun connect(relationship: Relationship): Boolean {
+        val insert = Insert(this.relationshipEntityName)
+            .value(SUBJECT_ID_COLUMN_NAME, UuidValue(relationship.subjectId))
+            .value(PREDICATE_COLUMN_NAME, StringValue(relationship.predicate))
+            .value(OBJECT_ID_COLUMN_NAME, UuidValue(relationship.objectId))
+
+        /* Insert values. */
+        return try {
+            this.connection.client.insert(insert)
+            true
+        } catch (e: StatusRuntimeException) {
+            logger.error(e) { "Failed to establish connection due to exception." }
+            false
+        }
+    }
+
+    /**
+     * Persists an [Iterable] of [Relationship]s.
+     *
+     * @param relationships An [Iterable] of [Relationship]s to persist.
+     * @return True on success, false otherwise.
+     */
+    override fun connectAll(relationships: Iterable<Relationship>): Boolean {
+        var size = 0
+        val insert = BatchInsert(this.relationshipEntityName).columns(SUBJECT_ID_COLUMN_NAME, PREDICATE_COLUMN_NAME, OBJECT_ID_COLUMN_NAME)
+        relationships.forEach { r ->
+            size += 1
+            insert.values(UuidValue(r.subjectId), StringValue(r.predicate), UuidValue(r.objectId))
+        }
+
+        return try {
+            this.connection.client.insert(insert).use { it.hasNext() }
+            true
+        } catch (e: StatusRuntimeException) {
+            logger.error(e) { "Failed to establish connection due to exception." }
+            false
+        }
+    }
+
+
+    /**
+     * Severs the specified connection between two [Retrievable]s.
+     *
+     * @param relationship [Relationship] to delete
+     * @return True on success, false otherwise.
+     */
+    override fun disconnect(relationship: Relationship): Boolean {
+        val delete = Delete(this.relationshipEntityName).where(
+            And(
+                Compare(Column(PREDICATE_COLUMN_NAME), Compare.Operator.EQUAL, Literal(StringValue(relationship.predicate))),
+                And(
+                    Compare(Column(OBJECT_ID_COLUMN_NAME), Compare.Operator.EQUAL, Literal(UuidValue(relationship.objectId))),
+                    Compare(Column(SUBJECT_ID_COLUMN_NAME), Compare.Operator.EQUAL, Literal(UuidValue(relationship.subjectId)))
+                )
+            )
+        )
+
+        /* Insert values. */
+        return try {
+            this.connection.client.delete(delete)
+            true
+        } catch (e: StatusRuntimeException) {
+            logger.error(e) { "Failed to sever connection due to exception." }
+            false
+        }
+    }
+
+    /**
+     * Deletes all [Relationship]s
+     *
+     * @param relationships An [Iterable] of [Relationship] to delete.
+     * @return True on success, false otherwise.
+     */
+    override fun disconnectAll(relationships: Iterable<Relationship>): Boolean = relationships.map { this.disconnect(it) }.all { it }
 }

@@ -1,8 +1,8 @@
 package org.vitrivr.engine.core.model.content.factory
 
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.resolver.Resolver
-import org.vitrivr.engine.core.context.Context
 
 /**
  * A factory class for [Resolver]s.

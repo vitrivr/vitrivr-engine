@@ -27,14 +27,23 @@ import java.util.*
 class OCR : Analyser<ContentElement<*>, StringDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = StringDescriptor::class
-    override fun prototype(field: Schema.Field<*, *>): StringDescriptor = StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(""), true)
+    override fun prototype(field: Schema.Field<*, *>): StringDescriptor = StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(""))
 
     /**
      * This feature does not support extraction.
      *
      * Always throws an [UnsupportedOperationException].
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): Extractor<ContentElement<*>, StringDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, StringDescriptor> {
+        throw UnsupportedOperationException("OCR does not allow for extraction.")
+    }
+
+    /**
+     * This feature does not support extraction.
+     *
+     * Always throws an [UnsupportedOperationException].
+     */
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, StringDescriptor> {
         throw UnsupportedOperationException("OCR does not allow for extraction.")
     }
 

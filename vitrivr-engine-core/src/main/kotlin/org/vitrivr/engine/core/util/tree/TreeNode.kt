@@ -9,15 +9,17 @@ data class TreeNode<T>(
      * The name of the node.
      */
     val name: String,
+
     /**
      * The value of this [TreeNode].
      */
     val value: T,
+
     /**
      * The children of this [TreeNode]. If this is empty, this [TreeNode] is a leaf.
      */
-    val children: MutableList<TreeNode<T>> = mutableListOf()){
-
+    val children: MutableList<TreeNode<T>> = mutableListOf()
+) {
 
 
     /**

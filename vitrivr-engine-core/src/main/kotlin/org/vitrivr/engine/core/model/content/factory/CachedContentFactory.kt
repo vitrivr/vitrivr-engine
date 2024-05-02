@@ -17,7 +17,6 @@ import java.lang.ref.ReferenceQueue
 import java.nio.ShortBuffer
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 
@@ -33,7 +32,7 @@ class CachedContentFactory : ContentFactoriesFactory {
 
 
     override fun newContentFactory(schema: Schema, context: Context): ContentFactory {
-        val basePath = context["content","location"]?.let { Path.of(it) }
+        val basePath = context["content", "location"]?.let { Path.of(it) }
         return Instance(basePath)
     }
 
