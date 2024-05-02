@@ -1,11 +1,12 @@
 package org.vitrivr.engine.base.features.external.implementations
 
-import org.vitrivr.engine.base.features.external.common.ApiWrapper
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.base.features.external.common.FesExtractor
 import org.vitrivr.engine.base.features.fulltext.FulltextRetriever
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.model.content.Content
+import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
@@ -20,27 +21,43 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
+/**
+ * Analyser for the Optical Chracter Reckognition (OCR).
+ *
+ * @author Ralph Gasser
+ * @author Fynn Faber
+ * @version 1.1.0
+ */
 class OCR : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
-
+    override val contentClasses = setOf(ContentElement::class)
+    override val descriptorClass = StringDescriptor::class
     override val defaultModel = "tesseract"
-    override fun analyseFlattened(content: List<ImageContent>, apiWrapper: ApiWrapper, parameters: Map<String, String>): List<List<StringDescriptor>> {
 
-        val result = apiWrapper.opticalCharacterRecognition(content.map { it.content })
-        return result.map { listOf(StringDescriptor(UUID.randomUUID(), null, Value.String(it))) }
+    override fun prototype(field: Schema.Field<*, *>): StringDescriptor = StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(""))
+
+    /**
+     * This feature does not support extraction.
+     *
+     * Always throws an [UnsupportedOperationException].
+     */
+    override fun newExtractor(field: Schema.Field<ImageContent, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, StringDescriptor> {
+        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
+        val batchSize = context.getProperty(field.fieldName, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
+        return object : FesExtractor<StringDescriptor, ImageContent, OCR>(input, field, batchSize) {
+            override fun assignRetrievableId(descriptor: StringDescriptor, retrievableId: RetrievableId): StringDescriptor {
+                return descriptor.copy(retrievableId = retrievableId, field = field)
+            }
+
+        }
     }
 
-    override val contentClasses = setOf(ImageContent::class)
-    override val descriptorClass = StringDescriptor::class
-    override fun prototype(field: Schema.Field<*, *>): StringDescriptor = StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(""), true)
-
-    override fun newExtractor(field: Schema.Field<ImageContent, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, String>): Extractor<ImageContent, StringDescriptor> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        val batchSize = parameters[BATCHSIZE_PARAMETER_NAME]?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
-        return object : FesExtractor<StringDescriptor,ImageContent, OCR>(input, field, persisting, batchSize) {
-            override fun assignRetrievableId(descriptor: StringDescriptor, retrievableId: RetrievableId): StringDescriptor {
-                return descriptor.copy(retrievableId = retrievableId)
-            }
-        }
+    /**
+     * This feature does not support extraction.
+     *
+     * Always throws an [UnsupportedOperationException].
+     */
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, StringDescriptor> {
+        throw UnsupportedOperationException("OCR does not allow for extraction.")
     }
 
     /**
@@ -52,7 +69,7 @@ class OCR : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
      *
      * @return A new [FulltextRetriever] instance for this [OCR]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, StringDescriptor>, query: Query, context: QueryContext): Retriever<ImageContent, StringDescriptor>{
+    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, StringDescriptor>, query: Query, context: QueryContext): FulltextRetriever<ImageContent> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is SimpleFulltextQuery) { "The query is not a fulltext query. This is a programmer's error!" }
         return FulltextRetriever(field, query, context)
@@ -82,7 +99,7 @@ class OCR : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
      * @param context The [QueryContext] to use with the [Retriever]
      * @return [FulltextRetriever]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ImageContent, StringDescriptor>, content: Collection<ImageContent>, context: QueryContext): Retriever<ImageContent, StringDescriptor>{
+    override fun newRetrieverForContent(field: Schema.Field<ImageContent, StringDescriptor>, content: Collection<ImageContent>, context: QueryContext): FulltextRetriever<ImageContent> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
 
         /* Prepare query parameters. */
@@ -91,6 +108,4 @@ class OCR : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
 
         return this.newRetrieverForQuery(field, SimpleFulltextQuery(value = Value.String(text.content), limit = limit), context)
     }
-
-
 }

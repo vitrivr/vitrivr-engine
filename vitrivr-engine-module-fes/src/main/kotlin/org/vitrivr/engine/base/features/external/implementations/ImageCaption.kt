@@ -38,12 +38,30 @@ class ImageCaption : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
 
     override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = StringDescriptor::class
-    override fun prototype(field: Schema.Field<*, *>): StringDescriptor = StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(""), true)
+    override fun prototype(field: Schema.Field<*, *>): StringDescriptor = StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(""))
 
-    override fun newExtractor(field: Schema.Field<ImageContent, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, String>): Extractor<ImageContent, StringDescriptor> {
+
+    override fun newExtractor(
+        field: Schema.Field<ImageContent, StringDescriptor>,
+        input: Operator<Retrievable>,
+        context: IndexContext
+    ): Extractor<ImageContent, StringDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        val batchSize = parameters[BATCHSIZE_PARAMETER_NAME]?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
-        return object : FesExtractor<StringDescriptor, ImageContent, ImageCaption>(input, field, persisting, batchSize) {
+        val batchSize = context.getProperty(field.fieldName, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
+        return object : FesExtractor<StringDescriptor, ImageContent, ImageCaption>(input, field, batchSize) {
+            override fun assignRetrievableId(descriptor: StringDescriptor, retrievableId: RetrievableId): StringDescriptor {
+                return descriptor.copy(retrievableId = retrievableId, field = field)
+            }
+        }
+    }
+
+    override fun newExtractor(
+        name: String,
+        input: Operator<Retrievable>,
+        context: IndexContext
+    ): Extractor<ImageContent, StringDescriptor> {
+        val batchSize = context.getProperty(name, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
+        return object : FesExtractor<StringDescriptor, ImageContent, ImageCaption>(input, null, batchSize) {
             override fun assignRetrievableId(descriptor: StringDescriptor, retrievableId: RetrievableId): StringDescriptor {
                 return descriptor.copy(retrievableId = retrievableId)
             }

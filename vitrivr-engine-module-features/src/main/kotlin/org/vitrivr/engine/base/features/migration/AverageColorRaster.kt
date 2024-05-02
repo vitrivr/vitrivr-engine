@@ -18,7 +18,7 @@ class AverageColorRaster: Analyser<ContentElement<*>, RasterDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = RasterDescriptor::class
     override fun prototype(field: Schema.Field<*, *>): RasterDescriptor =
-        RasterDescriptor(id = UUID.randomUUID(), retrievableId = UUID.randomUUID(), hist = List(15) { Value.Float(0.0f) }, raster = List(64) { Value.Float(0.0f) }, transient = true) // should transient be false? what is transient?
+        RasterDescriptor(id = UUID.randomUUID(), retrievableId = UUID.randomUUID(), hist = List(15) { Value.Float(0.0f) }, raster = List(64) { Value.Float(0.0f) }) // should transient be false? what is transient?
 
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, RasterDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, RasterDescriptor> {
         TODO("Not yet implemented")
@@ -28,7 +28,11 @@ class AverageColorRaster: Analyser<ContentElement<*>, RasterDescriptor> {
         TODO("Not yet implemented")
     }
 
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, RasterDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, String>): Extractor<ContentElement<*>, RasterDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, RasterDescriptor>, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, RasterDescriptor> {
+        TODO("Not yet implemented")
+    }
+
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, RasterDescriptor> {
         TODO("Not yet implemented")
     }
 }

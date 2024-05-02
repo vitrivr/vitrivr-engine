@@ -1,6 +1,7 @@
 package org.vitrivr.engine.core.model.descriptor
 
 import org.vitrivr.engine.core.model.Persistable
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import java.util.*
@@ -17,10 +18,18 @@ typealias DescriptorId = UUID
  */
 interface Descriptor : Persistable {
     /** The [DescriptorId] held by this [Descriptor]. */
-    override val id: DescriptorId
+    val id: DescriptorId
 
     /** The [RetrievableId] of the [Retrievable] that is being described by this [Descriptor]. */
     val retrievableId: RetrievableId?
+
+    /** The [Schema.Field] backing this [Descriptor]. */
+    val field: Schema.Field<*, out Descriptor>?
+
+
+    /** */
+    override val transient: Boolean
+        get() = this.field != null
 
     /**
      * Returns a  [FieldSchema] [List] for this [Descriptor].

@@ -7,14 +7,14 @@ import kotlinx.coroutines.flow.toList
 import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrieved
-import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Transformer
+import javax.management.Descriptor
 
 /**
- * Appends [DescriptorAttribute] to a [Retrieved] based on the values of a [Schema.Field], if available.
+ * Appends [Descriptor] to a [Retrieved] based on the values of a [Schema.Field], if available.
  *
- * @version 1.1.0
+ * @version 1.1.1
  * @author Luca Rossetto
  * @author Ralph Gasser
  */
@@ -35,7 +35,7 @@ class FieldLookup(override val input: Operator<Retrieved>, private val reader: D
         inputRetrieved.forEach { retrieved ->
             val descriptor = descriptors[retrieved.id]
             if (descriptor != null) {
-                retrieved.addAttribute(DescriptorAttribute(descriptor))
+                retrieved.addDescriptor(descriptor)
             }
             emit(retrieved)
         }

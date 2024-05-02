@@ -5,7 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
-import org.vitrivr.engine.core.config.SchemaConfig
+import org.vitrivr.engine.core.config.schema.SchemaConfig
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
@@ -23,7 +23,7 @@ data class ServerConfig(
 ) {
     companion object {
         /** Default path to fall back to. */
-        const val DEFAULT_SCHEMA_PATH = "./config.json"
+        const val DEFAULT_SCHEMA_PATH = "./config-schema.json"
 
         /**
          * Tries to read a [ServerConfig] from a file specified by the given [Path].

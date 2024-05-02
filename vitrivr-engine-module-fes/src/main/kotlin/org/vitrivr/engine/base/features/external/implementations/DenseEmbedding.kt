@@ -33,11 +33,11 @@ companion object {
         val textContents = content.filterIsInstance<TextContent>()
         if (imageContents.isEmpty() && !textContents.isEmpty()) {
             val result = apiWrapper.textEmbedding(textContents.map { it.content })
-            return result.map { listOf(FloatVectorDescriptor(UUID.randomUUID(), null, it.map{Value.Float(it)}, true)) }
+            return result.map { listOf(FloatVectorDescriptor(UUID.randomUUID(), null, it.map{Value.Float(it)}, null)) }
         }
         if (!imageContents.isEmpty() && textContents.isEmpty()) {
             val result = apiWrapper.imageEmbedding(imageContents.map { it.content })
-            return result.map { listOf(FloatVectorDescriptor(UUID.randomUUID(), null, it.map {Value.Float(it) }, true)) }
+            return result.map { listOf(FloatVectorDescriptor(UUID.randomUUID(), null, it.map {Value.Float(it) }, null)) }
         }
 
         throw IllegalArgumentException("Content type not supported")
@@ -49,7 +49,7 @@ companion object {
     override fun prototype(field: Schema.Field<*, *>) : FloatVectorDescriptor {
         //convert to integer
         val length = field.parameters[LENGTH_PARAMETER_NAME]?.toIntOrNull() ?: LENGTH_PARAMETER_DEFAULT
-        return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(length) { Value.Float(0.0f) }, true)
+        return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(length) { Value.Float(0.0f) })
     }
 
     override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, FloatVectorDescriptor> {
@@ -70,11 +70,27 @@ companion object {
         return this.newRetrieverForQuery(field, ProximityQuery(value = vector.vector, k = k, fetchVector = fetchVector), context)
     }
 
-
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, String>): Extractor<ContentElement<*>, FloatVectorDescriptor> {
+    override fun newExtractor(
+        field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
+        input: Operator<Retrievable>,
+        context: IndexContext
+    ): Extractor<ContentElement<*>, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        val batchSize = parameters[BATCHSIZE_PARAMETER_NAME]?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
-        return object : FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding>(input, field, persisting, batchSize) {
+        val batchSize = context.getProperty(field.fieldName, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
+        return object : FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding>(input, field, batchSize) {
+            override fun assignRetrievableId(descriptor: FloatVectorDescriptor, retrievableId: RetrievableId): FloatVectorDescriptor {
+                return descriptor.copy(retrievableId = retrievableId, field = field)
+            }
+        }
+    }
+
+    override fun newExtractor(
+        name: String,
+        input: Operator<Retrievable>,
+        context: IndexContext
+    ): Extractor<ContentElement<*>, FloatVectorDescriptor> {
+        val batchSize = context.getProperty(name, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
+        return object : FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding>(input, null, batchSize) {
             override fun assignRetrievableId(descriptor: FloatVectorDescriptor, retrievableId: RetrievableId): FloatVectorDescriptor {
                 return descriptor.copy(retrievableId = retrievableId)
             }

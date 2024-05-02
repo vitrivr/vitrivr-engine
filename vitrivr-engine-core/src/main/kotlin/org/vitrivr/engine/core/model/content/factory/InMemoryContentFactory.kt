@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.content.factory
 
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.*
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryAudioContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryImageContent
@@ -18,7 +19,7 @@ import java.nio.ShortBuffer
  */
 class InMemoryContentFactory : ContentFactoriesFactory {
 
-    override fun newContentFactory(schema: Schema, parameters: Map<String, String>): ContentFactory = Instance()
+    override fun newContentFactory(schema: Schema, context: Context): ContentFactory = Instance()
 
     private class Instance() : ContentFactory {
 
