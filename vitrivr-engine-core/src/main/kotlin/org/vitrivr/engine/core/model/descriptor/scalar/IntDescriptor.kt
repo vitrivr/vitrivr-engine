@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.model.descriptor.scalar
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
@@ -17,7 +18,7 @@ data class IntDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId,
     override val value: Value.Int,
-    override val transient: Boolean = false
+    override val field: Schema.Field<*, IntDescriptor>? = null
 ) : ScalarDescriptor<Value.Int> {
     companion object {
         private val SCHEMA = listOf(FieldSchema("value", Type.INT))

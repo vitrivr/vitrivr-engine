@@ -4,12 +4,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
-import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import java.util.*
@@ -20,7 +18,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(final override val input: Operator<Retrievable>, final override val field: Schema.Field<C, D>, final override val persisting: Boolean = true, private val bufferSize: Int = 100) :
+abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(final override val input: Operator<Retrievable>, final override val field: Schema.Field<C, D>?, private val bufferSize: Int = 100) :
     Extractor<C, D> {
 
     /**
@@ -33,12 +31,8 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(f
      * @return [Flow] of [Retrievable]
      */
     final override fun toFlow(scope: CoroutineScope): Flow<Retrievable> {
-        /* The [DescriptorWriter] used by this [AbstractExtractor]. */
-        val writer: DescriptorWriter<D> by lazy { this.field.getWriter() }
-
 
         val batch = mutableListOf<Retrievable>()
-        val persisting = this.persisting
 
         /* Prepare and return flow. */
         return this.input.toFlow(scope).onEach { retrievable ->
@@ -51,11 +45,8 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(f
                 for (i in batch.indices) {
                     val r = batch[i]
                     for (d in descriptors[i]) {
-                        r.addAttribute(DescriptorAttribute(d))
+                        r.addDescriptor(d)
                     }
-                }
-                if (persisting){
-                    writer.addAll(descriptors.flatten())
                 }
                 batch.clear()
             }
@@ -67,11 +58,8 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(f
                 for (i in batch.indices) {
                     val r = batch[i]
                     for (d in descriptors[i]) {
-                        r.addAttribute(DescriptorAttribute(d))
+                        r.addDescriptor(d)
                     }
-                }
-                if (persisting){
-                    writer.addAll(descriptors.flatten())
                 }
                 batch.clear()
             }

@@ -23,7 +23,7 @@ import org.vitrivr.engine.core.util.math.ScoringFunctions
  * @author Rahel Arnold
  * @version 1.0.0
  */
-class DenseRetriever(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, query: ProximityQuery<*>, context: QueryContext) : AbstractRetriever<ContentElement<*>, FloatVectorDescriptor>(field, query, context) {
+class DenseRetriever<C : ContentElement<*>>(field: Schema.Field<C, FloatVectorDescriptor>, query: ProximityQuery<*>, context: QueryContext) : AbstractRetriever<C, FloatVectorDescriptor>(field, query, context) {
     override fun toFlow(scope: CoroutineScope) = flow {
         this@DenseRetriever.reader.getAll(this@DenseRetriever.query).forEach {
             it.addAttribute(ScoringFunctions.max(it))

@@ -8,7 +8,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import org.vitrivr.engine.core.config.SchemaConfig
+import org.vitrivr.engine.core.config.schema.SchemaConfig
 import org.vitrivr.engine.core.database.Initializer
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
@@ -22,6 +22,7 @@ import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourc
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
+import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
@@ -127,7 +128,7 @@ data class CineastSegmentMetadata(
 interface CineastFeature {
 
     val id: String
-    abstract fun toDescriptor(idmap: Map<String, String>): Descriptor?
+    fun toDescriptor(idmap: Map<String, String>): Descriptor?
 }
 
 
@@ -141,8 +142,7 @@ data class CineastVectorFeature(override val id: String, val feature: List<Float
         return FloatVectorDescriptor(
             id = DescriptorId.randomUUID(),
             retrievableId = RetrievableId.fromString(idmap[id]),
-            vector = feature.map { Value.Float(it) },
-            transient = false
+            vector = feature.map { Value.Float(it) }
         )
     }
 }
@@ -158,8 +158,7 @@ data class CineastStringFeature(override val id: String, val feature: String) : 
             id = DescriptorId.randomUUID(),
             retrievableId = RetrievableId.fromString(idmap[id])
                 ?: throw IllegalArgumentException("Could not find retrievable id for id $id"),
-            value = Value.String(feature),
-            transient = false
+            value = Value.String(feature)
         )
     }
 }
@@ -181,8 +180,7 @@ data class CineastSkeletonPoseFeature(
             retrievableId = RetrievableId.fromString(idmap[id]),
             person = Value.Int(person),
             skeleton = skeleton.map { Value.Float(it) },
-            weights = weights.map { Value.Float(it) },
-            transient = false
+            weights = weights.map { Value.Float(it) }
         )
     }
 }
@@ -385,8 +383,7 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                         retrievableId = RetrievableId.fromString(retrievableId)
                             ?: throw IllegalArgumentException("Could not find retrievable id for object ${mobjectmetadata.objectid}"),
                         width = Value.Int(width),
-                        height = Value.Int(height),
-                        transient = false
+                        height = Value.Int(height)
                     )
                     mediadimensionswriter.add(dimensionsDescriptor)
                 }
@@ -399,8 +396,7 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                     id = DescriptorId.randomUUID(),
                     retrievableId = RetrievableId.fromString(retrievableId)
                         ?: throw IllegalArgumentException("Could not find retrievable id for object ${mobjectmetadata.objectid}"),
-                    value = Value.Float(fps),
-                    transient = false
+                    value = Value.Float(fps)
                 )
                 videofpswriter.add(fpsDescriptor)
             }
@@ -413,8 +409,7 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                     id = DescriptorId.randomUUID(),
                     retrievableId = RetrievableId.fromString(retrievableId)
                         ?: throw IllegalArgumentException("Could not find retrievable id for object ${mobjectmetadata.objectid}"),
-                    value = Value.Float(duration),
-                    transient = false
+                    value = Value.Float(duration)
                 )
                 videodurationwriter.add(durationDescriptor)
             }
@@ -464,12 +459,8 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
             if ((index + 1) % batchSize == 0 || index == segments.size - 1) {
                 retrievableWriter.addAll(ingestedList)
                 retrievableWriter.connectAll(
-                    ingestedList.map { it.id },
-                    "isPartOf",
-                    parentIdList.map {
-                        RetrievableId.fromString(it)
-                            ?: throw IllegalArgumentException("Could not find retrievable id for segment $it")
-                    })
+                    ingestedList.zip(parentIdList).map { Relationship.ById(it.first.id, "isPartOf", RetrievableId.fromString(it.second) ?: throw IllegalArgumentException("Could not find retrievable id for segment $it"), false) }
+                )
                 temporalmetadatawriter.addAll(temporalMetadataList)
 
                 // Clear the lists for the next batch
@@ -499,8 +490,7 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                     val dominantColorDescriptor = StringDescriptor(
                         id = DescriptorId.randomUUID(),
                         retrievableId = retrievableId,
-                        value = Value.String(color),
-                        transient = false
+                        value = Value.String(color)
                     )
                     dominantcolordescriptors.add(dominantColorDescriptor)
 

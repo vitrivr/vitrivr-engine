@@ -41,7 +41,7 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param field [Schema.Field] to create the prototype for.
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), listOf(Value.Float(0.0f), Value.Float(0.0f), Value.Float(0.0f)), true)
+    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), listOf(Value.Float(0.0f), Value.Float(0.0f), Value.Float(0.0f)))
 
     /**
      * Generates and returns a new [AverageColorExtractor] instance for this [AverageColor].
@@ -49,22 +49,23 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param field The [Schema.Field] to create an [Extractor] for.
      * @param input The [Operator] that acts as input to the new [Extractor].
      * @param context The [IndexContext] to use with the [Extractor].
-     * @param persisting True, if the results of the [Extractor] should be persisted.
      *
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(
-        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
-        input: Operator<Retrievable>,
-        context: IndexContext,
-        persisting: Boolean,
-        parameters: Map<String, String>
-    ): AverageColorExtractor {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        logger.debug { "Creating new AverageColorExtractor for field '${field.fieldName}' with parameters $parameters." }
-        return AverageColorExtractor(input, field, persisting)
-    }
+    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext) = AverageColorExtractor(input, field)
+
+    /**
+     * Generates and returns a new [AverageColorExtractor] instance for this [AverageColor].
+     *
+     * @param name The name of the [AverageColorExtractor].
+     * @param input The [Operator] that acts as input to the new [Extractor].
+     * @param context The [IndexContext] to use with the [Extractor].
+     *
+     * @return A new [Extractor] instance for this [Analyser]
+     * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
+     */
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, FloatVectorDescriptor> = AverageColorExtractor(input, null)
 
     /**
      * Generates and returns a new [AverageColorRetriever] instance for this [AverageColor].
@@ -129,6 +130,6 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
 
         /* Generate descriptor. */
         val averageColor = RGBFloatColorContainer(color.red / rgb.size, color.green / rgb.size, color.blue / rgb.size)
-        FloatVectorDescriptor(UUID.randomUUID(), null, averageColor.toValueList(), true)
+        FloatVectorDescriptor(UUID.randomUUID(), null, averageColor.toValueList())
     }
 }

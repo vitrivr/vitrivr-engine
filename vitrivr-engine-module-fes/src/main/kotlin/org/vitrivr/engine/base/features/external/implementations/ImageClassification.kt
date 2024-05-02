@@ -36,7 +36,7 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
 
         for (result in results) {
             val filteredResults = result
-                .mapIndexed { index, score -> LabelDescriptor(UUID.randomUUID(), null, Value.String(classes[index]), Value.Float(score), score >= threshold) }
+                .mapIndexed { index, score -> LabelDescriptor(UUID.randomUUID(), null, Value.String(classes[index]), Value.Float(score), null) }
                 .filter { it.confidence.value >= threshold }
                 .sortedByDescending { it.confidence.value }
                 .take(topk)
@@ -52,7 +52,7 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
     override val descriptorClass = LabelDescriptor::class
 
     override fun prototype(field: Schema.Field<*,*>): LabelDescriptor {
-        return LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(""), Value.Float(0.0f), true)
+        return LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(""), Value.Float(0.0f))
     }
 
     override fun newRetrieverForContent(field: Schema.Field<ImageContent, LabelDescriptor>, content: Collection<ImageContent>, context: QueryContext): Retriever<ImageContent, LabelDescriptor> {
@@ -63,12 +63,28 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
         TODO("Not yet implemented")
     }
 
-    override fun newExtractor(field: Schema.Field<ImageContent, LabelDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, String>): Extractor<ImageContent, LabelDescriptor> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        val batchSize = parameters[BATCHSIZE_PARAMETER_NAME]?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
-        return object : FesExtractor<LabelDescriptor, ImageContent, ImageClassification>(input, field, persisting, batchSize){
+    override fun newExtractor(
+        name: String,
+        input: Operator<Retrievable>,
+        context: IndexContext
+    ): Extractor<ImageContent, LabelDescriptor> {
+        val batchSize = context.getProperty(name, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
+        return object : FesExtractor<LabelDescriptor, ImageContent, ImageClassification>(input, null, batchSize) {
             override fun assignRetrievableId(descriptor: LabelDescriptor, retrievableId: RetrievableId): LabelDescriptor {
                 return descriptor.copy(retrievableId = retrievableId)
+            }
+        }
+    }
+
+    override fun newExtractor(
+        field: Schema.Field<ImageContent, LabelDescriptor>,
+        input: Operator<Retrievable>,
+        context: IndexContext
+    ): Extractor<ImageContent, LabelDescriptor> {
+        val batchSize = context.getProperty(field.fieldName, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
+        return object : FesExtractor<LabelDescriptor, ImageContent, ImageClassification>(input, field, batchSize) {
+            override fun assignRetrievableId(descriptor: LabelDescriptor, retrievableId: RetrievableId): LabelDescriptor {
+                return descriptor.copy(retrievableId = retrievableId, field = field)
             }
         }
     }

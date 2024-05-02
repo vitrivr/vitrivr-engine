@@ -1,11 +1,14 @@
 package org.vitrivr.engine.core.source
 
+import kotlinx.serialization.Serializable
+
 /**
  * An enumeration of the supported [MediaType]s.
  *
  * @author Luca Rossetto
  * @version 1.0.0
  */
+@Serializable
 enum class MediaType {
     /** A still image. */
     IMAGE,

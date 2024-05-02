@@ -8,7 +8,6 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
-import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
 import org.vitrivr.engine.core.model.types.toValue
 import org.vitrivr.engine.plugin.cottontaildb.*
@@ -58,7 +57,7 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
                 retrieved.addAttribute(DistanceAttribute(distance))
                 if (query.fetchVector) {
                     val descriptor = tupleToDescriptor(it)
-                    retrieved.addAttribute(DescriptorAttribute(descriptor))
+                    retrieved.addDescriptor(descriptor)
                 }
                 retrieved
             }

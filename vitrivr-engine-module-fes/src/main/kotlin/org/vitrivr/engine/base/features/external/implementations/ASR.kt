@@ -40,12 +40,28 @@ class ASR : ExternalFesAnalyser<AudioContent, StringDescriptor>() {
         return StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), StringValue(""))
     }
 
-    override fun newExtractor(field: Schema.Field<AudioContent, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, String>): Extractor<AudioContent, StringDescriptor> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        val batchSize = parameters[BATCHSIZE_PARAMETER_NAME]?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
-        return object : FesExtractor<StringDescriptor, AudioContent, ASR>(input, field, persisting, batchSize) {
+    override fun newExtractor(
+        name: String,
+        input: Operator<Retrievable>,
+        context: IndexContext
+    ): Extractor<AudioContent, StringDescriptor> {
+        val batchSize = context.getProperty(name, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
+        return object : FesExtractor<StringDescriptor, AudioContent, ASR>(input, null, batchSize) {
             override fun assignRetrievableId(descriptor: StringDescriptor, retrievableId: RetrievableId): StringDescriptor {
                 return descriptor.copy(retrievableId = retrievableId)
+            }
+        }
+    }
+
+    override fun newExtractor(
+        field: Schema.Field<AudioContent, StringDescriptor>,
+        input: Operator<Retrievable>,
+        context: IndexContext
+    ): Extractor<AudioContent, StringDescriptor> {
+        val batchSize = context.getProperty(field.fieldName, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
+        return object : FesExtractor<StringDescriptor, AudioContent, ASR>(input, field, batchSize) {
+            override fun assignRetrievableId(descriptor: StringDescriptor, retrievableId: RetrievableId): StringDescriptor {
+                return descriptor.copy(retrievableId = retrievableId, field = field)
             }
         }
     }

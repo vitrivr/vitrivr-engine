@@ -43,7 +43,29 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
 
         /* Append fields. */
         for ((field, value) in item.values()) {
-            insert.any(field, value)
+            insert.value(
+                field, when (value) {
+                    null -> null
+                    is UUID -> UuidValue(value)
+                    is String -> StringValue(value)
+                    is Value.String -> StringValue(value.value)
+                    is Boolean -> BooleanValue(value)
+                    is Value.Boolean -> BooleanValue(value.value)
+                    is Byte -> ByteValue(value)
+                    is Value.Byte -> ByteValue(value.value)
+                    is Short -> ShortValue(value)
+                    is Value.Short -> ShortValue(value.value)
+                    is Int -> IntValue(value)
+                    is Value.Int -> IntValue(value.value)
+                    is Long -> LongValue(value)
+                    is Value.Long -> LongValue(value.value)
+                    is Float -> FloatValue(value)
+                    is Value.Float -> FloatValue(value.value)
+                    is Double -> DoubleValue(value)
+                    is Value.Double -> DoubleValue(value.value)
+                    else -> throw IllegalArgumentException("Unsupported type ${value::class.simpleName} for struct descriptor.")
+                }
+            )
         }
 
         return try {

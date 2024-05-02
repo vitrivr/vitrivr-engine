@@ -5,39 +5,38 @@ import org.vitrivr.engine.core.model.color.MutableRGBFloatColorContainer
 import org.vitrivr.engine.core.model.color.RGBByteColorContainer
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
+import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.Aggregator
-import org.vitrivr.engine.core.operators.ingest.AggregatorFactory
-import org.vitrivr.engine.core.operators.ingest.Segmenter
+import org.vitrivr.engine.core.operators.general.Transformer
+import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.util.extension.getRGBArray
 import org.vitrivr.engine.index.aggregators.AbstractAggregator
 
 /**
- * A [Aggregator] thatderives the 'most representative' image out of a list of images as defined by the smallest pixel-wise distance.
+ * A [Transformer] that derives the 'most representative' [ImageContent] from all [ImageContent] found in an [Ingested].
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.2.0
  */
-class RepresentativeImageContentAggregator : AggregatorFactory {
+class RepresentativeImageContentAggregator : TransformerFactory {
 
     /**
      * Returns an [RepresentativeImageContentAggregator.Instance].
      *
-     * @param input The [Segmenter] to use as input.
+     * @param name The name of the [Transformer]
+     * @param input The input [Operator].
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      * @return [RepresentativeImageContentAggregator.Instance]
      */
-    override fun newOperator(input: Segmenter, context: IndexContext, parameters: Map<String, String>): Aggregator =
-        Instance(input, context)
+    override fun newTransformer(name: String, input: Operator<Retrievable>, context: IndexContext): Transformer = Instance(input, context)
+
 
     /**
-     * The [Instance] returns by the [AggregatorFactory]
+     * The [Instance] returns by the [RepresentativeImageContentAggregator]
      */
-    private class Instance(override val input: Operator<Retrievable>, context: IndexContext) :
-        AbstractAggregator(input, context) {
+    private class Instance(override val input: Operator<Retrievable>, context: IndexContext) : AbstractAggregator(input, context) {
         override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> {
             val images = content.filterIsInstance<ImageContent>()
             if (images.isEmpty()) {
@@ -72,10 +71,7 @@ class RepresentativeImageContentAggregator : AggregatorFactory {
                 }.sum()
 
             }
-
             return listOf(mostRepresentative)
-
-
         }
     }
 }
