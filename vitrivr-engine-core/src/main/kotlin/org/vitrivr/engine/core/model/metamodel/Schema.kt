@@ -1,9 +1,8 @@
 package org.vitrivr.engine.core.model.metamodel
 
-import org.vitrivr.engine.core.config.schema.SchemaConfig
 import org.vitrivr.engine.core.config.ingest.IngestionConfig
 import org.vitrivr.engine.core.config.ingest.IngestionPipelineBuilder
-import org.vitrivr.engine.core.config.pipeline.execution.IndexingPipeline
+import org.vitrivr.engine.core.config.schema.SchemaConfig
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.database.Connection
@@ -16,7 +15,7 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.ExporterFactory
+import org.vitrivr.engine.core.operators.general.ExporterFactory
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.core.resolver.Resolver
@@ -83,14 +82,13 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
         this.resolvers[name] = resolver
     }
 
-
     /**
      * Adds a new [IngestionPipelineBuilder] for the given [IngestionConfig] to this [Schema].
      *
      * @param name The name of the [IngestionConfig], as specified in the [SchemaConfig].
      * @param config The actual [IngestionConfig]
      */
-    fun addIngestionPipeline(name: String, config: IngestionConfig){
+    fun addIngestionPipeline(name: String, config: IngestionConfig) {
         ingestionPipelineBuilders[name] = IngestionPipelineBuilder(this, config)
     }
 
@@ -126,10 +124,12 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
     fun getExporter(name: String) = this.exporters.firstOrNull { it.name == name }
 
     /**
-     * Get the [IngestionPipelineBuilder] associated with the provided name to build the [IndexingPipeline].
-     * @param name The name of the ingestion pipeline configuration, essentially the [SchemaConfig.pipelien]
+     * Get the [IngestionPipelineBuilder] associated with the provided name to build the indexing pipeline
+     *
+     * @param name The name of the ingestion pipeline configuration, essentially the [SchemaConfig]
+     * @return [IngestionPipelineBuilder] instance
      */
-    fun getIngestionPipelineBuilder(name:String) = ingestionPipelineBuilders[name] ?: throw IllegalArgumentException("No ingestion pipeline builder with the name '$name' found in schema '${this.name}'")
+    fun getIngestionPipelineBuilder(name: String) = this.ingestionPipelineBuilders[name] ?: throw IllegalArgumentException("No ingestion pipeline builder with the name '$name' found in schema '${this.name}'")
 
     /**
      * Closes this [Schema] and the associated database [Connection].
@@ -173,12 +173,7 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * @param context The [IndexContext] to use with the [Extractor].
          * @return [Extractor] instance.
          */
-        fun getExtractor(
-            input: Operator<Retrievable>,
-            context: IndexContext,
-            parameters: Map<String, Any> = this.parameters
-        ): Extractor<C, D> =
-            this.analyser.newExtractor(this, input, context, true, parameters)
+        fun getExtractor(input: Operator<Retrievable>, context: IndexContext): Extractor<C, D> = this.analyser.newExtractor(this, input, context)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field] and the provided [Query].
@@ -250,43 +245,35 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      *
      * An [Exporter] always has a unique name and is backed by an existing [ExporterFactory] and an existing [ResolverFactory].
      */
-    inner class Exporter(
-        val name: String,
-        private val factory: ExporterFactory,
-        private val parameters: Map<String, String> = emptyMap(),
-        val resolver: Resolver
-    ) {
+    inner class Exporter(val name: String, private val factory: ExporterFactory, private val parameters: Map<String, String> = emptyMap(), val resolver: Resolver) {
         val schema: Schema
             get() = this@Schema
 
         /**
-         * Convenience method to generate and return a [org.vitrivr.engine.core.operators.ingest.Exporter ] for this [Exporter].
+         * Convenience method to generate and return a [org.vitrivr.engine.core.operators.general.Exporter ] for this [Exporter].
          *
          * @param input The [Operator] to use as input.
          * @param context The [IndexContext] to use.
          * @return [DescriptorReader]
          */
-        fun getExporter(
-            input: Operator<Retrievable>,
-            context: IndexContext,
-        ): org.vitrivr.engine.core.operators.ingest.Exporter {
-            val newContext = if(parameters.isNotEmpty()){
+        fun getExporter(input: Operator<Retrievable>, context: IndexContext): org.vitrivr.engine.core.operators.general.Exporter {
+            val newContext = if (parameters.isNotEmpty()) {
                 /* Case this is newly defined in the schema */
-                val params = if(context.local.containsKey(name)){
+                val params = if (context.local.containsKey(name)) {
                     val map = context.local[name]?.toMutableMap() ?: mutableMapOf()
                     map.putAll(parameters)
                     map
-                }else{
+                } else {
                     parameters
                 }
                 val newLocal = context.local.toMutableMap()
                 newLocal[name] = params
                 IndexContext(context.schema, context.contentFactory, context.resolver, newLocal, context.global)
-            }else{
+            } else {
                 /* Other case: this is from the ingestion side of things, but referenced */
                 context
             }
-            return this.factory.newOperator(name, input, newContext)
+            return this.factory.newExporter(name, input, newContext)
         }
     }
 }

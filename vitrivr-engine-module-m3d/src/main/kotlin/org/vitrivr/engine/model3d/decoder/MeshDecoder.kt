@@ -4,11 +4,10 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.mapNotNull
 import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.model.content.decorators.SourcedContent
-import org.vitrivr.engine.core.model.content.element.Model3DContent
+import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.operators.ingest.DecoderFactory
 import org.vitrivr.engine.core.operators.ingest.Enumerator
@@ -18,23 +17,20 @@ import org.vitrivr.engine.model3d.ModelHandler
 import java.io.IOException
 
 /**
- * A [Decoder] that can decode [MeshDecoder] from a [Source] of [MediaType.OBJ] or [MediaType.GLTF].
+ * A [Decoder] that can decode [MeshDecoder] from a [Source] of [MediaType.MESH].
  *
  * @author Rahel Arnold
- * @version 1.0.0
+ * @version 1.1.0
  */
 class MeshDecoder : DecoderFactory {
-
     /**
-     * Creates a new [Decoder] instance from this [Model3DDecoder].
+     * Creates a new [Decoder] instance from this [DecoderFactory].
      *
+     * @param name The name of this [Decoder].
      * @param input The input [Enumerator].
-     * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
+     * @param context The [IndexContext]
      */
-    override fun newOperator(input: Enumerator, context: IndexContext, parameters: Map<String, String>): Decoder =
-        Instance(input, context)
-
+    override fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder = Instance(input, context)
     /**
      * The [Decoder] returned by this [MeshDecoder].
      */
@@ -44,38 +40,32 @@ class MeshDecoder : DecoderFactory {
         private val logger: KLogger = KotlinLogging.logger {}
 
         /**
-         * Converts this [MeshDecoder] to a [Flow] of [Content] elements.
-         *
-         * Produces [MeshDecoder] elements.
+         * Converts this [MeshDecoder] to a [Flow] of [Retrievable] elements.
          *
          * @param scope The [CoroutineScope] used for conversion.
-         * @return [Flow] of [Content]
+         * @return [Flow] of [Retrievable ]
          */
-        override fun toFlow(scope: CoroutineScope): Flow<Model3DContent> = this.input.toFlow(scope).filter {
-            it.type == MediaType.MESH
-        }.mapNotNull { source ->
+        override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).mapNotNull { sourceRetrievable ->
+            val source = sourceRetrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@mapNotNull null
+            if (source.type != MediaType.MESH) {
+                logger.debug { "In flow: Skipping source ${source.name} (${source.sourceId}) because it is not of type IMAGE." }
+                return@mapNotNull null
+            }
+
             logger.info { "Decoding source ${source.name} (${source.sourceId})" }
+
             try {
                 val handler = ModelHandler()
                 val model = source.newInputStream().use {
                     handler.loadModel(source.sourceId.toString(), it) // Pass InputStream directly
                 }
                 val modelContent = this.context.contentFactory.newMeshContent(model)
-                MeshDecoderWithSource(modelContent, source)
+                sourceRetrievable.addContent(modelContent)
+                sourceRetrievable
             } catch (e: IOException) {
                 logger.error(e) { "Failed to decode 3D model from $source due to an IO exception." }
                 null
             }
         }
-
-
-        /**
-         * An internal class that represents a single 3D model associated with a [Source].
-         *
-         * @see MeshDecoder
-         * @see SourcedContent
-         */
-        class MeshDecoderWithSource(model: Model3DContent, override val source: Source) :
-            Model3DContent by model, SourcedContent
     }
 }

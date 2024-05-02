@@ -26,7 +26,7 @@ sealed interface Operator<O> {
     /**
      * A nullary operator (usually a source).
      */
-    interface Nullary<O>: Operator<O> {
+    interface Nullary<I>: Operator<I> {
         /**
          * Returns root of this [Nullary] (which is this).
          */

@@ -1,6 +1,7 @@
 package org.vitrivr.engine.core.model.descriptor.vector
 
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
@@ -19,7 +20,7 @@ data class FloatVectorDescriptor(
     override val id: UUID = UUID.randomUUID(),
     override val retrievableId: RetrievableId? = null,
     override val vector: List<Value.Float>,
-    override val transient: Boolean = false
+    override val field: Schema.Field<*, FloatVectorDescriptor>? = null
 ) : VectorDescriptor<Value.Float> {
     /**
      * Returns the [FieldSchema] [List ]of this [FloatVectorDescriptor].

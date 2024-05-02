@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.operators.ingest
+package org.vitrivr.engine.core.operators.general
 
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable

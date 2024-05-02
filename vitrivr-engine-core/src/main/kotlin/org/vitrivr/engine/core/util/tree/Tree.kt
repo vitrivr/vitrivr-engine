@@ -16,9 +16,9 @@ class Tree<T>(
     }
 
     fun add(node: TreeNode<T>) {
-        if(this::root.isInitialized) {
+        if (this::root.isInitialized) {
             this.root.children.add(node)
-        }else{
+        } else {
             this.root = node
         }
         nodesPerName[node.name] = node
@@ -34,7 +34,7 @@ class Tree<T>(
      *
      * @param visitor Processor of the nodes upon traversal. In case of a single-leafed tree, parent is null.
      */
-    fun depthFirstPreorder(visitor: (node: TreeNode<T>, parent: TreeNode<T>?) -> Unit){
+    fun depthFirstPreorder(visitor: (node: TreeNode<T>, parent: TreeNode<T>?) -> Unit) {
         depthFirstPreRecursively(root, visitor = visitor)
     }
 
@@ -45,13 +45,13 @@ class Tree<T>(
     /**
      * Recursive preorder depth first traversal of the tree.
      */
-    private fun depthFirstPreRecursively(node: TreeNode<T>, parent:TreeNode<T>? = null, visitor: (value: TreeNode<T>, parent: TreeNode<T>?) -> Unit ){
-        if(node.isLeaf()){
+    private fun depthFirstPreRecursively(node: TreeNode<T>, parent: TreeNode<T>? = null, visitor: (value: TreeNode<T>, parent: TreeNode<T>?) -> Unit) {
+        if (node.isLeaf()) {
             visitor.invoke(node, parent)
             return
         }
         visitor.invoke(node, parent)
-        for(child in node.children) {
+        for (child in node.children) {
             depthFirstPreRecursively(child, node, visitor)
         }
     }

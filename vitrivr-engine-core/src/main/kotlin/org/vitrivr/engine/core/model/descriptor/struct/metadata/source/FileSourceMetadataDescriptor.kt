@@ -3,6 +3,7 @@ package org.vitrivr.engine.core.model.descriptor.struct.metadata.source
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
@@ -19,7 +20,7 @@ data class FileSourceMetadataDescriptor(
     override val retrievableId: RetrievableId,
     val path: Value.String,
     val size: Value.Long,
-    override val transient: Boolean = false
+    override val field: Schema.Field<*, FileSourceMetadataDescriptor>? = null
 ) : StructDescriptor {
 
     companion object {

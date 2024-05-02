@@ -1,6 +1,5 @@
 package org.vitrivr.engine.core.config
 
-import org.vitrivr.engine.core.model.content.factory.ContentFactory
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.IngestionContextConfig
 import org.vitrivr.engine.core.model.content.factory.ContentFactoriesFactory
@@ -25,10 +24,12 @@ object IndexContextFactory {
         val contentFactory = loadServiceForName<ContentFactoriesFactory>(contextConfig.contentFactory) ?: throw IllegalArgumentException("Failed to find content factory implementation for name '${contextConfig.contentFactory}'.")
 
         /* Return new context. */
-        return IndexContext(schema,
+        return IndexContext(
+            schema,
             contentFactory.newContentFactory(schema, contextConfig),
             schema.getResolver(contextConfig.resolverName),
             contextConfig.local,
-            contextConfig.global)
+            contextConfig.global
+        )
     }
 }

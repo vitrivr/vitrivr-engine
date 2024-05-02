@@ -8,12 +8,11 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
-import org.vitrivr.engine.core.config.ingest.operation.OperationsConfig
-import org.vitrivr.engine.core.config.ingest.operator.DecoderConfig
-import org.vitrivr.engine.core.config.ingest.operator.EnumeratorConfig
+import org.vitrivr.engine.core.config.ingest.operation.OperationConfig
 import org.vitrivr.engine.core.config.ingest.operator.OperatorConfig
 import org.vitrivr.engine.core.context.IngestionContextConfig
-import org.vitrivr.engine.core.operators.ingest.*
+import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.operators.transform.shape.MergeType
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
@@ -21,36 +20,39 @@ import java.nio.file.StandardOpenOption
 /**
  * Configuration of an ingestion pipeline for indexing.
  *
- * Current strict order of operators
- *
- * [Enumerator] -> [Decoder] -> ([Transformer] | [Segmenter])* - if [Segmenter] > [Aggregator]* -> ([Exporter] | [Extractor])*
+ * @author Loris Sauter
+ * @author Ralph Gasser
+ * @version 1.0.0
  *
  * @see IngestionPipelineBuilder
  */
 @Serializable
 data class IngestionConfig(
-    /**
-     * The name of the schema for this [IngestionConfig].
-     * Ultimately, ingestion is performed within said schema.
-     */
+    /** The name of the [Schema] for this [IngestionConfig] */
     val schema: String,
 
-    /**
-     * The [IngestionContextConfig] for this [IngestionConfig]'s context.
-     */
+    /** The [IngestionContextConfig] for this [IngestionConfig]'s context. */
     val context: IngestionContextConfig,
 
     /**
      * The [OperatorConfig]s as a named map.
+     *
      * Provides named definitions of [OperatorConfig]s for the [operations] property.
      */
     val operators: Map<String, OperatorConfig>,
 
     /**
-     * The [OperationsConfig]s as named map.
+     * The [OperationConfig]s as named map.
+     *
      * Pipeline representation as a named, ordered list of Operations.
      */
-    val operations: Map<String, OperationsConfig>
+    val operations: Map<String, OperationConfig>,
+
+    /** List of output operations. */
+    val output: List<String>,
+
+    /** The [MergeType] for the output operations. */
+    val mergeType: MergeType? = null
 ) {
 
 

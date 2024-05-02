@@ -9,8 +9,7 @@ import java.util.*
  * @author Luca Rossetto
  * @version 1.1.0
  */
-data class Retrieved(override val id: UUID, override val type: String?, override val transient: Boolean) :
-    AbstractRetrievable(id, type, transient) {
+data class Retrieved(override val id: UUID, override val type: String?, override val transient: Boolean) : AbstractRetrievable(id, type, transient) {
     constructor(retrievable: Retrievable) : this(retrievable.id, retrievable.type, retrievable.transient) {
         retrievable.attributes.forEach { this.addAttribute(it) }
     }

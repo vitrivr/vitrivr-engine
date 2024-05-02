@@ -5,12 +5,15 @@
     "resolverName": "disk",
     "local": {
       "enumerator": {
-        "path": "./your/media/path",
+        "path": "./path/to/videos",
         "depth": "1"
       },
       "thumbs": {
         "maxSideResolution": "350",
         "mimeType": "JPG"
+      },
+      "filter": {
+        "type": "SOURCE:VIDEO"
       }
     }
   },
@@ -18,40 +21,100 @@
     "enumerator": {
       "type": "ENUMERATOR",
       "factory": "FileSystemEnumerator",
-      "mediaTypes": ["IMAGE"]
+      "mediaTypes": [
+        "VIDEO"
+      ]
     },
     "decoder": {
       "type": "DECODER",
-      "factory": "ImageDecoder"
+      "factory": "VideoDecoder"
     },
-    "pass": {
-      "type": "SEGMENTER",
-      "factory": "PassThroughSegmenter"
-    },
-    "allContent": {
-      "type": "AGGREGATOR",
-      "factory": "AllContentAggregator"
+    "selector": {
+      "type": "TRANSFORMER",
+      "factory": "LastContentAggregator"
     },
     "avgColor": {
       "type": "EXTRACTOR",
       "fieldName": "averagecolor"
     },
+    "file_metadata": {
+      "type": "EXTRACTOR",
+      "fieldName": "file"
+    },
+    "time_metadata": {
+      "type": "EXTRACTOR",
+      "fieldName": "time"
+    },
+    "video_metadata": {
+      "type": "EXTRACTOR",
+      "fieldName": "video"
+    },
     "thumbs": {
       "type": "EXPORTER",
       "exporterName": "thumbnail"
     },
-    "fileMeta": {
-      "type": "EXTRACTOR",
-      "fieldName": "file"
+    "filter": {
+      "type": "TRANSFORMER",
+      "factory": "TypeFilterTransformer"
     }
   },
   "operations": {
-    "stage0": {"operator": "enumerator"},
-    "stage1": {"operator": "decoder", "inputs": ["stage0"]},
-    "stage2": {"operator": "pass", "inputs": ["stage1"]},
-    "stage3": {"operator": "allContent", "inputs": ["stage2"]},
-    "stage4": {"operator": "avgColor", "inputs": ["stage3"]},
-    "stage5": {"operator": "thumbs", "inputs": ["stage4"]},
-    "stage6": {"operator": "fileMeta", "inputs": ["stage5"]}
-  }
+    "enumerator": {
+      "operator": "enumerator"
+    },
+    "decoder": {
+      "operator": "decoder",
+      "inputs": [
+        "enumerator"
+      ]
+    },
+    "selector": {
+      "operator": "selector",
+      "inputs": [
+        "decoder"
+      ]
+    },
+    "averagecolor": {
+      "operator": "avgColor",
+      "inputs": [
+        "selector"
+      ]
+    },
+    "thumbnails": {
+      "operator": "thumbs",
+      "inputs": [
+        "selector"
+      ]
+    },
+    "time_metadata": {
+      "operator": "time_metadata",
+      "inputs": [
+        "selector"
+      ]
+    },
+    "filter": {
+      "operator": "filter",
+      "inputs": [
+        "averagecolor",
+        "thumbnails",
+        "time_metadata"
+      ],
+      "merge": "COMBINE"
+    },
+    "video_metadata": {
+      "operator": "video_metadata",
+      "inputs": [
+        "filter"
+      ]
+    },
+    "file_metadata": {
+      "operator": "file_metadata",
+      "inputs": [
+        "video_metadata"
+      ]
+    }
+  },
+  "output": [
+    "file_metadata"
+  ]
 }

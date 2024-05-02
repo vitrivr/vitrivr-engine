@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
  * This is applicable for index and query phases.
  */
 @Serializable
-sealed class Context{
+sealed class Context() {
     /**
      * Configuration per named operator.
      */
@@ -26,7 +26,7 @@ sealed class Context{
      *
      * @return Either the value named [property] for the [operator] or NULL, in case no such property exists.
      */
-    operator fun get(operator: String, property: String): String? = getProperty(operator,property)
+    operator fun get(operator: String, property: String): String? = getProperty(operator, property)
 
     /**
      * Provides the [property] for the [operator], in case it is defined.
@@ -51,5 +51,4 @@ sealed class Context{
      * @return Either the value named [property] for the [operator] or [default]
      */
     fun getPropertyOrDefault(operator: String, property: String, default: String): String = getProperty(operator, property) ?: default
-
 }

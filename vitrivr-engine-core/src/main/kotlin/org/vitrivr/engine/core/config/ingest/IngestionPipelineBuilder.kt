@@ -3,211 +3,153 @@ package org.vitrivr.engine.core.config.ingest
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.config.IndexContextFactory
-import org.vitrivr.engine.core.config.ingest.operation.OperationsConfig
-import org.vitrivr.engine.core.config.ingest.operator.*
-import org.vitrivr.engine.core.config.pipeline.execution.IndexingPipeline
+import org.vitrivr.engine.core.config.ingest.operation.Operation
+import org.vitrivr.engine.core.config.ingest.operator.OperatorConfig
 import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.general.Exporter
+import org.vitrivr.engine.core.operators.general.ExporterFactory
+import org.vitrivr.engine.core.operators.general.Transformer
+import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.operators.ingest.*
+import org.vitrivr.engine.core.operators.persistence.PersistingSink
+import org.vitrivr.engine.core.operators.transform.shape.BroadcastOperator
+import org.vitrivr.engine.core.operators.transform.shape.CombineOperator
+import org.vitrivr.engine.core.operators.transform.shape.ConcatOperator
+import org.vitrivr.engine.core.operators.transform.shape.MergeOperator
+import org.vitrivr.engine.core.operators.transform.shape.MergeType.*
 import org.vitrivr.engine.core.util.extension.loadServiceForName
-import org.vitrivr.engine.core.util.tree.Tree
-import org.vitrivr.engine.core.util.tree.TreeNode
-import java.util.*
 import java.util.stream.Stream
 
+/**  Internal [KLogger] instance for logging */
+private val logger: KLogger = KotlinLogging.logger { }
 
 /**
- * Parses the [IngestionConfig] to build an ingestion pipeline.
+ * Parses the [IngestionConfig] in the context of a given [Schema] to construct an ingestion pipeline.
  *
- * Currently, there is a strict set of rules regarding the build-up of a pipeline:
- * [Enumerator] -> [Decoder] -> ([Transformer] | [Segmenter])* - if [Segmenter] > [Aggregator]* -> ([Exporter] | [Extractor])*
+ *  @author Loris Sauter
+ *  @author Ralph Gasser
+ *  @version 2.0.0
  */
 class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) {
 
-    /**
-     * Internal [KLogger] instance for logging
-     */
-    private val logger: KLogger = KotlinLogging.logger { }
-
-    /**
-     * The [IndexingPipeline] this [IngestionPipelineBuilder] builds.
-     * Will be populated
-     */
-    private lateinit var pipeline: IndexingPipeline
-
-    /**
-     * Internal definition of the pipeline as a tree.
-     */
-    val pipelineDefTree = Tree<Pair<String,OperatorConfig>>()
-
-    /**
-     * Internal list of [Operator]s
-     */
-    private val operators = mutableMapOf<String,Operator<*>>()
-
-    /**
-     * The [IndexContext]
-     */
+    /** The [IndexContext] */
     private val context = IndexContextFactory.newContext(schema, config.context)
 
     /**
-     * Parses and builds the [Enumerator] based on the given [EnumeratorConfig].
-     * Starts the pipeline building process.
+     * Build the indexing based this [IngestionPipelineBuilder]'s [config].
+     *
+     * The involved steps are:
+     * 1. Parsing of the configuration
+     * 2. Validating the configuration
+     * 3. Building the operators
+     *
+     * @param stream If there is a specific stream the built [Enumerator] should process.
+     * @return A [List] of terminal [Operator.Sink], ready to be processed.
      */
-    private fun buildEnumerator(name: String, config: EnumeratorConfig, stream: Stream<*>? = null): Enumerator {
-        val factory = loadFactory<EnumeratorFactory>(config.factory)
-        return if(stream == null){
-            factory.newOperator(name, context, config.mediaTypes)
-        }else {
-            factory.newOperator(name, context, config.mediaTypes, stream)
-        }.apply {
-            logger.info{"Instantiated new ${if(stream != null){"stream-input"}else{""} } Enumerator: ${this.javaClass.name}"}
+    @Suppress("UNCHECKED_CAST")
+    fun build(stream: Stream<*>? = null): List<Operator.Sink<Retrievable>> {
+        return parseOperations().map { root ->
+            val config = root.opConfig as? OperatorConfig.Enumerator ?: throw IllegalArgumentException("Root stage must always be an enumerator!")
+            val built = HashMap<String, Operator<*>>()
+            built[root.name] = buildEnumerator(root.opName, config, stream)
+            for (output in root.output) {
+                buildInternal(output, built)
+            }
+
+            /* Built terminal stage. */
+            val output = this.config.output.map { (built[it] as? Operator<Retrievable>) ?: throw IllegalArgumentException("Output operation $it not found in pipeline!") }
+            if (output.isEmpty()) throw IllegalStateException("No output operators found in pipeline!")
+            if (output.size == 1) {
+                PersistingSink(output.first(), this.context)
+            } else {
+                when (this.config.mergeType) {
+                    MERGE -> PersistingSink(MergeOperator(output), this.context)
+                    COMBINE -> PersistingSink(CombineOperator(output), this.context)
+                    CONCAT -> PersistingSink(ConcatOperator(output), this.context)
+                    null -> throw IllegalStateException("Merge type must be specified if multiple outputs are defined.")
+                }
+            }
         }
     }
 
     /**
-     * Parses and builds the [OperatorConfig] for the [Decoder].
-     * Must be invoked after [buildEnumerator]
+     * This is an internal function that can be called recursively to build the [Operator] DAG.
+     *
+     * @param operation The [Operation] to build.
+     * @param memoizationTable The memoization table that holds the already built operators.
+     * @return The built [Operator].
      */
-    private fun buildDecoder(name: String, parent: Enumerator, config: DecoderConfig): Decoder {
-//        require(this::enumerator.isInitialized){"Cannot build the decoder before the enumerator. This is a programmer's error!"}
-        val factory = loadFactory<DecoderFactory>(config.factory)
-        return factory.newOperator(name, parent, context).apply{
-            logger.info{"Instantiated new Decoder: ${this.javaClass.name}"}
+    private fun buildInternal(operation: Operation, memoizationTable: MutableMap<String, Operator<*>>, breakAt: Operation? = null) {
+        /* Find all required input operations and merge them (if necessary). */
+        if (operation == breakAt) return
+        val inputs = operation.input.map {
+            if (memoizationTable[it.name] == null) {
+                buildInternal(it, memoizationTable, breakAt)
+            }
+            memoizationTable[it.name]!!
+        }
+        val op = when (inputs.size) {
+            0 -> throw IllegalStateException("Input of operation ${operation.name} is empty! Dangling operators are not supported.")
+            1 -> inputs.first()
+            else -> when (operation.merge) {
+                MERGE -> MergeOperator(inputs.filterIsInstance<Operator<Retrievable>>())
+                COMBINE -> CombineOperator(inputs.filterIsInstance<Operator<Retrievable>>())
+                CONCAT -> ConcatOperator(inputs.filterIsInstance<Operator<Retrievable>>())
+                null -> throw IllegalStateException("Merge type must be specified if multiple inputs are defined.")
+            }
+        }
+
+        /* Prepare and cache operator. */
+        var operator = buildOperator(operation.opName, op, operation.opConfig)
+        if (operation.output.size > 1) {
+            operator = BroadcastOperator(operator)
+        }
+        memoizationTable[operation.name] = operator
+
+        /* Process output operators. */
+        for (output in operation.output) {
+            buildInternal(output, memoizationTable, operation)
         }
     }
 
     /**
      * Parses the pipeline definition, the [IngestionConfig.operations] chain.
-     * Builds an internal representation of the definition.
-     * Required to be invoked **before** [validatePipelineDefinition]
-     */
-    fun parseOperations(): List<Tree<Pair<String, OperatorConfig>>> {
-        require(pipelineDefTree.isEmpty()) {"Illegal State: Cannot parse the pipeline definition, if there is already a pipeline definition"}
-        logger.debug { "Starting building operator tree(s)" }
-        /* Find operations without inputs, these are (by definition) enumerators / entry points */
-        val entrypoints = config.operations.entries.filter{it.value.isEntry()}
-        logger.debug{"Found the following entrypoints: $entrypoints"}
-        /* Build trees with entrypoints as roots*/
-        return entrypoints.map {
-            val tree = Tree<Pair<String,OperatorConfig>>()
-            /* Fetch matching operator config */
-            val opCfg = config.operators[it.value.operator] ?: throw IllegalArgumentException("No such operator '${it.value.operator}'")
-            /* Add root */
-            tree.add(TreeNode(it.key, it.value.operator to opCfg))
-            /* Iteratively find and add children */
-            val stack = Stack<Map.Entry<String, OperationsConfig>>()
-            stack.push(it)
-            while(stack.isNotEmpty()){
-                val ops = stack.pop()
-                /* Find children */
-                val children = config.operations.entries.filter{x -> x.value.inputs.contains(ops.key)}
-                /* Iterate over children. Reversed results in those earlier defined in the list being handled first, due to stack */
-                children.reversed().forEach { child ->
-                    /* Sanity check if such an operation actually exists */
-                    config.operations[child.key] ?: throw IllegalArgumentException("No such operations '$child'")
-                    stack.push(child)
-                    /* Add child as node / leaf to tree */
-                    val cOpCfg = config.operators[child.value.operator] ?: throw IllegalArgumentException("No such operator '${it.value.operator}'")
-                    tree.addTo(ops.key, TreeNode(child.key, child.value.operator to cOpCfg))
-                }
-            }
-            return@map tree
-        }.apply{
-            logger.debug{"Found and build ${this.size} operation tree(s). Root(s) is / are enumerator(s)"}
-        }
-
-    }
-
-    /**
-     * Validates the pipeline definition.
-     * This method should throw exceptions for any violation of the rules for a pipeline and guarantee that the pipeline
-     * is fit for construction upon completion.
      *
-     * Currently, for pipeline (and 'stage'):
-     * ```
-     * Enumerator -> Decoder -> (Transformer | Segmenter)* -Segmenter ?> Aggregator* -> (Extractor | Exporter)*
-     * 0             1           2                                       4              5
-     * ```
+     * @return A list of root [Operation]s that represent the pipeline definition.
      */
-    private fun validatePipelineDefinition(pipelineDefTree: Tree<Pair<String, OperatorConfig>>) {
-        require(!pipelineDefTree.isEmpty()) { "Illegal State: Pipeline definition does not (yet) exist. This is a programmer's error!" }
-        logger.debug { "Validating pipeline definition." }
-        var phase = 0
-        var counter = 0
-        pipelineDefTree.depthFirstPreorder { node, parent ->
-            val operatorConfig = node.value.second
-            logger.debug{"Validating  ${node.name} (${counter++}-th) operation entry: $operatorConfig. We are in phase: $phase"}
-            /* 1. Phase determination, if we are deeper than root */
-            if(parent != null){
-                val last = parent.value.second
-                if(last.type == OperatorType.ENUMERATOR && operatorConfig.type == OperatorType.DECODER){
-                    phase = 1
-                }else if (last.type == OperatorType.DECODER && (operatorConfig.type == OperatorType.TRANSFORMER || operatorConfig.type == OperatorType.SEGMENTER) ){
-                    phase = 2
-                }else if (last.type == OperatorType.SEGMENTER && operatorConfig.type == OperatorType.AGGREGATOR) {
-                    phase = 4
-                } else if (last.type == OperatorType.AGGREGATOR && (operatorConfig.type == OperatorType.EXPORTER || operatorConfig.type == OperatorType.EXTRACTOR)) {
-                    phase = 5
+    fun parseOperations(): List<Operation> {
+        logger.debug { "Starting building operator tree(s)" }
+
+        /* Find operations without inputs, these are (by definition) enumerators / entry points */
+        val entrypoints = this.config.operations.entries.filter { it.value.isEntry() }
+        logger.debug { "Found the following entry points: $entrypoints" }
+
+        /* Build trees with entry points as roots. */
+        return entrypoints.map {
+            val stages = HashMap<String, Operation>()
+            val root = Operation(it.key, it.value.operator, config.operators[it.value.operator] ?: throw IllegalArgumentException("Undefined operator '${it.value.operator}'"), it.value.merge)
+            stages[it.key] = root
+            for (operation in this.config.operations) {
+                if (!stages.containsKey(operation.key)) {
+                    stages[operation.key] = Operation(operation.key, operation.value.operator, config.operators[operation.value.operator] ?: throw IllegalArgumentException("Undefined operator '${it.value.operator}'"), operation.value.merge)
                 }
-                logger.debug{"Determined phase according to environment: $phase"}
-            }else{
-                phase = 0
-            }
-            /* 2. Phase boundary conditions */
-            when (phase) {
-                0 -> if (operatorConfig.type != OperatorType.ENUMERATOR) {
-                    throw IllegalArgumentException("Pipeline is in stage ENUMERATOR but found ${operatorConfig.type}")
-                }
-                1 -> if (operatorConfig.type != OperatorType.DECODER) {
-                    throw IllegalArgumentException("Pipeline is in stage DECODER but found ${operatorConfig.type}")
-                }
-                2 -> {
-                    if (operatorConfig.type != OperatorType.TRANSFORMER && operatorConfig.type != OperatorType.SEGMENTER) {
-                        throw IllegalArgumentException("Pipeline is in stage TRANSFORMER / SEGMENTER but found ${operatorConfig.type}")
+                for (inputKey in operation.value.inputs) {
+                    if (!stages.containsKey(inputKey)) {
+                        val op = this.config.operations[inputKey] ?: throw IllegalArgumentException("Undefined operation '${it.value.operator}'")
+                        stages[inputKey] = Operation(inputKey, op.operator, config.operators[op.operator] ?: throw IllegalArgumentException("Undefined operator '${op.operator}'"), op.merge)
                     }
-                    if(operatorConfig.type != OperatorType.SEGMENTER && node.children.isNotEmpty() ){
-                        throw IllegalArgumentException("Pipeline branching only allowed for SEGMENTER, but branches with ${operatorConfig.type}")
-                    }
+                    stages[operation.key]?.addInput(stages[inputKey]!!)
                 }
-
-                4 -> if (operatorConfig.type != OperatorType.AGGREGATOR) {
-                    throw IllegalArgumentException("Pipeline is in stage AGGREGATOR but found ${operatorConfig.type}")
-                }
-
-                5 -> if (operatorConfig.type != OperatorType.EXTRACTOR && operatorConfig.type != OperatorType.EXPORTER) {
-                    throw IllegalArgumentException("Pipeline is in stage EXTRACTOR / EXPORTER but found ${operatorConfig.type}")
-                }
-                else -> throw IllegalStateException("Pipeline is in an unknown stage $phase. This is a programmer's error!")
             }
-        }
-        logger.debug{"Validation complete."}
-    }
-
-    /**
-     * Parses the pipeline and constructs the corresponding operators.
-     */
-    private fun buildOperators(pipelineDefTree: Tree<Pair<String, OperatorConfig>>, stream: Stream<*>? = null){
-        require(this::pipeline.isInitialized) {"Illegal State: Cannot build the ingestion pipeline when the pipeline is not initialised. This is a programmer's error!"}
-        pipelineDefTree.depthFirstPreorder { node, parent ->
-            logger.debug{"Building operator ${node.value.first} for operation ${node.name}"}
-            val op = if(parent == null){
-                /* Current node is the root, e.g. an enumerator */
-                buildOperator(node.value.first, null, node.value.second, stream)
-            }else{
-                val parentOp = operators[parent.value.first] ?: throw IllegalArgumentException("Could not find operator with name ${parent.name}")
-                buildOperator(node.value.first, parentOp, node.value.second, stream)
-            }
-            operators[node.value.first] = op
-            if(node.isLeaf()){
-                @Suppress("UNCHECKED_CAST")
-                pipeline.addLeaf(op as Operator<Retrievable>)
-                logger.debug{"Added the the operator ${node.value.first} to the pipeline"}
-            }else{
-                logger.debug{"Built the operator named ${node.value.first}"}
-            }
+            root
+        }.apply {
+            logger.debug { "Found and build ${this.size} operation tree(s). Root(s) is / are enumerator(s)" }
         }
     }
 
@@ -215,123 +157,122 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
      * Build the [Operator] based on the provided [OperatorConfig] at the specified position.
      *
      * @param name The name of the [Operator] to build.
-     * @param parent The parent operator. Requires the very first one to be a [Decoder]
+     * @param parent The [parent [Operator].
      * @param config The [OperatorConfig] which holds information on how to build the [Operator]
      */
-    private fun buildOperator(name: String, parent: Operator<*>?, config: OperatorConfig, stream: Stream<*>? = null): Operator<*>{
-        require(this::pipeline.isInitialized) {"Illegal State: Cannot build the ingestion pipeline if the pipeline is not initialised. This is a programmer's error!"}
+    @Suppress("UNCHECKED_CAST")
+    private fun buildOperator(name: String, parent: Operator<*>, config: OperatorConfig): Operator<*> {
         logger.debug { "Building operator for configuration $config" }
-        @Suppress("UNCHECKED_CAST")
-        return when(config.type){ // the when-on-type is on purpose: It enforces all branches
-            OperatorType.ENUMERATOR -> buildEnumerator(name, config as EnumeratorConfig, stream)
-            OperatorType.DECODER -> buildDecoder(name, parent as Enumerator, config as DecoderConfig)
-            OperatorType.OPERATOR -> throw UnsupportedOperationException("Free-form OPERATOR operators are not yet supported")
-            OperatorType.RETRIEVER -> throw UnsupportedOperationException("RETRIEVER operators are not yet supported")
-            OperatorType.TRANSFORMER -> buildTransformer(name, parent!!, config as TransformerConfig)
-            OperatorType.EXTRACTOR -> buildExtractor(parent as Operator<Retrievable>, config as ExtractorConfig) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
-            OperatorType.EXPORTER -> buildExporter(name, parent as Operator<Retrievable>, config as ExporterConfig) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
-            OperatorType.AGGREGATOR -> buildAggregator(name, parent!!, config as AggregatorConfig)
-            OperatorType.SEGMENTER -> buildSegmenter(name, parent!!, config as SegmenterConfig)
+        return when (config) { // the when-on-type is on purpose: It enforces all branches
+            is OperatorConfig.Decoder -> buildDecoder(name, parent as Enumerator, config)
+            is OperatorConfig.Transformer -> buildTransformer(name, parent as Operator<Retrievable>, config) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
+            is OperatorConfig.Extractor -> buildExtractor(name, parent as Operator<Retrievable>, config) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
+            is OperatorConfig.Exporter -> buildExporter(name, parent as Operator<Retrievable>, config) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
+            else -> throw IllegalStateException("Operator type $config is not supported in this context!")
         }
     }
 
     /**
-     * Builds a [Transformer] based on the [TransformerConfig]'s factory.
+     * Parses and builds the [Enumerator] based on the given [OperatorConfig.Enumerator].
+     *
+     * @param name The name of the [Enumerator] to build.
+     * @param config The [OperatorConfig.Enumerator] which holds information on how to build the [Enumerator].
+     * @param stream Optional [Stream] the [Enumerator] should process.
+     * @return The built [Enumerator].
+     */
+    private fun buildEnumerator(name: String, config: OperatorConfig.Enumerator, stream: Stream<*>? = null): Enumerator {
+        val factory = loadFactory<EnumeratorFactory>(config.factory)
+        return if (stream == null) {
+            factory.newEnumerator(name, context, config.mediaTypes)
+        } else {
+            factory.newEnumerator(name, context, config.mediaTypes, stream)
+        }.apply {
+            logger.info {
+                "Instantiated new ${
+                    if (stream != null) {
+                        "stream-input"
+                    } else {
+                        ""
+                    }
+                } Enumerator: ${this.javaClass.name}"
+            }
+        }
+    }
+
+    /**
+     * Parses and builds the [Decoder] based on the given [OperatorConfig.Enumerator].
+     *
+     * @param name The name of the [Decoder] to build.
+     * @param parent The parent [Enumerator] that acts as input to the [Decoder].
+     * @param config The [OperatorConfig.Enumerator] which holds information on how to build the [Enumerator].
+     * @return The built [Enumerator].
+     */
+    private fun buildDecoder(name: String, parent: Enumerator, config: OperatorConfig.Decoder): Decoder {
+        val factory = loadFactory<DecoderFactory>(config.factory)
+        return factory.newDecoder(name, parent, context).apply {
+            logger.info { "Instantiated new Decoder: ${this.javaClass.name}" }
+        }
+    }
+
+    /**
+     * Builds a [Transformer] based on the [OperatorConfig.Transformer]'s factory.
      *
      * @param name The name of the [Transformer]
-     * @param parent: The preceding [Operator]. Has to be one of: [Decoder], [Transformer]
-     * @param config: The [TransformerConfig] describing the to-be-built [Transformer]
+     * @param parent The preceding parent [Operator]s.
+     * @param config The [OperatorConfig.Transformer] describing the to-be-built [Transformer]
      */
-    private fun buildTransformer(name: String, parent: Operator<*>, config: TransformerConfig): Transformer {
-        require(parent is Decoder || parent is Transformer){"Preceding a transformer, there must be decoder or transformer, but found $parent"}
+    private fun buildTransformer(name: String, parent: Operator<Retrievable>, config: OperatorConfig.Transformer): Transformer {
         val factory = loadFactory<TransformerFactory>(config.factory)
-        return when(parent){
-            is Decoder -> factory.newOperator(name, parent, context)
-            is Transformer -> factory.newOperator(name, parent, context)
-            else -> throw IllegalArgumentException("Cannot build transformer succeeding $parent")
-        }.apply {
-            logger.info{"Built transformer: ${this.javaClass.name} with name $name"}
+        return factory.newTransformer(name, parent, context).apply {
+            logger.info { "Built transformer: ${this.javaClass.name} with name $name" }
         }
     }
 
     /**
-     * Builds a [Segmenter] based on the [SegmenterConfig]'s factory.
-     *
-     * @param name The name of the [Segmenter]
-     * @param parent: The preceding [Operator]. Has to be one of: [Decoder], [Transformer]
-     * @param config: The [SegmenterConfig] describing the to-be-built [Segmenter]
-     */
-    private fun buildSegmenter(name: String, parent: Operator<*>, config: SegmenterConfig): Segmenter{
-        require(parent is Decoder || parent is Transformer){"Preceding a segmenter, there must be a decoder or transformer, but found $parent"}
-        val factory = loadFactory<SegmenterFactory>(config.factory)
-        return when(parent){
-            is Decoder -> factory.newOperator(name, parent, context,)
-            is Transformer -> factory.newOperator(name, parent, context)
-            else -> throw IllegalArgumentException("Cannot build segmenter succeeding $parent")
-        }.apply{
-            logger.info{"Built segmenter: ${this.javaClass.name} with name $name"}
-        }
-    }
-
-    /**
-     * Builds an [Aggregator] based on the [AggregatorConfig]'s factory.
-     *
-     * @param name The name of the [Aggregator]
-     * @param parent: The preceding [Operator]. Has to be one of: [Aggregator]
-     * @param config: The [AggregatorConfig] describing the to-be-built [Aggregator]
-     */
-    private fun buildAggregator(name: String, parent: Operator<*>, config: AggregatorConfig): Aggregator{
-        require(parent is Segmenter){"Preceding an aggregator, there must be a segmenter"}
-        val factory = loadFactory<AggregatorFactory>(config.factory)
-        return factory.newOperator(name, parent, context)
-            .apply{
-                logger.info{"Built aggregator: ${this.javaClass.name} with name $name"}
-            }
-    }
-
-    /**
-     * Builds an [Exporter] based on the [ExporterConfig]'s factory OR the [ExporterConfig.exporterName] named exporter in the schema.
+     * Builds an [Exporter] based on the [OperatorConfig.Exporter]'s factory OR the [OperatorConfig.Exporter.exporterName] named [Exporter] in the [Schema].
      *
      * @param name The name of the [Exporter]
-     * @param parent: The preceding [Operator]. Has to be one of: [Exporter], [Extractor], [Aggregator].
-     * @param config: The [ExporterConfig] describing the to-be-built [Exporter]
+     * @param parent The preceding parent [Operator]s.
+     * @param config: The [OperatorConfig.Exporter] describing the to-be-built [Exporter]
      */
-    private fun buildExporter(name: String, parent: Operator<Retrievable>, config: ExporterConfig): Exporter {
-        require(parent is Exporter || parent is Extractor<*, *> || parent is Aggregator) { "Preceding an exporter, there must be an aggregator, exporter or extractor, but found $parent" }
-        return if (config.exporterName.isNullOrBlank() && !config.factory.isNullOrBlank()) {
+    private fun buildExporter(name: String, parent: Operator<Retrievable>, config: OperatorConfig.Exporter): Exporter {
+        return if (!config.factory.isNullOrBlank()) {
             /* Case factory is specified */
             val factory = loadFactory<ExporterFactory>(config.factory)
-            factory.newOperator(name, parent, context).apply {
-                logger.info { "Built exporter from factory: ${this.javaClass.name} with name $name" }
+            factory.newExporter(name, parent, context).apply {
+                logger.info { "Built exporter from factory: ${config.factory}." }
+            }
+        } else if (!config.exporterName.isNullOrBlank()) {
+            /* Case exporter name is given. Due to require in ExporterConfig.init, this is fine as an if-else */
+            val exporter = context.schema.getExporter(config.exporterName) ?: throw IllegalArgumentException("Exporter '${config.exporterName}' does not exist on schema '${context.schema.name}'")
+            exporter.getExporter(parent, context).apply {
+                logger.info { "Built exporter by name from schema: ${config.exporterName}." }
             }
         } else {
-            /* Case exporter name is given. Due to require in ExporterConfig.init, this is fine as an if-else */
-            val exporter =
-                context.schema.getExporter(config.exporterName!!) ?: throw IllegalArgumentException(
-                    "Exporter '${config.exporterName}' does not exist on schema '${context.schema.name}'"
-                )
-            exporter.getExporter(parent, context).apply {
-                logger.info { "Built exporter by name from schema: ${this.javaClass.name} with name $name" }
-            }
+            throw IllegalStateException("OperatorConfig.Exporter must have either a exporter name or a factory name specified!")
         }
     }
 
     /**
-     * Builds an [Extractor] based on the [ExtractorConfig.fieldName] named field in the schema.
+     * Builds an [Extractor] based on the [OperatorConfig.Extractor.fieldName] or the [OperatorConfig.Extractor.factory] named field in the schema.
      *
      * @param parent The preceding [Operator]. Has to be one of: [Exporter], [Extractor].
-     * @param config: The [ExtractorConfig] describing the to-be-built [Extractor]
+     * @param config: The [OperatorConfig.Extractor] describing the to-be-built [Extractor]
      */
-    private fun buildExtractor(
-        parent: Operator<Retrievable>,
-        config: ExtractorConfig
-    ): Extractor<*, *> {
-        require(parent is Exporter || parent is Extractor<*, *> || parent is Aggregator) { "Preceding an extractor, there must be an exporter or extractor, but found $parent" }
-        val field = context.schema[config.fieldName]
-            ?: throw IllegalArgumentException("Field '${config.fieldName}' does not exist in schema '${context.schema.name}'")
-        return field.getExtractor(parent, context).apply {
-                logger.info { "Built extractor by name from schema: ${this.javaClass.name}" }
+    private fun buildExtractor(name: String, parent: Operator<Retrievable>, config: OperatorConfig.Extractor): Extractor<*, *> {
+        if (!config.fieldName.isNullOrBlank()) {
+            val field = this.context.schema[config.fieldName] ?: throw IllegalArgumentException("Field '${config.fieldName}' does not exist in schema '${context.schema.name}'")
+            return field.getExtractor(parent, this.context).apply {
+                logger.info { "Built extractor by name field name: ${config.fieldName}" }
             }
+        } else if (!config.factory.isNullOrBlank()) {
+            val factory = loadFactory<Analyser<ContentElement<*>, Descriptor>>(config.factory)
+            return factory.newExtractor(name, parent, this.context).apply {
+                logger.info { "Built extractor by factory: ${config.factory}" }
+            }
+        } else {
+            throw IllegalStateException("OperatorConfig.Extractor must have either a field name or a factory name specified!")
+        }
     }
 
     /**
@@ -340,30 +281,7 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
      * @param name The (fully qualified or simple) class name of a factory.
      * @throws IllegalArgumentException If the class could not be found: Either the simple name is not unique or there exists no such class.
      */
-    private inline fun <reified T: Any> loadFactory(name: String): T {
+    private inline fun <reified T : Any> loadFactory(name: String): T {
         return loadServiceForName<T>(name) ?: throw IllegalArgumentException("Failed to find '${T::class.java.simpleName}' implementation for name '$name'")
     }
-
-    /**
-     * Build the [IndexingPipeline] based this [IngestionPipelineBuilder]'s [config].
-     *
-     * The involved steps are:
-     * 1. Parsing of the configuration
-     * 2. Validating the configuration
-     * 3. Building the operators
-     *
-     * @param stream If there is a specific stream the built [Enumerator] should process.
-     * @return The produced [IndexingPipeline], ready to be processed.
-     */
-    fun build(stream: Stream<*>? = null): IndexingPipeline{
-        this.pipeline = IndexingPipeline()
-        parseOperations().forEach {
-            /* Validation first, would throw an exception*/
-            validatePipelineDefinition(it)
-            /* buildOperators fills the pipeline automagically */
-            buildOperators(it, stream)
-        }
-        return pipeline
-    }
-    
 }

@@ -7,19 +7,10 @@ import org.vitrivr.engine.core.model.content.element.Model3DContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.ContentAttribute
 
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.source.file.FileSource
-import org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics.Companion.CAP_PARAMETER_DEFAULT
-import org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics.Companion.CAP_PARAMETER_NAME
-import org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics.Companion.GRID_SIZE_PARAMETER_DEFAULT
-import org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics.Companion.GRID_SIZE_PARAMETER_NAME
-import org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics.Companion.MAXL_PARAMETER_DEFAULT
-import org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics.Companion.MAXL_PARAMETER_NAME
-import org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics.Companion.MINL_PARAMETER_DEFAULT
-import org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics.Companion.MINL_PARAMETER_NAME
 
 /**
  * Implementation of an [AbstractExtractor], which derives leverages spherical harmonics for meshes as proposed in [1].
@@ -28,26 +19,10 @@ import org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics
  *  A search engine for 3D models. ACM Trans. Graph., 22(1), 83–105. http://doi.org/10.1145/588272.588279
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
-class SphericalHarmonicsExtractor(
-    input: Operator<Retrievable>,
-    field: Schema.Field<Model3DContent, FloatVectorDescriptor>,
-    persisting: Boolean = true
-) : AbstractExtractor<Model3DContent, FloatVectorDescriptor>(input, field, persisting) {
-
-    /** The grid size for rasterization [SphericalHarmonicsFunction]. */
-    private val gridSize = this.field.parameters[GRID_SIZE_PARAMETER_NAME]?.toIntOrNull() ?: GRID_SIZE_PARAMETER_DEFAULT
-
-    /** The maximum radius to obtain [SphericalHarmonicsFunction] values for. */
-    private val cap = this.field.parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
-
-    /** The maxL parameter used for the [SphericalHarmonicsFunction].. */
-    private val minL = this.field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
-
-    /** The maxL parameter used for the [SphericalHarmonicsFunction]. */
-    private val maxL = this.field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
-
+class SphericalHarmonicsExtractor(input: Operator<Retrievable>, field: Schema.Field<Model3DContent, FloatVectorDescriptor>?, private val gridSize: Int, private val cap: Int, private val minL: Int, private val maxL: Int) :
+    AbstractExtractor<Model3DContent, FloatVectorDescriptor>(input, field) {
     init {
         require(this.minL < this.maxL) { "Parameter mismatch: min_l must be smaller than max_l. "}
     }
@@ -60,7 +35,7 @@ class SphericalHarmonicsExtractor(
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,
      */
-    override fun matches(retrievable: Retrievable): Boolean = retrievable.filteredAttributes(ContentAttribute::class.java).any { it.type == ContentType.MESH }
+    override fun matches(retrievable: Retrievable): Boolean = retrievable.content.any { it.type == ContentType.MESH }
 
     /**
      * Internal method to perform extraction on [Retrievable].
@@ -69,8 +44,7 @@ class SphericalHarmonicsExtractor(
      * @return List of resulting [FloatVectorDescriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
-        val content = retrievable.filteredAttributes(ContentAttribute::class.java).map { it.content }.filterIsInstance<Model3DContent>()
-        val analyser = (this.field.analyser as SphericalHarmonics)
-        return content.flatMap { c -> c.content.getMaterials().flatMap { mat -> mat.meshes.map { mesh -> analyser.analyse(mesh, this.gridSize, this.minL, this.maxL, this.cap) } } }
+        val content = retrievable.content.filterIsInstance<Model3DContent>()
+        return content.flatMap { c -> c.content.getMaterials().flatMap { mat -> mat.meshes.map { mesh -> SphericalHarmonics.analyse(mesh, this.gridSize, this.minL, this.maxL, this.cap).copy(field = this.field) } } }
     }
 }

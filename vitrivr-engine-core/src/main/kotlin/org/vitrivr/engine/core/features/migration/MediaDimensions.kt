@@ -11,7 +11,6 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
-import java.util.*
 
 class  MediaDimensions : Analyser<ContentElement<*>, MediaDimensionsDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
@@ -25,7 +24,11 @@ class  MediaDimensions : Analyser<ContentElement<*>, MediaDimensionsDescriptor> 
         TODO("Not yet implemented")
     }
 
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, MediaDimensionsDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): Extractor<ContentElement<*>, MediaDimensionsDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, MediaDimensionsDescriptor>, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, MediaDimensionsDescriptor> {
+        TODO("Not yet implemented")
+    }
+
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, MediaDimensionsDescriptor> {
         TODO("Not yet implemented")
     }
 }
