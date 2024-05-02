@@ -11,6 +11,9 @@
       "thumbs": {
         "maxSideResolution": "350",
         "mimeType": "JPG"
+      },
+      "filter": {
+        "type": "SOURCE:IMAGE"
       }
     }
   },
@@ -24,14 +27,6 @@
       "type": "DECODER",
       "factory": "ImageDecoder"
     },
-    "pass": {
-      "type": "SEGMENTER",
-      "factory": "PassThroughSegmenter"
-    },
-    "centerContent": {
-      "type": "AGGREGATOR",
-      "factory": "CenterContentAggregator"
-    },
     "exif": {
       "type": "EXTRACTOR",
       "fieldName": "exif"
@@ -40,8 +35,9 @@
   "operations": {
     "stage0": {"operator": "enumerator"},
     "stage1": {"operator": "decoder", "inputs": ["stage0"]},
-    "stage2": {"operator": "pass", "inputs": ["stage1"]},
-    "stage3": {"operator": "centerContent", "inputs": ["stage2"]},
-    "stage4": {"operator": "exif", "inputs": ["stage3"]}
-  }
+    "stage2": {"operator": "exif", "inputs": ["stage1"]}
+  },
+  "output": [
+    "stage2"
+  ]
 }

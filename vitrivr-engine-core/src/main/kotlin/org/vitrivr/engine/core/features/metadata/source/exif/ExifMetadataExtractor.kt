@@ -57,11 +57,9 @@ private fun JsonElement.convertType(type: Type): Value<*> =
 
 class ExifMetadataExtractor(
     input: Operator<Retrievable>,
-    field: Schema.Field<ContentElement<*>, MapStructDescriptor>,
-    persisting: Boolean = true
-) : AbstractExtractor<ContentElement<*>, MapStructDescriptor>(input, field, persisting) {
+    field: Schema.Field<ContentElement<*>, MapStructDescriptor>?
+) : AbstractExtractor<ContentElement<*>, MapStructDescriptor>(input, field) {
 
-    private val logger: KLogger = KotlinLogging.logger {}
 
     override fun matches(retrievable: Retrievable): Boolean =
         retrievable.filteredAttribute(SourceAttribute::class.java)?.source is FileSource
@@ -70,19 +68,22 @@ class ExifMetadataExtractor(
         val metadata = ImageMetadataReader.readMetadata((retrievable.filteredAttribute(SourceAttribute::class.java)?.source as FileSource).path.toFile())
         val columnValues = mutableMapOf<String, Value<*>>()
 
+        val subfields = this.field!!.parameters
+
+
         for (directory in metadata.directories) {
             for (tag in directory.tags) {
                 val tagname = tag.tagName.replace(NON_ALPHANUMERIC_REGEX, "")
                 val fullname = "${directory.name.replace(NON_ALPHANUMERIC_REGEX, "")}_$tagname"
 
                 if (fullname == "ExifSubIFD_UserComment") {
-                    if (fullname in this.field.parameters){
+                    if (fullname in subfields){
                         columnValues[fullname] = Value.String(tag.description)
                     }
                     try {
                         val json = JsonParser.parseString(tag.description).asJsonObject
                         json.entrySet().forEach { (key, value) ->
-                            this.field.parameters[key]?.let {
+                            subfields[key]?.let {
                                 columnValues[key] = value.convertType(Type.valueOf(it))
                             }
                         }
@@ -91,7 +92,7 @@ class ExifMetadataExtractor(
                         continue
                     }
                 } else {
-                    this.field.parameters[fullname]?.let {
+                    subfields[fullname]?.let {
                         val type = Type.valueOf(it)
                         columnValues[fullname] = convertType(directory, tag.tagType, type)
                     }
@@ -100,6 +101,6 @@ class ExifMetadataExtractor(
         }
         logger.info { "Extracted fields: ${columnValues.entries.joinToString { (key, value) -> "$key = ${value.value}" }}" }
 
-        return listOf(MapStructDescriptor(UUID.randomUUID(), retrievable.id, this.field.parameters, columnValues.mapValues { it.value.value }))
+        return listOf(MapStructDescriptor(UUID.randomUUID(), retrievable.id, subfields, columnValues.mapValues { it.value.value }, field = this.field))
     }
 }

@@ -2,8 +2,10 @@ package org.vitrivr.engine.core.model.descriptor.struct.metadata.source
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
+import org.vitrivr.engine.core.model.descriptor.struct.RasterDescriptor
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import java.util.*
 import kotlin.reflect.full.memberProperties
@@ -14,7 +16,8 @@ data class MapStructDescriptor(
     override val retrievableId: RetrievableId,
     val columnTypes: Map<String, String>,
     val columnValues: Map<String, Any?>,
-    override val transient: Boolean = false
+    override val transient: Boolean = false,
+    override val field: Schema.Field<*, MapStructDescriptor>? = null
 ) : StructDescriptor {
 
     companion object{
