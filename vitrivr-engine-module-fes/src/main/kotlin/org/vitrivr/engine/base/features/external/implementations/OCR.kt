@@ -1,5 +1,6 @@
 package org.vitrivr.engine.base.features.external.implementations
 
+import org.vitrivr.engine.base.features.external.common.ApiWrapper
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.base.features.external.common.FesExtractor
 import org.vitrivr.engine.base.features.fulltext.FulltextRetriever
@@ -29,11 +30,21 @@ import java.util.*
  * @version 1.1.0
  */
 class OCR : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
-    override val contentClasses = setOf(ContentElement::class)
+    override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = StringDescriptor::class
     override val defaultModel = "tesseract"
 
     override fun prototype(field: Schema.Field<*, *>): StringDescriptor = StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(""))
+
+
+    override fun analyseFlattened(
+        content: List<ImageContent>,
+        apiWrapper: ApiWrapper,
+        parameters: Map<String, String>
+    ): List<List<StringDescriptor>> {
+        val result = apiWrapper.opticalCharacterRecognition(content.map { it.content })
+        return result.map { listOf(StringDescriptor(UUID.randomUUID(), null, Value.String(it))) }
+    }
 
     /**
      * This feature does not support extraction.
