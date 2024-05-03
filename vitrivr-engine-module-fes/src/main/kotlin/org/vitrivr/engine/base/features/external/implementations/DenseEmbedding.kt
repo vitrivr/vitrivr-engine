@@ -29,18 +29,34 @@ companion object {
 
     override val defaultModel = "clip-vit-large-patch14"
     override fun analyseFlattened(content: List<ContentElement<*>>, apiWrapper: ApiWrapper, parameters: Map<String, String>): List<List<FloatVectorDescriptor>> {
+
         val imageContents = content.filterIsInstance<ImageContent>()
         val textContents = content.filterIsInstance<TextContent>()
-        if (imageContents.isEmpty() && !textContents.isEmpty()) {
-            val result = apiWrapper.textEmbedding(textContents.map { it.content })
-            return result.map { listOf(FloatVectorDescriptor(UUID.randomUUID(), null, it.map{Value.Float(it)}, null)) }
+
+        var imageResults: List<List<Float>>? = null
+        var textResults: List<List<Float>>? = null
+
+
+        if (imageContents.isNotEmpty()) {
+            imageResults = apiWrapper.imageEmbedding(imageContents.map { it.content })
         }
-        if (!imageContents.isEmpty() && textContents.isEmpty()) {
-            val result = apiWrapper.imageEmbedding(imageContents.map { it.content })
-            return result.map { listOf(FloatVectorDescriptor(UUID.randomUUID(), null, it.map {Value.Float(it) }, null)) }
+        if (textContents.isNotEmpty()) {
+            textResults = apiWrapper.textEmbedding(textContents.map { it.content })
         }
 
-        throw IllegalArgumentException("Content type not supported")
+        return content.map { element ->
+            when (element) {
+                is ImageContent -> {
+                    val index = imageContents.indexOf(element)
+                    listOf(FloatVectorDescriptor(UUID.randomUUID(), null, imageResults!![index].map { Value.Float(it) }, null))
+                }
+                is TextContent -> {
+                    val index = textContents.indexOf(element)
+                    listOf(FloatVectorDescriptor(UUID.randomUUID(), null, textResults!![index].map { Value.Float(it) }, null))
+                }
+                else -> throw(IllegalArgumentException("Content type not supported"))
+            }
+        }
     }
 
     override val contentClasses = setOf(ImageContent::class, TextContent::class)

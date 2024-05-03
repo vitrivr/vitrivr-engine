@@ -8,6 +8,7 @@ import org.openapitools.client.models.*
 import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.util.extension.toDataURL
 import java.awt.image.BufferedImage
+import java.net.SocketTimeoutException
 
 
 private val logger: KLogger = KotlinLogging.logger {}
@@ -24,21 +25,27 @@ internal class JobWrapper<T, S>(
 ){
 
     fun executeJob(inp: T): S {
-        val jobStatus = startJobFunc(inp)
+        val jobStatus: JobStatus
+        try{
+            jobStatus = startJobFunc(inp)
+        } catch (e: SocketTimeoutException) {
+            logger.error { "Failed to start Job: API call timed out." }
+            throw e
+        }
         var jobResult = getJobResultFunc(jobStatus.id)
 
         while (jobResult.status != JobState.complete) {
             if (jobResult.status == JobState.failed) {
-                logger.error("Job with ID: ${jobStatus.id} failed.")
+                logger.error{"Job with ID: ${jobStatus.id} failed."}
                 throw Exception("Job failed.")
             }
-            logger.debug("Waiting for job completion. Current status: ${jobResult.status}")
+            logger.debug{"Waiting for job completion. Current status: ${jobResult.status}"}
             Thread.sleep(this.pollingIntervalMs)
             jobResult = getJobResultFunc(jobStatus.id)
         }
 
         return jobResult.result ?: run {
-            logger.error("Job with ID: ${jobStatus.id} returned no result.")
+            logger.error{"Job with ID: ${jobStatus.id} returned no result."}
             throw Exception("Job returned no result.")
         }
     }

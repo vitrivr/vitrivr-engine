@@ -24,9 +24,7 @@ abstract class FesExtractor<D:Descriptor,C:ContentElement<*>, A:ExternalFesAnaly
         val analyser = field!!.analyser as A
         return retrievable.findContent { contentItem ->
             analyser.contentClasses.any { contentClass ->
-                contentClass.isInstance(
-                    contentItem.content
-                )
+                contentClass.isInstance(contentItem)
             }
         }.isNotEmpty()
 
@@ -38,9 +36,7 @@ abstract class FesExtractor<D:Descriptor,C:ContentElement<*>, A:ExternalFesAnaly
         val allContent : List<List<C>> = retrievables.map { retrievable ->
             retrievable.findContent { contentItem ->
                 analyser.contentClasses.any { contentClass ->
-                    contentClass.isInstance(
-                        contentItem.content
-                    )
+                    contentClass.isInstance(contentItem)
                 }
             }.map{ it as C}
         }
