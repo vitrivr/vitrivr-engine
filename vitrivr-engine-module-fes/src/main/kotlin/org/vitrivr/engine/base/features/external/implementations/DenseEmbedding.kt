@@ -21,6 +21,12 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
+/**
+ * Implementation of the [DenseEmbedding] [ExternalFesAnalyser] that uses the [ApiWrapper] to analyse image and text content.
+ *
+ * @author Fynn Faber
+ * @version 1.0.0
+ */
 class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
 companion object {
         const val LENGTH_PARAMETER_DEFAULT = 512
@@ -28,6 +34,15 @@ companion object {
     }
 
     override val defaultModel = "clip-vit-large-patch14"
+
+    /**
+     * Analyse the provided [ContentElement]s using the provided [apiWrapper] and return a list of [FloatVectorDescriptor]s.
+     *
+     * @param content List of [ContentElement] to analyse.
+     * @param apiWrapper [ApiWrapper] to use for the analysis.
+     * @param parameters Map of parameters to use for the analysis.
+     * @return List of [FloatVectorDescriptor]s.
+     */
     override fun analyseFlattened(content: List<ContentElement<*>>, apiWrapper: ApiWrapper, parameters: Map<String, String>): List<List<FloatVectorDescriptor>> {
 
         val imageContents = content.filterIsInstance<ImageContent>()
@@ -62,12 +77,27 @@ companion object {
     override val contentClasses = setOf(ImageContent::class, TextContent::class)
     override val descriptorClass = FloatVectorDescriptor::class
 
+    /**
+     * Generates a prototypical [FloatVectorDescriptor] for this [DenseEmbedding].
+     *
+     * @param field [Schema.Field] to create the prototype for.
+     * @return [FloatVectorDescriptor]
+     */
     override fun prototype(field: Schema.Field<*, *>) : FloatVectorDescriptor {
         //convert to integer
         val length = field.parameters[LENGTH_PARAMETER_NAME]?.toIntOrNull() ?: LENGTH_PARAMETER_DEFAULT
         return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(length) { Value.Float(0.0f) })
     }
 
+    /**
+     * Generates and returns a new [DenseRetriever] instance for this [DenseEmbedding].
+     *
+     * @param field The [Schema.Field] to create an [Retriever] for.
+     * @param query The [Query] to use with the [Retriever].
+     * @param context The [QueryContext] to use with the [Retriever].
+     *
+     * @return A new [DenseRetriever] instance for this [DenseEmbedding]
+     */
     override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is ProximityQuery<*> && query.value.first() is Value.Float) { "The query is not a ProximityQuery<Value.Float>." }
@@ -75,6 +105,14 @@ companion object {
         return DenseRetriever(field, query as ProximityQuery<Value.Float>, context)
     }
 
+    /**
+     * Generates and returns a new [DenseRetriever] instance for this [DenseEmbedding].
+     *
+     * @param field The [Schema.Field] to create an [Retriever] for.
+     * @param content An array of [ContentElement] elements to use with the [Retriever]
+     * @param context The [QueryContext] to use with the [Retriever]
+     * @return [DenseRetriever]
+     */
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, FloatVectorDescriptor> {
 
         /* Prepare query parameters. */
@@ -86,11 +124,19 @@ companion object {
         return this.newRetrieverForQuery(field, ProximityQuery(value = vector.vector, k = k, fetchVector = fetchVector), context)
     }
 
+    /**
+     * Generates and returns a new [Extractor] instance for this [DenseEmbedding].
+     *
+     * @param field The [Schema.Field] to create an [Extractor] for.
+     * @param input The [Operator] to use with the [Extractor].
+     * @param context The [IndexContext] to use with the [Extractor].
+     * @return [FloatVectorDescriptor]
+     */
     override fun newExtractor(
         field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
         input: Operator<Retrievable>,
         context: IndexContext
-    ): Extractor<ContentElement<*>, FloatVectorDescriptor> {
+    ): FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         val batchSize = context.getProperty(field.fieldName, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
         return object : FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding>(input, field, batchSize) {
@@ -100,11 +146,18 @@ companion object {
         }
     }
 
+    /**
+     * Generates and returns a new [Extractor] instance for this [DenseEmbedding].
+     *
+     * @param name The name of the [Extractor].
+     * @param input The [Operator] that acts as input to the new [Extractor].
+     * @param context The [IndexContext] to use with the [Extractor].
+     */
     override fun newExtractor(
         name: String,
         input: Operator<Retrievable>,
         context: IndexContext
-    ): Extractor<ContentElement<*>, FloatVectorDescriptor> {
+    ): FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding>{
         val batchSize = context.getProperty(name, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
         return object : FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding>(input, null, batchSize) {
             override fun assignRetrievableId(descriptor: FloatVectorDescriptor, retrievableId: RetrievableId): FloatVectorDescriptor {

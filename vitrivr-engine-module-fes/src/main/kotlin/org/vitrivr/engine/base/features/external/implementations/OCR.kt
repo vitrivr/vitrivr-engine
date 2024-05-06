@@ -23,7 +23,7 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
 /**
- * Analyser for the Optical Chracter Reckognition (OCR).
+ * Analyser for the Optical Chracter Recognition (OCR).
  *
  * @author Ralph Gasser
  * @author Fynn Faber
@@ -34,6 +34,12 @@ class OCR : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
     override val descriptorClass = StringDescriptor::class
     override val defaultModel = "tesseract"
 
+    /**
+     * Generates a prototypical [StringDescriptor] for this [OCR].
+     *
+     * @param field [Schema.Field] to create the prototype for.
+     * @return [StringDescriptor]
+     */
     override fun prototype(field: Schema.Field<*, *>): StringDescriptor = StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(""))
 
 
@@ -47,9 +53,12 @@ class OCR : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
     }
 
     /**
-     * This feature does not support extraction.
+     * Generates and returns a new [FesExtractor] instance for this [OCR].
      *
-     * Always throws an [UnsupportedOperationException].
+     * @param field The [Schema.Field] to create an [Extractor] for.
+     * @param input The [Operator] that acts as input to the new [Extractor].
+     * @param context The [IndexContext] to use with the [Extractor].
+     * @return A new [Extractor] instance for this [Analyser]
      */
     override fun newExtractor(field: Schema.Field<ImageContent, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, StringDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
@@ -63,12 +72,20 @@ class OCR : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
     }
 
     /**
-     * This feature does not support extraction.
+     * Generates and returns a new [FesExtractor] instance for this [OCR].
      *
-     * Always throws an [UnsupportedOperationException].
+     * @param name The name of the [Extractor].
+     * @param input The [Operator] that acts as input to the new [FesExtractor].
+     * @param context The [IndexContext] to use with the [FesExtractor].
+     * @return A new [FesExtractor] instance for this [Analyser]
      */
     override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, StringDescriptor> {
-        throw UnsupportedOperationException("OCR does not allow for extraction.")
+        val batchSize = context.getProperty(name, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
+        return object : FesExtractor<StringDescriptor, ImageContent, OCR>(input, null, batchSize) {
+            override fun assignRetrievableId(descriptor: StringDescriptor, retrievableId: RetrievableId): StringDescriptor {
+                return descriptor.copy(retrievableId = retrievableId)
+            }
+        }
     }
 
     /**

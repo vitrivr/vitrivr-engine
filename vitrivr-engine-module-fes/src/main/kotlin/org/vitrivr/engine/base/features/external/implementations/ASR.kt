@@ -22,12 +22,24 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
-
+/**
+ * Implementation of the [ASR] [ExternalFesAnalyser] that uses an external FES API to analyse audio content.
+ *
+ * @author Fynn Faber
+ * @version 1.0.0
+ */
 class ASR : ExternalFesAnalyser<AudioContent, StringDescriptor>() {
 
     override val defaultModel = "whisper"
 
-
+    /**
+     * Analyse the provided [content] using the provided [apiWrapper] and return a list of [StringDescriptor]s.
+     *
+     * @param content List of [Content] to analyse.
+     * @param apiWrapper [ApiWrapper] to use for the analysis.
+     * @param parameters Map of parameters to use for the analysis.
+     * @return List of [StringDescriptor]s.
+     */
     override fun analyseFlattened(content: List<AudioContent>, apiWrapper: ApiWrapper, parameters: Map<String, String>): List<List<StringDescriptor>> {
         val result = apiWrapper.automatedSpeechRecognition(content)
         return result.map { listOf(StringDescriptor(UUID.randomUUID(), null, StringValue(it))) }
@@ -36,10 +48,25 @@ class ASR : ExternalFesAnalyser<AudioContent, StringDescriptor>() {
     override val contentClasses = setOf(AudioContent::class)
     override val descriptorClass = StringDescriptor::class
 
+    /**
+     * Generates a prototypical [StringDescriptor] for this [ASR].
+     *
+     * @param field [Schema.Field] to create the prototype for.
+     * @return [StringDescriptor]
+     */
     override fun prototype(field: Schema.Field<*, *>): StringDescriptor {
         return StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), StringValue(""))
     }
 
+    /**
+     * Generates and returns a new [FesExtractor] instance for this [ASR].
+     *
+     * @param name The name of the extractor.
+     * @param input The [Operator] that acts as input to the new [FesExtractor].
+     * @param context The [IndexContext] to use with the [FesExtractor].
+     *
+     * @return A new [FesExtractor] instance for this [ASR]
+     */
     override fun newExtractor(
         name: String,
         input: Operator<Retrievable>,
@@ -53,6 +80,15 @@ class ASR : ExternalFesAnalyser<AudioContent, StringDescriptor>() {
         }
     }
 
+    /**
+     * Generates and returns a new [FesExtractor] instance for this [ASR].
+     *
+     * @param field The [Schema.Field] to create an [FesExtractor] for.
+     * @param input The [Operator] that acts as input to the new [FesExtractor].
+     * @param context The [IndexContext] to use with the [FesExtractor].
+     *
+     * @return A new [FesExtractor] instance for this [ExternalFesAnalyser]
+     */
     override fun newExtractor(
         field: Schema.Field<AudioContent, StringDescriptor>,
         input: Operator<Retrievable>,
@@ -73,7 +109,7 @@ class ASR : ExternalFesAnalyser<AudioContent, StringDescriptor>() {
      * @param query The [Query] to use with the [Retriever].
      * @param context The [QueryContext] to use with the [Retriever].
      *
-     * @return A new [FulltextRetriever] instance for this [ASR]
+     * @return A new [FulltextRetriever] instance for this [ExternalFesAnalyser]
      */
     override fun newRetrieverForQuery(field: Schema.Field<AudioContent, StringDescriptor>, query: Query, context: QueryContext): Retriever<AudioContent, StringDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }

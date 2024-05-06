@@ -37,10 +37,10 @@ fun <T, R> liftToNestedListFunction(
 }
 
 /**
- * An analyser that uses an external FES API to analyse content.
+ * An [Analyser] that uses the [ApiWrapper] to analyse content.
  *
- * @param T The type of the content to analyse.
- * @param U The type of the descriptor to generate.
+ * @param T The type of the [ContentElement] to analyse.
+ * @param U The type of the [Descriptor] to generate.
  */
 abstract class ExternalFesAnalyser<T : ContentElement<*>, U : Descriptor>: Analyser<T, U> {
     companion object {
@@ -56,11 +56,25 @@ abstract class ExternalFesAnalyser<T : ContentElement<*>, U : Descriptor>: Analy
     }
     abstract val defaultModel: String
 
-
+    /**
+     * Analyse the [ContentElement] using the given parameters.
+     *
+     * @param content The [ContentElement] to analyse.
+     * @param parameters The parameters to use.
+     * @return The (first) [Descriptor] generated from the [ContentElement].
+     */
     fun analyse(content: T, parameters: Map<String, String>): U {
+        logger.debug { "Analyzing content with ${this::class.simpleName} analyser." }
         return analyse(listOf(listOf(content)), parameters).first().first()
     }
 
+    /**
+     * Analyse the [ContentElement] using the given parameters.
+     *
+     * @param content The [ContentElement] to analyse, grouped by [Retrievable].
+     * @param parameters The parameters to use.
+     * @return The [Descriptor]s generated from the content, grouped by [Retrievable].
+     */
     fun analyse(content: List<List<T>>, parameters: Map<String, String>): List<List<U>> {
         val model = parameters[MODEL_PARAMETER_NAME] ?: defaultModel
         val hostName = parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
@@ -74,26 +88,27 @@ abstract class ExternalFesAnalyser<T : ContentElement<*>, U : Descriptor>: Analy
     }
 
     /**
-     * Analyse the content using the given API wrapper and parameters.
-     * This method should be overridden if the extraction should be performed on each content element individually.
+     * Analyse the [ContentElement] using the given [ApiWrapper] and parameters.
+     * This method should be overridden if the extraction is unimodal i.e. each extraction requires a single content element from a given [Retrievable].
      *
-     * @param content The content to analyse.
-     * @param apiWrapper The API wrapper to use.
+     * @param content The [ContentElement] to analyse.
+     * @param apiWrapper The [ApiWrapper] to use for the analysis.
      * @param parameters The parameters to use.
-     * @return The descriptors generated from the content. The outer list has the same size as the input list, the inner list contains the descriptors for each content element.
+     * @return The [Descriptor]s generated from the content, grouped by [ContentElement]
      */
     open fun analyseFlattened(content: List<T>, apiWrapper: ApiWrapper, parameters: Map<String, String>): List<List<U>> {
         throw UnsupportedOperationException("Flat analysis not implemented")
     }
 
     /**
-     * Analyse the content using the given API wrapper and parameters.
-     * This method should be overridden if the extraction should be performed on the entire content of a retrievable.
+     * Analyse the [ContentElement] using the given [ApiWrapper] and parameters.
+     * This method should be overridden if the extraction is multimodal i.e. each extraction requires multiple content elements from a given [Retrievable].
+     * The default implementation flattens the content and calls the unimodal analysis method.
      *
-     * @param content The content to analyse, grouped by retrievable.
-     * @param apiWrapper The API wrapper to use.
+     * @param content The [ContentElement] to analyse, grouped by [Retrievable].
+     * @param apiWrapper The [ApiWrapper] to use for the analysis.
      * @param parameters The parameters to use.
-     * @return The descriptors generated from the content. The outer list has the same size as the input list, the inner list contains the descriptors for each retrievable.
+     * @return The [Descriptor]s generated from the content, grouped by [Retrievable].
      */
     open fun analyse(content: List<List<T>>, apiWrapper: ApiWrapper, parameters: Map<String, String>): List<List<U>>{
         logger.debug{ "Analyzing content with ${this::class.simpleName} analyser by flattening batch of ${content.size} retrievables." }

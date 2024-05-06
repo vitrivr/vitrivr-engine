@@ -11,7 +11,7 @@ import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.util.math.ScoringFunctions
 
 /**
- * [DenseRetriever] implementation for external CLIP image feature retrieval.
+ * [DenseRetriever] implementation for proximity-based retrieval on float vector embeddings.
  *
  * @param field Schema field for which the retriever operates.
  * @param query The query vector for proximity-based retrieval.
@@ -20,7 +20,7 @@ import org.vitrivr.engine.core.util.math.ScoringFunctions
  * @see [AbstractRetriever]
  * @see [ProximityQuery]
  *
- * @author Rahel Arnold
+ * @author Rahel Arnold, Fynn Faber
  * @version 1.0.0
  */
 class DenseRetriever<C : ContentElement<*>>(field: Schema.Field<C, FloatVectorDescriptor>, query: ProximityQuery<*>, context: QueryContext) : AbstractRetriever<C, FloatVectorDescriptor>(field, query, context) {
