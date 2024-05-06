@@ -142,6 +142,25 @@ For analysers that require a running [Feature Extraction Server](https://github.
 Other fields are for (technical) metadata such as the [`FileSourceMetadata`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/features/metadata/source/file/FileSourceMetadata.kt),
 which additionally stores the file's path and size.
 
+For exif metadata, the [`ExifMetadata`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/features/metadata/source/exif/ExifMetadata.kt) Analyser can be used. For each exif tag that should be included, a parameter with the name "{EXIF_DIRECTORY_NAME}_{TAG_NAME}" must be set to a type. Keys that do not match an exif tag via the aforementioned pattern are interpreted to be custom metadata tags that are stored in the exif UserComment tag in JSON format. Each parameter corresponds to a sub-field. Here is an example with custom "time_zone" metadata:
+```json
+        {
+          "name": "exif",
+          "factory": "ExifMetadata",
+          "parameters": {
+            "ExifSubIFD_FocalLength": "INT",
+            "ExifSubIFD_ApertureValue": "FLOAT",
+            "ExifSubIFD_DateTimeOriginal": "DATETIME",
+            "ExifSubIFD_MeteringMode": "STRING",
+            "time_zone": "STRING"
+          }
+        }
+```
+For extraction, the exif UserComment of images might look like this:
+```json
+{"time_zone": "Europe/Berlin", "hours_awake": 12}
+```
+
 Currently, there is no list of available fields and analysers, therefore a quick look into the code
 reveals those existent. For basic (metadata), see in [the core module](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/features/),
 for content-based features, see in [the features' module](/vitrivr-engine-plugin-features/src/main/kotlin/org/vitrivr/engine/base/features/).
