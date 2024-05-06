@@ -10,7 +10,7 @@ import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
 /**
  * An implementation of a [Retriever], that executes fulltext queries.
  *
- * @author Ralph Gasser
- * @version 1.1.0
+ * @author Ralph Gasser, Fynn Faber
+ * @version 1.2.0
  */
 class FulltextRetriever<C: ContentElement<*>>(field: Schema.Field<C, StringDescriptor>, query: SimpleFulltextQuery, context: QueryContext) : AbstractRetriever<C, StringDescriptor>(field, query, context)

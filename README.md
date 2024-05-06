@@ -130,7 +130,7 @@ To use it, we specifically craft a corresponding _field config_:
 There are no additional parameters, unlike, for instance, an [`ExternalAnalyser`](/vitrivr-engine-plugin-features/src/main/kotlin/org/vitrivr/engine/base/features/external/ExternalAnalyser.kt),
 which requires the parameter `host` with an endpoint as value.
 
-For analysers that require a running [Feature Extraction Server](https://github.com/faberf/feature-extraction-server) (FES), the `host` parameter is required. Additionally, the `model` parameter may be used to specify a non-default model which should execute the task. Of course, this requires that the FES has the necessary plugins installed.
+For analysers that require a running [Feature Extraction Server](https://github.com/faberf/feature-extraction-server) (FES), the `host` parameter is required. Additionally, the `model` parameter may be used to specify a non-default model which should execute the task. Of course, this requires that the FES has the necessary plugins installed. See the [FES documentation](https://github.com/faberf/feature-extraction-server) for more information.
 
 - For [`ASR`] the analyser will perform automatic speech recognition on the audio content.
 - For [`OCR`] the analyser will perform optical character recognition on the image content.

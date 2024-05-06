@@ -13,6 +13,13 @@ import java.util.logging.Logger
 
 private val logger: KLogger = KotlinLogging.logger {}
 
+/**
+ * An abstract [Extractor] implementation that is suitable for [ExternalFesAnalyser]s.
+ *
+ * @param D The type of the [Descriptor] to extract.
+ * @param C The type of the [ContentElement] to extract from.
+ * @param A The type of the [ExternalFesAnalyser] to use.
+ */
 abstract class FesExtractor<D:Descriptor,C:ContentElement<*>, A:ExternalFesAnalyser<C,D>>(
         input: Operator<Retrievable>,
         field: Schema.Field<C, D>?,
@@ -20,6 +27,12 @@ abstract class FesExtractor<D:Descriptor,C:ContentElement<*>, A:ExternalFesAnaly
 ) : AbstractBatchedExtractor<C, D>(input, field, bufferSize) {
 
 
+    /**
+     * Checks if the [Retrievable] matches this [Extractor] and should thus be processed.
+     *
+     * @param retrievable The [Retrievable] to check.
+     * @return True on match, false otherwise,
+     */
     override fun matches(retrievable: Retrievable): Boolean {
         val analyser = field!!.analyser as A
         return retrievable.findContent { contentItem ->
@@ -30,6 +43,12 @@ abstract class FesExtractor<D:Descriptor,C:ContentElement<*>, A:ExternalFesAnaly
 
     }
 
+    /**
+     * Extracts descriptors from the given [Retrievable]s.
+     *
+     * @param retrievables The [Retrievable]s to extract descriptors from.
+     * @return List of resulting [Descriptor]s.
+     */
     override fun extract(retrievables: List<Retrievable>): List<List<D>> {
         val analyser = field!!.analyser as A
 

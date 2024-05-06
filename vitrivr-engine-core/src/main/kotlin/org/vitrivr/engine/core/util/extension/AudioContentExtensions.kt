@@ -28,13 +28,17 @@ private fun writeWaveHeader(buffer: ByteBuffer, samplingRate: Float, channels: S
     buffer.putInt(subChunk2Length)
 }
 
-
+/**
+ * Converts the audio content to a data URL.
+ *
+ * @return Data URL
+ */
 fun AudioContent.toDataURL(): String {
     val data = this.content
     val buffer = ByteBuffer.allocate(44 + data.remaining() * 2).order(ByteOrder.LITTLE_ENDIAN)
 
     // Write WAV header
-    writeWaveHeader(buffer, this.samplingRate.toFloat(), 1, data.remaining())
+    writeWaveHeader(buffer, this.samplingRate.toFloat(), this.channels, data.remaining())
 
     while (data.hasRemaining()) {
         val sample = data.get()

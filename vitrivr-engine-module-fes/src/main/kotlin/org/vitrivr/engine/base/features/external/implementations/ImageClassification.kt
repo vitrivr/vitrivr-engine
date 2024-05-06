@@ -17,6 +17,13 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
+
+/**
+ * Implementation of the [ImageClassification] [ExternalFesAnalyser] that uses the [ApiWrapper] to classify images.
+ *
+ * @author Fynn Faber
+ * @version 1.0.0
+ */
 class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>() {
     companion object{
         const val CLASSES_PARAMETER_NAME = "classes"
@@ -24,6 +31,15 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
         const val TOPK_PARAMETER_NAME = "top_k"
     }
     override val defaultModel = "clip-vit-large-patch14"
+
+    /**
+     * Analyse the provided [ImageContent] using the provided [apiWrapper] and return a list of [LabelDescriptor]s.
+     *
+     * @param content List of [ImageContent] to analyse.
+     * @param apiWrapper [ApiWrapper] to use for the analysis.
+     * @param parameters Map of parameters to use for the analysis.
+     * @return List of [LabelDescriptor]s.
+     */
     override fun analyseFlattened(content: List<ImageContent>, apiWrapper: ApiWrapper, parameters: Map<String, String>): List<List<LabelDescriptor>> {
 
         val classes = parameters[CLASSES_PARAMETER_NAME]?.split(",") ?: throw IllegalArgumentException("No classes provided")
@@ -51,6 +67,12 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
     override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = LabelDescriptor::class
 
+    /**
+     * Generates a prototypical [LabelDescriptor] for this [ImageClassification].
+     *
+     * @param field [Schema.Field] to create the prototype for.
+     * @return [LabelDescriptor]
+     */
     override fun prototype(field: Schema.Field<*,*>): LabelDescriptor {
         return LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(""), Value.Float(0.0f))
     }
@@ -63,6 +85,15 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
         TODO("Not yet implemented")
     }
 
+    /**
+     * Generates and returns a new [FesExtractor] instance for this [ImageClassification].
+     *
+     * @param name The name of the extractor.
+     * @param input The [Operator] that acts as input to the new [FesExtractor].
+     * @param context The [IndexContext] to use with the [FesExtractor].
+     *
+     * @return A new [FesExtractor] instance for this [ImageClassification]
+     */
     override fun newExtractor(
         name: String,
         input: Operator<Retrievable>,
@@ -76,6 +107,15 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
         }
     }
 
+    /**
+     * Generates and returns a new [FesExtractor] instance for this [ImageClassification].
+     *
+     * @param field The [Schema.Field] to create an [FesExtractor] for.
+     * @param input The [Operator] that acts as input to the new [FesExtractor].
+     * @param context The [IndexContext] to use with the [FesExtractor].
+     *
+     * @return A new [FesExtractor] instance for this [ImageClassification]
+     */
     override fun newExtractor(
         field: Schema.Field<ImageContent, LabelDescriptor>,
         input: Operator<Retrievable>,

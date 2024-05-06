@@ -13,8 +13,9 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
 import java.util.*
 
 /**
- * An abstract [Extractor] implementation that is suitable for most default [Extractor] implementations.
+ * An abstract [Extractor] implementation that is suitable for [Extractor] implementations which extract descriptors in batches of multiple retrievables.
  *
+ * @author Fynn Faber
  * @author Ralph Gasser
  * @version 1.0.0
  */
@@ -22,11 +23,12 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(f
     Extractor<C, D> {
 
     /**
-     * A default [Extractor] implementation. It executes the following steps:
+     * A default [Extractor] implementation for batched extraction. It executes the following steps:
      *
-     * - It checks if an incoming [Retrievable] matches the requirements posed by this [Extractor]
-     * - If so, it generates the [Descriptor]s for the [Retrievable]
-     * - Depending on configuration, it appends [Descriptor] and/or persists them.
+     * - It checks if the [Retrievable] matches the [Extractor] by calling [matches].
+     * - If the [Retrievable] matches, it is added to a buffer.
+     * - If the buffer reaches a certain size, the [Extractor] is called to extract descriptors from the buffer.
+     * - The descriptors are then added to the [Retrievable].
      *
      * @return [Flow] of [Retrievable]
      */
@@ -75,10 +77,10 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(f
     protected abstract fun matches(retrievable: Retrievable): Boolean
 
     /**
-     * Internal method to perform extraction on [Retrievable].
+     * Internal method to perform extraction on batch of [Retrievable].
      **
-     * @param retrievable The [Retrievable] to process.
-     * @return List of resulting [Descriptor]s.
+     * @param retrievables The list of [Retrievable] to process.
+     * @return List of lists of resulting [Descriptor]s, one list for each [Retrievable].
      */
     protected abstract fun extract(retrievables: List<Retrievable>): List<List<D>>
 
