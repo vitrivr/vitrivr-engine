@@ -12,6 +12,7 @@ import org.vitrivr.engine.core.model.descriptor.struct.metadata.MediaDimensionsD
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.Rectangle2DMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.MapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -75,7 +76,8 @@ class CottontailConnectionProvider: ConnectionProvider {
         Rectangle2DMetadataDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
         MediaDimensionsDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
         SkeletonDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
-        RasterDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider
+        RasterDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
+        MapStructDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider
     )
 
     /**

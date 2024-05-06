@@ -125,6 +125,8 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
                         is Value.Float -> FloatValue(v.value)
                         is Double -> DoubleValue(v)
                         is Value.Double -> DoubleValue(v.value)
+                        is Date -> DateValue(v)
+                        is Value.DateTime -> DateValue(v.value)
                         else -> throw IllegalArgumentException("Unsupported type ${v::class.simpleName} for struct descriptor.")
                     }
                 }
