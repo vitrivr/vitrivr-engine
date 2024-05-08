@@ -1,15 +1,18 @@
 {
   "schema": "ptt",
   "context": {
-    "contentFactory": "InMemoryContentFactory",
+    "contentFactory": "CachedContentFactory",
     "resolverName": "disk",
     "local": {
+      "content": {
+        "path": "D:/ptt/cache"
+      },
       "enumerator": {
-        "path": "../objects_exif",
+        "path": "D:/ptt/PTT-Testdaten",
         "depth": "5"
       },
       "thumbs": {
-        "maxSideResolution": "350",
+        "maxSideResolution": "400",
         "mimeType": "JPG"
       },
       "filter": {
@@ -27,15 +30,15 @@
       "type": "DECODER",
       "factory": "ImageDecoder"
     },
-    "exif": {
+    "clip": {
       "type": "EXTRACTOR",
-      "fieldName": "exif"
+      "fieldName": "clip"
     }
   },
   "operations": {
     "stage0": {"operator": "enumerator"},
     "stage1": {"operator": "decoder", "inputs": ["stage0"]},
-    "stage2": {"operator": "exif", "inputs": ["stage1"]}
+    "stage2": {"operator": "clip", "inputs": ["stage1"]}
   },
   "output": [
     "stage2"
