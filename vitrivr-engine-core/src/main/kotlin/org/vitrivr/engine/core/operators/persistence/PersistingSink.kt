@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.operators.persistence
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -20,6 +21,9 @@ import org.vitrivr.engine.core.operators.Operator
  * @version 1.0.0
  */
 class PersistingSink(override val input: Operator<Retrievable>, val context: IndexContext) : Operator.Sink<Retrievable> {
+
+    /** Logger instance. */
+    private val logger = KotlinLogging.logger {}
 
     /** The [RetrievableWriter] instance used by this [PersistingSink]. */
     private val writer: RetrievableWriter by lazy {
@@ -91,6 +95,8 @@ class PersistingSink(override val input: Operator<Retrievable>, val context: Ind
             val field = descriptor.field
             if (field != null) {
                 into.third.compute(field) { _, v -> (v ?: mutableSetOf()).apply { add(descriptor) } }
+            }else{
+                logger.debug { "Descriptor $descriptor has no field and will not be persisted." }
             }
         }
     }
