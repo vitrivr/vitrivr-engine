@@ -1,4 +1,4 @@
-package org.vitrivr.engine.base.features.external.implementations.clip
+package org.vitrivr.engine.base.features.external.common
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flow
@@ -11,7 +11,7 @@ import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.util.math.ScoringFunctions
 
 /**
- * [CLIPRetriever] implementation for external CLIP image feature retrieval.
+ * [DenseRetriever] implementation for proximity-based retrieval on float vector embeddings.
  *
  * @param field Schema field for which the retriever operates.
  * @param query The query vector for proximity-based retrieval.
@@ -20,12 +20,12 @@ import org.vitrivr.engine.core.util.math.ScoringFunctions
  * @see [AbstractRetriever]
  * @see [ProximityQuery]
  *
- * @author Rahel Arnold
+ * @author Rahel Arnold, Fynn Faber
  * @version 1.0.0
  */
-class CLIPRetriever(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, query: ProximityQuery<*>, context: QueryContext) : AbstractRetriever<ContentElement<*>, FloatVectorDescriptor>(field, query, context) {
+class DenseRetriever<C : ContentElement<*>>(field: Schema.Field<C, FloatVectorDescriptor>, query: ProximityQuery<*>, context: QueryContext) : AbstractRetriever<C, FloatVectorDescriptor>(field, query, context) {
     override fun toFlow(scope: CoroutineScope) = flow {
-        this@CLIPRetriever.reader.getAll(this@CLIPRetriever.query).forEach {
+        this@DenseRetriever.reader.getAll(this@DenseRetriever.query).forEach {
             it.addAttribute(ScoringFunctions.max(it))
             emit(it)
         }

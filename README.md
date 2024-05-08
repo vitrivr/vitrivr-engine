@@ -130,6 +130,15 @@ To use it, we specifically craft a corresponding _field config_:
 There are no additional parameters, unlike, for instance, an [`ExternalAnalyser`](/vitrivr-engine-plugin-features/src/main/kotlin/org/vitrivr/engine/base/features/external/ExternalAnalyser.kt),
 which requires the parameter `host` with an endpoint as value.
 
+For analysers that require a running [Feature Extraction Server](https://github.com/faberf/feature-extraction-server) (FES), the `host` parameter is required. Additionally, the `model` parameter may be used to specify a non-default model which should execute the task. Of course, this requires that the FES has the necessary plugins installed. See the [FES documentation](https://github.com/faberf/feature-extraction-server) for more information.
+
+- For [`ASR`] the analyser will perform automatic speech recognition on the audio content.
+- For [`OCR`] the analyser will perform optical character recognition on the image content.
+- For [`DenseEmbedding`] the analyser will embed text / images as float vectors. Additionally, the `length` parameter is required to specify the length of the embedding.
+- For [`ImageCaption`] the analyser will generate a caption for the image content. Optionally, a `prompt` parameter can be used to specify a prompt for the caption generation. For example, the prompt could have the form `"Question: What is in the image? Answer:"`.
+- For [`ImageClassification`] the analyser will classify the image content. Additionally, the `classes` parameter is required, which should contain the classes to classify the image into, separated by commas. Optionally, the `top_k` and `threshold` parameters can be used to specify the number of top classes to return and the threshold for the classification.
+
+
 Other fields are for (technical) metadata such as the [`FileSourceMetadata`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/features/metadata/source/file/FileSourceMetadata.kt),
 which additionally stores the file's path and size.
 
