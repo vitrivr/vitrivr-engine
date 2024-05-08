@@ -25,13 +25,23 @@
         {
           "name": "video",
           "factory": "VideoSourceMetadata"
+        },
+        {
+          "name": "clip",
+          "factory": "DenseEmbedding",
+          "parameters": {
+            "host": "http://10.34.58.83:8888/",
+            "model": "clip-vit-large-patch14",
+            "length": "768",
+            "pollingIntervalMs": "1500"
+          }
         }
       ],
       "resolvers": {
         "disk": {
           "factory": "DiskResolver",
           "parameters": {
-            "location": "./thumbnails/vitrivr"
+            "location": "D:/ptt/thumbnails"
           }
         }
       },
@@ -48,8 +58,12 @@
       ],
       "extractionPipelines": [
         {
-          "name": "ingestion",
-          "path": "./config-ingestion.json"
+          "name": "image",
+          "path": "./config/ptt/pipelines/image.json"
+        },
+        {
+          "name": "video",
+          "path": "./config/ptt/pipelines/video.json"
         }
       ]
     }
