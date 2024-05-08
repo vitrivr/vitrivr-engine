@@ -9,6 +9,7 @@ import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.util.extension.toDataURL
 import java.awt.image.BufferedImage
 import java.net.SocketTimeoutException
+import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Private
 
 
 private val logger: KLogger = KotlinLogging.logger {}
@@ -21,7 +22,8 @@ internal data class JobResult<S>(
 internal class JobWrapper<T, S>(
     private val startJobFunc: (T) -> JobStatus,
     private val getJobResultFunc: (String) -> JobResult<S>,
-    private val pollingIntervalMs: Long
+    private val pollingIntervalMs: Long,
+    private val timeoutMs: Long = 60000
 ){
 
     fun executeJob(inp: T): S {
@@ -33,8 +35,14 @@ internal class JobWrapper<T, S>(
             throw e
         }
         var jobResult = getJobResultFunc(jobStatus.id)
-
+        var timeElapsed = 0L
         while (jobResult.status != JobState.complete) {
+            if (timeElapsed >= timeoutMs) {
+                logger.error{"Job with ID: ${jobStatus.id} timed out."}
+                throw Exception("Job timed out.")
+            }
+            timeElapsed += pollingIntervalMs
+
             if (jobResult.status == JobState.failed) {
                 logger.error{"Job with ID: ${jobStatus.id} failed."}
                 throw Exception("Job failed.")
