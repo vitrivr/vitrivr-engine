@@ -33,14 +33,19 @@
     "clip": {
       "type": "EXTRACTOR",
       "fieldName": "clip"
+    },
+    "thumbs": {
+      "type": "EXPORTER",
+      "exporterName": "thumbnail"
     }
   },
   "operations": {
     "stage0": {"operator": "enumerator"},
     "stage1": {"operator": "decoder", "inputs": ["stage0"]},
-    "stage2": {"operator": "clip", "inputs": ["stage1"]}
+    "stage2": {"operator": "clip", "inputs": ["stage1"]},
+    "stage3": {"operator": "thumbs", "inputs": ["stage2"]}
   },
   "output": [
-    "stage2"
+    "stage3"
   ]
 }

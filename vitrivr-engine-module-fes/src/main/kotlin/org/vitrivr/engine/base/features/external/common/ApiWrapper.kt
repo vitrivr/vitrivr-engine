@@ -115,7 +115,7 @@ class ApiWrapper(private val hostName:String, private val model: String, private
     * @return The embedding for the texts.
      */
     fun textEmbedding(text: kotlin.collections.List<String>): kotlin.collections.List<kotlin.collections.List<Float>> {
-        logger.info{ "Starting batched text embedding for texts: \"$text\" (batch size: ${text.size} )" }
+        logger.debug{ "Starting batched text embedding for texts: \"$text\" (batch size: ${text.size} )" }
         val input = BatchedTextEmbeddingInput(text)
         val job = JobWrapper<BatchedTextEmbeddingInput, kotlin.collections.List<TextEmbeddingOutput>>(
                 startJobFunc = { inp ->
@@ -129,7 +129,7 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                 pollingIntervalMs = pollingIntervalMs
         )
         return job.executeJob(input).map { it.embedding.map{it.toFloat()} }.also {
-            logger.info{ "Batched text embedding result: $it" }
+            logger.debug{ "Batched text embedding result: $it" }
         }
     }
 
@@ -162,8 +162,9 @@ class ApiWrapper(private val hostName:String, private val model: String, private
     * @param image The list of images for which to get the embedding.
     * @return The embedding for the images.
      */
-    fun imageEmbedding(image: kotlin.collections.List<BufferedImage>): kotlin.collections.List<kotlin.collections.List<Float>> {
-        logger.info{ "Starting batched image embedding for images: \"$image\" (batch size: ${image.size})" }
+    fun imageEmbedding(image: kotlin.collections.List<BufferedImage>): kotlin.collections.List<kotlin.collections.List<Float>>? {
+
+        logger.debug{ "Starting batched image embedding for images: \"$image\" (batch size: ${image.size})" }
         val input = BatchedImageEmbeddingInput(image.map { it.toDataURL() })
         val job = JobWrapper<BatchedImageEmbeddingInput, kotlin.collections.List<ImageEmbeddingOutput>>(
                 startJobFunc = { inp ->
@@ -177,7 +178,7 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                 pollingIntervalMs = pollingIntervalMs
         )
         return job.executeJob(input).map { it.embedding.map{it.toFloat()}}.also {
-            logger.info{ "Batched image embedding result: $it" }
+            logger.debug{ "Batched image embedding result: $it" }
         }
     }
 

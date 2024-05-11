@@ -112,7 +112,14 @@ abstract class ExternalFesAnalyser<T : ContentElement<*>, U : Descriptor>: Analy
      */
     open fun analyse(content: List<List<T>>, apiWrapper: ApiWrapper, parameters: Map<String, String>): List<List<U>>{
         logger.debug{ "Analyzing content with ${this::class.simpleName} analyser by flattening batch of ${content.size} retrievables." }
-        val output = liftToNestedListFunction(::analyseFlattened)(content, apiWrapper, parameters)
-        return output.map { it.flatten() }
+        try {
+            val output = liftToNestedListFunction(::analyseFlattened)(content, apiWrapper, parameters)
+            return output.map { it.flatten() }
+        } catch (e: Exception) {
+            "Error while analysing content with ${this::class.simpleName} analyser.".let {
+                logger.error { it }
+                throw Exception(it, e)
+            }
+        }
     }
 }

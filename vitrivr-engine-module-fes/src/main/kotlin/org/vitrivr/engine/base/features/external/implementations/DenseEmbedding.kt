@@ -1,5 +1,7 @@
 package org.vitrivr.engine.base.features.external.implementations
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.base.features.external.common.ApiWrapper
 import org.vitrivr.engine.base.features.external.common.DenseRetriever
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
@@ -28,7 +30,10 @@ import java.util.*
  * @version 1.0.0
  */
 class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
-companion object {
+
+    private val logger: KLogger = KotlinLogging.logger {}
+
+    companion object {
         const val LENGTH_PARAMETER_DEFAULT = 512
         const val LENGTH_PARAMETER_NAME = "length"
     }
@@ -43,7 +48,11 @@ companion object {
      * @param parameters Map of parameters to use for the analysis.
      * @return List of [FloatVectorDescriptor]s.
      */
-    override fun analyseFlattened(content: List<ContentElement<*>>, apiWrapper: ApiWrapper, parameters: Map<String, String>): List<List<FloatVectorDescriptor>> {
+    override fun analyseFlattened(
+        content: List<ContentElement<*>>,
+        apiWrapper: ApiWrapper,
+        parameters: Map<String, String>
+    ): List<List<FloatVectorDescriptor>> {
 
         val imageContents = content.filterIsInstance<ImageContent>()
         val textContents = content.filterIsInstance<TextContent>()
@@ -53,7 +62,14 @@ companion object {
 
 
         if (imageContents.isNotEmpty()) {
-            imageResults = apiWrapper.imageEmbedding(imageContents.map { it.content })
+            try {
+                imageResults = apiWrapper.imageEmbedding(imageContents.map { it.content })
+            } catch (e: Exception) {
+                "Error during image embedding".let {
+                    logger.error { it }
+                    throw Exception(it, e)
+                }
+            }
         }
         if (textContents.isNotEmpty()) {
             textResults = apiWrapper.textEmbedding(textContents.map { it.content })
@@ -63,13 +79,29 @@ companion object {
             when (element) {
                 is ImageContent -> {
                     val index = imageContents.indexOf(element)
-                    listOf(FloatVectorDescriptor(UUID.randomUUID(), null, imageResults!![index].map { Value.Float(it) }, null))
+                    listOf(
+                        FloatVectorDescriptor(
+                            UUID.randomUUID(),
+                            null,
+                            imageResults!![index].map { Value.Float(it) },
+                            null
+                        )
+                    )
                 }
+
                 is TextContent -> {
                     val index = textContents.indexOf(element)
-                    listOf(FloatVectorDescriptor(UUID.randomUUID(), null, textResults!![index].map { Value.Float(it) }, null))
+                    listOf(
+                        FloatVectorDescriptor(
+                            UUID.randomUUID(),
+                            null,
+                            textResults!![index].map { Value.Float(it) },
+                            null
+                        )
+                    )
                 }
-                else -> throw(IllegalArgumentException("Content type not supported"))
+
+                else -> throw (IllegalArgumentException("Content type not supported"))
             }
         }
     }
@@ -83,7 +115,7 @@ companion object {
      * @param field [Schema.Field] to create the prototype for.
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>) : FloatVectorDescriptor {
+    override fun prototype(field: Schema.Field<*, *>): FloatVectorDescriptor {
         //convert to integer
         val length = field.parameters[LENGTH_PARAMETER_NAME]?.toIntOrNull() ?: LENGTH_PARAMETER_DEFAULT
         return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(length) { Value.Float(0.0f) })
@@ -98,7 +130,11 @@ companion object {
      *
      * @return A new [DenseRetriever] instance for this [DenseEmbedding]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, FloatVectorDescriptor> {
+    override fun newRetrieverForQuery(
+        field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
+        query: Query,
+        context: QueryContext
+    ): Retriever<ContentElement<*>, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is ProximityQuery<*> && query.value.first() is Value.Float) { "The query is not a ProximityQuery<Value.Float>." }
         @Suppress("UNCHECKED_CAST")
@@ -113,7 +149,11 @@ companion object {
      * @param context The [QueryContext] to use with the [Retriever]
      * @return [DenseRetriever]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, FloatVectorDescriptor> {
+    override fun newRetrieverForContent(
+        field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
+        content: Collection<ContentElement<*>>,
+        context: QueryContext
+    ): Retriever<ContentElement<*>, FloatVectorDescriptor> {
 
         /* Prepare query parameters. */
         val vector = analyse(content.first(), field.parameters)
@@ -121,7 +161,11 @@ companion object {
         val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
 
         /* Return retriever. */
-        return this.newRetrieverForQuery(field, ProximityQuery(value = vector.vector, k = k, fetchVector = fetchVector), context)
+        return this.newRetrieverForQuery(
+            field,
+            ProximityQuery(value = vector.vector, k = k, fetchVector = fetchVector),
+            context
+        )
     }
 
     /**
@@ -138,9 +182,14 @@ companion object {
         context: IndexContext
     ): FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        val batchSize = context.getProperty(field.fieldName, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
-        return object : FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding>(input, field, batchSize) {
-            override fun assignRetrievableId(descriptor: FloatVectorDescriptor, retrievableId: RetrievableId): FloatVectorDescriptor {
+        val batchSize = context.getProperty(field.fieldName, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull()
+            ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
+        return object :
+            FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding>(input, field, batchSize) {
+            override fun assignRetrievableId(
+                descriptor: FloatVectorDescriptor,
+                retrievableId: RetrievableId
+            ): FloatVectorDescriptor {
                 return descriptor.copy(retrievableId = retrievableId, field = field)
             }
         }
@@ -157,10 +206,14 @@ companion object {
         name: String,
         input: Operator<Retrievable>,
         context: IndexContext
-    ): FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding>{
-        val batchSize = context.getProperty(name, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
+    ): FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding> {
+        val batchSize =
+            context.getProperty(name, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
         return object : FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding>(input, null, batchSize) {
-            override fun assignRetrievableId(descriptor: FloatVectorDescriptor, retrievableId: RetrievableId): FloatVectorDescriptor {
+            override fun assignRetrievableId(
+                descriptor: FloatVectorDescriptor,
+                retrievableId: RetrievableId
+            ): FloatVectorDescriptor {
                 return descriptor.copy(retrievableId = retrievableId)
             }
         }
