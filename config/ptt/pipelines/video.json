@@ -4,12 +4,15 @@
     "contentFactory": "CachedContentFactory",
     "resolverName": "disk",
     "local": {
+      "content": {
+        "path": "D:/ptt/cache"
+      },
       "enumerator": {
         "path": "D:/ptt/PTT-Testdaten",
         "depth": "5"
       },
       "thumbs": {
-        "maxSideResolution": "350",
+        "maxSideResolution": "400",
         "mimeType": "JPG"
       },
       "filter": {
@@ -59,33 +62,11 @@
     }
   },
   "operations": {
-    "enumerator": {
-      "operator": "enumerator"
-    },
-    "decoder": {
-      "operator": "decoder",
-      "inputs": [
-        "enumerator"
-      ]
-    },
-    "selector": {
-      "operator": "selector",
-      "inputs": [
-        "decoder"
-      ]
-    },
-    "averagecolor": {
-      "operator": "avgColor",
-      "inputs": [
-        "selector"
-      ]
-    },
-    "thumbnails": {
-      "operator": "thumbs",
-      "inputs": [
-        "selector"
-      ]
-    },
+    "enumerator": {"operator": "enumerator"},
+    "decoder": {"operator": "decoder","inputs": ["enumerator"]},
+    "selector": {"operator": "selector","inputs":["decoder"]},
+    "averagecolor": {"operator": "avgColor","inputs": ["selector"]    },
+    "thumbnails": {"operator": "thumbs","inputs": ["selector"]},
     "time_metadata": {
       "operator": "time_metadata",
       "inputs": [
