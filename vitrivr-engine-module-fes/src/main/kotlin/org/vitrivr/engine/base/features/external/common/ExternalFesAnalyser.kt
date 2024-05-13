@@ -45,7 +45,9 @@ fun <T, R> liftToNestedListFunction(
 abstract class ExternalFesAnalyser<T : ContentElement<*>, U : Descriptor>: Analyser<T, U> {
     companion object {
         const val HOST_PARAMETER_DEFAULT = "http://localhost:8888/"
+        val HOSTS_PARAMETER_DEFAULT: List<String> = listOf("http://localhost:8888/")
         const val HOST_PARAMETER_NAME = "host"
+        const val HOSTS_PARAMETER_NAME = "hosts"
         const val MODEL_PARAMETER_NAME = "model"
         const val TIMEOUTSECONDS_PARAMETER_NAME = "timeoutSeconds"
         const val TIMEOUTSECONDS_PARAMETER_DEFAULT = "10"
@@ -75,12 +77,14 @@ abstract class ExternalFesAnalyser<T : ContentElement<*>, U : Descriptor>: Analy
      * @param parameters The parameters to use.
      * @return The [Descriptor]s generated from the content, grouped by [Retrievable].
      */
-    fun analyse(content: List<List<T>>, parameters: Map<String, String>): List<List<U>> {
-        val model = parameters[MODEL_PARAMETER_NAME] ?: defaultModel
-        val hostName = parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
-        val timeoutSeconds = parameters[TIMEOUTSECONDS_PARAMETER_NAME]?.toLongOrNull() ?: TIMEOUTSECONDS_PARAMETER_DEFAULT.toLong()
-        val pollingIntervalMs = parameters[POLLINGINTERVALMS_PARAMETER_NAME]?.toLongOrNull() ?: POLLINGINTERVALMS_PARAMETER_DEFAULT.toLong()
-        val apiWrapper = ApiWrapper(hostName, model, timeoutSeconds, pollingIntervalMs)
+    fun analyse(content: List<List<T>>, parameters: Map<String, Any>): List<List<U>> {
+        val model: String = (parameters[MODEL_PARAMETER_NAME] ?: defaultModel as String).toString()
+        val hostName:String = (parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT).toString()
+        val hostsNames:String = (parameters[HOSTS_PARAMETER_NAME] ?: HOSTS_PARAMETER_DEFAULT).toString()
+
+        val timeoutSeconds = (parameters[TIMEOUTSECONDS_PARAMETER_NAME]?.toString())?.toLongOrNull() ?: TIMEOUTSECONDS_PARAMETER_DEFAULT.toLong()
+        val pollingIntervalMs = (parameters[POLLINGINTERVALMS_PARAMETER_NAME]?.toString())?.toLongOrNull() ?: POLLINGINTERVALMS_PARAMETER_DEFAULT.toLong()
+        val apiWrapper = ApiWrapper(hostName, hostsNames, model, timeoutSeconds, pollingIntervalMs)
 
         logger.debug { "Analyzing batch of ${content.size} retrievables with ${this::class.simpleName} analyser." }
 

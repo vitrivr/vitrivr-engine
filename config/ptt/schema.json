@@ -33,7 +33,7 @@
             "host": "http://10.34.58.83:8888/",
             "model": "clip-vit-large-patch14",
             "length": "768",
-            "pollingIntervalMs": "1500",
+            "pollingIntervalMs": "500",
             "timeoutMs": "60000"
           }
         }
@@ -61,6 +61,10 @@
         {
           "name": "image",
           "path": "./config/ptt/pipelines/image.json"
+        },
+        {
+          "name": "image2",
+          "path": "./config/ptt/pipelines/image2.json"
         },
         {
           "name": "video",

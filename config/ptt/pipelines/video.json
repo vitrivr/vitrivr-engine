@@ -62,40 +62,12 @@
     }
   },
   "operations": {
-    "enumerator": {"operator": "enumerator"},
-    "decoder": {"operator": "decoder","inputs": ["enumerator"]},
-    "selector": {"operator": "selector","inputs":["decoder"]},
-    "averagecolor": {"operator": "avgColor","inputs": ["selector"]    },
-    "thumbnails": {"operator": "thumbs","inputs": ["selector"]},
-    "time_metadata": {
-      "operator": "time_metadata",
-      "inputs": [
-        "selector"
-      ]
-    },
-    "filter": {
-      "operator": "filter",
-      "inputs": [
-        "averagecolor",
-        "thumbnails",
-        "time_metadata"
-      ],
-      "merge": "COMBINE"
-    },
-    "video_metadata": {
-      "operator": "video_metadata",
-      "inputs": [
-        "filter"
-      ]
-    },
-    "file_metadata": {
-      "operator": "file_metadata",
-      "inputs": [
-        "video_metadata"
-      ]
-    }
+    "stage00": {"operator": "enumerator"},
+    "stage10": {"operator": "decoder","inputs": ["stage00"]},
+    "stage20": {"operator": "clip", "inputs": ["stage10"]},
+    "stage30": {"operator": "thumbs", "inputs": ["stage20"]}
   },
   "output": [
-    "file_metadata"
+    "stage30"
   ]
 }
