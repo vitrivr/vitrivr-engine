@@ -27,6 +27,14 @@
           "factory": "VideoSourceMetadata"
         },
         {
+          "name": "asr",
+          "factory": "ASR",
+          "parameters": {
+            "host": "http://10.34.58.83:8888/",
+            "model": "whisper"
+          }
+        },
+        {
           "name": "clip",
           "factory": "DenseEmbedding",
           "parameters": {
@@ -42,7 +50,7 @@
         "disk": {
           "factory": "DiskResolver",
           "parameters": {
-            "location": "D:/ptt/thumbnails"
+            "location": "D:/ptt-minimal/thumbnails"
           }
         }
       },
@@ -65,6 +73,10 @@
         {
           "name": "video",
           "path": "./config/ptt/pipelines/video.json"
+        },
+        {
+          "name": "video-min",
+          "path": "./config/ptt/pipelines/video-min.json"
         }
       ]
     }
