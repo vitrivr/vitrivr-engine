@@ -42,7 +42,7 @@
             "model": "clip-vit-large-patch14",
             "length": "768",
             "pollingIntervalMs": "1500",
-            "timeoutMs": "60000"
+            "timeoutMs": "120000"
           }
         }
       ],
@@ -67,7 +67,7 @@
       ],
       "extractionPipelines": [
         {
-          "name": "image",
+          "name": "i",
           "path": "./config/ptt/pipelines/image.json"
         },
         {
@@ -75,7 +75,7 @@
           "path": "./config/ptt/pipelines/video.json"
         },
         {
-          "name": "video-min",
+          "name": "v",
           "path": "./config/ptt/pipelines/video-min.json"
         }
       ]

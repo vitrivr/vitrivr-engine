@@ -23,7 +23,7 @@ internal class JobWrapper<T, S>(
     private val startJobFunc: (T) -> JobStatus,
     private val getJobResultFunc: (String) -> JobResult<S>,
     private val pollingIntervalMs: Long,
-    private val timeoutMs: Long = 60000
+    private val timeoutMs: Long = 180000L
 ){
 
     fun executeJob(inp: T): S {

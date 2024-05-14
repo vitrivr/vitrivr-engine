@@ -19,7 +19,7 @@
         "type": "SOURCE:VIDEO"
       },
       "decoder": {
-        "timeWindowMs": "10000"
+        "timeWindowMs": "20000"
       }
     }
   },
@@ -65,8 +65,8 @@
     "stage-1-0": {"operator": "decoder","inputs": ["stage-0-0"]},
     "stage-2-0": {"operator": "selector","inputs": ["stage-1-0"]},
     "stage-3-0": {"operator": "thumbs","inputs": ["stage-2-0"]},
-    "stage-4-0": {"operator": "clip", "inputs": ["stage-3-0"]},
-    "stage-5-0": {"operator": "asr", "inputs": ["stage-4-0"]}
+    "stage-4-0": {"operator": "clip", "inputs": ["stage-2-0"]},
+    "stage-5-0": {"operator": "asr", "inputs": ["stage-1-0"]}
 },
   "output": ["stage-5-0"]
 }
