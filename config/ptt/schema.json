@@ -71,6 +71,10 @@
           "path": "./config/ptt/pipelines/image.json"
         },
         {
+          "name": "image2",
+          "path": "./config/ptt/pipelines/image2.json"
+        },
+        {
           "name": "video",
           "path": "./config/ptt/pipelines/video.json"
         },
