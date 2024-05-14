@@ -77,6 +77,10 @@
         {
           "name": "v",
           "path": "./config/ptt/pipelines/video-min.json"
+        },
+        {
+          "name": "vt",
+          "path": "./config/ptt/pipelines/video-test.json"
         }
       ]
     }
