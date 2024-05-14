@@ -7,8 +7,9 @@ dependencies {
     /** vitrivr engine dependencies. */
     api project(':vitrivr-engine-index')
     api project(':vitrivr-engine-query')
-    api project(':vitrivr-engine-plugin-features')                 /* TODO: This dependency is not necessary and only here to facilitate easy testing. */
-    api project(':vitrivr-engine-plugin-cottontaildb')             /* TODO: This dependency is not necessary and only here to facilitate easy testing. */
+    api project(':vitrivr-engine-module-features')                 /* TODO: This dependency is not necessary and only here to facilitate easy testing. */
+    api project(':vitrivr-engine-module-cottontaildb')             /* TODO: This dependency is not necessary and only here to facilitate easy testing. */
+    api project(':vitrivr-engine-module-fes')      /* TODO: This dependency is not necessary and only here to facilitate easy testing. */
 
     /** Clikt & JLine */
     implementation group: 'com.github.ajalt.clikt', name: 'clikt', version: version_clikt
@@ -18,8 +19,8 @@ dependencies {
 
     /** Javalin */
     implementation group: 'io.javalin', name: 'javalin', version: version_javalin
-    implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: version_javalin
-    implementation group: 'io.javalin.community.openapi', name: 'javalin-swagger-plugin', version: version_javalin
+    implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: version_javalinopenapi
+    implementation group: 'io.javalin.community.openapi', name: 'javalin-swagger-plugin', version: version_javalinssl
     implementation group: 'io.javalin.community.ssl', name: 'ssl-plugin', version: version_javalin
 
     /** Jackson (for serialization). */

@@ -1,27 +1,26 @@
 package org.vitrivr.engine.core.features
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
-import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
-import java.util.*
 
 /**
  * An abstract [Extractor] implementation that is suitable for most default [Extractor] implementations.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
-abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final override val input: Operator<Retrievable>, final override val field: Schema.Field<C, D>, final override val persisting: Boolean = true, private val bufferSize: Int = 100) :
-    Extractor<C, D> {
+abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final override val input: Operator<Retrievable>, final override val field: Schema.Field<C, D>? = null) : Extractor<C, D> {
+
+    protected val logger: KLogger = KotlinLogging.logger {}
 
     /**
      * A default [Extractor] implementation. It executes the following steps:
@@ -32,43 +31,16 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final ov
      *
      * @return [Flow] of [Retrievable]
      */
-    final override fun toFlow(scope: CoroutineScope): Flow<Retrievable> {
-        /* The [DescriptorWriter] used by this [AbstractExtractor]. */
-        val writer: DescriptorWriter<D> by lazy { this.field.getWriter() }
+    final override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
+        if (this.matches(retrievable)) {
+            /* Perform extraction. */
+            logger.debug{"Extraction for retrievable: $retrievable" }
+            val descriptors = extract(retrievable)
 
-        /* The buffer used for writing descriptors. */
-        val buffer = LinkedList<D>()
-
-        /* Prepare and return flow. */
-        return this.input.toFlow(scope).onEach { retrievable ->
-            if (this.matches(retrievable)) {
-                /* Perform extraction. */
-                val descriptors = extract(retrievable)
-
-                /* Append descriptor. */
-                for (d in descriptors) {
-                    retrievable.addAttribute(DescriptorAttribute(d))
-                }
-
-                /* Persist descriptor. */
-                if (this.persisting) {
-                    /* Add descriptors to buffer. */
-                    for (d in descriptors) {
-                        buffer.add(d)
-                    }
-
-                    /* Persist buffer if necessary. */
-                    if (buffer.size >= this.bufferSize) {
-                        writer.addAll(buffer)
-                        buffer.clear()
-                    }
-                }
-            }
-        }.onCompletion {
-            /* Persist buffer if necessary. */
-            if (buffer.isNotEmpty()) {
-                writer.addAll(buffer)
-                buffer.clear()
+            /* Append descriptor. */
+            logger.trace{ "Extracted descriptors for retrievable ($retrievable): $descriptors" }
+            for (d in descriptors) {
+                retrievable.addDescriptor(d)
             }
         }
     }

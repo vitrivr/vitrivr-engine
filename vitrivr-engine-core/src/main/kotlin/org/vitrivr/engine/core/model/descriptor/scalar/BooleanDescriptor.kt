@@ -2,8 +2,10 @@ package org.vitrivr.engine.core.model.descriptor.scalar
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
-import org.vitrivr.engine.core.model.descriptor.FieldType
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.types.Type
+import org.vitrivr.engine.core.model.types.Value
 
 /**
  * A [ScalarDescriptor] using a [Boolean] value.
@@ -15,11 +17,11 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 data class BooleanDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId,
-    override val value: Boolean,
-    override val transient: Boolean = false
-): ScalarDescriptor<Boolean> {
+    override val value: Value.Boolean,
+    override val field: Schema.Field<*, BooleanDescriptor>? = null
+) : ScalarDescriptor<Value.Boolean> {
     companion object {
-        private val SCHEMA = listOf(FieldSchema("value", FieldType.BOOLEAN))
+        private val SCHEMA = listOf(FieldSchema("value", Type.BOOLEAN))
     }
 
     /**

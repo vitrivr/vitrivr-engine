@@ -2,9 +2,11 @@ package org.vitrivr.engine.core.model.descriptor.struct.metadata.source
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
-import org.vitrivr.engine.core.model.descriptor.FieldType
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.types.Type
+import org.vitrivr.engine.core.model.types.Value
 import java.util.*
 
 /**
@@ -16,28 +18,28 @@ import java.util.*
 class VideoSourceMetadataDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId,
-    val width: Int,
-    val height: Int,
-    val fps: Double,
-    val channels: Int,
-    val sampleRate: Int,
-    val sampleSize: Int,
-    override val transient: Boolean = false
+    val width: Value.Int,
+    val height: Value.Int,
+    val fps: Value.Double,
+    val channels: Value.Int,
+    val sampleRate: Value.Int,
+    val sampleSize: Value.Int,
+    override val field: Schema.Field<*, VideoSourceMetadataDescriptor>? = null
 ) : StructDescriptor {
 
     companion object {
         /** The field schema associated with a [VideoSourceMetadataDescriptor]. */
         private val SCHEMA = listOf(
-            FieldSchema("width", FieldType.INT),
-            FieldSchema("height", FieldType.INT),
-            FieldSchema("fps", FieldType.DOUBLE),
-            FieldSchema("channels", FieldType.INT),
-            FieldSchema("sampleRate", FieldType.INT),
-            FieldSchema("sampleSize", FieldType.INT),
+            FieldSchema("width", Type.INT),
+            FieldSchema("height", Type.INT),
+            FieldSchema("fps", Type.DOUBLE),
+            FieldSchema("channels", Type.INT),
+            FieldSchema("sampleRate", Type.INT),
+            FieldSchema("sampleSize", Type.INT),
         )
 
         /** The prototype [VideoSourceMetadataDescriptor]. */
-        val PROTOTYPE = VideoSourceMetadataDescriptor(UUID.randomUUID(), UUID.randomUUID(), 0, 0, 0.0, 0, 0, 0)
+        val PROTOTYPE = VideoSourceMetadataDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.Int(0), Value.Int(0), Value.Double(0.0), Value.Int(0), Value.Int(0), Value.Int(0))
     }
 
     /**

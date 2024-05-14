@@ -12,5 +12,12 @@ enum class InputType {
     @SerialName("VECTOR")
     VECTOR,
     @SerialName("ID")
-    ID
+    ID,
+    @SerialName("BOOLEAN")
+    BOOLEAN,
+    @SerialName("NUMERIC")
+    NUMERIC,
+    @SerialName("DATE")
+    DATE
+
 }

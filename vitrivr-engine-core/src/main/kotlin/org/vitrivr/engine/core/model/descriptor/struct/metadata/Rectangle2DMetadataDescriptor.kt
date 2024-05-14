@@ -2,12 +2,15 @@ package org.vitrivr.engine.core.model.descriptor.struct.metadata
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
-import org.vitrivr.engine.core.model.descriptor.FieldType
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.types.Type
+import org.vitrivr.engine.core.model.types.Value
+import java.util.*
 
 /**
- * A [StructDescriptor] used to store temporal metadata about a [Retrievable].
+ * A [StructDescriptor] used to store spatial metadata in a 2D raster graphic.
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -15,21 +18,24 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 data class Rectangle2DMetadataDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId,
-    val leftX: Int,
-    val leftY: Int,
-    val width: Int,
-    val height: Int,
-    override val transient: Boolean = false
+    val leftX: Value.Int,
+    val leftY: Value.Int,
+    val width: Value.Int,
+    val height: Value.Int,
+    override val field: Schema.Field<*, Rectangle2DMetadataDescriptor>? = null
 ) : StructDescriptor {
 
     companion object {
+        /** The field schema associated with a [Rectangle2DMetadataDescriptor]. */
         private val SCHEMA = listOf(
-            FieldSchema("leftX", FieldType.INT),
-            FieldSchema("leftY", FieldType.INT),
-            FieldSchema("width", FieldType.INT),
-            FieldSchema("height", FieldType.INT),
+            FieldSchema("leftX", Type.INT),
+            FieldSchema("leftY", Type.INT),
+            FieldSchema("width", Type.INT),
+            FieldSchema("height", Type.INT),
+        )
 
-            )
+        /** The prototype [Rectangle2DMetadataDescriptor]. */
+        val PROTOTYPE = Rectangle2DMetadataDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.Int(0), Value.Int(0), Value.Int(0), Value.Int(0))
     }
 
     /**

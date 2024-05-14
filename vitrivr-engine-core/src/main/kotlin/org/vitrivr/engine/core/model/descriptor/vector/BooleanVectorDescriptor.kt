@@ -1,8 +1,10 @@
 package org.vitrivr.engine.core.model.descriptor.vector
 
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
-import org.vitrivr.engine.core.model.descriptor.FieldType
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.types.Type
+import org.vitrivr.engine.core.model.types.Value
 import java.util.*
 
 /**
@@ -16,13 +18,13 @@ import java.util.*
 data class BooleanVectorDescriptor(
     override val id: UUID = UUID.randomUUID(),
     override val retrievableId: RetrievableId? = null,
-    override val vector: List<Boolean>,
-    override val transient: Boolean = false
-) : VectorDescriptor<Boolean> {
+    override val vector: List<Value.Boolean>,
+    override val field: Schema.Field<*, BooleanVectorDescriptor>? = null
+) : VectorDescriptor<Value.Boolean> {
     /**
      * Returns the [FieldSchema] [List ]of this [BooleanVectorDescriptor].
      *
      * @return [List] of [FieldSchema]
      */
-    override fun schema(): List<FieldSchema> = listOf(FieldSchema("vector", FieldType.BOOLEAN, intArrayOf(this.dimensionality)))
+    override fun schema(): List<FieldSchema> = listOf(FieldSchema("vector", Type.BOOLEAN, intArrayOf(this.dimensionality)))
 }

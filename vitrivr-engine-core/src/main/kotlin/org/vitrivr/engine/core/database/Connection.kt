@@ -18,6 +18,9 @@ import java.io.Closeable
  */
 sealed interface Connection: Closeable {
 
+    /** The [ConnectionProvider] used to create this [Connection]. */
+    val provider: ConnectionProvider
+
     /** The name of the [Schema] managed by this [Connection]. */
     val schemaName: String
 
