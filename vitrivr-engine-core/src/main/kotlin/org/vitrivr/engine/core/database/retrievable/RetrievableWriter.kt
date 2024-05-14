@@ -1,37 +1,46 @@
 package org.vitrivr.engine.core.database.retrievable
 
 import org.vitrivr.engine.core.database.Writer
+import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.RetrievableId
 
 /**
  * A [RetrievableWriter] is an extension of a [Writer] for [Retrievable]s.
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 2.0.0
  */
 interface RetrievableWriter : Writer<Retrievable> {
     /**
-     * Connects two [Retrievable] (specified by their [RetrievableId]) through a subject predicate, object relationship.
+     * Persists a [Relationship].
      *
-     * @param subject [RetrievableId] of the subject [Retrievable]
-     * @param predicate The predicate describing the relationship.
-     * @param object [RetrievableId] of the object [Retrievable]
+     * @param relationship [Relationship] to persist
      * @return True on success, false otherwise.
      */
-    fun connect(subject: RetrievableId, predicate: String, `object`: RetrievableId): Boolean
-
-
-    fun connectAll(subjects: Iterable<RetrievableId>, predicate: String, objects: Iterable<RetrievableId>): Boolean
+    fun connect(relationship: Relationship): Boolean
 
     /**
-     * Severs the specified connection between two [Retrievable]s.
+     * Persists a list of [Relationship]s.
      *
-     * @param subject [RetrievableId] of the subject [Retrievable].
-     * @param predicate The predicate describing the relationship.
-     * @param object [RetrievableId] of the object [Retrievable].
+     * @param relationships An [Iterable] of [Relationship]s to persist.
      * @return True on success, false otherwise.
      */
-    fun disconnect(subject: RetrievableId, predicate: String, `object`: RetrievableId): Boolean
+    fun connectAll(relationships: Iterable<Relationship>): Boolean
+
+    /**
+     * Deletes a [Relationship]
+     *
+     * @param relationship [Relationship] to delete.
+     * @return True on success, false otherwise.
+     */
+    fun disconnect(relationship: Relationship): Boolean
+
+    /**
+     * Deletes a [Relationship]
+     *
+     * @param relationships An [Iterable] of [Relationship] to delete.
+     * @return True on success, false otherwise.
+     */
+    fun disconnectAll(relationships: Iterable<Relationship>): Boolean
 }

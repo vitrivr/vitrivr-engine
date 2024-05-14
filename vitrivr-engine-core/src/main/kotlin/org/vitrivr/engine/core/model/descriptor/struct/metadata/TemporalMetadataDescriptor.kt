@@ -2,12 +2,15 @@ package org.vitrivr.engine.core.model.descriptor.struct.metadata
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
-import org.vitrivr.engine.core.model.descriptor.FieldType
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.types.Type
+import org.vitrivr.engine.core.model.types.Value
+import java.util.*
 
 /**
- * A [StructDescriptor] used to store temporal metadata about a [Retrievable].
+ * A [StructDescriptor] used to store temporal metadata.
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -15,16 +18,20 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 data class TemporalMetadataDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId, //retrievable Id must come first, due to reflection
-    val startNs: Long,
-    val endNs: Long,
-    override val transient: Boolean = false
+    val startNs: Value.Long,
+    val endNs: Value.Long,
+    override val field: Schema.Field<*, TemporalMetadataDescriptor>? = null
 ) : StructDescriptor {
 
     companion object {
+        /** The field schema associated with a [TemporalMetadataDescriptor]. */
         private val SCHEMA = listOf(
-            FieldSchema("start", FieldType.LONG),
-            FieldSchema("end", FieldType.LONG),
+            FieldSchema("start", Type.LONG),
+            FieldSchema("end", Type.LONG),
         )
+
+        /** The prototype [TemporalMetadataDescriptor]. */
+        val PROTOTYPE = TemporalMetadataDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.Long(0L), Value.Long(0L))
     }
 
     /**

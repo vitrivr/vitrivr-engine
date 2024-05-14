@@ -13,10 +13,14 @@ import java.nio.ShortBuffer
 interface AudioContent: ContentElement<ShortBuffer> {
     /** Number of samples encoded in this [AudioContent]. */
     val samples: Int
-        get() = this.content.limit()
+        get() = this.content.limit() / this.channels
 
-    /** The number of samples encoded in this [AudioContent]. */
-    val channel: Int
+    /** The size of this [AudioContent] in bytes. */
+    val size: Int
+        get() = this.content.limit() * Short.SIZE_BYTES
+
+    /** The number of channels encoded in this [AudioContent]. */
+    val channels: Short
 
     /** The sampling rate of the data encoded in this [AudioContent]. */
     val samplingRate: Int
@@ -25,3 +29,4 @@ interface AudioContent: ContentElement<ShortBuffer> {
     override val type: ContentType
         get() = ContentType.AUDIO_FRAME
 }
+

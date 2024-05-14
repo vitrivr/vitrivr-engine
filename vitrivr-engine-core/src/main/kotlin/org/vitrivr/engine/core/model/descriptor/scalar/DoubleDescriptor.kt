@@ -2,8 +2,10 @@ package org.vitrivr.engine.core.model.descriptor.scalar
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
-import org.vitrivr.engine.core.model.descriptor.FieldType
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.types.Type
+import org.vitrivr.engine.core.model.types.Value
 
 /**
  * A [ScalarDescriptor] using a [Double] value.
@@ -15,11 +17,11 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 data class DoubleDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId,
-    override val value: Double,
-    override val transient: Boolean = false
-): ScalarDescriptor<Double> {
+    override val value: Value.Double,
+    override val field: Schema.Field<*, DoubleDescriptor>? = null
+) : ScalarDescriptor<Value.Double> {
     companion object {
-        private val SCHEMA = listOf(FieldSchema("value", FieldType.DOUBLE))
+        private val SCHEMA = listOf(FieldSchema("value", Type.DOUBLE))
     }
 
     /**

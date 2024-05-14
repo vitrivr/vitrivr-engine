@@ -1,0 +1,72 @@
+{
+  "schemas": [
+    {
+      "name": "ptt",
+      "connection": {
+        "database": "CottontailConnectionProvider",
+        "parameters": {
+          "Host": "127.0.0.1",
+          "port": "1865"
+        }
+      },
+      "fields": [
+        {
+          "name": "averagecolor",
+          "factory": "AverageColor"
+        },
+        {
+          "name": "file",
+          "factory": "FileSourceMetadata"
+        },
+        {
+          "name": "time",
+          "factory": "TemporalMetadata"
+        },
+        {
+          "name": "video",
+          "factory": "VideoSourceMetadata"
+        },
+        {
+          "name": "clip",
+          "factory": "DenseEmbedding",
+          "parameters": {
+            "host": "http://10.34.58.83:8888/",
+            "model": "clip-vit-large-patch14",
+            "length": "768",
+            "pollingIntervalMs": "1500",
+            "timeoutMs": "60000"
+          }
+        }
+      ],
+      "resolvers": {
+        "disk": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "D:/ptt/thumbnails"
+          }
+        }
+      },
+      "exporters": [
+        {
+          "name": "thumbnail",
+          "factory": "ThumbnailExporter",
+          "resolverName": "disk",
+          "parameters": {
+            "maxSideResolution": "400",
+            "mimeType": "JPG"
+          }
+        }
+      ],
+      "extractionPipelines": [
+        {
+          "name": "image",
+          "path": "./config/ptt/pipelines/image.json"
+        },
+        {
+          "name": "video",
+          "path": "./config/ptt/pipelines/video.json"
+        }
+      ]
+    }
+  ]
+}

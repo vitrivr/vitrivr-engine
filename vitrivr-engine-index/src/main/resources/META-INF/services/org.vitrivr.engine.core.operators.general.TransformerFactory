@@ -1,0 +1,10 @@
+org.vitrivr.engine.index.transform.ContentSamplingTransformer
+
+org.vitrivr.engine.index.aggregators.LastContentAggregator
+org.vitrivr.engine.index.aggregators.FirstContentAggregator
+org.vitrivr.engine.index.aggregators.LastContentAggregator
+org.vitrivr.engine.index.aggregators.MiddleContentAggregator
+org.vitrivr.engine.index.aggregators.image.AverageImageContentAggregator
+org.vitrivr.engine.index.aggregators.image.RepresentativeImageContentAggregator
+
+org.vitrivr.engine.index.segment.FixedDurationSegmenter

@@ -5,7 +5,7 @@ plugins {
     id 'java-library'
     id 'idea'
     id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
-    id 'org.openapi.generator' version '5.2.0'
+    id 'org.openapi.generator' version '7.4.0'
     id "de.undercouch.download" version "5.4.0"
 }
 
@@ -107,26 +107,8 @@ subprojects {
 }
 
 /* Define required variables. */
-def fullOAS = 'http://localhost:7070/swagger-docs'
+def fullOAS = 'http://localhost:7070/openapi.json'
 def oasFile = "${project.projectDir}/vitrivr-engine-server/doc/oas.json"
-
-openApiGenerate {
-    generateApiTests = false
-    generateModelTests = false
-    validateSpec = false
-    skipValidateSpec = true
-
-    generatorName = 'typescript-angular'
-    inputSpec = oasFile
-    outputDir = file("${project.projectDir}/openapi/doc/ts").toString()
-    configOptions = [
-            npmName: '@vitrivr-engine/api',
-            ngVersion: '13.2.3',
-            snapshot: 'true',
-            enumPropertyNaming: 'original'
-    ]
-}
-
 
 openApiGenerate {
     generateApiTests = false

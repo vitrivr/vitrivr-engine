@@ -1,6 +1,10 @@
 package org.vitrivr.engine.core.model.color
 
-import kotlin.math.*
+import org.vitrivr.engine.core.model.types.Value
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 open class RGBFloatColorContainer(open val red: Float, open val green: Float, open val blue: Float) {
 
@@ -51,7 +55,19 @@ open class RGBFloatColorContainer(open val red: Float, open val green: Float, op
         (min(1f, max(0f, this.blue)) * 255f).roundToInt().toUByte()
     )
 
+    /**
+     * Converts this [RGBFloatColorContainer] as a [List] of [Float]s.
+     *
+     * @return [List] of [Float]s
+     */
     fun toList() = listOf(this.red, this.green, this.blue)
+
+    /**
+     * Converts this [RGBFloatColorContainer] as a [List] of [Value.Float]s.
+     *
+     * @return [List] of [Value.Float]s
+     */
+    fun toValueList() = listOf(Value.Float(this.red), Value.Float(this.green), Value.Float(this.blue))
 
     fun distanceTo(other: RGBFloatColorContainer): Float = sqrt(
         (this.red - other.red) * (this.red - other.red) + (this.green - other.green) * (this.green - other.green) + (this.blue - other.blue) * (this.blue - other.blue)
