@@ -28,12 +28,14 @@ import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Metadata
 import org.vitrivr.engine.core.source.Source
+import org.vitrivr.engine.index.util.WaveUtilities
 import java.awt.image.BufferedImage
 import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
 import java.nio.ShortBuffer
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.io.path.Path
 
 /**
  * A [Decoder] that can decode [ImageContent] and [AudioContent] from a [Source] of [MediaType.VIDEO].
@@ -107,6 +109,7 @@ class VideoDecoder : DecoderFactory {
                         grabber.imageMode = FrameGrabber.ImageMode.COLOR
                         grabber.sampleMode = FrameGrabber.SampleMode.SHORT
 
+
                         logger.info { "Start decoding source ${source.name} (${source.sourceId})" }
                         try {
                             grabber.start()
@@ -158,6 +161,7 @@ class VideoDecoder : DecoderFactory {
                                 /* If enough frames have been collected, emit them. */
                                 if (videoReady && audioReady) {
                                     emit(imageBuffer, audioBuffer, grabber, windowEnd, sourceRetrievable, channel)
+
 
                                     /* Reset counters and flags. */
                                     videoReady = !this@Instance.video
@@ -229,16 +233,21 @@ class VideoDecoder : DecoderFactory {
             )
 
             /* Prepare and append audio content element. */
+
             if (emitAudio.size > 0) {
                 val samples = ShortBuffer.allocate(audioSize)
                 for (frame in emitAudio) {
+                    frame.clear()
                     samples.put(frame)
                 }
+                samples.clear()
                 val audio = this.context.contentFactory.newAudioContent(
                     grabber.audioChannels.toShort(),
                     grabber.sampleRate,
                     samples
                 )
+
+                //WaveUtilities.export(audio, Path("./${UUID.randomUUID()}.wav"))
                 ingested.addContent(audio)
             }
 
