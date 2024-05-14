@@ -1,9 +1,12 @@
 {
   "schema": "ptt",
   "context": {
-    "contentFactory": "CachedContentFactory",
+    "contentFactory": "InMemoryContentFactory",
     "resolverName": "disk",
     "local": {
+      "content": {
+        "path": "D:/ptt/cache"
+      },
       "enumerator": {
         "path": "D:/ptt/PTT-Testdaten",
         "depth": "5"

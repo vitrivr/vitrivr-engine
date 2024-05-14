@@ -1,7 +1,7 @@
 {
   "schema": "ptt",
   "context": {
-    "contentFactory": "CachedContentFactory",
+    "contentFactory": "InMemoryContentFactory",
     "resolverName": "disk",
     "local": {
       "content": {
