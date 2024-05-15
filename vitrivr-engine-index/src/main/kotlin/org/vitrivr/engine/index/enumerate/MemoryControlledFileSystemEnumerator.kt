@@ -164,6 +164,7 @@ class MemoryControlledFileSystemEnumerator : EnumeratorFactory {
             freeMemory = Runtime.getRuntime().freeMemory()
             usedMemory = totalMemory - freeMemory
             availableMemory = maxMemory - usedMemory
+
             "Total Memory:  \n $totalMemory \n Max Memory: $maxMemory \n Free Memory: $freeMemory \n Used Memory: $usedMemory \n Available Memory: $availableMemory  \n Avialable is ${freeMemory.toFloat()/maxMemory.toFloat()} of max memory"
                 .let { logger.info { it } }
 
@@ -174,7 +175,6 @@ class MemoryControlledFileSystemEnumerator : EnumeratorFactory {
                 "usedMemory" to usedMemory,
                 "availableMemory" to availableMemory
             )
-
         }
     }
 }
