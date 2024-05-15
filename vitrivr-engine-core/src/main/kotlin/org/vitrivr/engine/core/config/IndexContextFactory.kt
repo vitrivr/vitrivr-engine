@@ -14,14 +14,15 @@ object IndexContextFactory {
     /**
      * Primarily creates the [ContentFactoriesFactory], on which foundation the [IndexContext] is created.
      *
-     * @param schema The [Schema] to this [IndexContext] to-be-built is for
      * @param contextConfig The [IngestionContextConfig] describing the [IndexContext] to-be-built.
      *
      * @return A [IndexContext] based on the [contextConfig]'s description and for the [schema].
      */
-    fun newContext(schema: Schema, contextConfig: IngestionContextConfig): IndexContext {
+    fun newContext(contextConfig: IngestionContextConfig): IndexContext {
         /* Load content factory. */
         val contentFactory = loadServiceForName<ContentFactoriesFactory>(contextConfig.contentFactory) ?: throw IllegalArgumentException("Failed to find content factory implementation for name '${contextConfig.contentFactory}'.")
+
+        val schema = contextConfig.schema
 
         /* Return new context. */
         return IndexContext(

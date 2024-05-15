@@ -69,12 +69,12 @@ class SchemaManager {
             )
         }
         config.extractionPipelines.map {
-            val indexConfig = IngestionConfig.read(Paths.get(it.path))
+            val ingestionConfig = IngestionConfig.read(Paths.get(it.path))
                 ?: throw IllegalArgumentException("Failed to read pipeline configuration from '${it.path}'.")
-            if (indexConfig.schema != schema.name) {
-                throw IllegalArgumentException("Schema name in pipeline configuration '${indexConfig.schema}' does not match schema name '${schema.name}'.")
+            if (ingestionConfig.schema != schema.name) {
+                throw IllegalArgumentException("Schema name in pipeline configuration '${ingestionConfig.schema}' does not match schema name '${schema.name}'.")
             }
-            schema.addIngestionPipeline(it.name, indexConfig)
+            schema.addIngestionPipeline(it.name, ingestionConfig)
         }
 
         /* Cache and return connection. */

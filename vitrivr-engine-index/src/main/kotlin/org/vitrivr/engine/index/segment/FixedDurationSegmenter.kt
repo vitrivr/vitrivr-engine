@@ -4,7 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
-import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.retrievable.Ingested
@@ -28,9 +28,9 @@ class FixedDurationSegmenter : TransformerFactory {
      *
      * @param name The name of the [Transformer]
      * @param input The input [Operator].
-     * @param context The [IndexContext] to use.
+     * @param context The [Context] to use.
      */
-    override fun newTransformer(name: String, input: Operator<Retrievable>, context: IndexContext): Transformer {
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
         val duration = Duration.ofSeconds(
             (context[name, "duration"] ?: throw IllegalArgumentException("Property 'duration' must be specified")).toLong()
         )
@@ -45,7 +45,7 @@ class FixedDurationSegmenter : TransformerFactory {
      */
     private class Instance(
         /** The input [Operator]. */
-        override val input: Operator<Retrievable>,
+        override val input: Operator<out Retrievable>,
 
         /** The target duration of the segments to be created */
         length: Duration,

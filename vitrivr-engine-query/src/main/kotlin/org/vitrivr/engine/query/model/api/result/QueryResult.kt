@@ -1,19 +1,19 @@
 package org.vitrivr.engine.query.model.api.result
 
 import kotlinx.serialization.Serializable
-import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 
 @Serializable
 data class QueryResult(val retrievables: List<QueryResultRetrievable>) {
 
     companion object {
 
-        private fun fromRetrieved(retrieved: Collection<Retrieved>) : List<QueryResultRetrievable> {
+        private fun fromRetrievables(retrieved: Collection<Retrievable>) : List<QueryResultRetrievable> {
 
             val results = retrieved.map { QueryResultRetrievable(it) }.associateBy { it.id }
 
             //map partOf relations the right way around
-            retrieved.forEach { r: Retrieved ->
+            retrieved.forEach { r: Retrievable ->
                 val relationships = r.relationships
                 if (relationships.isNotEmpty()) {
                     relationships.filter { it.predicate == "partOf" && it.subjectId == r.id }.forEach {
@@ -31,5 +31,5 @@ data class QueryResult(val retrievables: List<QueryResultRetrievable>) {
 
     }
 
-    constructor(retrieved: Collection<Retrieved>) : this(fromRetrieved(retrieved))
+    constructor(retrieved: Collection<Retrievable>) : this(fromRetrievables(retrieved))
 }

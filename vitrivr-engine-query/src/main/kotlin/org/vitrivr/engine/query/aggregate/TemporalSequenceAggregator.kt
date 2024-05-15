@@ -5,16 +5,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import org.vitrivr.engine.core.model.relationship.Relationship
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.PropertyAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.retrieve.Aggregator
+import org.vitrivr.engine.core.operators.general.Aggregator
 import java.util.*
 
 class TemporalSequenceAggregator(
-    override val inputs: List<Operator<Retrieved>>
+    override val inputs: List<Operator<out Retrievable>>
 ) : Aggregator {
 
     companion object {
@@ -23,14 +24,14 @@ class TemporalSequenceAggregator(
     }
 
     data class ContinuousSequence(
-        val retrieved: List<Retrieved>,
+        val retrieved: List<Retrievable>,
         val start: Long,
         val end: Long,
         val score: Float,
         val stage: Int
     )
 
-    override fun toFlow(scope: CoroutineScope): Flow<Retrieved> = flow {
+    override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
 
         val inputs = inputs.map { it.toFlow(scope).toList() }
 
@@ -64,7 +65,7 @@ class TemporalSequenceAggregator(
                 }.mapNotNull {
                     retrievedMap[it.subjectId]
                 }.map {
-                    val properties = it.filteredAttribute<PropertyAttribute>()?.properties ?: emptyMap()
+                    val properties = it.filteredAttribute(PropertyAttribute::class.java)?.properties ?: emptyMap()
                     it to properties
                 }.filter {
                     it.second["start"]?.toLongOrNull() != null && it.second["end"]?.toLongOrNull() != null
@@ -76,13 +77,13 @@ class TemporalSequenceAggregator(
                     continue
                 }
 
-                val sequences = mutableListOf<MutableList<Retrieved>>()
-                var currentSequence = mutableListOf<Retrieved>()
+                val sequences = mutableListOf<MutableList<Retrievable>>()
+                var currentSequence = mutableListOf<Retrievable>()
                 var lastEndTime = -1L
 
                 for (segment in segments) {
 
-                    val properties = segment.filteredAttribute<PropertyAttribute>()!!.properties
+                    val properties = segment.filteredAttribute(PropertyAttribute::class.java)!!.properties
 
                     val startTime = properties["start"]!!.toLong()
 
@@ -114,11 +115,11 @@ class TemporalSequenceAggregator(
                 for (sequence in sequences) {
 
                     val start = sequence.first()
-                        .filteredAttribute<PropertyAttribute>()!!.properties["start"]!!.toLong()
+                        .filteredAttribute(PropertyAttribute::class.java)!!.properties["start"]!!.toLong()
                     val end =
-                        sequence.last().filteredAttribute<PropertyAttribute>()!!.properties["end"]!!.toLong()
+                        sequence.last().filteredAttribute(PropertyAttribute::class.java)!!.properties["end"]!!.toLong()
                     val score =
-                        sequence.maxOfOrNull { (it.filteredAttribute<ScoreAttribute>())?.score ?: 0f } ?: 0f
+                        sequence.maxOfOrNull { (it.filteredAttribute(ScoreAttribute::class.java))?.score ?: 0f } ?: 0f
 
                     continuousSequences[source.id]!!.add(
                         ContinuousSequence(

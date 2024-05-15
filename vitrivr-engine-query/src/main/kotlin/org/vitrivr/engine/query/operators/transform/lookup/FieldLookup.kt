@@ -6,9 +6,10 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.retrieve.Transformer
+import org.vitrivr.engine.core.operators.general.Transformer
 import javax.management.Descriptor
 
 /**
@@ -18,8 +19,8 @@ import javax.management.Descriptor
  * @author Luca Rossetto
  * @author Ralph Gasser
  */
-class FieldLookup(override val input: Operator<Retrieved>, private val reader: DescriptorReader<*>) : Transformer {
-    override fun toFlow(scope: CoroutineScope): Flow<Retrieved> = flow {
+class FieldLookup(override val input: Operator<out Retrievable>, private val reader: DescriptorReader<*>) : Transformer {
+    override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
         /* Parse input IDs.*/
         val inputRetrieved = input.toFlow(scope).toList()
 
