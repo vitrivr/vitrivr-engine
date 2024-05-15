@@ -3,7 +3,7 @@ package org.vitrivr.engine.core.operators.transform.filter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
-import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
@@ -20,12 +20,12 @@ import java.util.*
  * @version 1.0.0
  */
 class DistinctTransformer : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<Retrievable>, context: IndexContext): Transformer = Instance(input)
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer = Instance(input)
 
     /**
      * [Transformer] that extracts [Retrievable] objects from a [Flow] of [Retrievable] objects based on a given [Relationship].
      */
-    private class Instance(override val input: Operator<Retrievable>) : Transformer {
+    private class Instance(override val input: Operator<out Retrievable>) : Transformer {
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = channelFlow {
             val set = HashSet<UUID>()
             this@Instance.input.toFlow(scope).collect {

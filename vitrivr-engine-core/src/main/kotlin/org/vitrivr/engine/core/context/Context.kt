@@ -1,6 +1,8 @@
 package org.vitrivr.engine.core.context
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
+import org.vitrivr.engine.core.model.metamodel.Schema
 
 /**
  * A [Context] provides additional contextual configuration in the form of key-value pairs,
@@ -51,4 +53,8 @@ sealed class Context() {
      * @return Either the value named [property] for the [operator] or [default]
      */
     fun getPropertyOrDefault(operator: String, property: String, default: String): String = getProperty(operator, property) ?: default
+
+
+    @Transient
+    abstract val schema: Schema
 }

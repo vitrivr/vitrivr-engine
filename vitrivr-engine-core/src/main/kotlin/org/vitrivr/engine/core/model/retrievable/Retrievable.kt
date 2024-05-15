@@ -151,4 +151,9 @@ interface Retrievable : Persistable {
      * @return List of matching [Relationship]s
      */
     fun findRelationship(predicate: Predicate<Relationship>): List<Relationship> = this.relationships.filter { predicate.test(it) }
+
+    /**
+     * Creates a copy of this [Retrievable]
+     */
+    fun copy(): Retrievable
 }
