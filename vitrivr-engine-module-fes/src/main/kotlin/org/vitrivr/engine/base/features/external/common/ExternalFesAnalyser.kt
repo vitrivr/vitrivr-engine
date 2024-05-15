@@ -77,10 +77,10 @@ abstract class ExternalFesAnalyser<T : ContentElement<*>, U : Descriptor>: Analy
      * @param parameters The parameters to use.
      * @return The [Descriptor]s generated from the content, grouped by [Retrievable].
      */
-    fun analyse(content: List<List<T>>, parameters: Map<String, Any>): List<List<U>> {
+    fun analyse(content: List<List<T>>, parameters: Map<String, String>): List<List<U>> {
         val model: String = (parameters[MODEL_PARAMETER_NAME] ?: defaultModel as String).toString()
         val hostName:String = (parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT).toString()
-        val hostsNames:String = (parameters[HOSTS_PARAMETER_NAME] ?: HOSTS_PARAMETER_DEFAULT).toString()
+        val hostsNames:List<String> = (parameters[HOSTS_PARAMETER_NAME] ?: HOSTS_PARAMETER_DEFAULT).toString().split(",")
 
         val timeoutSeconds = (parameters[TIMEOUTSECONDS_PARAMETER_NAME]?.toString())?.toLongOrNull() ?: TIMEOUTSECONDS_PARAMETER_DEFAULT.toLong()
         val pollingIntervalMs = (parameters[POLLINGINTERVALMS_PARAMETER_NAME]?.toString())?.toLongOrNull() ?: POLLINGINTERVALMS_PARAMETER_DEFAULT.toLong()
