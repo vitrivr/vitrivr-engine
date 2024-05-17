@@ -4,13 +4,12 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.source.file.MimeType
 import java.io.InputStream
 import java.io.OutputStream
-import java.nio.file.Path
 
 /**
  * A [Resolvable] as returned by a [Resolver].
  *
  * @author Fynn Faber
- * @version 1.0.0.
+ * @version 1.0.0
  */
 interface Resolvable {
     /** The [RetrievableId] represented by this [Resolvable]. */
@@ -18,14 +17,6 @@ interface Resolvable {
 
     /** The [MimeType] of the data represented by this [Resolvable]. */
     val mimeType: MimeType
-
-    /**
-     * Returns the URI of the resource (e.g. disk path, web uri, ) represented by this [Resolvable].
-     *
-     * @return URI of the resource.
-     */
-    val path: Path
-
 
     /**
      * Returns true, if the resource for this [Resolvable] exists already.
@@ -49,6 +40,4 @@ interface Resolvable {
      * @return New [OutputStream] instance.
      */
     fun openOutputStream(): OutputStream
-
-
 }
