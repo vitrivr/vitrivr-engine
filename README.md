@@ -10,8 +10,9 @@ The project is set up as a multi-module Kotlin project:
 
 * [`vitrivr-engine-core`](/vitrivr-engine-core) - The core library of the project (also published on maven as a library)
 * [`vitrivr-engine-index`](/vitrivr-engine-index) - Indexing / Ingestion related core library
-* [`vitrivr-engine-plugin-cottontaildb`](/vitrivr-engine-plugin-cottontaildb) - The java module for the column-store and kNN faciliating databse, [CottontailDB](https://github.com/vitrivr/cottontaildb)
-* [`vitrivr-engine-plugin-features`](/vitrivr-engine-plugin-features) - The java module which provides specific indexing and retrieval implementations such as fulltext, colour, etc.
+* [`vitrivr-engine-module-cottontaildb`](/vitrivr-engine-plugin-cottontaildb) - The java module for the column-store and kNN faciliating databse, [CottontailDB](https://github.com/vitrivr/cottontaildb)
+* [`vitrivr-engine-module-features`](/vitrivr-engine-plugin-features) - The java module which provides specific indexing and retrieval implementations such as fulltext, colour, etc.
+* [`vitrivr-engine-module-fes`](/vitrivr-engine-module-fes) - Ingestion / retrieval with external server / services. **Requires local generation of binidings:** `./gradlew :vitrivr-engine-module-fes:generateFESClient`
 * [`vitrivr-engine-plugin-m3d`](/vitrivr-engine-plugin-m3d) - The in-project plugin related to 3d model indexing and retrieval
 * [`vtirivr-engine-query`](/vitrivr-engine-query) - Query / Retrieval related core library
 * [`vitrivr-engine-server`](/vitrivr-engine-server) - A [Javalin](https://javalin.io) powered server providing an [OpenApi](https://openapis.org) [documented REST API](vitrivr-engine-server/doc/oas.json) for both, ingestion and querying and a CLI, essentially the runtime of the project
