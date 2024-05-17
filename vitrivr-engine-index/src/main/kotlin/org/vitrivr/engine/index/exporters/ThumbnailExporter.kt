@@ -68,7 +68,7 @@ class ThumbnailExporter : ExporterFactory {
                     else -> throw IllegalArgumentException("Unsupported mime type $mimeType")
                 }
 
-                logger.debug { "Generating thumbnail(s) for ${retrievable.id} with ${retrievable.type} and resolution $maxResolution. Storing it in ${resolvable.path} with ${resolvable::class.simpleName}." }
+                logger.debug { "Generating thumbnail(s) for ${retrievable.id} with ${retrievable.type} and resolution $maxResolution. Storing it with ${resolvable::class.simpleName}." }
 
                 content.forEach { cnt ->
                     val imgBytes = ImmutableImage.fromAwt(cnt.content).let {
@@ -78,6 +78,7 @@ class ThumbnailExporter : ExporterFactory {
                             it.scaleToHeight(maxResolution)
                         }
                     }.bytes(writer)
+
                     resolvable.openOutputStream().use {
                         it.write(imgBytes)
                     }
