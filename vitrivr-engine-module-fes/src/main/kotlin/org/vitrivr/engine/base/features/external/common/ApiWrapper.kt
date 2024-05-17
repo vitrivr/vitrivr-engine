@@ -21,7 +21,8 @@ internal data class JobResult<S>(
 internal class JobWrapper<T, S>(
     private val startJobFunc: (T) -> JobStatus,
     private val getJobResultFunc: (String) -> JobResult<S>,
-    private val pollingIntervalMs: Long
+    private val pollingIntervalMs: Long,
+    private val hostName: String
 ){
 
     fun executeJob(inp: T): S {
@@ -29,24 +30,24 @@ internal class JobWrapper<T, S>(
         try{
             jobStatus = startJobFunc(inp)
         } catch (e: SocketTimeoutException) {
-            logger.error { "Failed to start Job: API call timed out." }
+            logger.error { "Failed to start Job on Host $hostName: API call timed out." }
             throw e
         }
         var jobResult = getJobResultFunc(jobStatus.id)
 
         while (jobResult.status != JobState.complete) {
             if (jobResult.status == JobState.failed) {
-                logger.error{"Job with ID: ${jobStatus.id} failed."}
+                logger.error{"Job on Host $hostName with ID: ${jobStatus.id} failed."}
                 throw Exception("Job failed.")
             }
-            logger.debug{"Waiting for job completion. Current status: ${jobResult.status}"}
+            logger.debug{"Waiting for job completion on Host $hostName. Current status: ${jobResult.status}"}
             Thread.sleep(this.pollingIntervalMs)
             jobResult = getJobResultFunc(jobStatus.id)
         }
 
         return jobResult.result ?: run {
-            logger.error{"Job with ID: ${jobStatus.id} returned no result."}
-            throw Exception("Job returned no result.")
+            logger.error{"Job on Host $hostName with ID: ${jobStatus.id} returned no result."}
+            throw Exception("Job on Host $hostName returned no result.")
         }
     }
 }
@@ -93,7 +94,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                         JobResult(it.status, it.result)
                     }
                 },
-                pollingIntervalMs = pollingIntervalMs
+                pollingIntervalMs = pollingIntervalMs,
+                hostName = hostName,
         )
 
         return job.executeJob(input).embedding.map{it.toFloat()}.also{
@@ -118,7 +120,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                         JobResult(it.status, it.result)
                     }
                 },
-                pollingIntervalMs = pollingIntervalMs
+                pollingIntervalMs = pollingIntervalMs,
+                hostName = hostName
         )
         return job.executeJob(input).map { it.embedding.map{it.toFloat()} }.also {
             logger.info{ "Batched text embedding result: $it" }
@@ -142,7 +145,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                         JobResult(it.status, it.result)
                     }
                 },
-                pollingIntervalMs = pollingIntervalMs
+                pollingIntervalMs = pollingIntervalMs,
+                hostName = hostName
         )
         return job.executeJob(input).embedding.map{it.toFloat()}.also {
             logger.info{ "Image embedding result: $it" }
@@ -166,7 +170,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                         JobResult(it.status, it.result)
                     }
                 },
-                pollingIntervalMs = pollingIntervalMs
+                pollingIntervalMs = pollingIntervalMs,
+                hostName = hostName
         )
         return job.executeJob(input).map { it.embedding.map{it.toFloat()}}.also {
             logger.info{ "Batched image embedding result: $it" }
@@ -190,7 +195,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                         JobResult(it.status, it.result)
                     }
                 },
-                pollingIntervalMs = pollingIntervalMs
+                pollingIntervalMs = pollingIntervalMs,
+                hostName = hostName
         )
         return job.executeJob(input).caption.also {
             logger.info{ "Image captioning result: $it" }
@@ -214,7 +220,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                         JobResult(it.status, it.result)
                     }
                 },
-                pollingIntervalMs = pollingIntervalMs
+                pollingIntervalMs = pollingIntervalMs,
+                hostName = hostName
         )
         return job.executeJob(input).map { it.caption }.also {
             logger.info{ "Batched image captioning result: $it" }
@@ -239,7 +246,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                         JobResult(it.status, it.result)
                     }
                 },
-                pollingIntervalMs = pollingIntervalMs
+                pollingIntervalMs = pollingIntervalMs,
+                hostName = hostName
         )
         return job.executeJob(input).probabilities.map{it.toFloat()}.also {
             logger.info{ "Zero shot image classification result: $it" }
@@ -264,7 +272,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                         JobResult(it.status, it.result)
                     }
                 },
-                pollingIntervalMs = pollingIntervalMs
+                pollingIntervalMs = pollingIntervalMs,
+                hostName = hostName
         )
         return job.executeJob(input).map { it.probabilities.map{it.toFloat()}}.also {
             logger.info{ "Batched zero shot image classification result: $it" }
@@ -289,7 +298,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                         JobResult(it.status, it.result)
                     }
                 },
-                pollingIntervalMs = pollingIntervalMs
+                pollingIntervalMs = pollingIntervalMs,
+                hostName = hostName
         )
         return job.executeJob(input).caption.also {
             logger.info{ "Conditional image captioning result: $it" }
@@ -314,7 +324,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                         JobResult(it.status, it.result)
                     }
                 },
-                pollingIntervalMs = pollingIntervalMs
+                pollingIntervalMs = pollingIntervalMs,
+                hostName = hostName
         )
         return job.executeJob(input).map { it.caption }.also {
             logger.info{ "Batched conditional image captioning result: $it" }
@@ -338,7 +349,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                         JobResult(it.status, it.result)
                     }
                 },
-                pollingIntervalMs = pollingIntervalMs
+                pollingIntervalMs = pollingIntervalMs,
+                hostName = hostName
         )
         return job.executeJob(input).embedding.map{it.toFloat()}.also {
             logger.info{ "Face embedding result: $it" }
@@ -362,7 +374,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                         JobResult(it.status, it.result)
                     }
                 },
-                pollingIntervalMs = pollingIntervalMs
+                pollingIntervalMs = pollingIntervalMs,
+                hostName = hostName
         )
         return job.executeJob(input).map { it.embedding.map{it.toFloat()}}.also {
             logger.info{ "Batched face embedding result: $it" }
@@ -386,7 +399,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                         JobResult(it.status, it.result)
                     }
                 },
-                pollingIntervalMs = pollingIntervalMs
+                pollingIntervalMs = pollingIntervalMs,
+                hostName = hostName
         )
         return job.executeJob(input).also {
             logger.info{ "Object detection result: $it" }
@@ -410,7 +424,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                         JobResult(it.status, it.result)
                     }
                 },
-                pollingIntervalMs = pollingIntervalMs
+                pollingIntervalMs = pollingIntervalMs,
+                hostName = hostName
         )
         return job.executeJob(input).also {
             logger.info{ "Batched object detection result: $it" }
@@ -434,7 +449,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                         JobResult(it.status, it.result)
                     }
                 },
-                pollingIntervalMs = pollingIntervalMs
+                pollingIntervalMs = pollingIntervalMs,
+                hostName = hostName
         )
         return job.executeJob(input).transcript.also {
             logger.info{ "Automated speech recognition result: $it" }
@@ -458,7 +474,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                         JobResult(it.status, it.result)
                     }
                 },
-                pollingIntervalMs = pollingIntervalMs
+                pollingIntervalMs = pollingIntervalMs,
+                hostName = hostName
         )
         return job.executeJob(input).map { it.transcript }.also {
             logger.info{ "Batched automated speech recognition result: $it" }
@@ -484,7 +501,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                         JobResult(it.status, it.result)
                     }
                 },
-                pollingIntervalMs = pollingIntervalMs
+                pollingIntervalMs = pollingIntervalMs,
+                hostName = hostName
         )
         return job.executeJob(input).text.also {
             logger.info{ "Optical character recognition result: $it" }
@@ -508,7 +526,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                         JobResult(it.status, it.result)
                     }
                 },
-                pollingIntervalMs = pollingIntervalMs
+                pollingIntervalMs = pollingIntervalMs,
+                hostName = hostName
         )
         return job.executeJob(input).map { it.text }.also {
             logger.info{ "Batched optical character recognition result: $it" }
