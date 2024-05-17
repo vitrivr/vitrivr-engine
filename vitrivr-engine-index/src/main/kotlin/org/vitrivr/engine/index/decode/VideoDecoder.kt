@@ -33,11 +33,9 @@ import java.nio.ShortBuffer
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-
 /**
  * A [Decoder] that can decode [ImageContent] and [AudioContent] from a [Source] of [MediaType.VIDEO].
  *
- * @author Fynn Firouz Faber
  * @author Ralph Gasser
  * @version 2.0.0
  */
