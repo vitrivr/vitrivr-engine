@@ -1,0 +1,44 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
+// Downloads the OpenAPI spec from the feature extraction server.
+tasks.register('downloadOpenApiSpec', Download) {
+    src 'https://raw.githubusercontent.com/faberf/feature-extraction-server/main/openapi_spec.json'
+    dest "$buildDir/api-client-spec/openapi_spec.json"
+}
+
+// Generates the API client based on the OpenAPI spec.
+tasks.register('generateFESClient', GenerateTask) {
+    generatorName = "kotlin"
+    inputSpec = "$buildDir/api-client-spec/openapi_spec.json".toString()
+    outputDir = "$buildDir/api-client-generated".toString()
+    id = 'vitrivr-engine-module-fes-generate-api-client'
+    skipValidateSpec = true
+    logToStderr = true
+    generateAliasAsModel = false
+    enablePostProcessFile = false
+
+    dependsOn 'downloadOpenApiSpec'
+}
+
+assemble.dependsOn generateFESClient
+
+
+sourceSets {
+    main {
+        kotlin {
+            srcDirs += "$buildDir/api-client-generated/src/main/kotlin"
+        }
+    }
+}
+
+
+
+dependencies {
+    implementation "com.squareup.moshi:moshi-kotlin:1.14.0"
+    implementation "com.squareup.moshi:moshi-adapters:1.14.0"
+    implementation "com.squareup.okhttp3:okhttp:4.11.0"
+    implementation "com.squareup.okhttp3:logging-interceptor:3.4.1"
+    implementation project(path: ':vitrivr-engine-core')
+    implementation project(path: ':vitrivr-engine-module-features')
+    testImplementation "io.kotlintest:kotlintest-runner-junit5:3.4.2"
+}

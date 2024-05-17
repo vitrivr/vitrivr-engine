@@ -7,4 +7,4 @@ include 'vitrivr-engine-server'
 include 'vitrivr-engine-module-cottontaildb'
 include 'vitrivr-engine-module-features'
 include 'vitrivr-engine-module-m3d'
-
+include 'vitrivr-engine-module-fes'
