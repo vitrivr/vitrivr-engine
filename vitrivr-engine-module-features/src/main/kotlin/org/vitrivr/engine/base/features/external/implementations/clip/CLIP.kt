@@ -18,6 +18,9 @@ import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
+import org.vitrivr.engine.core.util.extension.toDataUrl
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.util.*
 
 /**
@@ -36,10 +39,19 @@ class CLIP : ExternalAnalyser<ContentElement<*>,FloatVectorDescriptor>() {
          * @param hostname The hostname of the external feature descriptor service.
          * @return A list of CLIP feature descriptors.
          */
-        fun analyse(content: ContentElement<*>, hostname: String): FloatVectorDescriptor = when (content) {
-            is ImageContent -> httpRequest(content, "$hostname/extract/clip_image") ?: throw IllegalArgumentException("Failed to generate CLIP descriptor.")
-            is TextContent -> httpRequest(content, "$hostname/extract/clip_text")  ?: throw IllegalArgumentException("Failed to generate CLIP descriptor.")
-            else -> throw IllegalArgumentException("Content '$content' not supported")
+        fun analyse(content: ContentElement<*>, hostname: String): FloatVectorDescriptor {
+            val requestBody = when (content) {
+                is ImageContent -> URLEncoder.encode(content.toDataUrl(), StandardCharsets.UTF_8.toString())
+                is TextContent -> URLEncoder.encode(content.toDataUrl(), StandardCharsets.UTF_8.toString())
+                else -> throw IllegalArgumentException("Content '$content' not supported")
+            }
+            val url = when (content) {
+                is ImageContent -> "$hostname/extract/clip_image"
+                is TextContent -> "$hostname/extract/clip_text"
+                else -> throw IllegalArgumentException("Content '$content' not supported")
+            }
+            return httpRequest<FloatVectorDescriptor>(url, "data=$requestBody")
+                ?: throw IllegalArgumentException("Failed to generate CLIP descriptor.")
         }
     }
 

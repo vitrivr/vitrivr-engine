@@ -2,6 +2,7 @@ package org.vitrivr.engine.base.features.external
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -50,34 +51,30 @@ abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor> : Analyse
          * @param url The URL for the API request.
          * @return A list of floats representing the API response.
          */
+        @OptIn(ExperimentalSerializationApi::class)
         @JvmStatic
-        protected inline fun <reified U: Descriptor> httpRequest(content: ContentElement<*>, url: String): U? {
-            /* Base64 encoded the content ... */
-            val base64 = when (content) {
-                is TextContent -> content.toDataUrl()
-                is ImageContent -> content.toDataUrl()
-                else -> throw IllegalArgumentException("Unsupported content type")
-            }
-
-            /* Create an HttpURLConnection and set up the connection for a POST request */
+        protected inline fun <reified U : Descriptor> httpRequest(
+            url: String,
+            requestBody: String,
+            contentType: String = "application/x-www-form-urlencoded",
+            headers: Map<String, String> = emptyMap()
+        ): U? {
             val connection = try {
                 URI(url).toURL().openConnection() as HttpURLConnection
             } catch (e: Throwable) {
-                logger.error(e) { "Failed to open HTTP connection to $url."}
+                logger.error(e) { "Failed to open HTTP connection to $url." }
                 return null
             }
 
-
             connection.requestMethod = "POST"
             connection.doOutput = true
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+            connection.setRequestProperty("Content-Type", contentType)
+            headers.forEach { (key, value) -> connection.setRequestProperty(key, value) }
             logger.trace { "Initialised external API request to $url." }
 
             try {
-                /* Write the request body to the output stream. */
-                val requestBody = URLEncoder.encode("data:text/plain;charset=utf-8,$base64", StandardCharsets.UTF_8.toString())
                 connection.outputStream.use {
-                    it.write("data=$requestBody".toByteArray())
+                    it.write(requestBody.toByteArray(StandardCharsets.UTF_8))
                     it.flush()
                     it.close()
                 }
@@ -85,18 +82,21 @@ abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor> : Analyse
 
                 /* Get the response code (optional, but useful for error handling). */
                 val responseCode = connection.responseCode
-                logger.trace{"Received response code: $responseCode"}
+                logger.trace { "Received response code: $responseCode" }
 
                 // Read the response as a JSON string
                 if (responseCode != HttpURLConnection.HTTP_OK) return null
                 return connection.inputStream.use { stream ->
-                    when(U::class) {
-                        FloatDescriptor::class -> FloatVectorDescriptor(UUID.randomUUID(), null, Json.decodeFromStream<FloatArray>(stream).map { Value.Float(it) })
+                    when (U::class) {
+                        FloatDescriptor::class -> FloatVectorDescriptor(
+                            UUID.randomUUID(), null,
+                            Json.decodeFromStream<FloatArray>(stream).map { Value.Float(it) }
+                        )
                         else -> null
                     } as U?
                 }
             } catch (e: Throwable) {
-                logger.error(e) {"An error occurred during external API call."}
+                logger.error(e) { "An error occurred during external API call." }
                 return null
             } finally {
                 connection.disconnect()
