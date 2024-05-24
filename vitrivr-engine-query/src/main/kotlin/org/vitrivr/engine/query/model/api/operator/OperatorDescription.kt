@@ -1,5 +1,4 @@
 package org.vitrivr.engine.query.model.api.operator
-
 import kotlinx.serialization.Serializable
 
 @Serializable(with = OperationDescriptionSerializer::class)
