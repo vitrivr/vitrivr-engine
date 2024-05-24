@@ -3,7 +3,6 @@ package org.vitrivr.engine.core.features.metadata.source.exif
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.Directory
 import com.google.gson.JsonElement
-import com.google.gson.JsonObject
 import com.google.gson.JsonParseException
 import com.google.gson.JsonParser
 import io.github.oshai.kotlinlogging.KLogger
@@ -18,10 +17,9 @@ import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.source.file.FileSource
+import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
-
-import java.text.ParseException
 
 val logger: KLogger = KotlinLogging.logger {}
 
@@ -58,7 +56,6 @@ private fun convertType(directory: Directory, tagType: Int, type: Type): Value<*
         Type.FLOAT -> Value.Float(directory.getFloat(tagType))
         Type.DOUBLE -> Value.Double(directory.getDouble(tagType))
         Type.DATETIME -> convertDate(directory.getString(tagType))?.let { Value.DateTime(it) }
-        else -> throw IllegalArgumentException("Unsupported type: $type")
     }
 
 private fun JsonElement.convertType(type: Type): Value<*>? {
@@ -75,7 +72,6 @@ private fun JsonElement.convertType(type: Type): Value<*>? {
         Type.FLOAT -> Value.Float(this.asFloat)
         Type.DOUBLE -> Value.Double(this.asDouble)
         Type.DATETIME -> convertDate(this.asString)?.let { Value.DateTime(it) }
-        else -> throw IllegalArgumentException("Unsupported type: $type")
     }
 }
 
