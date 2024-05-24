@@ -1,16 +1,16 @@
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
-// Downloads the OpenAPI spec from the feature extraction server.
+/* Downloads the OpenAPI spec from the feature extraction server. */
 tasks.register('downloadOpenApiSpec', Download) {
     src 'https://raw.githubusercontent.com/faberf/feature-extraction-server/main/openapi_spec.json'
-    dest "$buildDir/api-client-spec/openapi_spec.json"
+    dest "${layout.buildDirectory.get()}/api-client-spec/openapi_spec.json"
 }
 
-// Generates the API client based on the OpenAPI spec.
+/* Generates the API client based on the OpenAPI spec. */
 tasks.register('generateFESClient', GenerateTask) {
     generatorName = "kotlin"
-    inputSpec = "$buildDir/api-client-spec/openapi_spec.json".toString()
-    outputDir = "$buildDir/api-client-generated".toString()
+    inputSpec = "${layout.buildDirectory.get()}/api-client-spec/openapi_spec.json"
+    outputDir = "${layout.buildDirectory.get()}/api-client-generated"
     id = 'vitrivr-engine-module-fes-generate-api-client'
     skipValidateSpec = true
     logToStderr = true
@@ -20,9 +20,13 @@ tasks.register('generateFESClient', GenerateTask) {
     dependsOn 'downloadOpenApiSpec'
 }
 
-assemble.dependsOn generateFESClient
+compileKotlin {
+    dependsOn 'generateFESClient'
+}
 
+sourcesJar.dependsOn 'generateFESClient'
 
+/* Add generated Open API client as source directory. */
 sourceSets {
     main {
         kotlin {
@@ -31,14 +35,15 @@ sourceSets {
     }
 }
 
-
-
 dependencies {
-    implementation "com.squareup.moshi:moshi-kotlin:1.14.0"
-    implementation "com.squareup.moshi:moshi-adapters:1.14.0"
-    implementation "com.squareup.okhttp3:okhttp:4.11.0"
-    implementation "com.squareup.okhttp3:logging-interceptor:3.4.1"
-    implementation project(path: ':vitrivr-engine-core')
+    /* vitrivr engine features dependency. */
     implementation project(path: ':vitrivr-engine-module-features')
-    testImplementation "io.kotlintest:kotlintest-runner-junit5:3.4.2"
+
+    /** Java CV (used for video decoding). */
+    implementation group: 'com.squareup.moshi', name: 'moshi-kotlin', version: version_moshi
+    implementation group: 'com.squareup.moshi', name: 'moshi-adapters', version: version_moshi
+
+    /** OKHttp3 Client */
+    implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: version_okhttp3
+    implementation group: 'com.squareup.okhttp3', name: 'logging-interceptor', version: version_okhttp3
 }
