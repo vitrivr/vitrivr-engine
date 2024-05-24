@@ -28,6 +28,7 @@ import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Metadata
 import org.vitrivr.engine.core.source.Source
+import org.vitrivr.engine.core.source.file.FileSource
 import java.awt.image.BufferedImage
 import java.nio.ShortBuffer
 import java.util.*
@@ -37,7 +38,7 @@ import java.util.concurrent.TimeUnit
  * A [Decoder] that can decode [ImageContent] and [AudioContent] from a [Source] of [MediaType.VIDEO].
  *
  * @author Ralph Gasser
- * @version 2.0.0
+ * @version 2.1.0
  */
 class VideoDecoder : DecoderFactory {
 
@@ -48,7 +49,6 @@ class VideoDecoder : DecoderFactory {
         val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
         return Instance(input, context, video, audio, keyFrames, timeWindowMs)
     }
-
 
     /**
      * The [Decoder] returned by this [VideoDecoder].
@@ -83,92 +83,119 @@ class VideoDecoder : DecoderFactory {
                     return@collect
                 }
 
-                /*Determine end of time window. */
-                var windowEnd = TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
-
-                /* Decode video and audio. */
-                source.newInputStream().use { input ->
-                    var error = false
-                    FFmpegFrameGrabber(input).use { grabber ->
-                        /* Configure FFmpegFrameGrabber. */
-                        grabber.imageMode = FrameGrabber.ImageMode.COLOR
-                        grabber.sampleMode = FrameGrabber.SampleMode.SHORT
-
-                        logger.info { "Start decoding source ${source.name} (${source.sourceId})" }
-                        try {
-                            grabber.start()
-
-                            /* Extract and enrich source metadata. */
-                            source.metadata[Metadata.METADATA_KEY_VIDEO_FPS] = grabber.videoFrameRate
-                            source.metadata[Metadata.METADATA_KEY_IMAGE_WIDTH] = grabber.imageWidth
-                            source.metadata[Metadata.METADATA_KEY_IMAGE_HEIGHT] = grabber.imageHeight
-                            source.metadata[Metadata.METADATA_KEY_AUDIO_CHANNELS] = grabber.audioChannels
-                            source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLERATE] = grabber.sampleRate
-                            source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLESIZE] = grabber.sampleFormat
-
-                            /* Start extraction of frames. */
-                            val imageBuffer = LinkedList<Pair<BufferedImage, Long>>()
-                            val audioBuffer = LinkedList<Pair<ShortBuffer, Long>>()
-
-                            /* Flags indicating that video / audio is ready to be emitted. */
-                            var videoReady = !this@Instance.video
-                            var audioReady = !this@Instance.audio
-
-                            do {
-                                val frame = grabber.grabFrame(this@Instance.audio, this@Instance.video, true, this@Instance.keyFrames, true) ?: break
-                                when (frame.type) {
-                                    Frame.Type.VIDEO -> {
-                                        imageBuffer.add(Java2DFrameConverter().use { it.convert(frame) to frame.timestamp })
-                                        if (frame.timestamp > windowEnd) videoReady = true
-                                    }
-
-                                    Frame.Type.AUDIO -> {
-                                        val samples = frame.samples.firstOrNull() as? ShortBuffer
-                                        if (samples != null) {
-                                            audioBuffer.add(ShortBuffer.allocate(samples.limit()).put(samples) to frame.timestamp)
-                                        }
-                                        if (frame.timestamp > windowEnd) audioReady = true
-                                    }
-
-                                    else -> { /* No op. */
-                                    }
-                                }
-
-                                /* If enough frames have been collected, emit them. */
-                                if (videoReady && audioReady) {
-                                    emit(imageBuffer, audioBuffer, grabber, windowEnd, sourceRetrievable, channel)
-
-                                    /* Reset counters and flags. */
-                                    videoReady = !this@Instance.video
-                                    audioReady = !this@Instance.audio
-
-                                    /* Update window end. */
-                                    windowEnd += TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
-                                }
-                            } while (true)
-
-                            /* If there are frames left, then emit them. */
-                            if (audioBuffer.isNotEmpty() || imageBuffer.isNotEmpty()) {
-                                emit(imageBuffer, audioBuffer, grabber, windowEnd, sourceRetrievable, channel)
-                            }
-
-                            logger.info { "Finished decoding video from source '${source.name}' (${source.sourceId})." }
-                        } catch (exception: Exception) {
-                            error = true
-                            logger.error(exception) { "Failed to decode video from source '${source.name}' (${source.sourceId})." }
-                        } finally {
-                            grabber.stop()
-                        }
-
-                        /* Send source retrievable downstream as a signal that file has been decoded. */
-                        if (!error) {
-                            send(sourceRetrievable)
+                /* Decode video and audio; make distinction between FileSource and other types of sources. */
+                if (source is FileSource) {
+                    FFmpegFrameGrabber(source.path.toFile()).use { grabber ->
+                        decodeFromGrabber(source, sourceRetrievable, grabber, channel)
+                    }
+                } else {
+                    source.newInputStream().use { input ->
+                        FFmpegFrameGrabber(input).use { grabber ->
+                            decodeFromGrabber(source, sourceRetrievable, grabber, channel)
                         }
                     }
                 }
             }
         }.buffer(capacity = RENDEZVOUS, onBufferOverflow = BufferOverflow.SUSPEND)
 
+
+        /**
+         * Decodes a video from a [FFmpegFrameGrabber] and emits [Retrievable] elements to the downstream [channel].
+         *
+         * @param source The [Source] from which the video is being decoded.
+         * @param grabber The [FFmpegFrameGrabber] used to decode the video.
+         * @param channel The [ProducerScope] used to emit [Retrievable] elements.
+         */
+        private suspend fun decodeFromGrabber(source: Source, sourceRetrievable: Retrievable, grabber: FFmpegFrameGrabber, channel: ProducerScope<Retrievable>) {
+            /* Determine end of time window. */
+            var windowEnd = TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
+            var error = false
+
+            /* Configure FFmpegFrameGrabber. */
+            grabber.imageMode = FrameGrabber.ImageMode.COLOR
+            grabber.sampleMode = FrameGrabber.SampleMode.SHORT
+
+            logger.info { "Start decoding source ${source.name} (${source.sourceId})" }
+            try {
+                grabber.start()
+
+                /* Extract and enrich source metadata. */
+                source.metadata[Metadata.METADATA_KEY_VIDEO_FPS] = grabber.videoFrameRate
+                source.metadata[Metadata.METADATA_KEY_IMAGE_WIDTH] = grabber.imageWidth
+                source.metadata[Metadata.METADATA_KEY_IMAGE_HEIGHT] = grabber.imageHeight
+                source.metadata[Metadata.METADATA_KEY_AUDIO_CHANNELS] = grabber.audioChannels
+                source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLERATE] = grabber.sampleRate
+                source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLESIZE] = grabber.sampleFormat
+
+                /* Start extraction of frames. */
+                val imageBuffer = LinkedList<Pair<BufferedImage, Long>>()
+                val audioBuffer = LinkedList<Pair<ShortBuffer, Long>>()
+
+                /* Flags indicating that video / audio is ready to be emitted. */
+                var videoReady = !this@Instance.video
+                var audioReady = !this@Instance.audio
+
+                do {
+                    val frame = grabber.grabFrame(this@Instance.audio, this@Instance.video, true, this@Instance.keyFrames, true) ?: break
+                    when (frame.type) {
+                        Frame.Type.VIDEO -> {
+                            imageBuffer.add(Java2DFrameConverter().use { it.convert(frame) to frame.timestamp })
+                            if (frame.timestamp > windowEnd) videoReady = true
+                        }
+
+                        Frame.Type.AUDIO -> {
+                            val samples = frame.samples.firstOrNull() as? ShortBuffer
+                            if (samples != null) {
+                                audioBuffer.add(ShortBuffer.allocate(samples.limit()).put(samples) to frame.timestamp)
+                            }
+                            if (frame.timestamp > windowEnd) audioReady = true
+                        }
+
+                        else -> { /* No op. */
+                        }
+                    }
+
+                    /* If enough frames have been collected, emit them. */
+                    if (videoReady && audioReady) {
+                        emit(imageBuffer, audioBuffer, grabber, windowEnd, sourceRetrievable, channel)
+
+                        /* Reset counters and flags. */
+                        videoReady = !this@Instance.video
+                        audioReady = !this@Instance.audio
+
+                        /* Update window end. */
+                        windowEnd += TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
+                    }
+                } while (true)
+
+                /* If there are frames left, then emit them. */
+                if (audioBuffer.isNotEmpty() || imageBuffer.isNotEmpty()) {
+                    emit(imageBuffer, audioBuffer, grabber, windowEnd, sourceRetrievable, channel)
+                }
+
+                logger.info { "Finished decoding video from source '${source.name}' (${source.sourceId})." }
+            } catch (exception: Exception) {
+                error = true
+                logger.error(exception) { "Failed to decode video from source '${source.name}' (${source.sourceId})." }
+            } finally {
+                grabber.stop()
+            }
+
+            /* Send source retrievable downstream as a signal that file has been decoded. */
+            if (!error) {
+                channel.send(sourceRetrievable)
+            }
+        }
+
+        /**
+         * Emits a single [Retrievable] to the downstream [channel].
+         *
+         * @param imageBuffer A [LinkedList] containing [BufferedImage] elements to emit (frames).
+         * @param audioBuffer The [LinkedList] containing the [ShortBuffer] elements to emit (audio samples).
+         * @param grabber The [FrameGrabber] instance.
+         * @param timestampEnd The end timestamp.
+         * @param source The source [Retrievable] the emitted [Retrievable] is part of.
+         */
         private suspend fun emit(imageBuffer: LinkedList<Pair<BufferedImage, Long>>, audioBuffer: LinkedList<Pair<ShortBuffer, Long>>, grabber: FrameGrabber, timestampEnd: Long, source: Retrievable, channel: ProducerScope<Retrievable>) {
             /* Audio samples. */
             var audioSize = 0
