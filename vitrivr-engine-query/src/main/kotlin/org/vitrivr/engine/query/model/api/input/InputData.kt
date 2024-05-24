@@ -47,11 +47,10 @@ sealed class InputData() {
  * Can be converted to a [ContentElement], specifically a [TextContent].
  */
 @Serializable
-data class TextInputData(val data: String, override val comparison: String?) : InputData() {
+data class TextInputData(val data: String, override val comparison: String? = "==") : InputData() {
     override val type = InputType.TEXT
 
     override fun toContent(): TextContent = InMemoryTextContent(data)
-
 }
 
 /**
@@ -59,7 +58,7 @@ data class TextInputData(val data: String, override val comparison: String?) : I
  * Cannot be converted to a [ContentElement]
  */
 @Serializable
-data class VectorInputData(val data: List<Float>, override val comparison: String?) : InputData(){
+data class VectorInputData(val data: List<Float>, override val comparison: String? = "==") : InputData(){
     override val type = InputType.VECTOR
 
     override fun toContent(): ContentElement<*> {
@@ -73,7 +72,7 @@ data class VectorInputData(val data: List<Float>, override val comparison: Strin
  * Can be converted to a [ContentElement], specifically to a [InMemoryImageContent].
  */
 @Serializable
-data class ImageInputData(val data: String, override val comparison: String?) : InputData() {
+data class ImageInputData(val data: String, override val comparison: String? = "==") : InputData() {
     override val type = InputType.VECTOR
     override fun toContent(): ImageContent = InMemoryImageContent(image)
 
@@ -89,7 +88,7 @@ data class ImageInputData(val data: String, override val comparison: String?) : 
  * Cannot be converted to a [ContentElement]
  */
 @Serializable
-data class RetrievableIdInputData(val id: String, override val comparison: String?) : InputData() {
+data class RetrievableIdInputData(val id: String, override val comparison: String? = "==") : InputData() {
 
     override val type = InputType.ID
 
@@ -104,7 +103,7 @@ data class RetrievableIdInputData(val id: String, override val comparison: Strin
  * Cannot be converted to a [ContentElement]
  */
 @Serializable
-data class BooleanInputData(val value: Boolean, override val comparison: String?): InputData(){
+data class BooleanInputData(val value: Boolean, override val comparison: String? = "=="): InputData(){
     override val type = InputType.BOOLEAN
     override fun toContent(): ContentElement<*> {
         throw UnsupportedOperationException("Cannot derive content from BooleanInputData")
@@ -116,7 +115,7 @@ data class BooleanInputData(val value: Boolean, override val comparison: String?
  * Cannot be converted to a [ContentElement]
  */
 @Serializable
-data class NumericInputData(val value: Double, override val comparison: String?) : InputData(){
+data class NumericInputData(val value: Double, override val comparison: String? = "==") : InputData(){
     override val type = InputType.NUMERIC
     override fun toContent(): ContentElement<*> {
         throw UnsupportedOperationException("Cannot derive content from NumericInputData")
@@ -128,7 +127,7 @@ data class NumericInputData(val value: Double, override val comparison: String?)
  * Cannot be converted to a [ContentElement]
  */
 @Serializable
-data class DateInputData(val value: String, override val comparison: String?) : InputData() {
+data class DateInputData(val value: String, override val comparison: String? = "==") : InputData() {
     override val type = InputType.DATE
     override fun toContent(): ContentElement<*> {throw UnsupportedOperationException("Cannot derive content from DateInputData")}
 
