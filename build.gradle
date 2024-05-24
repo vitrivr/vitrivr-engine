@@ -2,11 +2,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	id 'org.jetbrains.kotlin.jvm' version "$version_kotlin"
-    id 'java-library'
-    id 'idea'
     id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
     id 'org.openapi.generator' version '7.4.0'
     id "de.undercouch.download" version "5.4.0"
+    id 'java-library'
+    id 'idea'
 }
 
 allprojects {
@@ -50,7 +50,6 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
     apply plugin: 'kotlin'
-    apply plugin: 'kotlin-kapt'
 
     /* Java Version */
     sourceCompatibility = JavaVersion.VERSION_21
