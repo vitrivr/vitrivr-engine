@@ -36,10 +36,10 @@ private val logger: KLogger = KotlinLogging.logger { }
  *  @author Ralph Gasser
  *  @version 2.0.0
  */
-class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) {
+class IngestionPipelineBuilder(val config: IngestionConfig) {
 
     /** The [IndexContext] */
-    private val context = IndexContextFactory.newContext(schema, config.context)
+    private val context = IndexContextFactory.newContext(config.context)
 
     /**
      * Build the indexing based this [IngestionPipelineBuilder]'s [config].
@@ -137,7 +137,7 @@ class IngestionPipelineBuilder(val schema: Schema, val config: IngestionConfig) 
             stages[it.key] = root
             for (operation in this.config.operations) {
                 if (!stages.containsKey(operation.key)) {
-                    stages[operation.key] = Operation(operation.key, operation.value.operator, config.operators[operation.value.operator] ?: throw IllegalArgumentException("Undefined operator '${it.value.operator}'"), operation.value.merge)
+                    stages[operation.key] = Operation(operation.key, operation.value.operator, config.operators[operation.value.operator] ?: throw IllegalArgumentException("Undefined operator '${operation.value.operator}'"), operation.value.merge)
                 }
                 for (inputKey in operation.value.inputs) {
                     if (!stages.containsKey(inputKey)) {

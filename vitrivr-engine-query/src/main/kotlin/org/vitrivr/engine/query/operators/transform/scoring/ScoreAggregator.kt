@@ -4,13 +4,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.vitrivr.engine.core.model.relationship.Relationship
-import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.retrieve.Transformer
+import org.vitrivr.engine.core.operators.general.Transformer
 
 class ScoreAggregator(
-    override val input: Operator<Retrieved>,
+    override val input: Operator<out Retrievable>,
     private val aggregationMode: AggregationMode = AggregationMode.MAX,
     private val relations: Set<String> = setOf("partOf")
 ) : Transformer {
@@ -20,8 +20,8 @@ class ScoreAggregator(
         MIN
     }
 
-    override fun toFlow(scope: CoroutineScope): Flow<Retrieved> = this.input.toFlow(scope).map { retrieved ->
-        if (retrieved.filteredAttribute<ScoreAttribute>() != null) { //pass through if score is already set
+    override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).map { retrieved ->
+        if (retrieved.filteredAttribute(ScoreAttribute::class.java) != null) { //pass through if score is already set
             return@map retrieved
         }
 

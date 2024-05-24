@@ -21,13 +21,33 @@ import org.vitrivr.engine.core.source.file.FileSource
 import java.text.SimpleDateFormat
 import java.util.*
 
-private const val DATE_FORMAT_PATTERN = "yyyy:MM:dd HH:mm:ss"
+import java.text.ParseException
+
+val logger: KLogger = KotlinLogging.logger {}
+
 private val NON_ALPHANUMERIC_REGEX = Regex("[^a-zA-Z0-9]")
 
-private fun convertDate(date: String): Date =
-    SimpleDateFormat(DATE_FORMAT_PATTERN).parse(date)
 
-private fun convertType(directory: Directory, tagType: Int, type: Type): Value<*> =
+private val DATE_FORMAT_PATTERNS = listOf(
+    "yyyy:MM:dd HH:mm:ss",
+    "yyyy-MM-dd HH:mm:ss",
+    "dd.MM.yyyy HH:mm:ss",
+    "MM/dd/yyyy HH:mm:ss"
+)
+
+private fun convertDate(date: String): Date? {
+    for (pattern in DATE_FORMAT_PATTERNS) {
+        try {
+            return SimpleDateFormat(pattern).parse(date)
+        } catch (e: ParseException) {
+        }
+    }
+    logger.warn { "Failed to parse date: $date" }
+    return null
+}
+
+
+private fun convertType(directory: Directory, tagType: Int, type: Type): Value<*>? =
     when (type) {
         Type.STRING -> Value.String(directory.getString(tagType))
         Type.BOOLEAN -> Value.Boolean(directory.getBoolean(tagType))
@@ -37,12 +57,15 @@ private fun convertType(directory: Directory, tagType: Int, type: Type): Value<*
         Type.LONG -> Value.Long(directory.getLong(tagType))
         Type.FLOAT -> Value.Float(directory.getFloat(tagType))
         Type.DOUBLE -> Value.Double(directory.getDouble(tagType))
-        Type.DATETIME -> Value.DateTime(convertDate(directory.getString(tagType)))
+        Type.DATETIME -> convertDate(directory.getString(tagType))?.let { Value.DateTime(it) }
         else -> throw IllegalArgumentException("Unsupported type: $type")
     }
 
-private fun JsonElement.convertType(type: Type): Value<*> =
-    when (type) {
+private fun JsonElement.convertType(type: Type): Value<*>? {
+    if (this.isJsonNull) {
+        return null
+    }
+    return when (type) {
         Type.STRING -> Value.String(this.asString)
         Type.BOOLEAN -> Value.Boolean(this.asBoolean)
         Type.BYTE -> Value.Byte(this.asByte)
@@ -51,9 +74,10 @@ private fun JsonElement.convertType(type: Type): Value<*> =
         Type.LONG -> Value.Long(this.asLong)
         Type.FLOAT -> Value.Float(this.asFloat)
         Type.DOUBLE -> Value.Double(this.asDouble)
-        Type.DATETIME -> Value.DateTime(convertDate(this.asString))
+        Type.DATETIME -> convertDate(this.asString)?.let { Value.DateTime(it) }
         else -> throw IllegalArgumentException("Unsupported type: $type")
     }
+}
 
 class ExifMetadataExtractor(
     input: Operator<Retrievable>,
@@ -76,26 +100,29 @@ class ExifMetadataExtractor(
                 val tagname = tag.tagName.replace(NON_ALPHANUMERIC_REGEX, "")
                 val fullname = "${directory.name.replace(NON_ALPHANUMERIC_REGEX, "")}_$tagname"
 
-                if (fullname == "ExifSubIFD_UserComment") {
+                if (fullname == "ExifSubIFD_UserComment" || fullname == "JpegComment_JPEGComment") {
                     if (fullname in subfields){
                         columnValues[fullname] = Value.String(tag.description)
                     }
                     try {
                         val json = JsonParser.parseString(tag.description).asJsonObject
                         json.entrySet().forEach { (key, value) ->
-                            subfields[key]?.let {
-                                columnValues[key] = value.convertType(Type.valueOf(it))
+                            subfields[key]?.let { typeString ->
+                                value.convertType(Type.valueOf(typeString))?.let { converted ->
+                                    columnValues[key] = converted
+                                }
                             }
                         }
                     } catch (e: JsonParseException) {
-                        logger.warn { "Failed to parse JSON from UserComment: ${tag.description}" }
-                        continue
+                        logger.warn { "Failed to parse JSON from $fullname: ${tag.description}" }
                     }
                 } else {
-                    subfields[fullname]?.let {
-                        val type = Type.valueOf(it)
-                        columnValues[fullname] = convertType(directory, tag.tagType, type)
+                    subfields[fullname]?.let { typeString ->
+                        convertType(directory, tag.tagType, Type.valueOf(typeString))?.let { converted ->
+                            columnValues[fullname] = converted
+                        }
                     }
+
                 }
             }
         }

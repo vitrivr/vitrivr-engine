@@ -5,14 +5,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
-import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.retrieve.Aggregator
+import org.vitrivr.engine.core.operators.general.Aggregator
 
 class WeightedScoreFusion(
-    override val inputs: List<Operator<Retrieved>>,
+    override val inputs: List<Operator<out Retrievable>>,
     weights: List<Float>
 ) : Aggregator {
 
@@ -24,7 +24,7 @@ class WeightedScoreFusion(
 
     private val weightsSum = this.weights.sum()
 
-    override fun toFlow(scope: CoroutineScope): Flow<Retrieved> {
+    override fun toFlow(scope: CoroutineScope): Flow<Retrievable> {
 
         if (inputs.isEmpty()) {
             return emptyFlow()
@@ -44,7 +44,7 @@ class WeightedScoreFusion(
                 return@flow
             }
 
-            val scoreMap = mutableMapOf<RetrievableId, MutableList<Pair<Int, Retrieved>>>()
+            val scoreMap = mutableMapOf<RetrievableId, MutableList<Pair<Int, Retrievable>>>()
 
             for ((index, retrieveds) in inputs.withIndex()) {
 
@@ -62,14 +62,14 @@ class WeightedScoreFusion(
 
             for((_, retrieveds) in scoreMap) {
 
-                val score = retrieveds.map { ((it.second.filteredAttribute<ScoreAttribute>())?.score ?: 0f) * weights[it.first] }.sum() / weightsSum
+                val score = retrieveds.map { ((it.second.filteredAttribute(ScoreAttribute::class.java))?.score ?: 0f) * weights[it.first] }.sum() / weightsSum
 
                 val first = retrieveds.first().second
 
 
                 //make a copy and override score
                 val retrieved = first.copy()
-                retrieved.filteredAttribute<ScoreAttribute>()
+                retrieved.filteredAttribute(ScoreAttribute::class.java)
                 retrieved.addAttribute(ScoreAttribute.Unbound(score))
 
                 emit(retrieved)

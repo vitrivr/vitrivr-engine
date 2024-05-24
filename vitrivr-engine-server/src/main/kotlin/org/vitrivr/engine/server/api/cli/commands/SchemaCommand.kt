@@ -143,7 +143,10 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
                     println("Failed to read extraction configuration. No extraction is being started.")
                     return
                 }
-                IngestionPipelineBuilder(this.schema, config).build()
+
+                config.context.schema = this.schema
+
+                IngestionPipelineBuilder(config).build()
             } else {
                 System.err.println("Requires either -n / --name: Name of the ingestion config defined on the schema or -c / --config the path to a ingestion config")
                 return
