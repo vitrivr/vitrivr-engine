@@ -1,6 +1,5 @@
 package org.vitrivr.engine.core.source
 
-import java.io.File
 import java.io.InputStream
 import java.util.*
 
@@ -35,8 +34,6 @@ interface Source {
      * @return [InputStream] for this [Source]
      */
     fun newInputStream(): InputStream
-
-    fun getAsFile(): File
 
     /**
      * Width of the [Source] in pixels (if applicable and available).
