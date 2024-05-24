@@ -2,14 +2,11 @@ package org.vitrivr.engine.core.model.descriptor.struct.metadata.source
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.FieldSchema
-import org.vitrivr.engine.core.model.descriptor.struct.RasterDescriptor
-import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.types.Type
 import java.util.*
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.internal.impl.types.TypeCheckerState.SupertypesPolicy.None
 
 data class MapStructDescriptor(
     override val id: DescriptorId,
@@ -33,7 +30,6 @@ data class MapStructDescriptor(
                     Type.FLOAT -> 0.0f
                     Type.DOUBLE -> 0.0
                     Type.DATETIME -> Date()
-                    else -> throw(IllegalArgumentException("Unsupported type $type"))
                 }
             }
             return MapStructDescriptor(UUID.randomUUID(), UUID.randomUUID(), columnTypes, columnValues)
@@ -60,7 +56,6 @@ data class MapStructDescriptor(
                 Type.FLOAT -> value as? Float
                 Type.DOUBLE -> value as? Double
                 Type.DATETIME -> value as? Date
-                else -> throw IllegalArgumentException("Unsupported type $type")
             }
             Pair(key, pairedValue)
         }
