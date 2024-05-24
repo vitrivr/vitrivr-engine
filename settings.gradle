@@ -1,3 +1,6 @@
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.5.0'
+}
 rootProject.name = 'vitrivr-engine'
 
 include 'vitrivr-engine-core'
@@ -8,3 +11,5 @@ include 'vitrivr-engine-module-cottontaildb'
 include 'vitrivr-engine-module-features'
 include 'vitrivr-engine-module-m3d'
 include 'vitrivr-engine-module-fes'
+include 'vitrivr-engine-module-statistics'
+

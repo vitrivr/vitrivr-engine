@@ -1,5 +1,7 @@
 package org.vitrivr.engine.core.features
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onCompletion
@@ -21,6 +23,7 @@ import java.util.*
  */
 abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(final override val input: Operator<Retrievable>, final override val field: Schema.Field<C, D>?, private val bufferSize: Int = 100) :
     Extractor<C, D> {
+    private val logger: KLogger = KotlinLogging.logger {}
 
     /**
      * A default [Extractor] implementation for batched extraction. It executes the following steps:
@@ -38,19 +41,25 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(f
 
         /* Prepare and return flow. */
         return this.input.toFlow(scope).onEach { retrievable ->
-            if (this.matches(retrievable)) {
-                batch.add(retrievable)
-            }
-            if (batch.size >= bufferSize) {
-                val descriptors = extract(batch)
-                // zip descriptors and batch
-                for (i in batch.indices) {
-                    val r = batch[i]
-                    for (d in descriptors[i]) {
-                        r.addDescriptor(d)
-                    }
+            try {
+                if (this.matches(retrievable)) {
+                    batch.add(retrievable)
                 }
-                batch.clear()
+                if (batch.size >= bufferSize) {
+                    val descriptors = extract(batch)
+                    // zip descriptors and batch
+                    for (i in batch.indices) {
+                        val r = batch[i]
+                        for (d in descriptors[i]) {
+                            r.addDescriptor(d)
+                        }
+                    }
+                    batch.clear()
+                }
+            } catch (e: Exception) {
+               "Error during extraction: ${e.message}".let {
+                   logger.error { it }
+               }
             }
         }.onCompletion {
             /* Persist buffer if necessary. */

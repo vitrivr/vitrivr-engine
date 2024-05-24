@@ -57,15 +57,20 @@ class CachedContentFactory : ContentFactoriesFactory {
 
             if (this.basePath == null) {
                 this.basePath = Files.createTempDirectory("vitrivr-cache")
-                logger.warn { "No base path provided for CachedContentFactory. Using temporary directory ${this.basePath}." }
+                "No base path provided for CachedContentFactory. Using temporary directory ${this.basePath}.".let {
+                    logger.warn { it }
+                }
             } else {
-                if (!this.basePath?.let { Files.exists(it) }!!) {
-                    this.basePath?.let { Files.createDirectories(it) }
-                    logger.info { "Created base path for CachedContentFactory at ${this.basePath}." }
+                this.basePath?.let {
+                    it.takeIf {
+                        !Files.exists(it)
+                    }?.let {
+                        Files.createDirectories(it)
+                    }
                 }
             }
-            Files.createDirectories(this.basePath)
-            thread(name = "FileCachedContentFactory cleaner thread.", isDaemon = true, start = true) {
+            thread(name = "FileCachedContentFactory cleaner thread.", isDaemon = true, start = true)
+            {
                 while (!this@Instance.closed) {
                     try {
                         val reference = this.referenceQueue.poll() as? CachedItem
