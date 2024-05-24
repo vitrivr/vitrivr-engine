@@ -3,6 +3,7 @@ package org.vitrivr.engine.core.source.file
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Source
 import org.vitrivr.engine.core.source.SourceId
+import java.io.File
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
@@ -33,6 +34,10 @@ data class FileSource(
      * @return [InputStream] for this [FileSource]
      */
     override fun newInputStream(): InputStream = Files.newInputStream(this.path, StandardOpenOption.READ)
+
+    override fun getAsFile(): File {
+        return this.path.toFile()
+    }
 
     /**
      * String representation of this [FileSource].
