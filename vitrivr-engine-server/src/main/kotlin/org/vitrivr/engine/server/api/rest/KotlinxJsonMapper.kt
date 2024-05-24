@@ -7,6 +7,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
+import org.vitrivr.engine.core.features.metadata.source.exif.logger
 import java.lang.reflect.Type
 
 object KotlinxJsonMapper : JsonMapper {
@@ -20,8 +21,16 @@ object KotlinxJsonMapper : JsonMapper {
             val serializer = serializer(targetType) as KSerializer<T>
             Json.decodeFromString(serializer, json)
         } catch (e: SerializationException) {
+            "Error while deserializing JSON: ${e.message}".let {
+                logger.error { it }
+                throw Exception(it)
+            }
             null
         } catch (e: IllegalStateException) {
+            "Error state: ${e.message}".let {
+                logger.error { it }
+                throw Exception(it)
+            }
             null
         } ?: fallbackMapper.readValue(json, fallbackMapper.typeFactory.constructType(targetType))
 
