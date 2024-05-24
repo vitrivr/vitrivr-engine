@@ -47,7 +47,8 @@ class IngestionPipelineBuilderTest {
 
             val mockSchema = Schema("test-schema", MockConnection("test-schema"))
             mockSchema.addResolver("disk", DiskResolver().newResolver(mockSchema, mapOf("location" to "./thumbnails/testing")))
-            val testSubject = IngestionPipelineBuilder(mockSchema, config)
+            config.context.schema = mockSchema
+            val testSubject = IngestionPipelineBuilder(config)
             testSubject.parseOperations()
         } catch (e: Exception) {
             fail(e)

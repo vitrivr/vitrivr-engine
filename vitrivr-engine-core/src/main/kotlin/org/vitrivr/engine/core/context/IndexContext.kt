@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.context
 
+import kotlinx.serialization.Transient
 import org.vitrivr.engine.core.model.content.factory.ContentFactory
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.resolver.Resolver
@@ -11,7 +12,8 @@ import org.vitrivr.engine.core.resolver.Resolver
  * @version 1.0.0
  */
 data class IndexContext(
-    val schema: Schema,
+    @Transient
+    override val schema: Schema,
 
     val contentFactory: ContentFactory,
 

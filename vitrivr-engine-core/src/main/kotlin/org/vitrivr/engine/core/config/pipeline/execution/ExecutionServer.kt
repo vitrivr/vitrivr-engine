@@ -121,10 +121,10 @@ class ExecutionServer {
      * @param query The [Operator] to execute.
      * @return The resulting [List] of [Retrieved]
      */
-    fun query(query: Operator<Retrieved>): List<Retrieved> {
+    fun query(query: Operator<out Retrievable>): List<Retrievable> {
         val jobId = UUID.randomUUID()
         val scope = CoroutineScope(this@ExecutionServer.dispatcher) + CoroutineName("query-job-$jobId")
-        val results = LinkedList<Retrieved>()
+        val results = LinkedList<Retrievable>()
         runBlocking {
             val job = scope.launch {
                 query.toFlow(scope).toList(results)

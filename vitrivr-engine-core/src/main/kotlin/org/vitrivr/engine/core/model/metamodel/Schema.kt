@@ -89,7 +89,8 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      * @param config The actual [IngestionConfig]
      */
     fun addIngestionPipeline(name: String, config: IngestionConfig) {
-        ingestionPipelineBuilders[name] = IngestionPipelineBuilder(this, config)
+        config.context.schema = this
+        ingestionPipelineBuilders[name] = IngestionPipelineBuilder(config)
     }
 
     /**

@@ -3,7 +3,7 @@ package org.vitrivr.engine.index.aggregators
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
@@ -16,7 +16,7 @@ import org.vitrivr.engine.core.operators.general.Transformer
  * @author Ralph Gasser
  * @version 1.1.0
  */
-abstract class AbstractAggregator(override val input: Operator<Retrievable>, protected val context: IndexContext) : Transformer {
+abstract class AbstractAggregator(override val input: Operator<out Retrievable>, protected open val context: Context) : Transformer {
     /**
      *  Creates a flow for this [AbstractAggregator].
      *
