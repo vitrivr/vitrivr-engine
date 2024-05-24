@@ -146,6 +146,12 @@ class VideoDecoder : DecoderFactory {
                                     windowEnd += TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
                                 }
                             } while (true)
+
+                            /* If there are frames left, then emit them. */
+                            if (audioBuffer.isNotEmpty() || imageBuffer.isNotEmpty()) {
+                                emit(imageBuffer, audioBuffer, grabber, windowEnd, sourceRetrievable, channel)
+                            }
+
                             logger.info { "Finished decoding video from source '${source.name}' (${source.sourceId})." }
                         } catch (exception: Exception) {
                             error = true
@@ -192,7 +198,7 @@ class VideoDecoder : DecoderFactory {
             val ingested = Ingested(UUID.randomUUID(), "SEGMENT", false)
             source.filteredAttribute(SourceAttribute::class.java)?.let { ingested.addAttribute(it) }
             ingested.addRelationship(Relationship.ByRef(ingested, "partOf", source, false))
-            ingested.addAttribute(TimeRangeAttribute(timestampEnd - this@Instance.timeWindowMs, timestampEnd, TimeUnit.MILLISECONDS))
+            ingested.addAttribute(TimeRangeAttribute(timestampEnd - TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs), timestampEnd, TimeUnit.MICROSECONDS))
 
             /* Prepare and append audio content element. */
             if (emitAudio.size > 0) {
