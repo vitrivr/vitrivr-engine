@@ -48,15 +48,15 @@ data class MapStructDescriptor(
         return this.columnTypes.map { (key, type) ->
             val value = this.columnValues[key] // This will be null if key is not present in columnValues
             val pairedValue = when (Type.valueOf(type)) {
-                Type.STRING -> (value as? Value.String)?.value
-                Type.BOOLEAN -> (value as? Value.Boolean)?.value
-                Type.BYTE -> (value as? Value.Byte)?.value
-                Type.SHORT -> (value as? Value.Short)?.value
-                Type.INT -> (value as? Value.Int)?.value
-                Type.LONG -> (value as? Value.Long)?.value
-                Type.FLOAT -> (value as? Value.Float)?.value
-                Type.DOUBLE -> (value as? Value.Double)?.value
-                Type.DATETIME -> (value as? Value.DateTime)?.value
+                Type.STRING -> (value as? Value.String)
+                Type.BOOLEAN -> (value as? Value.Boolean)
+                Type.BYTE -> (value as? Value.Byte)
+                Type.SHORT -> (value as? Value.Short)
+                Type.INT -> (value as? Value.Int)
+                Type.LONG -> (value as? Value.Long)
+                Type.FLOAT -> (value as? Value.Float)
+                Type.DOUBLE -> (value as? Value.Double)
+                Type.DATETIME -> (value as? Value.DateTime)
             }
             Pair(key, pairedValue)
         }
