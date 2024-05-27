@@ -7,6 +7,7 @@ import org.vitrivr.cottontail.core.tuple.Tuple
 import org.vitrivr.cottontail.core.types.Types
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.MapStructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
@@ -82,6 +83,14 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
      * @return The resulting [StructDescriptor].
      */
     override fun tupleToDescriptor(tuple: Tuple): StructDescriptor {
+        if(this.field.analyser.descriptorClass == MapStructDescriptor::class){
+            return this.tupleToMapStructDescriptor(tuple)
+        }else{
+            return this.tupleToStructDescriptor(tuple)
+        }
+    }
+
+    private fun tupleToStructDescriptor(tuple: Tuple): StructDescriptor{
         val constructor = this.field.analyser.descriptorClass.primaryConstructor ?: throw IllegalStateException("Provided type ${this.field.analyser.descriptorClass} does not have a primary constructor.")
         val parameters: MutableList<Any?> = mutableListOf(
             tuple.asUuidValue(DESCRIPTOR_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${DESCRIPTOR_ID_COLUMN_NAME}'."),
@@ -116,5 +125,58 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
 
         /* Call constructor. */
         return constructor.call(*parameters.toTypedArray())
+    }
+
+    private fun tupleToMapStructDescriptor(tuple: Tuple): MapStructDescriptor{
+        require(this.field.analyser.descriptorClass == MapStructDescriptor::class){"Must be MapStructDescriptor, but '${this.field.analyser.descriptorClass}' given"}
+        val constructor = this.field.analyser.descriptorClass.primaryConstructor ?: throw IllegalStateException("Provided type ${this.field.analyser.descriptorClass} does not have a primary constructor.")
+        val parameters: MutableList<Any?> = mutableListOf(
+            tuple.asUuidValue(DESCRIPTOR_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${DESCRIPTOR_ID_COLUMN_NAME}'."),
+            tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'."),
+        )
+
+        /* Third argument: columnTypes */
+        parameters.add(this.field.parameters)
+
+        /* Fourth argument: columnValues */
+        val values: MutableList<Any?> = mutableListOf()
+        /* Append dynamic parameters of struct. */
+        for ((name, type) in this.fieldMap) {
+            values.add(
+                when(type) {
+                    Types.Boolean -> tuple.asBoolean(name)?.let { Value.Boolean(it) }
+                    Types.Date -> tuple.asDate(name)
+                    Types.Byte -> tuple.asByte(name)?.let { Value.Byte(it) }
+                    Types.Double -> tuple.asDouble(name)?.let { Value.Double(it) }
+                    Types.Float ->  tuple.asFloat(name)?.let { Value.Float(it) }
+                    Types.Int -> tuple.asInt(name)?.let { Value.Int(it) }
+                    Types.Long -> tuple.asLong(name)?.let { Value.Long(it)  }
+                    Types.Short -> tuple.asShort(name)?.let { Value.Short(it)  }
+                    Types.String -> tuple.asString(name)?.let { Value.String(it)  }
+                    Types.Uuid -> UUID.fromString(tuple.asString(name))
+                    is Types.BooleanVector -> tuple.asBooleanVector(name)?.let { List(it.size) { i -> it[i] } }
+                    is Types.DoubleVector -> tuple.asBooleanVector(name)?.let { List(it.size) { i -> it[i] } }
+                    is Types.FloatVector -> tuple.asBooleanVector(name)?.let { List(it.size) { i -> it[i] } }
+                    is Types.IntVector -> tuple.asIntVector(name)?.let { List(it.size) { i -> it[i] } }
+                    is Types.LongVector -> tuple.asLongVector(name)?.let { List(it.size) { i -> it[i] } }
+                    else -> throw IllegalArgumentException("Type $type is not supported by StructDescriptorReader.")
+                }
+            )
+        }
+        require(values.size == this.field.parameters.size){"Some data was missing from the DB. Field definition and values from DB sizes differ!"}
+        val columnValues: MutableMap<String, Any?> = mutableMapOf()
+        for(i in 0 until values.size){
+            columnValues[this.field.parameters.keys.toTypedArray()[i]] = values[i]
+        }
+        parameters.add(columnValues)
+
+        /* Fifth argument: transient */
+        parameters.add(false) //add 'transient' flag to false, since the results were actually retrieved
+
+        /* Sixth argument: field */
+        parameters.add(this.field)
+
+        /* Call constructor. */
+        return constructor.call(*parameters.toTypedArray()) as MapStructDescriptor
     }
 }
