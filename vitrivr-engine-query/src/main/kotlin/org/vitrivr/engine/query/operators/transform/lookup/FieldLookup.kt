@@ -8,6 +8,7 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.model.retrievable.attributes.PropertyAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 import javax.management.Descriptor
@@ -19,7 +20,11 @@ import javax.management.Descriptor
  * @author Luca Rossetto
  * @author Ralph Gasser
  */
-class FieldLookup(override val input: Operator<out Retrievable>, private val reader: DescriptorReader<*>) : Transformer {
+class FieldLookup(
+    override val input: Operator<out Retrievable>,
+    private val reader: DescriptorReader<*>,
+    val keys: List<String>
+) : Transformer {
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
         /* Parse input IDs.*/
         val inputRetrieved = input.toFlow(scope).toList()
@@ -37,6 +42,11 @@ class FieldLookup(override val input: Operator<out Retrievable>, private val rea
             val descriptor = descriptors[retrieved.id]
             if (descriptor != null) {
                 retrieved.addDescriptor(descriptor)
+                /* Somewhat experimental. Goal: Attach information in a meaningful manner, such that it can be serialised */
+                val descriptorValuesAsMap = descriptor.values().toMap()
+                retrieved.addAttribute(PropertyAttribute(keys.map{
+                    it to "${descriptorValuesAsMap[it]}"
+                }.toMap()))
             }
             emit(retrieved)
         }
