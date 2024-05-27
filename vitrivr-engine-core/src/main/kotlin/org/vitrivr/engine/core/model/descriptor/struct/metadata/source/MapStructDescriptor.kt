@@ -6,6 +6,7 @@ import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Type
+import org.vitrivr.engine.core.model.types.Value
 import java.util.*
 
 data class MapStructDescriptor(
@@ -47,15 +48,15 @@ data class MapStructDescriptor(
         return this.columnTypes.map { (key, type) ->
             val value = this.columnValues[key] // This will be null if key is not present in columnValues
             val pairedValue = when (Type.valueOf(type)) {
-                Type.STRING -> value as? String
-                Type.BOOLEAN -> value as? Boolean
-                Type.BYTE -> value as? Byte
-                Type.SHORT -> value as? Short
-                Type.INT -> value as? Int
-                Type.LONG -> value as? Long
-                Type.FLOAT -> value as? Float
-                Type.DOUBLE -> value as? Double
-                Type.DATETIME -> value as? Date
+                Type.STRING -> (value as? Value.String)?.value
+                Type.BOOLEAN -> (value as? Value.Boolean)?.value
+                Type.BYTE -> (value as? Value.Byte)?.value
+                Type.SHORT -> (value as? Value.Short)?.value
+                Type.INT -> (value as? Value.Int)?.value
+                Type.LONG -> (value as? Value.Long)?.value
+                Type.FLOAT -> (value as? Value.Float)?.value
+                Type.DOUBLE -> (value as? Value.Double)?.value
+                Type.DATETIME -> (value as? Value.DateTime)?.value
             }
             Pair(key, pairedValue)
         }
