@@ -231,8 +231,10 @@ class VideoDecoder : DecoderFactory {
             if (emitAudio.size > 0) {
                 val samples = ShortBuffer.allocate(audioSize)
                 for (frame in emitAudio) {
+                    frame.clear()
                     samples.put(frame)
                 }
+                samples.clear()
                 val audio = this.context.contentFactory.newAudioContent(grabber.audioChannels.toShort(), grabber.sampleRate, samples)
                 ingested.addContent(audio)
             }
