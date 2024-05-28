@@ -53,6 +53,8 @@ abstract class ExternalFesAnalyser<T : ContentElement<*>, U : Descriptor>: Analy
         const val POLLINGINTERVALMS_PARAMETER_DEFAULT = "100"
         const val BATCHSIZE_PARAMETER_NAME = "batchSize"
         const val BATCHSIZE_PARAMETER_DEFAULT = "1"
+        const val RETRIES_PARAMETER_NAME = "retries"
+        const val RETRIES_PARAMETER_DEFAULT = "3"
     }
     abstract val defaultModel: String
 
@@ -80,7 +82,8 @@ abstract class ExternalFesAnalyser<T : ContentElement<*>, U : Descriptor>: Analy
         val hostName = parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
         val timeoutSeconds = parameters[TIMEOUTSECONDS_PARAMETER_NAME]?.toLongOrNull() ?: TIMEOUTSECONDS_PARAMETER_DEFAULT.toLong()
         val pollingIntervalMs = parameters[POLLINGINTERVALMS_PARAMETER_NAME]?.toLongOrNull() ?: POLLINGINTERVALMS_PARAMETER_DEFAULT.toLong()
-        val apiWrapper = ApiWrapper(hostName, model, timeoutSeconds, pollingIntervalMs)
+        val retries = parameters[RETRIES_PARAMETER_NAME]?.toIntOrNull() ?: RETRIES_PARAMETER_DEFAULT.toInt()
+        val apiWrapper = ApiWrapper(hostName, model, timeoutSeconds, pollingIntervalMs, retries)
 
         logger.debug { "Analyzing batch of ${content.size} retrievables with ${this::class.simpleName} analyser." }
 
