@@ -61,7 +61,7 @@ internal class JobWrapper<T, S>(
 class ApiWrapper(private val hostName:String, private val model: String, private val timeoutSeconds: Long, private val pollingIntervalMs: Long ) {
 
     private val okHttpClient = OkHttpClient().newBuilder()
-        .readTimeout(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS).connectTimeout(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS).writeTimeout(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS).callTimeout(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS)
         .build()
     private val textEmbeddingApi = TextEmbeddingApi(basePath = hostName, client = okHttpClient)
     private val imageEmbeddingApi = ImageEmbeddingApi(basePath = hostName, client = okHttpClient)

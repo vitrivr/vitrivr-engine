@@ -61,7 +61,13 @@ abstract class FesExtractor<D:Descriptor,C:ContentElement<*>, A:ExternalFesAnaly
         }
         logger.debug { "Extracting descriptors from ${retrievables.size} retrievables (${allContent.flatten().size} content elements total)." }
 
-        val allDescriptors = analyser.analyse(allContent, field!!.parameters)
+        val allDescriptors: List<List<D>>
+        try {
+            allDescriptors = analyser.analyse(allContent, field!!.parameters)
+        } catch (e: Exception) {
+            logger.error(e) { "Error during extraction of descriptors in field ${field!!.fieldName}." }
+            throw e
+        }
 
         logger.debug { "Extracted ${allDescriptors.flatten().size} descriptors from ${allContent.flatten().size} content elements total." }
 
