@@ -3,6 +3,10 @@ plugins {
     id 'signing'
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     api project(':vitrivr-engine-core')
 }
@@ -16,7 +20,7 @@ publishing {
             version = System.getenv().getOrDefault("MAVEN_PUBLICATION_VERSION", version.toString())
             from components.java
             pom {
-                name = 'vitrivr Engine Base'
+                name = 'vitrivr Engine Features Plugin'
                 description = 'Shared based components of the vitrivr multimedia retrieval engine (e.g., database connection, features).'
                 url = 'https://github.com/vitrivr/vitrivr-engine/'
                 licenses {
