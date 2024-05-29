@@ -18,16 +18,15 @@ typealias DescriptorId = UUID
  */
 interface Descriptor : Persistable {
     /** The [DescriptorId] held by this [Descriptor]. */
-    val id: DescriptorId
+    var id: DescriptorId
 
     /** The [RetrievableId] of the [Retrievable] that is being described by this [Descriptor]. */
-    val retrievableId: RetrievableId?
+    var retrievableId: RetrievableId?
 
     /** The [Schema.Field] backing this [Descriptor]. */
     val field: Schema.Field<*, out Descriptor>?
 
-
-    /** */
+    /** Flag indicating whether this [Descriptor] is persistent or not. */
     override val transient: Boolean
         get() = this.field != null
 

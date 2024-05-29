@@ -15,8 +15,8 @@ import org.vitrivr.engine.core.model.types.Value
  */
 
 data class StringDescriptor(
-    override val id: DescriptorId,
-    override val retrievableId: RetrievableId?,
+    override var id: DescriptorId,
+    override var retrievableId: RetrievableId?,
     override val value: Value.String,
     override val field: Schema.Field<*, StringDescriptor>? = null
 ) : ScalarDescriptor<Value.String> {

@@ -1,1 +1,1 @@
-org.vitrivr.engine.base.database.string.StringConnectionProvider
+org.vitrivr.engine.module.features.database.string.StringConnectionProvider

@@ -16,8 +16,8 @@ import java.util.*
  * @version 1.0.0
  */
 data class TemporalMetadataDescriptor(
-    override val id: DescriptorId,
-    override val retrievableId: RetrievableId, //retrievable Id must come first, due to reflection
+    override var id: DescriptorId,
+    override var retrievableId: RetrievableId?, //retrievable Id must come first, due to reflection
     val startNs: Value.Long,
     val endNs: Value.Long,
     override val field: Schema.Field<*, TemporalMetadataDescriptor>? = null

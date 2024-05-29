@@ -9,15 +9,14 @@ import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.client.language.dml.BatchInsert
 import org.vitrivr.cottontail.client.language.dml.Insert
 import org.vitrivr.cottontail.client.language.dml.Update
-import org.vitrivr.cottontail.core.values.*
+import org.vitrivr.cottontail.core.values.UuidValue
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.plugin.cottontaildb.CottontailConnection
 import org.vitrivr.engine.plugin.cottontaildb.DESCRIPTOR_ID_COLUMN_NAME
 import org.vitrivr.engine.plugin.cottontaildb.RETRIEVABLE_ID_COLUMN_NAME
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorWriter
-import java.util.*
+import org.vitrivr.engine.plugin.cottontaildb.toCottontailValue
 
 private val logger: KLogger = KotlinLogging.logger {}
 
@@ -43,29 +42,7 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
 
         /* Append fields. */
         for ((field, value) in item.values()) {
-            insert.value(
-                field, when (value) {
-                    null -> null
-                    is UUID -> UuidValue(value)
-                    is String -> StringValue(value)
-                    is Value.String -> StringValue(value.value)
-                    is Boolean -> BooleanValue(value)
-                    is Value.Boolean -> BooleanValue(value.value)
-                    is Byte -> ByteValue(value)
-                    is Value.Byte -> ByteValue(value.value)
-                    is Short -> ShortValue(value)
-                    is Value.Short -> ShortValue(value.value)
-                    is Int -> IntValue(value)
-                    is Value.Int -> IntValue(value.value)
-                    is Long -> LongValue(value)
-                    is Value.Long -> LongValue(value.value)
-                    is Float -> FloatValue(value)
-                    is Value.Float -> FloatValue(value.value)
-                    is Double -> DoubleValue(value)
-                    is Value.Double -> DoubleValue(value.value)
-                    else -> throw IllegalArgumentException("Unsupported type ${value::class.simpleName} for struct descriptor.")
-                }
-            )
+            insert.value(field, value?.toCottontailValue())
         }
 
         return try {
@@ -106,29 +83,7 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
                 when (it) {
                     0 -> UuidValue(item.id)
                     1 -> item.retrievableId?.let { v -> UuidValue(v) }
-                    else -> when (val v = values[it - 2].second) {
-                        null -> null
-                        is UUID -> UuidValue(v)
-                        is String -> StringValue(v)
-                        is Value.String -> StringValue(v.value)
-                        is Boolean -> BooleanValue(v)
-                        is Value.Boolean -> BooleanValue(v.value)
-                        is Byte -> ByteValue(v)
-                        is Value.Byte -> ByteValue(v.value)
-                        is Short -> ShortValue(v)
-                        is Value.Short -> ShortValue(v.value)
-                        is Int -> IntValue(v)
-                        is Value.Int -> IntValue(v.value)
-                        is Long -> LongValue(v)
-                        is Value.Long -> LongValue(v.value)
-                        is Float -> FloatValue(v)
-                        is Value.Float -> FloatValue(v.value)
-                        is Double -> DoubleValue(v)
-                        is Value.Double -> DoubleValue(v.value)
-                        is Date -> DateValue(v)
-                        is Value.DateTime -> DateValue(v.value)
-                        else -> throw IllegalArgumentException("Unsupported type ${v::class.simpleName} for struct descriptor.")
-                    }
+                    else -> values[it - 2].second?.toCottontailValue()
                 }
             }
             insert.any(*inserts)
@@ -163,7 +118,7 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
 
         /* Append values. */
         for ((field, value) in item.values()) {
-            update.any(field to value)
+            update.any(field to value?.toCottontailValue())
         }
 
         /* Update values. */
