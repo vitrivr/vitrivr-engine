@@ -58,6 +58,7 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
             val config = root.opConfig as? OperatorConfig.Enumerator ?: throw IllegalArgumentException("Root stage must always be an enumerator!")
             val built = HashMap<String, Operator<*>>()
             built[root.name] = buildEnumerator(root.opName, config, stream)
+
             for (output in root.output) {
                 buildInternal(output, built)
             }
@@ -141,7 +142,7 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
                 }
                 for (inputKey in operation.value.inputs) {
                     if (!stages.containsKey(inputKey)) {
-                        val op = this.config.operations[inputKey] ?: throw IllegalArgumentException("Undefined operation '${it.value.operator}'")
+                        val op = this.config.operations[inputKey] ?: throw IllegalArgumentException("Undefined operation '${inputKey}'")
                         stages[inputKey] = Operation(inputKey, op.operator, config.operators[op.operator] ?: throw IllegalArgumentException("Undefined operator '${op.operator}'"), op.merge)
                     }
                     stages[operation.key]?.addInput(stages[inputKey]!!)
