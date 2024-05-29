@@ -1,0 +1,76 @@
+{
+  "schema": "ptt",
+  "context": {
+    "contentFactory": "CachedContentFactory",
+    "resolverName": "disk",
+    "local": {
+      "content": {
+        "path": "../cache"
+      },
+      "enumerator": {
+        "path": "../benchmark/media_objects",
+        "depth": "5"
+      },
+      "filter": {
+        "type": "SOURCE:VIDEO"
+      },
+      "decoder": {
+        "timeWindowMs": "2000"
+      }
+    }
+  },
+  "operators": {
+    "enumerator": {
+      "type": "ENUMERATOR",
+      "factory": "FileSystemEnumerator",
+      "mediaTypes": [
+        "VIDEO"
+      ]
+    },
+    "decoder": {
+      "type": "DECODER",
+      "factory": "VideoDecoder"
+    },
+    "selector": {
+      "type": "TRANSFORMER",
+      "factory": "LastContentAggregator"
+    },
+    "clip": {
+      "type": "EXTRACTOR",
+      "fieldName": "clip"
+    },
+    "asr": {
+      "type": "EXTRACTOR",
+      "fieldName": "asr"
+    },
+    "caption": {
+      "type": "EXTRACTOR",
+      "fieldName": "caption"
+    },
+    "ocr": {
+      "type": "EXTRACTOR",
+      "fieldName": "ocr"
+    },
+    "filter": {
+      "type": "TRANSFORMER",
+      "factory": "TypeFilterTransformer"
+    }
+  },
+  "operations": {
+    "enumerator-stage": {"operator": "enumerator"},
+    "filter-stage": {"operator": "filter","inputs": ["enumerator-stage"]},
+    "decoder-stage": {"operator": "decoder","inputs": ["filter-stage"]},
+    "selector-stage": {"operator": "selector","inputs": ["filter-stage"]},
+    "asr-stage": {"operator": "asr", "inputs": ["selector-stage"]},
+    "caption-stage": {"operator": "caption", "inputs": ["selector-stage"]},
+    "clip-stage": {"operator": "clip", "inputs": ["selector-stage"]},
+    "ocr-stage": {"operator": "ocr", "inputs": ["selector-stage"]}
+},
+  "output": [
+    "asr-stage",
+    "caption-stage",
+    "clip-stage",
+    "ocr-stage"
+  ],
+  "mergeType": "COMBINE"
+}
