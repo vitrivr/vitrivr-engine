@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.context
 
+import io.javalin.openapi.OpenApiIgnore
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -12,5 +13,6 @@ class QueryContext(
 ) : Context() {
 
     @Transient
+    @get:OpenApiIgnore
     override lateinit var schema: Schema
 }

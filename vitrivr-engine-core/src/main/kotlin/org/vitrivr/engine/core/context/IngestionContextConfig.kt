@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.context
 
+import io.javalin.openapi.OpenApiIgnore
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.vitrivr.engine.core.model.content.factory.ContentFactory
@@ -29,6 +30,8 @@ class IngestionContextConfig(
 ) : Context() {
 
     @Transient
+    @get:OpenApiIgnore
+    @set:OpenApiIgnore
     override lateinit var schema: Schema
 
 }

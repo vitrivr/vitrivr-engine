@@ -157,8 +157,9 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
         }
         require(values.size == this.field.parameters.size){"Some data was missing from the DB. Field definition and values from DB sizes differ!"}
         val columnValues: MutableMap<String, Any?> = mutableMapOf()
+        val columnKeys = this.field.parameters.keys.toTypedArray()
         for(i in 0 until values.size){
-            columnValues[this.field.parameters.keys.toTypedArray()[i]] = values[i]
+            columnValues[columnKeys[i]] = values[i]
         }
         parameters.add(columnValues)
 
