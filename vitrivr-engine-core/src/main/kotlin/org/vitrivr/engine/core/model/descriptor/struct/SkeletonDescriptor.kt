@@ -8,8 +8,8 @@ import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 
 data class SkeletonDescriptor(
-    override val id: DescriptorId,
-    override val retrievableId: RetrievableId,
+    override var id: DescriptorId,
+    override var retrievableId: RetrievableId?,
     val person: Value.Int,
     val skeleton: List<Value.Float>,
     val weights: List<Value.Float>,

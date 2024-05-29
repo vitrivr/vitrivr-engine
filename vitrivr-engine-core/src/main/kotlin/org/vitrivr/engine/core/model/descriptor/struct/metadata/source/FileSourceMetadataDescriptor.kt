@@ -16,8 +16,8 @@ import java.util.*
  * @version 1.0.0
  */
 data class FileSourceMetadataDescriptor(
-    override val id: DescriptorId,
-    override val retrievableId: RetrievableId,
+    override var id: DescriptorId,
+    override var retrievableId: RetrievableId?,
     val path: Value.String,
     val size: Value.Long,
     override val field: Schema.Field<*, FileSourceMetadataDescriptor>? = null

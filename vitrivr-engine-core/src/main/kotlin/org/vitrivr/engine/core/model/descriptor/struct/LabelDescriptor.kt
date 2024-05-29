@@ -14,8 +14,8 @@ import org.vitrivr.engine.core.model.types.Value
  * @version 1.0.0
  */
 data class LabelDescriptor(
-    override val id: DescriptorId,
-    override val retrievableId: RetrievableId?,
+    override var id: DescriptorId,
+    override var retrievableId: RetrievableId?,
     val label: Value.String,
     val confidence: Value.Float,
     override val field: Schema.Field<*, LabelDescriptor>? = null

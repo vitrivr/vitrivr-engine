@@ -15,8 +15,8 @@ import org.vitrivr.engine.core.model.types.Value
  */
 
 data class BooleanDescriptor(
-    override val id: DescriptorId,
-    override val retrievableId: RetrievableId,
+    override var id: DescriptorId,
+    override var retrievableId: RetrievableId?,
     override val value: Value.Boolean,
     override val field: Schema.Field<*, BooleanDescriptor>? = null
 ) : ScalarDescriptor<Value.Boolean> {

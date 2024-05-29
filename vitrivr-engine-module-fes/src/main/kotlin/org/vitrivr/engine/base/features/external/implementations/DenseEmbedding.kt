@@ -1,7 +1,6 @@
 package org.vitrivr.engine.base.features.external.implementations
 
 import org.vitrivr.engine.base.features.external.common.ApiWrapper
-import org.vitrivr.engine.base.features.external.common.DenseRetriever
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.base.features.external.common.FesExtractor
 import org.vitrivr.engine.core.context.IndexContext
@@ -19,6 +18,7 @@ import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
+import org.vitrivr.engine.module.features.feature.external.common.DenseRetriever
 import java.util.*
 
 /**

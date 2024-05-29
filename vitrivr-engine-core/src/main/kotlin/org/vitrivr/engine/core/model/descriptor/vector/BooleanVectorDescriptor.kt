@@ -16,8 +16,8 @@ import java.util.*
  */
 
 data class BooleanVectorDescriptor(
-    override val id: UUID = UUID.randomUUID(),
-    override val retrievableId: RetrievableId? = null,
+    override var id: UUID = UUID.randomUUID(),
+    override var retrievableId: RetrievableId? = null,
     override val vector: List<Value.Boolean>,
     override val field: Schema.Field<*, BooleanVectorDescriptor>? = null
 ) : VectorDescriptor<Value.Boolean> {
