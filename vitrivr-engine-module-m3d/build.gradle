@@ -90,7 +90,7 @@ publishing {
             from components.java
             pom {
                 name = 'vitrivr Engine Base'
-                description = 'Shared based components of the vitrivr multimedia retrieval engine (e.g., database connection, features).'
+                description = 'Shared based components of the vitrivr multimedia retrieval engine. To contains logic an features to handle 3D meshes.'
                 url = 'https://github.com/vitrivr/vitrivr-engine/'
                 licenses {
                     license {
