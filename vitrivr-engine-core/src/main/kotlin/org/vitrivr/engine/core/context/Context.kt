@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.context
 
+import io.javalin.openapi.OpenApiIgnore
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -28,6 +29,7 @@ sealed class Context() {
      *
      * @return Either the value named [property] for the [operator] or NULL, in case no such property exists.
      */
+    @OpenApiIgnore
     operator fun get(operator: String, property: String): String? = getProperty(operator, property)
 
     /**
@@ -39,6 +41,7 @@ sealed class Context() {
      *
      * @return Either the value named [property] for the [operator] or NULL, in case no such property exists.
      */
+    @OpenApiIgnore
     fun getProperty(operator: String, property: String): String? =
         local[operator]?.get(property) ?: global[property]
 
@@ -54,7 +57,6 @@ sealed class Context() {
      */
     fun getPropertyOrDefault(operator: String, property: String, default: String): String = getProperty(operator, property) ?: default
 
-
-    @Transient
+    @get:OpenApiIgnore
     abstract val schema: Schema
 }
