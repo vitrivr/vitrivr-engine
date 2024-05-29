@@ -26,7 +26,7 @@ import org.vitrivr.engine.core.util.math.ScoringFunctions
 class DenseRetriever<C : ContentElement<*>>(field: Schema.Field<C, FloatVectorDescriptor>, query: ProximityQuery<*>, context: QueryContext) : AbstractRetriever<C, FloatVectorDescriptor>(field, query, context) {
     override fun toFlow(scope: CoroutineScope) = flow {
         this@DenseRetriever.reader.getAll(this@DenseRetriever.query).forEach {
-            it.addAttribute(ScoringFunctions.max(it))
+            it.addAttribute(ScoringFunctions.max(it, 2.0f))
             emit(it)
         }
     }

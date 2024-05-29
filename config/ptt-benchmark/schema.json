@@ -1,0 +1,112 @@
+{
+  "schemas": [
+    {
+      "name": "ptt",
+      "connection": {
+        "database": "CottontailConnectionProvider",
+        "parameters": {
+          "Host": "127.0.0.1",
+          "port": "1865"
+        }
+      },
+      "fields": [
+        {
+          "name": "averagecolor",
+          "factory": "AverageColor"
+        },
+        {
+          "name": "file",
+          "factory": "FileSourceMetadata"
+        },
+        {
+          "name": "time",
+          "factory": "TemporalMetadata"
+        },
+        {
+          "name": "video",
+          "factory": "VideoSourceMetadata"
+        },
+        {
+          "name": "asr",
+          "factory": "ASR",
+          "parameters": {
+            "host": "http://10.34.58.85:8888/",
+            "model": "whisper"
+          }
+        },
+        {
+          "name": "clip",
+          "factory": "DenseEmbedding",
+          "parameters": {
+            "host": "http://10.34.58.85:8888/",
+            "model": "open-clip-vit-b32",
+            "length": "512"
+          }
+        },
+        {
+          "name": "document_type",
+          "factory": "ImageClassification",
+          "parameters": {
+            "host": "http://10.34.58.85:8888/",
+            "model": "open-clip-vit-b32",
+            "classes": "text document,photograph,artwork",
+            "threshold": "0.1",
+            "top_k": "1"
+          }
+        },
+        {
+          "name": "caption",
+          "factory": "ImageCaption",
+          "parameters": {
+            "host": "http://10.34.58.85:8888/"
+          }
+        },
+        {
+          "name": "ocr",
+          "factory": "OCR",
+          "parameters": {
+            "host": "http://10.34.58.85:8888/",
+            "model": "tesseract"
+          }
+        }
+      ],
+      "resolvers": {
+        "disk": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "../thumbnails"
+          }
+        }
+      },
+      "exporters": [
+        {
+          "name": "thumbnail",
+          "factory": "ThumbnailExporter",
+          "resolverName": "disk",
+          "parameters": {
+            "maxSideResolution": "400",
+            "mimeType": "JPG"
+          }
+        }
+      ],
+      "extractionPipelines": [
+        {
+          "name": "image_tiny",
+          "path": "./config/ptt-benchmark/pipelines/image-tiny.json"
+        },
+        {
+          "name": "image",
+          "path": "./config/ptt-benchmark/pipelines/image.json"
+        },
+        {
+          "name": "video_tiny",
+          "path": "./config/ptt-benchmark/pipelines/video-tiny.json"
+        },
+        {
+          "name": "video",
+          "path": "./config/ptt-benchmark/pipelines/video.json"
+        }
+      ]
+    }
+  ]
+}
