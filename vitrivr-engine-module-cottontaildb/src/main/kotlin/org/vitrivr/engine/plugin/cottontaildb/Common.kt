@@ -10,6 +10,7 @@ import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
+import java.util.*
 
 /** The name of the retrievable entity. */
 const val RETRIEVABLE_ENTITY_NAME = "retrievable"
@@ -104,6 +105,34 @@ internal fun SimpleBooleanQuery<*>.operator() = when (this.comparison) {
     ComparisonOperator.GR -> Compare.Operator.GREATER
     ComparisonOperator.LEQ -> Compare.Operator.LEQUAL
     ComparisonOperator.GEQ -> Compare.Operator.GEQUAL
+}
+
+/**
+ * Tries to convert this [Any] to a [PublicValue] (Cottontail DB).
+ *
+ * @return [PublicValue] for this [Any]
+ */
+internal fun Any.toCottontailValue(): PublicValue = when (this)  {
+    is UUID -> UuidValue(this)
+    is String -> StringValue(this)
+    is Boolean -> BooleanValue(this)
+    is Byte -> ByteValue(this)
+    is Short -> ShortValue(this)
+    is Int -> IntValue(this)
+    is Long -> LongValue(this)
+    is Float -> FloatValue(this)
+    is Double -> DoubleValue(this)
+    is Date -> DateValue(this)
+    is Value.Boolean -> BooleanValue(this.value)
+    is Value.Byte -> ByteValue(this.value)
+    is Value.Double -> DoubleValue(this.value)
+    is Value.Float -> FloatValue(this.value)
+    is Value.Int -> IntValue(this.value)
+    is Value.Long -> LongValue(this.value)
+    is Value.Short -> ShortValue(this.value)
+    is Value.String -> StringValue(this.value)
+    is Value.DateTime -> DateValue(this.value)
+    else -> throw IllegalArgumentException("Unsupported type for vector value.")
 }
 
 /**
