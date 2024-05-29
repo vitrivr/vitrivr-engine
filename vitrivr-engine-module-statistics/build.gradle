@@ -12,11 +12,11 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             groupId = 'org.vitrivr'
-            artifactId = 'vitrivr-engine-plugin-features'
+            artifactId = 'vitrivr-engine-plugin-statistics'
             version = System.getenv().getOrDefault("MAVEN_PUBLICATION_VERSION", version.toString())
             from components.java
             pom {
-                name = 'vitrivr Engine Base'
+                name = 'vitrivr Engine Statistics'
                 description = 'Shared based components of the vitrivr multimedia retrieval engine (e.g., database connection, features).'
                 url = 'https://github.com/vitrivr/vitrivr-engine/'
                 licenses {
