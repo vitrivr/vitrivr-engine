@@ -16,8 +16,8 @@ import java.util.*
  * @version 1.0.0
  */
 data class Rectangle2DMetadataDescriptor(
-    override val id: DescriptorId,
-    override val retrievableId: RetrievableId,
+    override var id: DescriptorId,
+    override var retrievableId: RetrievableId?,
     val leftX: Value.Int,
     val leftY: Value.Int,
     val width: Value.Int,

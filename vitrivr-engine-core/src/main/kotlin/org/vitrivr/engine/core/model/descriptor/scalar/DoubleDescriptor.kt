@@ -15,8 +15,8 @@ import org.vitrivr.engine.core.model.types.Value
  */
 
 data class DoubleDescriptor(
-    override val id: DescriptorId,
-    override val retrievableId: RetrievableId,
+    override var id: DescriptorId,
+    override var retrievableId: RetrievableId?,
     override val value: Value.Double,
     override val field: Schema.Field<*, DoubleDescriptor>? = null
 ) : ScalarDescriptor<Value.Double> {

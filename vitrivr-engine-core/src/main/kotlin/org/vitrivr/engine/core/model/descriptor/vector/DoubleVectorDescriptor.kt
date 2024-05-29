@@ -16,8 +16,8 @@ import java.util.*
  */
 
 data class DoubleVectorDescriptor(
-    override val id: UUID = UUID.randomUUID(),
-    override val retrievableId: RetrievableId? = null,
+    override var id: UUID = UUID.randomUUID(),
+    override var retrievableId: RetrievableId? = null,
     override val vector: List<Value.Double>,
     override val field: Schema.Field<*, DoubleVectorDescriptor>? = null
 ) : VectorDescriptor<Value.Double> {

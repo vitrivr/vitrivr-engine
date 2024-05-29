@@ -8,8 +8,8 @@ import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 
 data class RasterDescriptor(
-    override val id: DescriptorId,
-    override val retrievableId: RetrievableId,
+    override var id: DescriptorId,
+    override var retrievableId: RetrievableId?,
     val hist: List<Value.Float>,
     val raster: List<Value.Float>,
     override val field: Schema.Field<*, RasterDescriptor>? = null
