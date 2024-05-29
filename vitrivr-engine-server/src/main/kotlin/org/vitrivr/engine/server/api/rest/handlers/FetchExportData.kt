@@ -9,6 +9,8 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.server.api.rest.model.ErrorStatus
 
+const val FETCH_ROUTE_FROM_SCHEMA = "fetch/{exporter}/{retrievableId}"
+
 @OpenApi(
     path = "/api/{schema}/fetch/{exporter}/{retrievableId}",
     summary = "Fetch previously exported data.",
