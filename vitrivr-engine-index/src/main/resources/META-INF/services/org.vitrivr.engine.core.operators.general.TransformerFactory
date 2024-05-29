@@ -1,4 +1,6 @@
 org.vitrivr.engine.index.transform.ContentSamplingTransformer
+org.vitrivr.engine.index.transform.DescriptorAsContentTransformer
+org.vitrivr.engine.index.transform.LabelFilterTransformer
 
 org.vitrivr.engine.index.aggregators.LastContentAggregator
 org.vitrivr.engine.index.aggregators.FirstContentAggregator
