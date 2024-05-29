@@ -44,15 +44,9 @@ fun configureApiRoutes(config: ApiConfig, manager: SchemaManager, executor: Exec
 
                 if (config.export) {
 
-                    path("fetch") {
-                        path("{exporter}") {
-                            path("{retrievable}") {
-                                post { ctx ->
-                                    fetchExportData(ctx, schema)
-                                }
-                            }
+                        get(FETCH_ROUTE_FROM_SCHEMA) { ctx ->
+                            fetchExportData(ctx, schema)
                         }
-                    }
                 }
             }
         }
