@@ -16,8 +16,8 @@ import java.util.*
  */
 
 data class IntVectorDescriptor(
-    override val id: UUID = UUID.randomUUID(),
-    override val retrievableId: RetrievableId? = null,
+    override var id: UUID = UUID.randomUUID(),
+    override var retrievableId: RetrievableId? = null,
     override val vector: List<Value.Int>,
     override val field: Schema.Field<*, IntVectorDescriptor>? = null
 ) : VectorDescriptor<Value.Int> {

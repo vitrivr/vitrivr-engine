@@ -10,6 +10,7 @@ import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.client.language.dml.BatchInsert
 import org.vitrivr.cottontail.client.language.dml.Delete
 import org.vitrivr.cottontail.client.language.dml.Insert
+import org.vitrivr.cottontail.client.language.dml.Update
 import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.values.StringValue
 import org.vitrivr.cottontail.core.values.UuidValue
@@ -80,10 +81,28 @@ internal class RetrievableWriter(private val connection: CottontailConnection) :
     }
 
     /**
+     * Updates a specific [Retrievable] using this [RetrievableWriter].
      *
+     * @param item A [Retrievable]s to update.
+     * @return True on success, false otherwise.
      */
     override fun update(item: Retrievable): Boolean {
-        TODO("Not yet implemented")
+        val update = Update(this.entityName).where(
+            Compare(
+                Column(this.entityName.column(RETRIEVABLE_ID_COLUMN_NAME)),
+                Compare.Operator.EQUAL,
+                Literal(UuidValue(item.id))
+            )
+        ).values(RETRIEVABLE_TYPE_COLUMN_NAME to item.type?.let { StringValue(it) })
+
+        /* Update values. */
+        return try {
+            this.connection.client.update(update)
+            true
+        } catch (e: StatusRuntimeException) {
+            logger.error(e) { "Failed to update descriptor due to exception." }
+            false
+        }
     }
 
     /**

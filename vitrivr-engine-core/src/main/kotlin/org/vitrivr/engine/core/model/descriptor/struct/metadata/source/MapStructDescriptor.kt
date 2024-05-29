@@ -10,8 +10,8 @@ import org.vitrivr.engine.core.model.types.Value
 import java.util.*
 
 data class MapStructDescriptor(
-    override val id: DescriptorId,
-    override val retrievableId: RetrievableId,
+    override var id: DescriptorId,
+    override var retrievableId: RetrievableId?,
     val columnTypes: Map<String, String>,
     val columnValues: Map<String, Any?>,
     override val transient: Boolean = false,

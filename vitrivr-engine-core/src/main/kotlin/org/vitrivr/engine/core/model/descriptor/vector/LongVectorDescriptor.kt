@@ -16,8 +16,8 @@ import java.util.*
  */
 
 data class LongVectorDescriptor(
-    override val id: UUID = UUID.randomUUID(),
-    override val retrievableId: RetrievableId? = null,
+    override var id: UUID = UUID.randomUUID(),
+    override var retrievableId: RetrievableId? = null,
     override val vector: List<Value.Long>,
     override val field: Schema.Field<*, LongVectorDescriptor>? = null
 ) : VectorDescriptor<Value.Long> {

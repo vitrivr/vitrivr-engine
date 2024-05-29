@@ -15,8 +15,8 @@ import org.vitrivr.engine.core.model.types.Value
  */
 
 data class FloatDescriptor(
-    override val id: DescriptorId,
-    override val retrievableId: RetrievableId,
+    override var id: DescriptorId,
+    override var retrievableId: RetrievableId?,
     override val value: Value.Float,
     override val field: Schema.Field<*, FloatDescriptor>? = null
 ) : ScalarDescriptor<Value.Float> {
