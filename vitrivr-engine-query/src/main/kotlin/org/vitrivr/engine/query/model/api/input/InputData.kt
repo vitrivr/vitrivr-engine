@@ -47,7 +47,7 @@ sealed class InputData() {
  * Can be converted to a [ContentElement], specifically a [TextContent].
  */
 @Serializable
-data class TextInputData(val data: String, override val comparison: String? = "==") : InputData() {
+data class TextInputData(val data: String, override val comparison: String? = null) : InputData() {
     override val type = InputType.TEXT
 
     override fun toContent(): TextContent = InMemoryTextContent(data)
