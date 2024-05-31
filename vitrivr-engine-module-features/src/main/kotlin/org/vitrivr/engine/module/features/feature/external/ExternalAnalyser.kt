@@ -7,7 +7,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
-import org.vitrivr.engine.core.model.descriptor.scalar.FloatDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.types.Value
@@ -84,10 +83,7 @@ abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor> : Analyse
                 if (responseCode != HttpURLConnection.HTTP_OK) return null
                 return connection.inputStream.use { stream ->
                     when (U::class) {
-                        FloatDescriptor::class -> FloatVectorDescriptor(
-                            UUID.randomUUID(), null,
-                            Json.decodeFromStream<FloatArray>(stream).map { Value.Float(it) }
-                        )
+                        FloatVectorDescriptor::class -> FloatVectorDescriptor(UUID.randomUUID(), null, Json.decodeFromStream<FloatArray>(stream).map { Value.Float(it) })
                         else -> null
                     } as U?
                 }
