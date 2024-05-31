@@ -114,7 +114,7 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
     }
 
     /**
-     * Generates and returns a new [DINORetriever] instance for this [CLIP].
+     * Generates and returns a new [Retriever] instance for this [CLIP].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
