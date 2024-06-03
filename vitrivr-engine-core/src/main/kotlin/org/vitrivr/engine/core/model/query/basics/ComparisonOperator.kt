@@ -15,7 +15,8 @@ enum class ComparisonOperator(val value: String) {
     LE("<"),
     GR(">"),
     LEQ("<="),
-    GEQ(">=");
+    GEQ(">="),
+    LIKE("~=");
 
     companion object{
         /**
@@ -26,12 +27,13 @@ enum class ComparisonOperator(val value: String) {
          */
         fun fromString(str: String):ComparisonOperator{
             return when(str.trim()){
-                "==" -> EQ
-                "!=" -> NEQ
-                "<" -> LE
-                ">" -> GR
-                "<=" -> LEQ
-                ">=" -> GEQ
+                EQ.value -> EQ
+                NEQ.value -> NEQ
+                LE.value -> LE
+                GR.value -> GR
+                LEQ.value -> LEQ
+                GEQ.value -> GEQ
+                LIKE.value -> LIKE
                 else -> throw IllegalArgumentException("Cannot parse '$str' as a comparison operator.")
             }
         }

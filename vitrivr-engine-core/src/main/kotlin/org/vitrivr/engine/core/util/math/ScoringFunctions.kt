@@ -25,12 +25,12 @@ object ScoringFunctions {
     }
 
     /**
-     * A scoring function that assumes the distances to score are normalised on a hypercube and thus divides by the square root of 2.
+     * A scoring function that assumes the distances to score are normalised on a hypersphere: `s = 1 / (d/sqrt(2))`.
      *
      * @param retrieved [Retrieved] object to score.
      */
-    fun hypercubeNorm(retrieved: Retrieved): ScoreAttribute{
+    fun hypersphereNormalised(retrieved: Retrieved): ScoreAttribute{
         val distance = retrieved.filteredAttribute<DistanceAttribute>()?.distance ?: return ScoreAttribute.Unbound(0.0f)
-        return ScoreAttribute.Unbound((distance / sqrt(2.0f)))
+        return ScoreAttribute.Unbound(1f-(distance / sqrt(2.0f)))
     }
 }
