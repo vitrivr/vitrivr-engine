@@ -38,6 +38,7 @@ sealed class InputData() {
      * - `!=`: not equal
      * - `>=`: greater or equal than
      * - `>` : greater than
+     * - `~=`: LIKE
      */
     abstract val comparison: String?
 }
