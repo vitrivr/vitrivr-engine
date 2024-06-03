@@ -3,6 +3,7 @@ package org.vitrivr.engine.core.util.math
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
+import kotlin.math.exp
 import kotlin.math.sqrt
 
 /**
@@ -33,4 +34,17 @@ object ScoringFunctions {
         val distance = retrieved.filteredAttribute<DistanceAttribute>()?.distance ?: return ScoreAttribute.Unbound(0.0f)
         return ScoreAttribute.Unbound(1f-(distance / sqrt(2.0f)))
     }
+
+    /**
+     * Sigmoid Scoring Function
+     * A soring function  maps the distnce to an interval between 0 and 1 using a sigmoid function.
+     * $$ s(x,c) = 1 / (1 + exp(-c * distance)) $$
+     *
+     * @param retrieved [Retrieved] object to score.
+     */
+    fun sigmoid(retrieved: Retrieved, c: Double = 1.0): ScoreAttribute{
+        val distance = retrieved.filteredAttribute<DistanceAttribute>()?.distance ?: return ScoreAttribute.Unbound(0.0f)
+        return ScoreAttribute.Unbound(( 1.0f / (1.0f + exp(c * distance)).toFloat()))
+    }
+
 }
