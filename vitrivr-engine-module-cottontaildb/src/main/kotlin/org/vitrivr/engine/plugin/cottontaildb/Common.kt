@@ -105,6 +105,7 @@ internal fun SimpleBooleanQuery<*>.operator() = when (this.comparison) {
     ComparisonOperator.GR -> Compare.Operator.GREATER
     ComparisonOperator.LEQ -> Compare.Operator.LEQUAL
     ComparisonOperator.GEQ -> Compare.Operator.GEQUAL
+    ComparisonOperator.LIKE -> Compare.Operator.LIKE
 }
 
 /**
