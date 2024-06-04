@@ -3,14 +3,13 @@ package org.vitrivr.engine.plugin.cottontaildb
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
+import org.vitrivr.engine.core.features.metadata.time.TimeMetadata
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.scalar.*
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.RasterDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.SkeletonDescriptor
-import org.vitrivr.engine.core.model.descriptor.struct.metadata.MediaDimensionsDescriptor
-import org.vitrivr.engine.core.model.descriptor.struct.metadata.Rectangle2DMetadataDescriptor
-import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadataDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.metadata.*
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.MapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSourceMetadataDescriptor
@@ -77,7 +76,9 @@ class CottontailConnectionProvider: ConnectionProvider {
         MediaDimensionsDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
         SkeletonDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
         RasterDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
-        MapStructDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider
+        MapStructDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
+        DayMetadataDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
+        TimeMetadataDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
     )
 
     /**

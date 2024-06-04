@@ -5,3 +5,5 @@ org.vitrivr.engine.core.features.metadata.temporal.TemporalMetadata
 org.vitrivr.engine.core.features.migration.MediaDimensions
 org.vitrivr.engine.core.features.migration.VideoFPS
 org.vitrivr.engine.core.features.migration.VideoDuration
+org.vitrivr.engine.core.features.metadata.day.DayMetadata
+org.vitrivr.engine.core.features.metadata.time.TimeMetadata

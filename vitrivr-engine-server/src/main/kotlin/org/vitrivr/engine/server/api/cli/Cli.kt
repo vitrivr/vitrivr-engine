@@ -6,6 +6,7 @@ import org.jline.reader.LineReaderBuilder
 import org.jline.reader.UserInterruptException
 import org.jline.terminal.TerminalBuilder
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
+import org.vitrivr.engine.plugin.cottontaildb.LscSandbox
 import org.vitrivr.engine.server.api.cli.commands.ListSchemaCommand
 import java.io.IOException
 import java.util.regex.Pattern
@@ -150,7 +151,8 @@ class Cli(private val manager: SchemaManager) {
         init {
             subcommands(
                 ListSchemaCommand(this@Cli.manager),
-                StopCommand()
+                StopCommand(),
+                LSCHackCommand()
             )
         }
     }
@@ -163,5 +165,16 @@ class Cli(private val manager: SchemaManager) {
             println("Stopping vitrivr engine CLI now...")
             this@Cli.stop()
         }
+    }
+
+    /**
+     * TODO REMOVE
+     * lsc hack
+     */
+    inner class LSCHackCommand: CliktCommand(name="hack", help="DO NOT USE THIS."){
+        override fun run() {
+            LscSandbox.main(emptyArray())
+        }
+
     }
 }
