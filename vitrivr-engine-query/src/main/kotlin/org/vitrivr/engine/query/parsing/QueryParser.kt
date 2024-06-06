@@ -97,7 +97,7 @@ class QueryParser(val schema: Schema) {
                 /* Is this a boolean sub-field query ? */
                 if(fieldAndAttributeName.second != null && input.comparison != null){
                     /* yes */
-                    val subfield = field.analyser.prototype(field).schema().find { it.name == fieldAndAttributeName.second } ?: throw IllegalArgumentException("Field $field does not have a subfield with name ${fieldAndAttributeName.second}")
+                    val subfield = field.analyser.prototype(field).schema().find { it.name == fieldAndAttributeName.second } ?: throw IllegalArgumentException("Field '${field.fieldName}' does not have a subfield with name '${fieldAndAttributeName.second}'")
                     /* For now, we support not all input data */
                     val value = when(input){
                         is TextInputData -> {
