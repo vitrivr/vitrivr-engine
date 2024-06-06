@@ -65,9 +65,9 @@ class RelationExpander(
         inputRetrieved.forEach {
             /* Expand incoming relationships. */
             for (obj in (objects[it.id] ?: emptyList())) {
-                val subject = fetched[obj.third]
+                val subject = fetched[obj.first]
                 if (subject != null) {
-                    it.addRelationship(Relationship.ByRef(it, obj.second, subject, false))
+                    it.addRelationship(Relationship.ByRef(subject, obj.second, it, false))
                 }
             }
 
