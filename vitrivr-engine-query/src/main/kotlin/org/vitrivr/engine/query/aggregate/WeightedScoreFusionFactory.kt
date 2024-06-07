@@ -1,10 +1,13 @@
 package org.vitrivr.engine.query.aggregate
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Aggregator
 import org.vitrivr.engine.core.operators.general.AggregatorFactory
+
+val logger = KotlinLogging.logger {}
 
 class WeightedScoreFusionFactory : AggregatorFactory {
     override fun newAggregator(
@@ -13,6 +16,10 @@ class WeightedScoreFusionFactory : AggregatorFactory {
         context: Context
     ): Aggregator {
         val weights = context[name, "weights"]?.split(",")?.mapNotNull { s -> s.trim().toFloatOrNull() } ?: emptyList()
-        return WeightedScoreFusion(inputs, weights)
+        val p = context[name, "p"]?.toFloatOrNull() ?: 1f
+        if (p == Float.POSITIVE_INFINITY && weights.isNotEmpty()) {
+            logger.warn { "Weights are ignored when p is set to infinity" }
+        }
+        return WeightedScoreFusion(inputs, weights, p)
     }
 }
