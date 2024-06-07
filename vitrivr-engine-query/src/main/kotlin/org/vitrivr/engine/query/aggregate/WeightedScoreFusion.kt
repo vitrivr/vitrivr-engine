@@ -10,10 +10,12 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Aggregator
+import kotlin.math.pow
 
 class WeightedScoreFusion(
     override val inputs: List<Operator<out Retrievable>>,
-    weights: List<Float>
+    weights: List<Float>,
+    val p: Float
 ) : Aggregator {
 
     private val weights: List<Float> = when {
@@ -62,9 +64,21 @@ class WeightedScoreFusion(
 
             for((_, retrieveds) in scoreMap) {
 
-                val score = retrieveds.map { ((it.second.filteredAttribute(ScoreAttribute::class.java))?.score ?: 0f) * weights[it.first] }.sum() / weightsSum
+                var score : Float
+                var first : Retrievable
 
-                val first = retrieveds.first().second
+                if (p == Float.POSITIVE_INFINITY){
+                    score = retrieveds.map { ((it.second.filteredAttribute(ScoreAttribute::class.java))?.score ?: 0f) }.max()
+
+                    first = retrieveds.first().second
+                }
+                else{
+                    val normalization = (retrieveds.map { (it.second.filteredAttribute(ScoreAttribute::class.java))?.score ?: 0f }.sum()).pow(1/p)
+
+                    score = retrieveds.map { ((it.second.filteredAttribute(ScoreAttribute::class.java))?.score ?: 0f).pow(p) * weights[it.first] }.sum().pow(1/p) / normalization
+
+                    first = retrieveds.first().second
+                }
 
 
                 //make a copy and override score
