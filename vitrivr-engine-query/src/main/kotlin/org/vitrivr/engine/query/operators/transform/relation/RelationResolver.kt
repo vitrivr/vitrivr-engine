@@ -29,7 +29,7 @@ class RelationResolver(
      */
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
         val inputs = input.toFlow(scope).toList()
-        val existingIds = inputs.map { it.id }
+        val existingIds = inputs.map { it.id }.toSet()
 
         /* Fetch ids to resolve */
         val newIds = inputs.flatMap {
@@ -45,9 +45,9 @@ class RelationResolver(
         }
 
         /* Deduplicate retrievables which we might already have in the list*/
-        newIds.filter { it !in existingIds }
+        val idsToFetch = newIds.filter { it !in existingIds }
 
-        val retrievables = retrievableReader.getAll(newIds).toList()
+        val retrievables = retrievableReader.getAll(idsToFetch).toList()
 
         /* Emit */
         (inputs + retrievables).forEach {
