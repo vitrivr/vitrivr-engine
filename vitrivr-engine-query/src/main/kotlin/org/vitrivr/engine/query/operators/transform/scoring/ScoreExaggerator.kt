@@ -36,7 +36,7 @@ class ScoreExaggerator(override val input: Operator<out Retrievable>, val factor
 
     private fun exaggerateSimilarity(score: Float): Float {
         // -1 + 2/(1 + ((-1 - x)/(-1 + x))^(-a))
-        return -1 + 2 / (1 + ((-1 - score) / (-1 + score)).pow(factor))
+        return -1 + 2 / (1 + ((-1 - score) / (-1 + score)).pow(-factor))
     }
 
     private fun exaggerateUnbound(score: Float): Float {
