@@ -73,13 +73,18 @@ class WeightedScoreFusion(
                     first = retrieveds.first().second
                 }
                 else{
-                    val normalization = (retrieveds.map { (it.second.filteredAttribute(ScoreAttribute::class.java))?.score ?: 0f }.sum()).pow(1/p)
+                    val normalization = (retrieveds.map { weights[it.first] }.sum()).pow(1/p)
 
-                    score = retrieveds.map { ((it.second.filteredAttribute(ScoreAttribute::class.java))?.score ?: 0f).pow(p) * weights[it.first] }.sum().pow(1/p) / normalization
-
+                    if (normalization == 0f){
+                        score = 0f
+                    }
+                    else {
+                        score = retrieveds.map {
+                            ((it.second.filteredAttribute(ScoreAttribute::class.java))?.score ?: 0f).pow(p) * weights[it.first]
+                        }.sum().pow(1 / p) / normalization
+                    }
                     first = retrieveds.first().second
                 }
-
 
                 //make a copy and override score
                 val retrieved = first.copy()

@@ -30,7 +30,7 @@ sealed interface ScoreAttribute : MergingRetrievableAttribute {
     }
 
     /**
-     * An unbound score. Strictly bound between 0 and 1.
+     * An unbound score. Unbounded and can be any value >= 0.
      */
     data class Unbound(override val score: Float): ScoreAttribute {
         init {
