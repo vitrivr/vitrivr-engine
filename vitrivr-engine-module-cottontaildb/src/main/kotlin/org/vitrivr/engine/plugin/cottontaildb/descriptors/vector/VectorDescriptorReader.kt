@@ -66,6 +66,8 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
     override fun queryAndJoin(query: Query): Sequence<Retrieved> = when (query) {
         is ProximityQuery<*> -> {
             val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
+                .select(DESCRIPTOR_COLUMN_NAME)
+                .select(DESCRIPTOR_ID_COLUMN_NAME)
                 .select(RETRIEVABLE_ID_COLUMN_NAME)
                 .distance(
                     DESCRIPTOR_COLUMN_NAME,
@@ -76,14 +78,14 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
                 .order(DISTANCE_COLUMN_NAME, Direction.valueOf(query.order.name))
                 .limit(query.k)
 
-            if (query.fetchVector) {
-                cottontailQuery.select(DESCRIPTOR_COLUMN_NAME)
-                cottontailQuery.select(DESCRIPTOR_ID_COLUMN_NAME)
-            }
-
             /* Fetch descriptors */
             val descriptors = this.connection.client.query(cottontailQuery).asSequence().map { tuple ->
-                tupleToDescriptor(tuple) to tuple.asFloat(DISTANCE_COLUMN_NAME)?.let { DistanceAttribute(it) }
+                val scoreIndex = tuple.indexOf(DISTANCE_COLUMN_NAME)
+                tupleToDescriptor(tuple) to if (scoreIndex > -1) {
+                    tuple.asFloat(DISTANCE_COLUMN_NAME)?.let { DistanceAttribute(it) }
+                } else {
+                    null
+                }
             }.toList()
 
             /* Fetch retrievable ids. */
