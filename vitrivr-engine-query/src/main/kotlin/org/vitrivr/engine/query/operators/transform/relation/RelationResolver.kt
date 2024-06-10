@@ -47,7 +47,11 @@ class RelationResolver(
         /* Deduplicate retrievables which we might already have in the list*/
         val idsToFetch = newIds.filter { it !in existingIds }
 
-        val retrievables = retrievableReader.getAll(idsToFetch).toList()
+        val retrievables = if(idsToFetch.isNotEmpty()){
+            retrievableReader.getAll(idsToFetch).toList()
+        }else{
+            emptyList()
+        }
 
         /* Emit */
         (inputs + retrievables).forEach {
