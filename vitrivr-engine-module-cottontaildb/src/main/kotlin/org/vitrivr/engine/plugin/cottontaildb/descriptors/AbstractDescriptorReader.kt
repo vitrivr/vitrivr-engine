@@ -13,9 +13,10 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.plugin.cottontaildb.CottontailConnection
-import org.vitrivr.engine.plugin.cottontaildb.DESCRIPTOR_ENTITY_PREFIX
-import org.vitrivr.engine.plugin.cottontaildb.DESCRIPTOR_ID_COLUMN_NAME
+import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.plugin.cottontaildb.*
 import java.util.*
 
 private val logger: KLogger = KotlinLogging.logger {}
@@ -32,44 +33,60 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
     protected val entityName: Name.EntityName = Name.EntityName.create(this.field.schema.name, "${DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
 
     /**
-     * Returns a single [Descriptor]s of type [D] that has the provided [UUID].
+     * Returns a single [Descriptor]s of type [D] that has the provided [DescriptorId].
      *
+     * @param descriptorId The [DescriptorId], i.e., the [UUID] of the [Descriptor] to return.
      * @return [Sequence] of all [Descriptor]s.
      */
-    override fun get(id: UUID): D? = getBy(id, DESCRIPTOR_ID_COLUMN_NAME)
-
-    override fun getBy(id: UUID, columnName: String): D? {
+    override fun get(descriptorId: DescriptorId): D? {
         val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
-            .where(Compare(Column(this.entityName.column(columnName)), Compare.Operator.EQUAL, Literal(UuidValue(id))))
+            .where(Compare(Column(this.entityName.column(DESCRIPTOR_ID_COLUMN_NAME)), Compare.Operator.EQUAL, Literal(UuidValue(descriptorId))))
+        return try {
+            this.connection.client.query(query).use { result ->
+                val ret = if (result.hasNext()) {
+                    this.tupleToDescriptor(result.next())
+                } else {
+                    null
+                }
+                ret
+            }
+        } catch (e: StatusRuntimeException) {
+            logger.error(e) { "Failed to retrieve descriptor $descriptorId due to exception." }
+            null
+        }
+    }
+
+    /**
+     * Returns the [Descriptor]s of type [D] that belong to the provided [RetrievableId].
+     *
+     * @param retrievableId The [RetrievableId] to search for.
+     * @return [Sequence] of [Descriptor]  of type [D]
+     */
+    override fun getFor(retrievableId: RetrievableId): Sequence<D> {
+        val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName).where(Compare(Column(this.entityName.column(RETRIEVABLE_ID_COLUMN_NAME)), Compare.Operator.EQUAL, Literal(UuidValue(retrievableId))))
         return try {
             val result = this.connection.client.query(query)
-            val ret = if (result.hasNext()) {
-                this.tupleToDescriptor(result.next())
-            } else {
-                null
-            }
-            result.close()
-            ret
+            result.asSequence().map { this.tupleToDescriptor(it) }
         } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to retrieve descriptor $id due to exception." }
-            null
+            logger.error(e) { "Failed to retrieve descriptors for retrievable $retrievableId due to exception." }
+            emptySequence()
         }
     }
 
     /**
      * Checks whether a [Descriptor] of type [D] with the provided [UUID] exists.
      *
-     * @param id The [DescriptorId], i.e., the [UUID] of the [Descriptor] to check for.
+     * @param descriptorId The [DescriptorId], i.e., the [UUID] of the [Descriptor] to check for.
      * @return True if descriptor exsits, false otherwise
      */
-    override fun exists(id: DescriptorId): Boolean {
+    override fun exists(descriptorId: DescriptorId): Boolean {
         val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName).exists()
-            .where(Compare(Column(this.entityName.column(DESCRIPTOR_ID_COLUMN_NAME)), Compare.Operator.EQUAL, Literal(UuidValue(id))))
+            .where(Compare(Column(this.entityName.column(DESCRIPTOR_ID_COLUMN_NAME)), Compare.Operator.EQUAL, Literal(UuidValue(descriptorId))))
         return try {
             val result = this.connection.client.query(query)
             result.next().asBoolean(0) ?: false
         } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to retrieve descriptor $id due to exception." }
+            logger.error(e) { "Failed to retrieve descriptor $descriptorId due to exception." }
             false
         }
     }
@@ -85,29 +102,46 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
             val result = this.connection.client.query(query)
             result.asSequence().map { this.tupleToDescriptor(it) }
         } catch (e: StatusRuntimeException) {
-            /* TODO: Log. */
-            emptySequence()
-        }
-    }
-
-    override fun getAllBy(ids: Iterable<UUID>, columnName: String): Sequence<D> {
-        val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
-            .where(Compare(Column(this.entityName.column(columnName)), Compare.Operator.IN, org.vitrivr.cottontail.client.language.basics.expression.List(ids.map { UuidValue(it) }.toTypedArray())))
-        return try {
-            val result = this.connection.client.query(query)
-            result.asSequence().map { this.tupleToDescriptor(it) }
-        } catch (e: StatusRuntimeException) {
-            /* TODO: Log. */
+            logger.error(e) { "Failed to retrieve descriptors due to exception." }
             emptySequence()
         }
     }
 
     /**
-     * Returns all [Descriptor]s of type [D] that are contained in the provided [Iterable] of UUIDs as a [Sequence].
+     * Returns a [Sequence] of all [Descriptor]s whose [DescriptorId] is contained in the provided [Iterable].
      *
-     * @return [Sequence] of all [Descriptor]s.
+     * @param descriptorIds A [Iterable] of [DescriptorId]s to return.
+     * @return [Sequence] of [Descriptor] of type [D]
      */
-    override fun getAll(ids: Iterable<UUID>): Sequence<D> = getAllBy(ids, DESCRIPTOR_ID_COLUMN_NAME)
+    override fun getAll(descriptorIds: Iterable<UUID>): Sequence<D> {
+        val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
+            .where(Compare(Column(this.entityName.column(DESCRIPTOR_ID_COLUMN_NAME)), Compare.Operator.IN, org.vitrivr.cottontail.client.language.basics.expression.List(descriptorIds.map { UuidValue(it) }.toTypedArray())))
+        return try {
+            val result = this.connection.client.query(query)
+            result.asSequence().map { this.tupleToDescriptor(it) }
+        } catch (e: StatusRuntimeException) {
+            logger.error(e) { "Failed to retrieve descriptors for provided descriptor IDs due to exception." }
+            emptySequence()
+        }
+    }
+
+    /**
+     * Returns a [Sequence] of all [Descriptor] whose [RetrievableId] is contained in the provided [Iterable].
+     *
+     * @param retrievableIds A [Iterable] of [RetrievableId]s to return [Descriptor]s for
+     * @return [Sequence] of [Descriptor] of type [D]
+     */
+    override fun getAllFor(retrievableIds: Iterable<RetrievableId>): Sequence<D> {
+        val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
+            .where(Compare(Column(this.entityName.column(RETRIEVABLE_ID_COLUMN_NAME)), Compare.Operator.IN, org.vitrivr.cottontail.client.language.basics.expression.List(retrievableIds.map { UuidValue(it) }.toTypedArray())))
+        return try {
+            val result = this.connection.client.query(query)
+            result.asSequence().map { this.tupleToDescriptor(it) }
+        } catch (e: StatusRuntimeException) {
+            logger.error(e) { "Failed to retrieve descriptors for provided retrievable IDs due to exception." }
+            emptySequence()
+        }
+    }
 
     /**
      * Returns the number of [Descriptor]s contained in the entity managed by this [AbstractDescriptorReader]
@@ -128,6 +162,56 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
         } catch (e: StatusRuntimeException) {
             /* TODO: Log. */
             0L
+        }
+    }
+
+    /**
+     * Returns a [Sequence] of all [Retrieved]s that match the given [Query].
+     *
+     * Implicitly, this methods executes a [query] and then JOINS the result with the [Retrieved]s.
+     *
+     * @param query The [Query] that should be executed.
+     * @return [Sequence] of [Retrieved].
+     */
+    override fun queryAndJoin(query: Query): Sequence<Retrieved> {
+        val descriptors = query(query).toList()
+
+        /* Fetch retrievable ids. */
+        val retrievables = this.fetchRetrievable(descriptors.mapNotNull { it.retrievableId }.toSet())
+        return descriptors.asSequence().mapNotNull { descriptor ->
+            val retrievable = retrievables[descriptor.retrievableId]
+            if (retrievable != null) {
+                retrievable.addDescriptor(descriptor)
+                retrievable
+            } else {
+                null
+            }
+        }
+    }
+
+    /**
+     * Fetches the [Retrieved] specified by the provided [RetrievableId]s.
+     *
+     * @param ids The [RetrievableId] to fetch
+     * @return A [Map] of [RetrievableId] to [Retrieved]
+     */
+    protected fun fetchRetrievable(ids: Iterable<RetrievableId>): Map<RetrievableId, Retrieved> {
+        /* Prepare Cottontail DB query. */
+        val query = org.vitrivr.cottontail.client.language.dql.Query(RETRIEVABLE_ENTITY_NAME).select("*").where(
+            Compare(
+                Column(Name.ColumnName.create(RETRIEVABLE_ID_COLUMN_NAME)),
+                Compare.Operator.IN,
+                org.vitrivr.cottontail.client.language.basics.expression.List(ids.map { UuidValue(it) }.toTypedArray())
+            )
+        )
+
+        return this.connection.client.query(query).asSequence().associate { tuple ->
+            val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '$RETRIEVABLE_ID_COLUMN_NAME'.")
+            val type = tuple.asString(RETRIEVABLE_TYPE_COLUMN_NAME)
+
+            /* Prepare the retrieved. */
+            val retrieved = Retrieved(retrievableId, type, false)
+            retrievableId to retrieved
         }
     }
 

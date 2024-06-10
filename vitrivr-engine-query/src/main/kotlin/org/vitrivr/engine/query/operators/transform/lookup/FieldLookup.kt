@@ -17,7 +17,7 @@ import javax.management.Descriptor
 /**
  * Appends [Descriptor] to a [Retrieved] based on the values of a [Schema.Field], if available.
  *
- * @version 1.1.1
+ * @version 1.1.2
  * @author Luca Rossetto
  * @author Ralph Gasser
  */
@@ -35,7 +35,7 @@ class FieldLookup(
         val descriptors = if (ids.isEmpty()) {
             emptyMap()
         } else {
-            this@FieldLookup.reader.getAllBy(ids, "retrievableId").filter { it.retrievableId != null }.associateBy { it.retrievableId!! }
+            this@FieldLookup.reader.getAllFor(ids).associateBy { it.retrievableId!! }
         }
 
         /* Emit retrievable with added attribute. */

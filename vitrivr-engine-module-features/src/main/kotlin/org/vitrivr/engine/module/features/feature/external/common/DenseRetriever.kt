@@ -20,12 +20,13 @@ import org.vitrivr.engine.core.util.math.ScoringFunctions
  * @see [AbstractRetriever]
  * @see [ProximityQuery]
  *
- * @author Rahel Arnold, Fynn Faber
+ * @author Rahel Arnold
+ * @author Fynn Faber
  * @version 1.0.0
  */
 class DenseRetriever<C : ContentElement<*>>(field: Schema.Field<C, FloatVectorDescriptor>, query: ProximityQuery<*>, context: QueryContext) : AbstractRetriever<C, FloatVectorDescriptor>(field, query, context) {
     override fun toFlow(scope: CoroutineScope) = flow {
-        this@DenseRetriever.reader.getAll(this@DenseRetriever.query).forEach {
+        this@DenseRetriever.reader.queryAndJoin(this@DenseRetriever.query).forEach {
             it.addAttribute(ScoringFunctions.bounded(it, 0.0f, 2.0f))
             emit(it)
         }

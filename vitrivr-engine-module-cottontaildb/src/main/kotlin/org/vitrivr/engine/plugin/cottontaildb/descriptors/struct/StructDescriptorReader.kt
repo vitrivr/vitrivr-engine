@@ -13,11 +13,9 @@ import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
-import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.plugin.cottontaildb.*
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorReader
-import java.io.File
 import java.util.*
 import kotlin.reflect.full.primaryConstructor
 
@@ -43,8 +41,9 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
      * Executes the provided [Query] and returns a [Sequence] of [Retrieved]s that match it.
      *
      * @param query The [Query] to execute.
+     * @return [Sequence] of [StructDescriptor]s that match the query.
      */
-    override fun getAll(query: Query): Sequence<Retrieved> {
+    override fun query(query: Query): Sequence<StructDescriptor> {
         /* Prepare query. */
         val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName).select(RETRIEVABLE_ID_COLUMN_NAME)
         when (query) {
@@ -65,14 +64,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
 
         /* Execute query. */
         return this.connection.client.query(cottontailQuery).asSequence().map { tuple ->
-            val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value
-                ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
-            val retrieved = Retrieved(retrievableId, null, false)
-            if(query is SimpleFulltextQuery){
-                val score = tuple.asDouble(SCORE_COLUMN_NAME) ?: 0.0
-                retrieved.addAttribute(ScoreAttribute.Unbound(score.toFloat()))
-            }
-            retrieved
+            this.tupleToDescriptor(tuple)
         }
     }
 
@@ -83,10 +75,10 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
      * @return The resulting [StructDescriptor].
      */
     override fun tupleToDescriptor(tuple: Tuple): StructDescriptor {
-        if(this.field.analyser.descriptorClass == MapStructDescriptor::class){
-            return this.tupleToMapStructDescriptor(tuple)
+        return if (this.field.analyser.descriptorClass == MapStructDescriptor::class) {
+            this.tupleToMapStructDescriptor(tuple)
         }else{
-            return this.tupleToStructDescriptor(tuple)
+            this.tupleToStructDescriptor(tuple)
         }
     }
 

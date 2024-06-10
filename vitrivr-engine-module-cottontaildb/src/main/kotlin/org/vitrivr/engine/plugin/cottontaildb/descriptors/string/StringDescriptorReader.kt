@@ -9,8 +9,6 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
-import org.vitrivr.engine.core.model.retrievable.Retrieved
-import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.model.types.toValue
 import org.vitrivr.engine.plugin.cottontaildb.*
@@ -24,7 +22,7 @@ import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorRead
  * @version 1.0.0
  */
 class StringDescriptorReader(field: Schema.Field<*, StringDescriptor>, connection: CottontailConnection) : AbstractDescriptorReader<StringDescriptor>(field, connection) {
-    override fun getAll(query: Query): Sequence<Retrieved> {
+    override fun query(query: Query): Sequence<StringDescriptor> {
         /* Prepare query. */
         val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName).select(RETRIEVABLE_ID_COLUMN_NAME)
         when (query) {
@@ -44,11 +42,7 @@ class StringDescriptorReader(field: Schema.Field<*, StringDescriptor>, connectio
 
         /* Execute query. */
         return this.connection.client.query(cottontailQuery).asSequence().map { tuple ->
-            val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
-            val score = tuple.asDouble(SCORE_COLUMN_NAME) ?: 0.0
-            val retrieved = Retrieved(retrievableId, null, false)
-            retrieved.addAttribute(ScoreAttribute.Unbound(score.toFloat()))
-            retrieved
+            this.tupleToDescriptor(tuple)
         }
     }
 

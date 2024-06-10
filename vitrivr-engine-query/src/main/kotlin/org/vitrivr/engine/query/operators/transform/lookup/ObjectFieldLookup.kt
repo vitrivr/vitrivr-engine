@@ -15,7 +15,7 @@ import org.vitrivr.engine.core.operators.general.Transformer
 /**
  * Appends [DescriptorAttribute] to a [Retrieved] in a specified object [Relationship] based on lookup values of a [Schema.Field], if available.
  *
- * @version 1.0.1
+ * @version 1.0.2
  * @author Luca Rossetto
  * @author Ralph Gasser
  */
@@ -38,7 +38,7 @@ class ObjectFieldLookup(override val input: Operator<out Retrievable>, private v
 
         /* Fetch descriptors for retrievables that should be enriched. */
         val descriptors = if (enrich.isNotEmpty()) {
-            this@ObjectFieldLookup.reader.getAllBy(enrich.keys, "retrievableId").filter { it.retrievableId != null }.associateBy { it.retrievableId!! }
+            this@ObjectFieldLookup.reader.getAllFor(enrich.keys).associateBy { it.retrievableId!! }
         } else {
             emptyMap()
         }
