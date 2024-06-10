@@ -29,7 +29,7 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
      *
      * @param query The [Query] to execute.
      */
-    override fun getAll(query: Query): Sequence<Retrieved> {
+    override fun query(query: Query): Sequence<ScalarDescriptor<*>> {
         require(query is SimpleBooleanQuery<*>) { "Query of type ${query::class} is not supported by ScalarDescriptorReader." }
 
         /* Prepare query. */
@@ -40,16 +40,18 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
             .where(Compare(Column(this.entityName.column(DESCRIPTOR_COLUMN_NAME)), query.operator(), Literal(query.value.toCottontailValue())))
 
         /* Execute query. */
-        return this.connection.client.query(cottontailQuery).asSequence().mapNotNull {
-            val descriptor = this.tupleToDescriptor(it)
-            if (descriptor.retrievableId != null) {
-                val retrieved = Retrieved(descriptor.retrievableId!!, null, false)
-                retrieved.addDescriptor(descriptor)
-                retrieved
-            } else {
-                null
-            }
+        return this.connection.client.query(cottontailQuery).asSequence().map {
+            this.tupleToDescriptor(it)
         }
+    }
+
+    /**
+     * Executes the provided [Query] and returns a [Sequence] of [Retrieved]s that match it.
+     *
+     * @param query The [Query] to execute.
+     */
+    override fun queryAndJoin(query: Query): Sequence<Retrieved> {
+        TODO("Not yet implemented")
     }
 
     /**

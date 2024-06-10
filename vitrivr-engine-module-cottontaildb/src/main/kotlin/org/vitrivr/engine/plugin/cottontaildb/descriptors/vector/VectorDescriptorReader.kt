@@ -17,7 +17,7 @@ import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorRead
  * An [AbstractDescriptorReader] for [FloatVectorDescriptor]s.
  *
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.2.0
  */
 internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>>, connection: CottontailConnection) : AbstractDescriptorReader<VectorDescriptor<*>>(field, connection) {
 
@@ -29,7 +29,7 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
      *
      * @param query The [Query] to execute.
      */
-    override fun getAll(query: Query): Sequence<Retrieved> = when (query) {
+    override fun query(query: Query): Sequence<VectorDescriptor<*>> = when (query) {
         is ProximityQuery<*> -> {
             val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
                 .select(RETRIEVABLE_ID_COLUMN_NAME)
@@ -40,26 +40,62 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
                     DISTANCE_COLUMN_NAME
                 )
                 .order(DISTANCE_COLUMN_NAME, Direction.valueOf(query.order.name))
-                .limit(query.k.toLong())
+                .limit(query.k)
 
             if (query.fetchVector) {
                 cottontailQuery.select(DESCRIPTOR_COLUMN_NAME)
                 cottontailQuery.select(DESCRIPTOR_ID_COLUMN_NAME)
             }
 
-            this.connection.client.query(cottontailQuery).asSequence().mapNotNull {
-                val retrievableId = it.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value ?: return@mapNotNull null
-                val distance =
-                    (it.asFloat(DISTANCE_COLUMN_NAME) ?: it.asDouble(DISTANCE_COLUMN_NAME)?.toFloat())?.let { f ->
-                        if (f.isNaN()) Float.MAX_VALUE else f
-                    } ?: return@mapNotNull null
-                val retrieved = Retrieved(retrievableId, null, false)
-                retrieved.addAttribute(DistanceAttribute(distance))
-                if (query.fetchVector) {
-                    val descriptor = tupleToDescriptor(it)
-                    retrieved.addDescriptor(descriptor)
-                }
-                retrieved
+            this.connection.client.query(cottontailQuery).asSequence().map {
+                tupleToDescriptor(it)
+            }
+        }
+
+        else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by FloatVectorDescriptorReader.")
+    }
+
+    /**
+     * Returns a [Sequence] of all [Retrieved]s that match the given [Query].
+     *
+     * Implicitly, this methods executes a [query] and then JOINS the result with the [Retrieved]s.
+     *
+     * @param query The [Query] that should be executed.
+     * @return [Sequence] of [Retrieved].
+     */
+    override fun queryAndJoin(query: Query): Sequence<Retrieved> = when (query) {
+        is ProximityQuery<*> -> {
+            val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
+                .select(RETRIEVABLE_ID_COLUMN_NAME)
+                .distance(
+                    DESCRIPTOR_COLUMN_NAME,
+                    query.value.toCottontailValue(),
+                    Distances.valueOf(query.distance.toString()),
+                    DISTANCE_COLUMN_NAME
+                )
+                .order(DISTANCE_COLUMN_NAME, Direction.valueOf(query.order.name))
+                .limit(query.k)
+
+            if (query.fetchVector) {
+                cottontailQuery.select(DESCRIPTOR_COLUMN_NAME)
+                cottontailQuery.select(DESCRIPTOR_ID_COLUMN_NAME)
+            }
+
+            /* Fetch descriptors */
+            val descriptors = this.connection.client.query(cottontailQuery).asSequence().map { tuple ->
+                tupleToDescriptor(tuple) to tuple.asFloat(DISTANCE_COLUMN_NAME)?.let { DistanceAttribute(it) }
+            }.toList()
+
+            /* Fetch retrievable ids. */
+            val retrievables = this.fetchRetrievable(descriptors.mapNotNull { it.first.retrievableId }.toSet())
+
+            descriptors.asSequence().mapNotNull { descriptor ->
+                val retrievable = retrievables[descriptor.first.retrievableId] ?: return@mapNotNull null
+
+                /* Append descriptor and distance attribute. */
+                retrievable.addDescriptor(descriptor.first)
+                descriptor.second?.let { retrievable.addAttribute(it) }
+                retrievable
             }
         }
 

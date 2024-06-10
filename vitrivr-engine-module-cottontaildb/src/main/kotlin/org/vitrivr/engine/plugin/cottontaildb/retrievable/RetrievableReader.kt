@@ -43,12 +43,10 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
      * @param id [RetrievableId]s to return.
      * @return A [Sequence] of all [Retrievable].
      */
-    override fun get(id: RetrievableId): Retrievable? = getBy(id, RETRIEVABLE_ID_COLUMN_NAME)
-
-    override fun getBy(id: UUID, columnName: String): Retrievable? {
+    override fun get(id: RetrievableId): Retrievable? {
         val query = Query(this.entityName).where(
             Compare(
-                Column(this.entityName.column(columnName)),
+                Column(this.entityName.column(RETRIEVABLE_ID_COLUMN_NAME)),
                 Compare.Operator.EQUAL,
                 Literal(UuidValue(id))
             )
@@ -57,8 +55,7 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
             this.connection.client.query(query).use {
                 if (it.hasNext()) {
                     val tuple = it.next()
-                    val retrievableId = tuple.asUuidValue(columnName)?.value
-                        ?: throw IllegalArgumentException("The provided tuple is missing the required field '${columnName}'.")
+                    val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
                     val type = tuple.asString(RETRIEVABLE_TYPE_COLUMN_NAME)
                     Retrieved(retrievableId, type, false)
                 } else {
@@ -75,7 +72,7 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
      * Checks whether a [Retrievable] with the provided [UUID] exists.
      *
      * @param id The [RetrievableId], i.e., the [UUID] of the [Retrievable] to check for.
-     * @return True if descriptor exsits, false otherwise
+     * @return True if descriptor exists, false otherwise
      */
     override fun exists(id: RetrievableId): Boolean {
         val query = Query(this.entityName).exists()
@@ -101,21 +98,23 @@ internal class RetrievableReader(private val connection: CottontailConnection) :
      * @param ids A [Iterable] of [RetrievableId]s to return.
      * @return A [Sequence] of all [Retrievable].
      */
-    override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrievable> = getAllBy(ids, RETRIEVABLE_ID_COLUMN_NAME)
-
-    override fun getAllBy(ids: Iterable<UUID>, columnName: String): Sequence<Retrievable> {
+    override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrievable> {
         val query = Query(this.entityName).select("*").where(
             Compare(
-                Column(Name.ColumnName.create(columnName)),
+                Column(this.entityName.column(RETRIEVABLE_ID_COLUMN_NAME)),
                 Compare.Operator.IN,
                 List(ids.map { UuidValue(it) }.toTypedArray())
             )
         )
-        return this.connection.client.query(query).asSequence().map { tuple ->
-            val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value
-                ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
-            val type = tuple.asString(RETRIEVABLE_TYPE_COLUMN_NAME)
-            Retrieved(retrievableId, type, false)
+        return try {
+            this.connection.client.query(query).asSequence().map { tuple ->
+                val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
+                val type = tuple.asString(RETRIEVABLE_TYPE_COLUMN_NAME)
+                Retrieved(retrievableId, type, false)
+            }
+        } catch (e: StatusRuntimeException) {
+            logger.error(e) { "Failed to retrieve retrievables due to exception." }
+            emptySequence()
         }
     }
 

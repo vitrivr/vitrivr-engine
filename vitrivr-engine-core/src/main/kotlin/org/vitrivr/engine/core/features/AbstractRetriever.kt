@@ -33,7 +33,7 @@ abstract class AbstractRetriever<C : ContentElement<*>, D : Descriptor>(override
      * @param scope The [CoroutineScope] to execute the resulting [Flow] in.
      */
     override fun toFlow(scope: CoroutineScope) = flow {
-        this@AbstractRetriever.reader.getAll(this@AbstractRetriever.query).forEach {
+        this@AbstractRetriever.reader.queryAndJoin(this@AbstractRetriever.query).forEach {
             emit(it)
         }
     }

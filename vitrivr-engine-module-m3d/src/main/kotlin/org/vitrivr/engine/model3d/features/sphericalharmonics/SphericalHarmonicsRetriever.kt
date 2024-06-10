@@ -7,7 +7,6 @@ import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.Model3DContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
@@ -36,7 +35,7 @@ class SphericalHarmonicsRetriever(override val field: Schema.Field<Model3DConten
 
         val reader = this.field.getReader()
         return flow {
-            reader.getAll(this@SphericalHarmonicsRetriever.query).forEach {
+            reader.queryAndJoin(this@SphericalHarmonicsRetriever.query).forEach {
                 it.addAttribute(ScoreAttribute.Similarity(scoringFunction(it)))
                 emit(it)
             }
