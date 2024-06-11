@@ -160,7 +160,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
             result.close()
             ret
         } catch (e: StatusRuntimeException) {
-            /* TODO: Log. */
+            logger.error(e) { "Failed to count descriptors due to exception." }
             0L
         }
     }
@@ -197,9 +197,9 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      */
     protected fun fetchRetrievable(ids: Iterable<RetrievableId>): Map<RetrievableId, Retrieved> {
         /* Prepare Cottontail DB query. */
-        val query = org.vitrivr.cottontail.client.language.dql.Query(RETRIEVABLE_ENTITY_NAME).select("*").where(
+        val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName).select("*").where(
             Compare(
-                Column(Name.ColumnName.create(RETRIEVABLE_ID_COLUMN_NAME)),
+                Column(this.entityName.column(RETRIEVABLE_ID_COLUMN_NAME)),
                 Compare.Operator.IN,
                 org.vitrivr.cottontail.client.language.basics.expression.List(ids.map { UuidValue(it) }.toTypedArray())
             )
