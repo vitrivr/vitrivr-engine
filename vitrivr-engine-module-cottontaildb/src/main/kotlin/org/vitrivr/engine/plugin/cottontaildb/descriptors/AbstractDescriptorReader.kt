@@ -197,9 +197,10 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      */
     protected fun fetchRetrievable(ids: Iterable<RetrievableId>): Map<RetrievableId, Retrieved> {
         /* Prepare Cottontail DB query. */
-        val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName).select("*").where(
+        val entityName = this.entityName.schema().entity(RETRIEVABLE_ENTITY_NAME)
+        val query = org.vitrivr.cottontail.client.language.dql.Query(entityName).select("*").where(
             Compare(
-                Column(this.entityName.column(RETRIEVABLE_ID_COLUMN_NAME)),
+                Column(entityName.column(RETRIEVABLE_ID_COLUMN_NAME)),
                 Compare.Operator.IN,
                 org.vitrivr.cottontail.client.language.basics.expression.List(ids.map { UuidValue(it) }.toTypedArray())
             )
