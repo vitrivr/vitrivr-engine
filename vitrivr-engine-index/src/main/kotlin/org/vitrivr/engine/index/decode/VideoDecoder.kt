@@ -132,15 +132,17 @@ class VideoDecoder : DecoderFactory {
                 val audioBuffer = LinkedList<Pair<ShortBuffer, Long>>()
 
                 /* Flags indicating that video / audio is ready to be emitted. */
-                var videoReady = !this@Instance.video
-                var audioReady = !this@Instance.audio
+                var videoReady = !(grabber.hasVideo() && this@Instance.video)
+                var audioReady = !(grabber.hasAudio() && this@Instance.audio)
 
                 do {
                     val frame = grabber.grabFrame(this@Instance.audio, this@Instance.video, true, this@Instance.keyFrames, true) ?: break
                     when (frame.type) {
                         Frame.Type.VIDEO -> {
                             imageBuffer.add(Java2DFrameConverter().use { it.convert(frame) to frame.timestamp })
-                            if (frame.timestamp > windowEnd) videoReady = true
+                            if (frame.timestamp > windowEnd) {
+                                videoReady = true
+                            }
                         }
 
                         Frame.Type.AUDIO -> {
@@ -148,7 +150,9 @@ class VideoDecoder : DecoderFactory {
                             if (samples != null) {
                                 audioBuffer.add(ShortBuffer.allocate(samples.limit()).put(samples) to frame.timestamp)
                             }
-                            if (frame.timestamp > windowEnd) audioReady = true
+                            if (frame.timestamp > windowEnd) {
+                                audioReady = true
+                            }
                         }
 
                         else -> { /* No op. */
@@ -160,8 +164,8 @@ class VideoDecoder : DecoderFactory {
                         emit(imageBuffer, audioBuffer, grabber, windowEnd, sourceRetrievable, channel)
 
                         /* Reset counters and flags. */
-                        videoReady = !this@Instance.video
-                        audioReady = !this@Instance.audio
+                        videoReady = !(grabber.hasVideo() && this@Instance.video)
+                        audioReady = !(grabber.hasAudio() && this@Instance.audio)
 
                         /* Update window end. */
                         windowEnd += TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
