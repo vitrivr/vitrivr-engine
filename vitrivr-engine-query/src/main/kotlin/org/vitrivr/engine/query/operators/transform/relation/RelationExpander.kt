@@ -50,9 +50,9 @@ class RelationExpander(
         }
 
         /* Collection IDs that are new and fetch corresponding retrievable. */
-        val newIds = (objects.values.flatMap { o -> o.map { s -> s.first } }.toSet() + subjects.values.flatMap { s -> s.map { o -> o.third } }.toSet()) - ids
-        val new = if (newIds.isNotEmpty()) {
-            this@RelationExpander.retrievableReader.getAll(newIds.toList())
+        val fetchIds = (objects.values.flatMap { o -> o.map { s -> s.first } }.toSet() + subjects.values.flatMap { s -> s.map { o -> o.third } }.toSet())
+        val fetched = if (fetchIds.isNotEmpty()) {
+            this@RelationExpander.retrievableReader.getAll(fetchIds.toList())
         } else {
             emptySequence()
         }.map {
@@ -65,7 +65,7 @@ class RelationExpander(
         inputRetrieved.forEach {
             /* Expand incoming relationships. */
             for (obj in (objects[it.id] ?: emptyList())) {
-                val subject = new[obj.third]
+                val subject = fetched[obj.third]
                 if (subject != null) {
                     it.addRelationship(Relationship.ByRef(it, obj.second, subject, false))
                 }
@@ -73,7 +73,7 @@ class RelationExpander(
 
             /* Expand outgoing relationships. */
             for (sub in (subjects[it.id] ?: emptyList())) {
-                val `object` = new[sub.third]
+                val `object` = fetched[sub.third]
                 if (`object` != null) {
                     it.addRelationship(Relationship.ByRef(it, sub.second, `object`, false))
 
