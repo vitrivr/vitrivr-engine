@@ -95,6 +95,7 @@ class StringDescriptorReader(field: Schema.Field<*, StringDescriptor>, connectio
                 null
             }
         }.toList()
+        if (descriptors.isEmpty()) return emptySequence()
 
         /* Fetch retrievable ids. */
         val retrievables = this.fetchRetrievable(descriptors.mapNotNull { it.first.retrievableId }.toSet())

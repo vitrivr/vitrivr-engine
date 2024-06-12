@@ -63,45 +63,47 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
      * @param query The [Query] that should be executed.
      * @return [Sequence] of [Retrieved].
      */
-    override fun queryAndJoin(query: Query): Sequence<Retrieved> = when (query) {
-        is ProximityQuery<*> -> {
-            val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
-                .select(DESCRIPTOR_COLUMN_NAME)
-                .select(DESCRIPTOR_ID_COLUMN_NAME)
-                .select(RETRIEVABLE_ID_COLUMN_NAME)
-                .distance(
-                    DESCRIPTOR_COLUMN_NAME,
-                    query.value.toCottontailValue(),
-                    Distances.valueOf(query.distance.toString()),
-                    DISTANCE_COLUMN_NAME
-                )
-                .order(DISTANCE_COLUMN_NAME, Direction.valueOf(query.order.name))
-                .limit(query.k)
+    override fun queryAndJoin(query: Query): Sequence<Retrieved> {
+        when (query) {
+            is ProximityQuery<*> -> {
+                val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
+                    .select(DESCRIPTOR_COLUMN_NAME)
+                    .select(DESCRIPTOR_ID_COLUMN_NAME)
+                    .select(RETRIEVABLE_ID_COLUMN_NAME)
+                    .distance(
+                        DESCRIPTOR_COLUMN_NAME,
+                        query.value.toCottontailValue(),
+                        Distances.valueOf(query.distance.toString()),
+                        DISTANCE_COLUMN_NAME
+                    )
+                    .order(DISTANCE_COLUMN_NAME, Direction.valueOf(query.order.name))
+                    .limit(query.k)
 
-            /* Fetch descriptors */
-            val descriptors = this.connection.client.query(cottontailQuery).asSequence().map { tuple ->
-                val scoreIndex = tuple.indexOf(DISTANCE_COLUMN_NAME)
-                tupleToDescriptor(tuple) to if (scoreIndex > -1) {
-                    tuple.asFloat(DISTANCE_COLUMN_NAME)?.let { DistanceAttribute(it) }
-                } else {
-                    null
+                /* Fetch descriptors */
+                val descriptors = this.connection.client.query(cottontailQuery).asSequence().map { tuple ->
+                    val scoreIndex = tuple.indexOf(DISTANCE_COLUMN_NAME)
+                    tupleToDescriptor(tuple) to if (scoreIndex > -1) {
+                        tuple.asFloat(DISTANCE_COLUMN_NAME)?.let { DistanceAttribute(it) }
+                    } else {
+                        null
+                    }
+                }.toList()
+                if (descriptors.isEmpty()) return emptySequence()
+
+                /* Fetch retrievable ids. */
+                val retrievables = this.fetchRetrievable(descriptors.mapNotNull { it.first.retrievableId }.toSet())
+                return descriptors.asSequence().mapNotNull { descriptor ->
+                    val retrievable = retrievables[descriptor.first.retrievableId] ?: return@mapNotNull null
+
+                    /* Append descriptor and distance attribute. */
+                    retrievable.addDescriptor(descriptor.first)
+                    descriptor.second?.let { retrievable.addAttribute(it) }
+                    retrievable
                 }
-            }.toList()
-
-            /* Fetch retrievable ids. */
-            val retrievables = this.fetchRetrievable(descriptors.mapNotNull { it.first.retrievableId }.toSet())
-
-            descriptors.asSequence().mapNotNull { descriptor ->
-                val retrievable = retrievables[descriptor.first.retrievableId] ?: return@mapNotNull null
-
-                /* Append descriptor and distance attribute. */
-                retrievable.addDescriptor(descriptor.first)
-                descriptor.second?.let { retrievable.addAttribute(it) }
-                retrievable
             }
-        }
 
-        else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by FloatVectorDescriptorReader.")
+            else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by FloatVectorDescriptorReader.")
+        }
     }
 
     /**

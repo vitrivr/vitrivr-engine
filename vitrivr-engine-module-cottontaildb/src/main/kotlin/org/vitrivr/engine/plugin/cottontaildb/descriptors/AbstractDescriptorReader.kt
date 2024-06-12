@@ -175,6 +175,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      */
     override fun queryAndJoin(query: Query): Sequence<Retrieved> {
         val descriptors = query(query).toList()
+        if (descriptors.isEmpty()) return emptySequence()
 
         /* Fetch retrievable ids. */
         val retrievables = this.fetchRetrievable(descriptors.mapNotNull { it.retrievableId }.toSet())
