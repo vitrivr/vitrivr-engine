@@ -1,1 +1,2 @@
 org.vitrivr.engine.index.exporters.ThumbnailExporter
+org.vitrivr.engine.index.exporters.VideoPreviewExporter
