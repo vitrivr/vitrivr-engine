@@ -44,12 +44,26 @@
             "maxSideResolution": "400",
             "mimeType": "JPG"
           }
+        },
+        {
+          "name": "preview",
+          "factory": "VideoPreviewExporter",
+          "resolverName": "disk",
+          "parameters": {
+            "maxSideResolution": "400",
+            "mimeType": "JPG",
+            "previewTimeSec": "5"
+          }
         }
       ],
       "extractionPipelines": [
         {
           "name": "ingestion",
           "path": "./config-ingestion.json"
+        },
+        {
+          "name": "preview",
+          "path": "./config-ingestion-preview.json"
         }
       ]
     }
