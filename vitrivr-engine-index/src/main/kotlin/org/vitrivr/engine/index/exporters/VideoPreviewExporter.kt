@@ -19,6 +19,7 @@ import org.vitrivr.engine.core.operators.general.Exporter
 import org.vitrivr.engine.core.operators.general.ExporterFactory
 import org.vitrivr.engine.core.source.file.FileSource
 import org.vitrivr.engine.core.source.file.MimeType
+import java.io.InputStream
 
 private val logger: KLogger = KotlinLogging.logger {}
 
@@ -96,9 +97,8 @@ class VideoPreviewExporter : ExporterFactory {
 
               println(previewTimeSec)
               val source =
-                  (retrievable.filteredAttribute(SourceAttribute::class.java)?.source as FileSource)
-                      .path
-              val frame = getFrameAtSecond(source.toString(), previewTimeSec)
+                  (retrievable.filteredAttribute(SourceAttribute::class.java)?.source)?.newInputStream()
+              val frame = source?.let { getFrameAtSecond(it, previewTimeSec) }
               val imgBytes =
                   ImmutableImage.fromAwt(frame)
                       .let {
@@ -122,8 +122,8 @@ class VideoPreviewExporter : ExporterFactory {
      * @param second The second at which to extract the frame.
      * @return The extracted frame as a BufferedImage.
      */
-    private fun getFrameAtSecond(videoFilePath: String, second: Int): BufferedImage {
-      FFmpegFrameGrabber(videoFilePath).use { grabber ->
+    private fun getFrameAtSecond(input: InputStream, second: Int): BufferedImage {
+      FFmpegFrameGrabber(input).use { grabber ->
         grabber.start()
         val frameRate = grabber.frameRate
         grabber.frameNumber = (frameRate * second).toInt()
