@@ -6,16 +6,18 @@ vitrivr engine's data model, ingestion pipeline and retrieval logic have been re
 
 ## Project Structure
 
-The project is set up as a multi-module Kotlin project:
+The project is set up as a multimodule Kotlin project:
 
-* [`vitrivr-engine-core`](/vitrivr-engine-core) - The core library of the project (also published on maven as a library)
-* [`vitrivr-engine-index`](/vitrivr-engine-index) - Indexing / Ingestion related core library
-* [`vitrivr-engine-module-cottontaildb`](/vitrivr-engine-plugin-cottontaildb) - The java module for the column-store and kNN faciliating databse, [CottontailDB](https://github.com/vitrivr/cottontaildb)
-* [`vitrivr-engine-module-features`](/vitrivr-engine-plugin-features) - The java module which provides specific indexing and retrieval implementations such as fulltext, colour, etc.
-* [`vitrivr-engine-module-fes`](/vitrivr-engine-module-fes) - Ingestion / retrieval with external server / services. **Requires local generation of binidings:** `./gradlew :vitrivr-engine-module-fes:generateFESClient`
-* [`vitrivr-engine-plugin-m3d`](/vitrivr-engine-plugin-m3d) - The in-project plugin related to 3d model indexing and retrieval
-* [`vtirivr-engine-query`](/vitrivr-engine-query) - Query / Retrieval related core library
-* [`vitrivr-engine-server`](/vitrivr-engine-server) - A [Javalin](https://javalin.io) powered server providing an [OpenApi](https://openapis.org) [documented REST API](vitrivr-engine-server/doc/oas.json) for both, ingestion and querying and a CLI, essentially the runtime of the project
+| Module                                                                      | Description                                                                                                                                                                                                                              | Maven Dependency |
+|-----------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|
+| [`vitrivr-engine-core`](/vitrivr-engine-core)                               | The core library of the project, which provides basic interfaces & classes.                                                                                                                                                              | Yes              |
+| [`vtirivr-engine-query`](/vitrivr-engine-query)                             | Query / retrieval related extension to the core library with various retrievers and data manipulation operators.                                                                                                                         | Yes              |
+| [`vitrivr-engine-index`](/vitrivr-engine-index)                             | Indexing / ingestion related extension to the core library with various decoders and segmenters.                                                                                                                                         | Yes              |
+| [`vitrivr-engine-module-cottontaildb`](/vitrivr-engine-plugin-cottontaildb) | The database driver for the [CottontailDB](https://github.com/vitrivr/cottontaildb) database, used for NNNS and other queries.                                                                                                           | Yes              |
+| [`vitrivr-engine-module-features`](/vitrivr-engine-plugin-features)         | Extension that contains specific indexing and retrieval implementations such as fulltext, colour, etc.                                                                                                                                   | Yes              |
+| [`vitrivr-engine-plugin-m3d`](/vitrivr-engine-plugin-m3d)                   | Extension related to 3d model indexing and retrieval. Contains various feature modules and capability to process meshes.                                                                                                                 | Yes              |
+| [`vitrivr-engine-module-fes`](/vitrivr-engine-module-fes)                   | Extension that can be used to harnes feature extraction provided by an external ML model server. **Requires local generation of bindings:** `./gradlew :vitrivr-engine-module-fes:generateFESClient`                                     | Yes              |
+| [`vitrivr-engine-server`](/vitrivr-engine-server)                           | A [Javalin](https://javalin.io) powered server providing an [OpenApi](https://openapis.org) [documented REST API](vitrivr-engine-server/doc/oas.json) for both, ingestion and querying and a CLI, essentially the runtime of the project | No               |
 
 ## Getting Started: Usage
 
@@ -52,15 +54,14 @@ Create a config file `sandbox-config.json` with one named schema in it:
 }
 ```
 
-#### Schema Database
+#### Database Connection
 
-The database is also a rather important component of the system. 
-This guide assumes a running [CottontailDB](https://github.com/vitrivr/cottontaildb)
+The database is an important component of the system, since it allows for the persistence and lookup of descriptors.
+The default database used by `vitrivr-engine` is [CottontailDB](https://github.com/vitrivr/cottontaildb) This guide assumes a running [CottontailDB](https://github.com/vitrivr/cottontaildb)
 instance on the same machine on the default port `1865`.
 
 ---
 **NOTE this requires [Cottontail 0.16.5](https://github.com/vitrivr/cottontaildb/releases/tag/0.16.5) or newer**
-
 ---
 
 We address the database with the [`ConnectionConfig`](/vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ConnectionConfig.kt):
@@ -471,10 +472,10 @@ There are these special sections for the context-parameters:
 
 #### Index Operators Configuration
 
-Next up, we declare a list of [operators](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/Operator.kt)
-in the form of [`OperatorConfig`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/operator/OperatorConfig.kt)s.
+Next up, we declare a list of [operators](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/Operator.kt) in the form
+of [`OperatorConfig`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/operator/OperatorConfig.kt)s.
 These _operators_ must have a unique name in the `operators` property of the [`IngestionConfig`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/config/ingest/IngestionConfig.kt):
-These names are used in the local context-parameters to configure them
+These names are used in the local context-parameters to configure them.
 
 ```json
 {
@@ -503,17 +504,19 @@ These names are used in the local context-parameters to configure them
 
 There are different _types_ of operators:
 
-* [`Enumerator`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Enumerator.kt) which emit items to ingest.
-* [`Decoder`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Decoder.kt) which decode the file sources such that the content is available for ingestion.
-* [`Segmenter`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Segmenter.kt) which segment incoming content and emit
-  _n_ [`Retrievable`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/retrievable/Retrievable.kt)s, resulting in a 1:n mapping.
-* [`Transformer`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Segmenter.kt), [`Extractor`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Extractor.kt),
-  and [`Exporter`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Exporter.kt), which all process one retrievable and emit
-  _one_ [`Retrievable`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/retrievable/Retrievable.kt)s, resulting in a 1:1 mapping.
-* [`Aggregator`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Aggregator.kt) which aggregate _n_ incoming retrievables and emit
-  one [`Retrievable`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/retrievable/Retrievable.kt)s, resulting in a n:1 mapping.
+* [`Enumerator`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Enumerator.kt) enumerate and emit `Source`s to ingest from some data source (e.g., the file system).
+* [`Decoder`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Decoder.kt) decode a `Source`s such that the `Content` becomes is available for ingestion (e.g., a video or image decoder). Create and emit `Retrievable`s.
+* [`Transformer`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Segmenter.kt) transform incoming `Retrievable`s and emit 1 to n output `Retrievable`s (e.g., a video segmenter). Result in a 1:1 or 1:n mapping, depending
+  on the implementation.
+* [`Extractor`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Extractor.kt) extract information from the `Retrievable` and their `Content` and typically append a `Descriptor` before emitting it.
+* [`Exporter`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Exporter.kt) process `Retrievable`s and store external representation thereof (e.g., a preview image).
+* [`Aggregator`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/operators/ingest/Aggregator.kt) aggregate incoming `Retrievable`s and emit
+  one [`Retrievable`](vitrivr-engine-core/src/main/kotlin/org/vitrivr/engine/core/model/retrievable/Retrievable.kt)s, resulting in an n:1 mapping.
 
-Notably, `Extractor`s are backed by a schema's field and `Exporter`s are also referenced by name from the _schema_.
+A minimal extraction pipeline requires at least an `Enumerator` and a `Decoder`.
+
+Notably, `Extractor`s are mostly backed by a schema's field, indicating that the `Descriptor` is being persisted. One can also instantiate  `Extractor`s through their
+factory, in which case the associated `Descriptor` is transient. `Exporter`s are also referenced by name from the _schema_.
 
 In the following, we briefly introduce these configurations:
 
@@ -555,7 +558,7 @@ Let's assume we do have in the root project a folder `sandbox`, with two sub-fol
     - vid1.mp4
 ```
 
-For an image only ingestion, we could set-up the configuration as follows (`skip` and `limit` have sensible default values of `0` and `Integer.MAX_VALUE`, respectively):
+For an image only ingestion, we could set up the configuration as follows (`skip` and `limit` have sensible default values of `0` and `Integer.MAX_VALUE`, respectively):
 
 **Context**:
 ```json
@@ -814,6 +817,22 @@ One example, based on the _schema_ further above (without branching), might look
 Here, the linear order of the pipeline's operator is: `fsenumerator` -> `decoder` -> `pass` -> `allContent` -> `avgColor` -> `thumbs` -> `fileMeta`.
 Note that there are context-parameters defined for the `thumbs` exporter.
 Also, note that the `output` property is set up, such that the `stage6` operation is persisted.
+
+#### Branching and Merging
+
+By defining the operations accordingly, there are two thing that can happen implicitly.
+
+**Branching**: If an `operations` is used as input for multiple other `operations`, this results in a branching. This is handled automatically by wrapping the associated `Operator` in a `BroadcastOperator`.
+
+**Merging**: If an `operation` has multiple inputs, this results in a merging, which combines multiple flows of `Retrievable`s into a single flow. The merging strategy (`MergeType`) must be specified explicitly in the `operation`.
+
+Currently, `vitrivr-engine` supports three type of merging strategies:
+
+| MergeType | Description                                                                                                          |
+|-----------|----------------------------------------------------------------------------------------------------------------------|
+| `MERGE`   | Merges the `Retrievable`s from the input operations in order the arrive. No deduplication and ordering is performed. |
+| `COMBINE` | Merges `Retrievable`s from the input operations and emits a `Retrievable`, once it was received on every input.      |
+| `CONCAT`  | Collects `Retrievable`s from the incoming flows in order of occurence, i.e., operation 1, then operation 2 etc.      |
 
 #### Complete Sandbox Configuration
 
