@@ -61,7 +61,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
 
             is SimpleBooleanQuery<*> -> {
                 require(query.attributeName != null){"Boolean query on a struct field requires specification of a field's attribute name."}
-                cottontailQuery.where(Compare(Column(this.entityName.column(query.attributeName!!)), query.operator(), Literal(query.value.toCottontailValue())))
+                cottontailQuery.where(Compare(Column(query.attributeName!!), query.operator(), Literal(query.value.toCottontailValue())))
             }
             else -> throw IllegalArgumentException("Query of typ ${query::class} is not supported by StringDescriptorReader.")
         }
