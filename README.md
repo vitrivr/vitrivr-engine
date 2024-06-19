@@ -727,12 +727,14 @@ So far, we only have _declared_ the operators, with the `operations` property, w
     "myOperation2": {
       "operator": "myoperator2", "inputs": ["myOperation"]
     }
-  }
+  },
+  "output": ["myOperation2"]
 }
 ```
 
 Specifically, the `operator` property must point to a previously declared _operator_ and
 the entries in the `inputs` property must point to an _operation_ with that name.
+The `output` property of the ingest config then specifies the _operation_ whose results are persisted.
 
 Currently, there are the following rules to build such a pipeline:
 
@@ -807,12 +809,14 @@ One example, based on the _schema_ further above (without branching), might look
     "stage4": {"operator": "avgColor", "inputs": ["stage3"]},
     "stage5": {"operator": "thumbs", "inputs": ["stage4"]},
     "stage6": {"operator": "fileMeta", "inputs": ["stage5"]}
-  }
+  },
+  "output": ["stage6"]
 }
 ```
 
-Here, the linear pipeline is: `fsenumerator` -> `decoder` -> `pass` -> `allContent` -> `avgColor` -> `thumbs` -> `fileMeta`.
+Here, the linear order of the pipeline's operator is: `fsenumerator` -> `decoder` -> `pass` -> `allContent` -> `avgColor` -> `thumbs` -> `fileMeta`.
 Note that there are context-parameters defined for the `thumbs` exporter.
+Also, note that the `output` property is set up, such that the `stage6` operation is persisted.
 
 #### Branching and Merging
 
@@ -943,7 +947,8 @@ The **pipeline** config:
     "stage4": {"operator": "avgColor", "inputs": ["stage3"]},
     "stage5": {"operator": "thumbs", "inputs": ["stage4"]},
     "stage6": {"operator": "fileMeta", "inputs": ["stage5"]}
-  }
+  },
+  "output" : ["stage6"]
 }
 ```
 
