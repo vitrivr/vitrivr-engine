@@ -106,16 +106,16 @@ class QueryParser(val schema: Schema) {
                         }
                         is BooleanInputData -> {
                             require(subfield.type == Type.BOOLEAN){"The given sub-field ${fieldAndAttributeName.first}.${fieldAndAttributeName.second}'s type is ${subfield.type}, which is not the expexted ${Type.BOOLEAN}"}
-                            Value.Boolean(input.value)
+                            Value.Boolean(input.data)
                         }
                         is NumericInputData -> {
                             when(subfield.type){
-                                Type.DOUBLE -> Value.Double(input.value)
-                                Type.INT -> Value.Int(input.value.toInt())
-                                Type.LONG -> Value.Long(input.value.toLong())
-                                Type.SHORT -> Value.Short(input.value.toInt().toShort())
-                                Type.BYTE -> Value.Byte(input.value.toInt().toByte())
-                                Type.FLOAT -> Value.Float(input.value.toFloat())
+                                Type.DOUBLE -> Value.Double(input.data)
+                                Type.INT -> Value.Int(input.data.toInt())
+                                Type.LONG -> Value.Long(input.data.toLong())
+                                Type.SHORT -> Value.Short(input.data.toInt().toShort())
+                                Type.BYTE -> Value.Byte(input.data.toInt().toByte())
+                                Type.FLOAT -> Value.Float(input.data.toFloat())
                                 else -> throw IllegalArgumentException("Cannot work with NumericInputData $input but non-numerical sub-field $subfield")
                             }
                         }
