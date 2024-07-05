@@ -43,5 +43,8 @@ abstract class AbstractConnectionProvider: ConnectionProvider {
      * @return The registered [DescriptorProvider] .
      */
     @Suppress("UNCHECKED_CAST")
-    override fun <T : Descriptor> obtain(descriptorClass: KClass<T>): DescriptorProvider<T> = this.registered[descriptorClass] as DescriptorProvider<T>
+    override fun <T : Descriptor> obtain(descriptorClass: KClass<T>): DescriptorProvider<T> {
+        val provider = this.registered[descriptorClass] ?: throw IllegalStateException("No DescriptorProvider registered for $descriptorClass.")
+        return provider as DescriptorProvider<T>
+    }
 }

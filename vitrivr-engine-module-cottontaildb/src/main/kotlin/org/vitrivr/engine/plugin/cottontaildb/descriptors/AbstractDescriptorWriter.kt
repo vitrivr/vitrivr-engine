@@ -20,7 +20,7 @@ private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * An abstract implementation of a [DescriptorWriter] for Cottontail DB.
-
+ *
  * @author Ralph Gasser
  * @version 1.0.0
  */
