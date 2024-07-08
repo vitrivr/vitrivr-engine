@@ -144,5 +144,7 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>>, connec
         MANHATTAN -> "<+>"
         EUCLIDEAN -> "<->"
         COSINE -> "<=>"
+        HAMMING -> "<~>"
+        JACCARD -> "<%>"
     }
 }
