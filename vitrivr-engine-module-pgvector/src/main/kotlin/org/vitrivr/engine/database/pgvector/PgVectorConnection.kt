@@ -7,6 +7,7 @@ import org.vitrivr.engine.core.database.AbstractConnection
 import org.vitrivr.engine.core.database.retrievable.RetrievableInitializer
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
+import org.vitrivr.engine.database.pgvector.descriptor.model.PgBitVector
 import org.vitrivr.engine.database.pgvector.descriptor.model.PgVector
 import java.sql.Connection
 import java.sql.SQLException
@@ -36,6 +37,7 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
 
         /* Register the vector data type. */
         this.connection.unwrap(PGConnection::class.java).addDataType("vector", PgVector::class.java)
+        this.connection.unwrap(PGConnection::class.java).addDataType("bit", PgBitVector::class.java)
 
         /* Create necessary database. */
         try {

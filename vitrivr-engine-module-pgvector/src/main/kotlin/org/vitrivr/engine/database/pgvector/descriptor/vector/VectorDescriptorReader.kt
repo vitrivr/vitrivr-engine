@@ -12,6 +12,7 @@ import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
 import org.vitrivr.engine.core.model.types.toValue
 import org.vitrivr.engine.database.pgvector.*
 import org.vitrivr.engine.database.pgvector.descriptor.AbstractDescriptorReader
+import org.vitrivr.engine.database.pgvector.descriptor.model.PgBitVector
 import org.vitrivr.engine.database.pgvector.descriptor.model.PgVector
 import java.sql.ResultSet
 import java.util.*
@@ -128,7 +129,11 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>>, connec
                 }
             )
 
-            is BooleanVectorDescriptor -> TODO()
+            is BooleanVectorDescriptor -> BooleanVectorDescriptor(
+                descriptorId,
+                retrievableId,
+                result.getObject(DESCRIPTOR_COLUMN_NAME, PgBitVector::class.java).let { vector -> vector.toArray().map { it.toValue() } }
+            )
         }
     }
 
