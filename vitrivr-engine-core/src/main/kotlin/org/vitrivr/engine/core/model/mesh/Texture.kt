@@ -15,7 +15,7 @@ import java.nio.file.Path
 data class Texture(val path: Path = DEFAULT_TEXTURE) {
     companion object {
         /** Default texture path. Points to a png with one white pixel with 100% opacity. */
-        val DEFAULT_TEXTURE: Path = Path.of("./resources/renderer/lwjgl/models/default/default.png")
+        val DEFAULT_TEXTURE: Path = Path.of("vitrivr-engine-module-m3d/src/main/resources/renderer/lwjgl/models/default/default.png")
     }
 
     /**
