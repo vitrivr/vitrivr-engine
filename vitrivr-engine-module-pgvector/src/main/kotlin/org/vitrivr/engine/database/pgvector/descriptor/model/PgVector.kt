@@ -11,6 +11,8 @@ import java.util.*
 /**
  * The [PgVector] class represents a vector in PostgreSQL.
  *
+ * @see https://github.com/pgvector/pgvector-java/blob/master/src/main/java/com/pgvector/PGvector.java
+ *
  * @author Ralph Gasser
  * @version 1.0.0
  */
