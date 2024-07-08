@@ -6,6 +6,7 @@ import java.lang.ref.SoftReference
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
+import java.util.*
 import javax.imageio.ImageIO
 
 /**
@@ -15,6 +16,8 @@ import javax.imageio.ImageIO
  * @version 1.0.0
  */
 class CachedImageContent(override val path: Path, image: BufferedImage) : ImageContent, CachedContent {
+
+    override val id: UUID = UUID.randomUUID()
 
     /** The [SoftReference] of the [BufferedImage] used for caching. */
     private var reference: SoftReference<BufferedImage> = SoftReference(image)

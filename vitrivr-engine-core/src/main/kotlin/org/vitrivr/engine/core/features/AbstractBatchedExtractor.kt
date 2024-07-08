@@ -3,9 +3,7 @@ package org.vitrivr.engine.core.features
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -36,33 +34,41 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(f
      * @return [Flow] of [Retrievable]
      */
     final override fun toFlow(scope: CoroutineScope): Flow<Retrievable> {
+        return flow {
+            val batch = mutableListOf<Retrievable>()
 
-        val batch = mutableListOf<Retrievable>()
-
-        /* Prepare and return flow. */
-        return this.input.toFlow(scope).onEach { retrievable ->
-            try {
-                if (this.matches(retrievable)) {
-                    batch.add(retrievable)
+            this@AbstractBatchedExtractor.input.toFlow(scope).collect { retrievable ->
+                if (retrievable.type == "SOURCE:VIDEO") {
+                    logger.info { "Processing video ${retrievable.id} with field ${field?.fieldName}" }
                 }
-                if (batch.size >= bufferSize) {
-                    val descriptors = extract(batch)
-                    // zip descriptors and batch
-                    for (i in batch.indices) {
-                        val r = batch[i]
-                        for (d in descriptors[i]) {
-                            r.addDescriptor(d)
-                        }
+                try {
+                    if (this@AbstractBatchedExtractor.matches(retrievable)) {
+                        batch.add(retrievable)
                     }
-                    batch.clear()
+                    else {
+                        emit(retrievable)
+                    }
+                    if (batch.size >= bufferSize) {
+                        val descriptors = extract(batch)
+                        // zip descriptors and batch
+                        for (i in batch.indices) {
+                            val r = batch[i]
+                            for (d in descriptors[i]) {
+                                r.addDescriptor(d)
+                            }
+                        }
+                        emitAll(batch.asFlow())
+                        batch.clear()
+                    }
+                } catch (e: Exception) {
+                    logger.error(e) { "Error during extraction" }
+                    "Error during extraction: $e".let {
+                        logger.error { it }
+                    }
                 }
-            } catch (e: Exception) {
-               "Error during extraction: ${e.message}".let {
-                   logger.error { it }
-               }
             }
-        }.onCompletion {
-            /* Persist buffer if necessary. */
+
+            // Emit any remaining items in the batch
             if (batch.isNotEmpty()) {
                 val descriptors = extract(batch)
                 // zip descriptors and batch
@@ -72,10 +78,12 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(f
                         r.addDescriptor(d)
                     }
                 }
+                emitAll(batch.asFlow())
                 batch.clear()
             }
         }
     }
+
 
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.

@@ -139,7 +139,8 @@ companion object {
     ): FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         val batchSize = context.getProperty(field.fieldName, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
-        return object : FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding>(input, field, batchSize) {
+        val contentSources = context.getProperty(field.fieldName, "contentSources")?.split(",")?.toSet()
+        return object : FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding>(input, field, batchSize, contentSources) {
             override fun assignRetrievableId(descriptor: FloatVectorDescriptor, retrievableId: RetrievableId): FloatVectorDescriptor {
                 return descriptor.copy(retrievableId = retrievableId, field = field)
             }
@@ -159,7 +160,8 @@ companion object {
         context: IndexContext
     ): FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding>{
         val batchSize = context.getProperty(name, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
-        return object : FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding>(input, null, batchSize) {
+        val contentSources = context.getProperty(name, "contentSources")?.split(",")?.toSet()
+        return object : FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding>(input, null, batchSize, contentSources) {
             override fun assignRetrievableId(descriptor: FloatVectorDescriptor, retrievableId: RetrievableId): FloatVectorDescriptor {
                 return descriptor.copy(retrievableId = retrievableId)
             }

@@ -8,6 +8,7 @@ import java.nio.ShortBuffer
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
+import java.util.*
 
 /**
  * A [AudioContent] implementation that is backed by a cache file.
@@ -35,6 +36,7 @@ class CachedAudioContent(override val path: Path, override val channels: Short, 
             }
             return buffer.asReadOnlyBuffer()
         }
+    override val id: UUID = UUID.randomUUID()
 
     init {
         val outBuffer = ByteBuffer.allocate(this.size).order(ByteOrder.LITTLE_ENDIAN)

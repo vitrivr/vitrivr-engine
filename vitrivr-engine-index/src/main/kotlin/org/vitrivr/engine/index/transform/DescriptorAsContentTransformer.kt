@@ -10,7 +10,9 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.factory.ContentFactory
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
+import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 import org.vitrivr.engine.core.operators.general.TransformerFactory
@@ -30,26 +32,22 @@ class DescriptorAsContentTransformer : TransformerFactory {
             input = input,
             contentFactory = (context as IndexContext).contentFactory,
             fieldName = context[name, "field"]  ?: throw IllegalArgumentException("The descriptor as content transformer requires a field name."),
-            removeContent = context[name, "removeContent"]?.toBoolean() ?: false
+            name = name
         )
     }
 
-    private class Instance(override val input: Operator<out Retrievable>, val contentFactory: ContentFactory, val fieldName : String, val removeContent: Boolean) : Transformer {
+    private class Instance(override val input: Operator<out Retrievable>, val contentFactory: ContentFactory, val fieldName : String, val name: String) : Transformer {
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
             input.toFlow(scope).collect {
                 retrievable : Retrievable ->
-                if (removeContent) {
-                    retrievable.clearContent().also {
-                        logger.debug { "Content of retrievable ${retrievable.id} has been removed." }
-                    }
-                }
                 retrievable.descriptors.filter{
                     descriptor ->
                     descriptor.field?.fieldName == fieldName
                 }.forEach{ descriptor ->
-                    retrievable.addContent(convertDescriptorToContent(descriptor)).also {
-                        logger.debug { "Descriptor ${descriptor.id} of retrievable ${retrievable.id} has been converted to content element." }
-                    }
+                    val content = convertDescriptorToContent(descriptor)
+                    retrievable.addContent(content)
+                    retrievable.addAttribute(ContentAuthorAttribute(content.id, name))
+                    logger.debug { "Descriptor ${descriptor.id} of retrievable ${retrievable.id} has been converted to content element." }
                 }
                 emit(retrievable)
             }

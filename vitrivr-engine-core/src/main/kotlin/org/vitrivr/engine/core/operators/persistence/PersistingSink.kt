@@ -14,6 +14,8 @@ import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 
+private val logger = KotlinLogging.logger {}
+
 /**
  * A [Operator.Sink] that persists the [Ingested] it receives.
  *
@@ -67,6 +69,8 @@ class PersistingSink(override val input: Operator<Retrievable>, val context: Ind
             val writer = f.let { field -> this.descriptorWriters.computeIfAbsent(field) { it.getWriter() } } as? DescriptorWriter<Descriptor>
             writer?.addAll(d)
         }
+
+        logger.debug { "Persisted ${retrievables.size} retrievables, ${relationships.size} relationships and ${descriptors.values.sumBy { it.size }} descriptors." }
     }
 
     /**
