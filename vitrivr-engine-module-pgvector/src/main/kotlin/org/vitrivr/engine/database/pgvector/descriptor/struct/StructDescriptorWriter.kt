@@ -11,6 +11,7 @@ import org.vitrivr.engine.database.pgvector.descriptor.AbstractDescriptorWriter
 import java.sql.Date
 import java.sql.PreparedStatement
 import java.sql.SQLException
+import java.util.*
 
 /**
  * An [AbstractDescriptorWriter] for [StructDescriptor]s.
@@ -55,7 +56,7 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
                     stmt.setAny(1, item.id)
                     stmt.setAny(2, item.retrievableId)
                     for ((i, v) in item.values().withIndex()) {
-                        stmt.setAny(3 + i, v)
+                        stmt.setAny(3 + i, v.second)
                     }
                     stmt.addBatch()
                 }
@@ -119,6 +120,7 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
             is Double -> this.setDouble(index, value)
             is Boolean -> this.setBoolean(index, value)
             is ByteArray -> this.setBytes(index, value)
+            is UUID -> this.setObject(index, value)
             is Value<*> -> this.setValue(index, value)
             else -> this.setObject(index, value)
         }
