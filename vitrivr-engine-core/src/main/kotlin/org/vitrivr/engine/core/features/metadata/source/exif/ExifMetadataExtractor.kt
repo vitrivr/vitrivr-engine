@@ -2,9 +2,16 @@ package org.vitrivr.engine.core.features.metadata.source.exif
 
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.Directory
-import com.google.gson.JsonElement
-import com.google.gson.JsonParseException
-import com.google.gson.JsonParser
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.float
+import kotlinx.serialization.json.double
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.*
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.features.AbstractExtractor
@@ -58,20 +65,25 @@ private fun convertType(directory: Directory, tagType: Int, type: Type): Value<*
         Type.DATETIME -> convertDate(directory.getString(tagType))?.let { Value.DateTime(it) }
     }
 
-private fun JsonElement.convertType(type: Type): Value<*>? {
-    if (this.isJsonNull) {
-        return null
-    }
-    return when (type) {
-        Type.STRING -> Value.String(this.asString)
-        Type.BOOLEAN -> Value.Boolean(this.asBoolean)
-        Type.BYTE -> Value.Byte(this.asByte)
-        Type.SHORT -> Value.Short(this.asShort)
-        Type.INT -> Value.Int(this.asInt)
-        Type.LONG -> Value.Long(this.asLong)
-        Type.FLOAT -> Value.Float(this.asFloat)
-        Type.DOUBLE -> Value.Double(this.asDouble)
-        Type.DATETIME -> convertDate(this.asString)?.let { Value.DateTime(it) }
+private fun JsonObject.convertType(type: Type): Value<*>? {
+    val jsonPrimitive = this.jsonPrimitive
+    if (jsonPrimitive.isString) {
+        return when (type) {
+            Type.STRING -> Value.String(jsonPrimitive.content)
+            Type.DATETIME -> convertDate(jsonPrimitive.content)?.let { Value.DateTime(it) }
+            else -> null
+        }
+    } else {
+        return when (type) {
+            Type.BOOLEAN -> Value.Boolean(jsonPrimitive.boolean)
+            Type.BYTE -> Value.Byte(jsonPrimitive.int.toByte())
+            Type.SHORT -> Value.Short(jsonPrimitive.int.toShort())
+            Type.INT -> Value.Int(jsonPrimitive.int)
+            Type.LONG -> Value.Long(jsonPrimitive.int.toLong())
+            Type.FLOAT -> Value.Float(jsonPrimitive.float)
+            Type.DOUBLE -> Value.Double(jsonPrimitive.double)
+            else -> null
+        }
     }
 }
 
@@ -101,15 +113,15 @@ class ExifMetadataExtractor(
                         columnValues[fullname] = Value.String(tag.description)
                     }
                     try {
-                        val json = JsonParser.parseString(tag.description).asJsonObject
-                        json.entrySet().forEach { (key, value) ->
+                        val json = Json.parseToJsonElement(tag.description).jsonObject
+                        json.forEach { (key, value) ->
                             subfields[key]?.let { typeString ->
-                                value.convertType(Type.valueOf(typeString))?.let { converted ->
+                                value.jsonObject.convertType(Type.valueOf(typeString))?.let { converted ->
                                     columnValues[key] = converted
                                 }
                             }
                         }
-                    } catch (e: JsonParseException) {
+                    } catch (e: SerializationException) {
                         logger.warn { "Failed to parse JSON from $fullname: ${tag.description}" }
                     }
                 } else {

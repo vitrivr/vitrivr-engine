@@ -1,8 +1,13 @@
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
+
+plugins {
+    id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
+}
+
 /* Downloads the OpenAPI spec from the feature extraction server. */
 tasks.register('downloadOpenApiSpec', Download) {
-    src 'https://raw.githubusercontent.com/faberf/feature-extraction-server/main/openapi_spec.json'
+    src 'https://raw.githubusercontent.com/vitrivr/feature-extraction-server/main/openapi_spec.json'
     dest "${layout.buildDirectory.get()}/api-client-spec/openapi_spec.json"
 }
 
@@ -16,12 +21,16 @@ tasks.register('generateFESClient', GenerateTask) {
     logToStderr = true
     generateAliasAsModel = false
     enablePostProcessFile = false
+    library = "multiplatform"
+    additionalProperties = [
+            'dateLibrary' : 'kotlinx-datetime'
+    ]
 
     dependsOn 'downloadOpenApiSpec'
 }
 
 compileKotlin {
-    //dependsOn 'generateFESClient'
+    dependsOn 'generateFESClient'
 }
 
 //sourcesJar.dependsOn 'generateFESClient'
@@ -30,20 +39,31 @@ compileKotlin {
 sourceSets {
     main {
         kotlin {
-            srcDirs += "$buildDir/api-client-generated/src/main/kotlin"
+            srcDirs += "$buildDir/api-client-generated/src/commonMain/kotlin"
         }
     }
 }
+
+
 
 dependencies {
     /* vitrivr engine features dependency. */
     implementation project(path: ':vitrivr-engine-module-features')
 
-    /** Java CV (used for video decoding). */
     implementation group: 'com.squareup.moshi', name: 'moshi-kotlin', version: version_moshi
     implementation group: 'com.squareup.moshi', name: 'moshi-adapters', version: version_moshi
 
     /** OKHttp3 Client */
     implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: version_okhttp3
     implementation group: 'com.squareup.okhttp3', name: 'logging-interceptor', version: version_okhttp3
+
+    implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: version_kotlinx_coroutines
+    implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-json', version: version_kotlinx_serialization
+
+    implementation group: 'io.ktor', name: 'ktor-client-content-negotiation', version: version_ktor
+    implementation group: 'io.ktor', name: 'ktor-serialization-kotlinx-json', version: version_ktor
+    implementation group: 'io.ktor', name: 'ktor-client-core', version: version_ktor
+    implementation group: 'io.ktor', name: 'ktor-client-okhttp', version: version_ktor
+
+    implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-datetime', version: version_kotlinx_datetime
 }
