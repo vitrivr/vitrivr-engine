@@ -21,17 +21,21 @@ class StructDescriptorInitializer(field: Schema.Field<*, StructDescriptor>, conn
 
         /* Add columns for each field in the struct. */
         for (field in this.field.analyser.prototype(this.field).schema()) {
-            require(field.dimensions.size <= 1) { "Cottontail DB currently doesn't support tensor types."}
             when (field.type) {
-                Type.STRING -> statement.append("\"${field.name}\" varchar(255), ")
-                Type.BOOLEAN -> statement.append("\"${field.name}\" boolean, ")
-                Type.BYTE -> statement.append("$\"{field.name}\" smallint, ")
-                Type.SHORT -> statement.append("\"${field.name}\" smallint, ")
-                Type.INT -> statement.append("\"${field.name}\" integer, ")
-                Type.LONG -> statement.append("\"${field.name}\" bigint, ")
-                Type.FLOAT -> statement.append("\"${field.name}\" real, ")
-                Type.DOUBLE -> statement.append("\"${field.name}\" double precision, ")
-                Type.DATETIME -> statement.append("\"${field.name}\" datetime, ")
+                Type.String -> statement.append("\"${field.name}\" varchar(255), ")
+                Type.Boolean -> statement.append("\"${field.name}\" boolean, ")
+                Type.Byte -> statement.append("$\"{field.name}\" smallint, ")
+                Type.Short -> statement.append("\"${field.name}\" smallint, ")
+                Type.Int -> statement.append("\"${field.name}\" integer, ")
+                Type.Long -> statement.append("\"${field.name}\" bigint, ")
+                Type.Float -> statement.append("\"${field.name}\" real, ")
+                Type.Double -> statement.append("\"${field.name}\" double precision, ")
+                Type.Datetime -> statement.append("\"${field.name}\" datetime, ")
+                is Type.BooleanVector -> statement.append("\"${field.name}\" vector(${field.type.dimensions}), ")
+                is Type.DoubleVector -> statement.append("\"${field.name}\" vector(${field.type.dimensions}), ")
+                is Type.FloatVector -> statement.append("\"${field.name}\" vector(${field.type.dimensions}), ")
+                is Type.IntVector -> statement.append("\"${field.name}\" vector(${field.type.dimensions}), ")
+                is Type.LongVector -> statement.append("\"${field.name}\" vector(${field.type.dimensions}), ")
             }
         }
 

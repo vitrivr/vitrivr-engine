@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.descriptor.vector
 
+import org.vitrivr.engine.core.model.descriptor.AttributeName
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor
 import org.vitrivr.engine.core.model.types.Value
@@ -9,20 +10,20 @@ import org.vitrivr.engine.core.model.types.Value
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
-sealed interface VectorDescriptor<T : Value<*>> : Descriptor {
+sealed interface VectorDescriptor<T : Value.Vector<*>> : Descriptor {
     /** The size of this [VectorDescriptor]. */
     val dimensionality: Int
         get() = this.vector.size
 
     /** The [List] of values [T]. */
-    val vector: List<T>
+    val vector: T
 
     /**
      * Returns the fields and its values of this [ScalarDescriptor] as a [Map].
      *
      * @return A [Map] of this [ScalarDescriptor]'s fields (without the IDs).
      */
-    override fun values(): List<Pair<String, List<T>?>> = listOf("vector" to this.vector)
+    override fun values(): Map<AttributeName, T?> = mapOf("vector" to this.vector)
 }

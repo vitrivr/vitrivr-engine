@@ -5,13 +5,11 @@ import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
-import org.vitrivr.engine.core.model.descriptor.struct.RasterDescriptor
-import org.vitrivr.engine.core.model.descriptor.struct.SkeletonDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.MapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.MediaDimensionsDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.Rectangle2DMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
-import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.MapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -76,8 +74,6 @@ class PgVectorConnectionProvider: AbstractConnectionProvider() {
         this.register(TemporalMetadataDescriptor::class, StructDescriptorProvider)
         this.register(Rectangle2DMetadataDescriptor::class, StructDescriptorProvider)
         this.register(MediaDimensionsDescriptor::class, StructDescriptorProvider)
-        this.register(SkeletonDescriptor::class, StructDescriptorProvider)
-        this.register(RasterDescriptor::class, StructDescriptorProvider)
         this.register(MapStructDescriptor::class, StructDescriptorProvider)
     }
 

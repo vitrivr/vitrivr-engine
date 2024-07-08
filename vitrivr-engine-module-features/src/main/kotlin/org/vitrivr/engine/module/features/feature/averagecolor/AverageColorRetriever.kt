@@ -20,11 +20,11 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
  * @see [AverageColor]
  *
  * @author Luca Rossetto
- * @version 1.0.0
+ * @version 1.1.0
  */
 class AverageColorRetriever(
     override val field: Schema.Field<ImageContent, FloatVectorDescriptor>,
-    private val query: ProximityQuery<Value.Float>
+    private val query: ProximityQuery<Value.FloatVector>
 ) : Retriever<ImageContent, FloatVectorDescriptor> {
 
     private val logger: KLogger = KotlinLogging.logger {}

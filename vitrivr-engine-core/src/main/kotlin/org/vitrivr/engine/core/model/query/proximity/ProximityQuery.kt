@@ -17,9 +17,9 @@ import org.vitrivr.engine.core.model.types.Value
  * @version 1.0.0
  */
 
-data class ProximityQuery<T : Value<*>>(
+data class ProximityQuery<T : Value.Vector<*>>(
     /** The [VectorDescriptor] being used; specifies both the query field and the comparison value. */
-    val value: List<T>,
+    val value: T,
 
     /** The [Distance] used for the comparison. */
     val distance: Distance = Distance.EUCLIDEAN,

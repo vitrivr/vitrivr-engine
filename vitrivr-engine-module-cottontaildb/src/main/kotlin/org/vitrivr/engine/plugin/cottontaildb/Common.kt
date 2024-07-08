@@ -3,7 +3,7 @@ package org.vitrivr.engine.plugin.cottontaildb
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.core.types.Types
 import org.vitrivr.cottontail.core.values.*
-import org.vitrivr.engine.core.model.descriptor.FieldSchema
+import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.scalar.*
 import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
@@ -49,48 +49,25 @@ const val DISTANCE_COLUMN_NAME = "distance"
 const val SCORE_COLUMN_NAME = "score"
 
 /**
- * Converts a vitrivr-engine [FieldSchema] to a Cottontail DB [Types].
+ * Converts a vitrivr-engine [Attribute] to a Cottontail DB [Types].
  *
  * @return [Compare.Operator] used for this [SimpleBooleanQuery]
  */
-internal fun FieldSchema.toCottontailType(): Types<*> {
-    val vector = this.dimensions.size == 1
-    return when (this.type) {
-        Type.STRING -> Types.String
-        Type.BYTE -> Types.Byte
-        Type.SHORT -> Types.Short
-        Type.BOOLEAN -> if (vector) {
-            Types.BooleanVector(this.dimensions[0])
-        } else {
-            Types.Boolean
-        }
-
-        Type.INT -> if (vector) {
-            Types.IntVector(this.dimensions[0])
-        } else {
-            Types.Int
-        }
-
-        Type.LONG -> if (vector) {
-            Types.LongVector(this.dimensions[0])
-        } else {
-            Types.Long
-        }
-
-        Type.FLOAT -> if (vector) {
-            Types.FloatVector(this.dimensions[0])
-        } else {
-            Types.Float
-        }
-
-        Type.DOUBLE -> if (vector) {
-            Types.DoubleVector(this.dimensions[0])
-        } else {
-            Types.Double
-        }
-
-        Type.DATETIME -> Types.Date
-    }
+internal fun Type.toCottontailType(): Types<*> = when (this) {
+    Type.String -> Types.String
+    Type.Byte -> Types.Byte
+    Type.Short -> Types.Short
+    Type.Boolean -> Types.Boolean
+    Type.Int -> Types.Int
+    Type.Long -> Types.Long
+    Type.Float -> Types.Float
+    Type.Double -> Types.Double
+    Type.Datetime -> Types.Date
+    is Type.BooleanVector -> Types.BooleanVector(this.dimensions)
+    is Type.DoubleVector -> Types.DoubleVector(this.dimensions)
+    is Type.FloatVector -> Types.FloatVector(this.dimensions)
+    is Type.IntVector -> Types.IntVector(this.dimensions)
+    is Type.LongVector -> Types.LongVector(this.dimensions)
 }
 
 /**
@@ -151,6 +128,11 @@ internal fun Value<*>.toCottontailValue(): PublicValue = when (this) {
     is Value.Short -> ShortValue(this.value)
     is Value.String -> StringValue(this.value)
     is Value.DateTime -> DateValue(this.value)
+    is Value.BooleanVector -> BooleanVectorValue(this.value)
+    is Value.DoubleVector -> DoubleVectorValue(this.value)
+    is Value.FloatVector -> FloatVectorValue(this.value)
+    is Value.IntVector -> IntVectorValue(this.value)
+    is Value.LongVector -> LongVectorValue(this.value)
 }
 
 /**

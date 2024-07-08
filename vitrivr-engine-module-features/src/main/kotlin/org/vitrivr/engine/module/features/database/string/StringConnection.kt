@@ -10,6 +10,9 @@ import org.vitrivr.engine.module.features.database.string.writer.StringRetrievab
 
 
 class StringConnection(override val provider: StringConnectionProvider, schemaName: String, internal val stringify: (Persistable) -> String) : AbstractConnection(schemaName, provider) {
+    override fun <T> withTransaction(action: (Unit) -> T): T {
+        throw UnsupportedOperationException("Transactions are not supported by StringConnection.")
+    }
 
     override fun getRetrievableInitializer(): RetrievableInitializer = NoRetrievableInitializer()
 

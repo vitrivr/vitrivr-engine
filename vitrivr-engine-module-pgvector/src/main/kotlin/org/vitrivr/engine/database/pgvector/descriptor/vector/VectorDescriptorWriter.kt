@@ -1,9 +1,12 @@
 package org.vitrivr.engine.database.pgvector.descriptor.vector
 
+import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.database.pgvector.*
 import org.vitrivr.engine.database.pgvector.descriptor.AbstractDescriptorWriter
+import org.vitrivr.engine.database.pgvector.descriptor.model.PgBitVector
 import org.vitrivr.engine.database.pgvector.descriptor.model.PgVector
 import java.sql.SQLException
 
@@ -25,7 +28,11 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
             this.connection.jdbc.prepareStatement("INSERT INTO $tableName ($DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $DESCRIPTOR_COLUMN_NAME) VALUES (?, ?, ?);").use { stmt ->
                 stmt.setObject(1, item.id)
                 stmt.setObject(2, item.retrievableId)
-                stmt.setObject(3, PgVector(item.vector))
+                when (val vector = item.vector) {
+                    is Value.FloatVector -> stmt.setObject(3, PgVector(vector.value))
+                    is Value.BooleanVector -> stmt.setObject(3, PgBitVector(vector.value))
+                    else -> throw IllegalArgumentException("Unsupported vector type ${vector::class.simpleName}")
+                }
                 return stmt.execute()
             }
         } catch (e: SQLException) {
@@ -46,7 +53,11 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
                 for (item in items) {
                     stmt.setObject(1, item.id)
                     stmt.setObject(2, item.retrievableId)
-                    stmt.setObject(3, PgVector(item.vector))
+                    when (val vector = item.vector) {
+                        is Value.FloatVector -> stmt.setObject(3, PgVector(vector.value))
+                        is Value.BooleanVector -> stmt.setObject(3, PgBitVector(vector.value))
+                        else -> throw IllegalArgumentException("Unsupported vector type ${vector::class.simpleName}")
+                    }
                     stmt.addBatch()
                 }
                 return stmt.executeBatch().all { it == 1 }
@@ -67,7 +78,11 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
         try {
             this.connection.jdbc.prepareStatement("UPDATE $tableName SET $RETRIEVABLE_ID_COLUMN_NAME = ?,  $DESCRIPTOR_COLUMN_NAME = ? WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?;").use { stmt ->
                 stmt.setObject(1, item.retrievableId)
-                stmt.setObject(2, PgVector(item.vector))
+                when (val vector = item.vector) {
+                    is Value.FloatVector -> stmt.setObject(2, PgVector(vector.value))
+                    is Value.BooleanVector -> stmt.setObject(2, PgBitVector(vector.value))
+                    else -> throw IllegalArgumentException("Unsupported vector type ${vector::class.simpleName}")
+                }
                 stmt.setObject(3, item.id)
                 return stmt.execute()
             }
