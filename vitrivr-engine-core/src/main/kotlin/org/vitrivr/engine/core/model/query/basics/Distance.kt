@@ -11,5 +11,7 @@ import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 enum class Distance {
     MANHATTAN,
     EUCLIDEAN,
-    COSINE;
+    COSINE,
+    HAMMING,
+    JACCARD;
 }
