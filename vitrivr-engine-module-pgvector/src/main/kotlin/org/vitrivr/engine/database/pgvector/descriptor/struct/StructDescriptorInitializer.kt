@@ -41,10 +41,8 @@ class StructDescriptorInitializer(field: Schema.Field<*, StructDescriptor>, conn
 
         try {
             /* Create 'retrievable' entity. */
-            if (!this.connection.prepareStatement(/* sql = postgres */ statement.toString()).use {
-                    it.execute()
-                }) {
-                LOGGER.warn { "Failed to initialize entity '$tableName'. It probably exists." }
+            this.connection.prepareStatement(/* sql = postgres */ statement.toString()).use {
+                it.execute()
             }
         } catch (e: SQLException) {
             LOGGER.error(e) { "Failed to initialize entity '$tableName' due to exception." }
