@@ -26,6 +26,13 @@ sealed interface Connection: Closeable {
     val schemaName: String
 
     /**
+     * Executes the provided action within a transaction (if supported by the database).
+     *
+     * @param action The action to execute within the transaction.
+     */
+    fun <T> withTransaction(action: (Unit) -> T): T
+
+    /**
      * Initializes the database layer with the [Schema] used by this [Connection].
      */
     fun initialize()

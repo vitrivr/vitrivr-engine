@@ -55,6 +55,27 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
     }
 
     /**
+     * Tries to execute a given action within a database transaction.
+     *
+     * @param action The action to execute within the transaction.
+     */
+    @Synchronized
+    override fun <T> withTransaction(action: (Unit) -> T): T {
+        try {
+            this.jdbc.autoCommit = false
+            val ret = action.invoke(Unit)
+            this.jdbc.commit()
+            return ret
+        } catch (e: Throwable) {
+            LOGGER.error(e) { "Failed to execute transaction due to exception." }
+            this.jdbc.rollback()
+            throw e
+        } finally {
+            this.jdbc.autoCommit = true
+        }
+    }
+
+    /**
      * Generates and returns a [RetrievableInitializer] for this [PgVectorConnection].
      *
      * @return [RetrievableInitializer]
