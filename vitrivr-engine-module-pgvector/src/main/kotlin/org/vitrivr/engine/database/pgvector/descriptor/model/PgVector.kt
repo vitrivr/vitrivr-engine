@@ -26,18 +26,9 @@ class PgVector(private var vec: FloatArray? = null) : PGobject(), PGBinaryObject
      * @param <T> number
      * @param v list of numbers
      */
-    constructor(v: List<Number>) : this(FloatArray(v.size) {
-        v[it].toFloat()
-    })
-
-    /**
-     * Constructor
-     *
-     * @param <T> number
-     * @param v list of numbers
-     */
-    constructor(vector: List<Value<*>>) : this(FloatArray(vector.size) {
+    constructor(vector: List<Any>) : this(FloatArray(vector.size) {
         when (val v = vector[it]) {
+            is Number -> v.toFloat()
             is Value.Float-> v.value
             is Value.Double-> v.value.toFloat()
             is Value.Int-> v.value.toFloat()
