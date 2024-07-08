@@ -6,7 +6,7 @@ import org.joml.Vector3f
 import org.joml.Vector3fc
 import org.joml.Vector3i
 import org.vitrivr.engine.core.model.mesh.Mesh
-import org.vitrivr.engine.model3d.util.MeshMathUtil
+import org.vitrivr.engine.model3d.data.util.MeshMathUtil
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.pow

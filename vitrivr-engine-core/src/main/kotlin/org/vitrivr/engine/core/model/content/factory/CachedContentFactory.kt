@@ -122,6 +122,11 @@ class CachedContentFactory : ContentFactoriesFactory {
             TODO()
         }
 
+        override fun newPointCloudContent(pointCloud: Model3D): PointCloudContent {
+            check(!this.closed) { "CachedContentFactory has been closed." }
+            TODO()
+        }
+
 
         /**
          * A [PhantomReference] implementation that allows for the puring of [CachedContent] from the cache.

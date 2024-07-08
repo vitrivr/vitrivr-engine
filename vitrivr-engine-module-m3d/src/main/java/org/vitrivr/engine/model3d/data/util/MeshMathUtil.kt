@@ -1,4 +1,4 @@
-package org.vitrivr.engine.model3d.util
+package org.vitrivr.engine.model3d.data.util
 
 import org.joml.Vector3f
 import org.joml.Vector3fc
