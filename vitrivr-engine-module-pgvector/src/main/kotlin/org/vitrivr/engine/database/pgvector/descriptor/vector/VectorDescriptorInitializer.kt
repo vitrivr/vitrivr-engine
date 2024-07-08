@@ -13,7 +13,7 @@ import java.sql.SQLException
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class VectorDescriptorInitializer(field: Schema.Field<*, VectorDescriptor<*>>, connection: PgVectorConnection): AbstractDescriptorInitializer<VectorDescriptor<*>>(field, connection.connection) {
+class VectorDescriptorInitializer(field: Schema.Field<*, VectorDescriptor<*>>, connection: PgVectorConnection): AbstractDescriptorInitializer<VectorDescriptor<*>>(field, connection.jdbc) {
     /**
      * Initializes the [RetrievableInitializer].
      */

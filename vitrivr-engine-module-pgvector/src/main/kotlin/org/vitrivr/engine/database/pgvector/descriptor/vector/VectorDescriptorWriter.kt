@@ -22,7 +22,7 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
      */
     override fun add(item: VectorDescriptor<*>): Boolean {
         try {
-            this.connection.connection.prepareStatement("INSERT INTO $tableName ($DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $DESCRIPTOR_COLUMN_NAME) VALUES (?, ?, ?);").use { stmt ->
+            this.connection.jdbc.prepareStatement("INSERT INTO $tableName ($DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $DESCRIPTOR_COLUMN_NAME) VALUES (?, ?, ?);").use { stmt ->
                 stmt.setObject(1, item.id)
                 stmt.setObject(2, item.retrievableId)
                 stmt.setObject(3, PgVector(item.vector))
@@ -42,7 +42,7 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
      */
     override fun addAll(items: Iterable<VectorDescriptor<*>>): Boolean {
         try {
-            this.connection.connection.prepareStatement("INSERT INTO $tableName ($DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $DESCRIPTOR_COLUMN_NAME) VALUES (?, ?, ?);").use { stmt ->
+            this.connection.jdbc.prepareStatement("INSERT INTO $tableName ($DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $DESCRIPTOR_COLUMN_NAME) VALUES (?, ?, ?);").use { stmt ->
                 for (item in items) {
                     stmt.setObject(1, item.id)
                     stmt.setObject(2, item.retrievableId)
@@ -65,7 +65,7 @@ class VectorDescriptorWriter(field: Schema.Field<*, VectorDescriptor<*>>, connec
      */
     override fun update(item: VectorDescriptor<*>): Boolean {
         try {
-            this.connection.connection.prepareStatement("UPDATE $tableName SET $RETRIEVABLE_ID_COLUMN_NAME = ?,  $DESCRIPTOR_COLUMN_NAME = ? WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?;").use { stmt ->
+            this.connection.jdbc.prepareStatement("UPDATE $tableName SET $RETRIEVABLE_ID_COLUMN_NAME = ?,  $DESCRIPTOR_COLUMN_NAME = ? WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?;").use { stmt ->
                 stmt.setObject(1, item.retrievableId)
                 stmt.setObject(2, PgVector(item.vector))
                 stmt.setObject(3, item.id)

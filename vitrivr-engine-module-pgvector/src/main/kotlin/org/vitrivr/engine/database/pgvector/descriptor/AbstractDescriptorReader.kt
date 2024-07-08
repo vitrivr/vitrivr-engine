@@ -18,7 +18,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractDescriptorReader<D : Descriptor>(final override val field: Schema.Field<*, D>, protected val connection: PgVectorConnection) : DescriptorReader<D> {
+abstract class AbstractDescriptorReader<D : Descriptor>(final override val field: Schema.Field<*, D>, override val connection: PgVectorConnection) : DescriptorReader<D> {
 
     /** The name of the table backing this [AbstractDescriptorReader]. */
     protected val tableName: String = "${DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName}"
@@ -35,7 +35,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      */
     override fun get(descriptorId: DescriptorId): D? {
         try {
-            this.connection.connection.prepareStatement("SELECT * FROM $tableName WHERE $DESCRIPTOR_ID_COLUMN_NAME = ?").use { stmt ->
+            this.connection.jdbc.prepareStatement("SELECT * FROM $tableName WHERE $DESCRIPTOR_ID_COLUMN_NAME = ?").use { stmt ->
                 stmt.setObject(1, descriptorId)
                 stmt.executeQuery().use { res ->
                     if (res.next()) {
@@ -59,7 +59,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      */
     override fun getFor(retrievableId: RetrievableId): Sequence<D> {
         try {
-            this.connection.connection.prepareStatement("SELECT * FROM $tableName WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?").use { stmt ->
+            this.connection.jdbc.prepareStatement("SELECT * FROM $tableName WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?").use { stmt ->
                 stmt.setObject(1, retrievableId)
                 val result = stmt.executeQuery()
                 return sequence {
@@ -84,7 +84,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      */
     override fun exists(descriptorId: DescriptorId): Boolean {
         try {
-            this.connection.connection.prepareStatement("SELECT count(*) FROM $tableName WHERE $DESCRIPTOR_ID_COLUMN_NAME = ?").use { stmt ->
+            this.connection.jdbc.prepareStatement("SELECT count(*) FROM $tableName WHERE $DESCRIPTOR_ID_COLUMN_NAME = ?").use { stmt ->
                 stmt.setObject(1, descriptorId)
                 stmt.executeQuery().use { res ->
                     res.next()
@@ -104,7 +104,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      */
     override fun getAll(): Sequence<D> {
         try {
-            this.connection.connection.prepareStatement("SELECT * FROM $tableName").use { stmt ->
+            this.connection.jdbc.prepareStatement("SELECT * FROM $tableName").use { stmt ->
                 val result = stmt.executeQuery()
                 return sequence {
                     result.use {
@@ -128,9 +128,9 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      */
     override fun getAll(descriptorIds: Iterable<DescriptorId>): Sequence<D> {
         try {
-            this.connection.connection.prepareStatement("SELECT * FROM $tableName WHERE $DESCRIPTOR_ID_COLUMN_NAME = ANY (?)").use { stmt ->
+            this.connection.jdbc.prepareStatement("SELECT * FROM $tableName WHERE $DESCRIPTOR_ID_COLUMN_NAME = ANY (?)").use { stmt ->
                 val values = descriptorIds.map { it }.toTypedArray()
-                stmt.setArray(1, this.connection.connection.createArrayOf("uuid", values))
+                stmt.setArray(1, this.connection.jdbc.createArrayOf("uuid", values))
                 val result = stmt.executeQuery()
                 return sequence {
                     result.use {
@@ -154,9 +154,9 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      */
     override fun getAllFor(retrievableIds: Iterable<RetrievableId>): Sequence<D> {
         try {
-            this.connection.connection.prepareStatement("SELECT * FROM $tableName WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY (?)").use { stmt ->
+            this.connection.jdbc.prepareStatement("SELECT * FROM $tableName WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY (?)").use { stmt ->
                 val values = retrievableIds.map { it }.toTypedArray()
-                stmt.setArray(1, this.connection.connection.createArrayOf("uuid", values))
+                stmt.setArray(1, this.connection.jdbc.createArrayOf("uuid", values))
                 val result = stmt.executeQuery()
                 return sequence {
                     result.use {
@@ -179,7 +179,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      */
     override fun count(): Long {
         try {
-            this.connection.connection.prepareStatement("SELECT COUNT(*) FROM $tableName;").use { stmt ->
+            this.connection.jdbc.prepareStatement("SELECT COUNT(*) FROM $tableName;").use { stmt ->
                 stmt.executeQuery().use { result ->
                     result.next()
                     return result.getLong(1)

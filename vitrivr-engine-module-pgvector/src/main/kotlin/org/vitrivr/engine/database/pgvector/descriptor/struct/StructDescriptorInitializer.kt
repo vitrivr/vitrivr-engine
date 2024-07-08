@@ -13,7 +13,7 @@ import java.sql.SQLException
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class StructDescriptorInitializer(field: Schema.Field<*, StructDescriptor>, connection: PgVectorConnection) : AbstractDescriptorInitializer<StructDescriptor>(field, connection.connection) {
+class StructDescriptorInitializer(field: Schema.Field<*, StructDescriptor>, connection: PgVectorConnection) : AbstractDescriptorInitializer<StructDescriptor>(field, connection.jdbc) {
     override fun initialize() {
         val statement = StringBuilder("CREATE TABLE IF NOT EXISTS $tableName(")
         statement.append("$DESCRIPTOR_ID_COLUMN_NAME uuid NOT NULL, ")

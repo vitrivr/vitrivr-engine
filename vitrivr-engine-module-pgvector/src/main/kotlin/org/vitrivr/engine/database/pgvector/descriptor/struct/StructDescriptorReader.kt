@@ -37,7 +37,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
                 is SimpleFulltextQuery -> TODO()
                 is SimpleBooleanQuery<*> -> {
                     require(query.attributeName != null) { "Boolean query on a struct field requires specification of a field's attribute name." }
-                    this.connection.connection.prepareStatement("SELECT * FROM $tableName WHERE ${query.attributeName} = ?;").apply {
+                    this.connection.jdbc.prepareStatement("SELECT * FROM $tableName WHERE ${query.attributeName} = ?;").apply {
                         setString(1, query.value.toString())
                     }
                 }
