@@ -15,7 +15,7 @@ import java.sql.SQLException
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractDescriptorWriter<D : Descriptor>(final override val field: Schema.Field<*, D>, protected val connection: PgVectorConnection): DescriptorWriter<D> {
+abstract class AbstractDescriptorWriter<D : Descriptor>(final override val field: Schema.Field<*, D>, override val connection: PgVectorConnection): DescriptorWriter<D> {
     /** The name of the table backing this [AbstractDescriptorInitializer]. */
     protected val tableName: String = "${DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName}"
 
@@ -27,7 +27,7 @@ abstract class AbstractDescriptorWriter<D : Descriptor>(final override val field
      */
     override fun delete(item: D): Boolean {
         try {
-            this.connection.connection.prepareStatement("DELETE FROM $tableName WHERE $DESCRIPTOR_ID_COLUMN_NAME = ?;").use { stmt ->
+            this.connection.jdbc.prepareStatement("DELETE FROM $tableName WHERE $DESCRIPTOR_ID_COLUMN_NAME = ?;").use { stmt ->
                 stmt.setObject(1, item.id)
                 return stmt.execute()
             }
@@ -45,9 +45,9 @@ abstract class AbstractDescriptorWriter<D : Descriptor>(final override val field
      */
     override fun deleteAll(items: Iterable<D>): Boolean {
         try {
-            this.connection.connection.prepareStatement("DELETE FROM $tableName WHERE $DESCRIPTOR_ID_COLUMN_NAME = ANY (?);").use { stmt ->
+            this.connection.jdbc.prepareStatement("DELETE FROM $tableName WHERE $DESCRIPTOR_ID_COLUMN_NAME = ANY (?);").use { stmt ->
                 val values = items.map { it.id }.toTypedArray()
-                stmt.setArray(1, this.connection.connection.createArrayOf("uuid", values))
+                stmt.setArray(1, this.connection.jdbc.createArrayOf("uuid", values))
                 return stmt.execute()
             }
         } catch (e: SQLException) {

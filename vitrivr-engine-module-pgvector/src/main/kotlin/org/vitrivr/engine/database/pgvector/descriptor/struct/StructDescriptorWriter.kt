@@ -137,7 +137,7 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
             statement.append(", \"${field.name}\" = ?")
         }
         statement.append("WHERE $DESCRIPTOR_ID_COLUMN_NAME = ?;")
-        return this.connection.connection.prepareStatement(statement.toString())
+        return this.connection.jdbc.prepareStatement(statement.toString())
     }
 
     /**
@@ -155,6 +155,6 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
             statement.append(", ?")
         }
         statement.append(");")
-        return this.connection.connection.prepareStatement(statement.toString())
+        return this.connection.jdbc.prepareStatement(statement.toString())
     }
 }

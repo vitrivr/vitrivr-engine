@@ -32,7 +32,7 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>>, connec
     override fun query(query: Query): Sequence<VectorDescriptor<*>> {
         try {
             val statement = when (query) {
-                is ProximityQuery<*> -> this.connection.connection.prepareStatement("SELECT *, $DESCRIPTOR_COLUMN_NAME ${query.distance.operator()} ? AS $DISTANCE_COLUMN_NAME FROM $tableName ORDER BY $DISTANCE_COLUMN_NAME LIMIT ${query.k}").apply {
+                is ProximityQuery<*> -> this.connection.jdbc.prepareStatement("SELECT *, $DESCRIPTOR_COLUMN_NAME ${query.distance.operator()} ? AS $DISTANCE_COLUMN_NAME FROM $tableName ORDER BY $DISTANCE_COLUMN_NAME LIMIT ${query.k}").apply {
                     setObject(1, PgVector(query.value))
                 }
                 else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by VectorDescriptorReader.")
@@ -57,7 +57,7 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>>, connec
             return when (query) {
                 is ProximityQuery<*> -> {
                     val descriptors = mutableListOf<Pair<VectorDescriptor<*>, Float>>()
-                    this.connection.connection.prepareStatement("SELECT *, $DESCRIPTOR_COLUMN_NAME ${query.distance.operator()} ? AS $DISTANCE_COLUMN_NAME FROM $tableName ORDER BY $DISTANCE_COLUMN_NAME LIMIT ${query.k}").use { stmt ->
+                    this.connection.jdbc.prepareStatement("SELECT *, $DESCRIPTOR_COLUMN_NAME ${query.distance.operator()} ? AS $DISTANCE_COLUMN_NAME FROM $tableName ORDER BY $DISTANCE_COLUMN_NAME LIMIT ${query.k}").use { stmt ->
                         stmt.setObject(1, PgVector(query.value))
                         stmt.executeQuery().use { result ->
                             while (result.next()) {

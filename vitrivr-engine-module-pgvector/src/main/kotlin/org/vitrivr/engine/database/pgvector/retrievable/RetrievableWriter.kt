@@ -4,7 +4,6 @@ import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.database.pgvector.*
-import java.sql.Connection
 import java.sql.SQLException
 
 /**
@@ -13,7 +12,7 @@ import java.sql.SQLException
  * @author Ralph Gasser
  * @version 1.0.0
  */
-internal class RetrievableWriter(private val connection: Connection): RetrievableWriter {
+internal class RetrievableWriter(override val connection: PgVectorConnection): RetrievableWriter {
     /**
      * Adds a new [Retrievable] to the database using this [RetrievableWriter] instance.
      *
@@ -21,7 +20,7 @@ internal class RetrievableWriter(private val connection: Connection): Retrievabl
      */
     override fun add(item: Retrievable): Boolean {
         try {
-            this.connection.prepareStatement("INSERT INTO $RETRIEVABLE_ENTITY_NAME ($RETRIEVABLE_ID_COLUMN_NAME, $RETRIEVABLE_TYPE_COLUMN_NAME) VALUES (?, ?);").use { stmt ->
+            this.connection.jdbc.prepareStatement("INSERT INTO $RETRIEVABLE_ENTITY_NAME ($RETRIEVABLE_ID_COLUMN_NAME, $RETRIEVABLE_TYPE_COLUMN_NAME) VALUES (?, ?);").use { stmt ->
                 stmt.setObject(1, item.id)
                 stmt.setString(2, item.type)
                 return stmt.execute()
@@ -39,7 +38,7 @@ internal class RetrievableWriter(private val connection: Connection): Retrievabl
      */
     override fun addAll(items: Iterable<Retrievable>): Boolean {
         try {
-            this.connection.prepareStatement("INSERT INTO $RETRIEVABLE_ENTITY_NAME ($RETRIEVABLE_ID_COLUMN_NAME, $RETRIEVABLE_TYPE_COLUMN_NAME) VALUES (?, ?);").use { stmt ->
+            this.connection.jdbc.prepareStatement("INSERT INTO $RETRIEVABLE_ENTITY_NAME ($RETRIEVABLE_ID_COLUMN_NAME, $RETRIEVABLE_TYPE_COLUMN_NAME) VALUES (?, ?);").use { stmt ->
                 for (item in items) {
                     stmt.setObject(1, item.id)
                     stmt.setString(2, item.type)
@@ -61,7 +60,7 @@ internal class RetrievableWriter(private val connection: Connection): Retrievabl
      */
     override fun update(item: Retrievable): Boolean {
         try {
-            this.connection.prepareStatement("UPDATE $RETRIEVABLE_ENTITY_NAME SET $RETRIEVABLE_TYPE_COLUMN_NAME = ? WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?").use { stmt ->
+            this.connection.jdbc.prepareStatement("UPDATE $RETRIEVABLE_ENTITY_NAME SET $RETRIEVABLE_TYPE_COLUMN_NAME = ? WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?").use { stmt ->
                 stmt.setString(1, item.type)
                 stmt.setObject(2, item.id)
                 return stmt.execute()
@@ -80,7 +79,7 @@ internal class RetrievableWriter(private val connection: Connection): Retrievabl
      */
     override fun delete(item: Retrievable): Boolean {
         try {
-            this.connection.prepareStatement("DELETE FROM $RETRIEVABLE_ENTITY_NAME WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?;").use { stmt ->
+            this.connection.jdbc.prepareStatement("DELETE FROM $RETRIEVABLE_ENTITY_NAME WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?;").use { stmt ->
                 stmt.setObject(1, item.id)
                 return stmt.execute()
             }
@@ -98,9 +97,9 @@ internal class RetrievableWriter(private val connection: Connection): Retrievabl
      */
     override fun deleteAll(items: Iterable<Retrievable>): Boolean {
         try {
-            this.connection.prepareStatement("DELETE FROM $RETRIEVABLE_ENTITY_NAME WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY (?);").use { stmt ->
+            this.connection.jdbc.prepareStatement("DELETE FROM $RETRIEVABLE_ENTITY_NAME WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY (?);").use { stmt ->
                 val values = items.map { it.id }.toTypedArray()
-                stmt.setArray(1, connection.createArrayOf("uuid", values))
+                stmt.setArray(1, this.connection.jdbc.createArrayOf("uuid", values))
                 return stmt.execute()
             }
         } catch (e: SQLException) {
@@ -117,7 +116,7 @@ internal class RetrievableWriter(private val connection: Connection): Retrievabl
      */
     override fun connect(relationship: Relationship): Boolean {
         try {
-            this.connection.prepareStatement("INSERT INTO $RELATIONSHIP_ENTITY_NAME ($OBJECT_ID_COLUMN_NAME,$PREDICATE_COLUMN_NAME,$SUBJECT_ID_COLUMN_NAME) VALUES (?,?,?)").use { stmt ->
+            this.connection.jdbc.prepareStatement("INSERT INTO $RELATIONSHIP_ENTITY_NAME ($OBJECT_ID_COLUMN_NAME,$PREDICATE_COLUMN_NAME,$SUBJECT_ID_COLUMN_NAME) VALUES (?,?,?)").use { stmt ->
                 stmt.setObject(1, relationship.objectId)
                 stmt.setString(2, relationship.predicate)
                 stmt.setObject(3, relationship.subjectId)
@@ -137,7 +136,7 @@ internal class RetrievableWriter(private val connection: Connection): Retrievabl
      */
     override fun connectAll(relationships: Iterable<Relationship>): Boolean {
         try {
-            this.connection.prepareStatement("INSERT INTO $RELATIONSHIP_ENTITY_NAME ($OBJECT_ID_COLUMN_NAME,$PREDICATE_COLUMN_NAME,$SUBJECT_ID_COLUMN_NAME) VALUES (?,?,?)").use { stmt ->
+            this.connection.jdbc.prepareStatement("INSERT INTO $RELATIONSHIP_ENTITY_NAME ($OBJECT_ID_COLUMN_NAME,$PREDICATE_COLUMN_NAME,$SUBJECT_ID_COLUMN_NAME) VALUES (?,?,?)").use { stmt ->
                 for (relationship in relationships) {
                     stmt.setObject(1, relationship.objectId)
                     stmt.setString(2, relationship.predicate)
@@ -160,7 +159,7 @@ internal class RetrievableWriter(private val connection: Connection): Retrievabl
      */
     override fun disconnect(relationship: Relationship): Boolean {
         try {
-            this.connection.prepareStatement("DELETE FROM $RELATIONSHIP_ENTITY_NAME WHERE $OBJECT_ID_COLUMN_NAME = ? AND $PREDICATE_COLUMN_NAME = ? AND $SUBJECT_ID_COLUMN_NAME = ?").use { stmt ->
+            this.connection.jdbc.prepareStatement("DELETE FROM $RELATIONSHIP_ENTITY_NAME WHERE $OBJECT_ID_COLUMN_NAME = ? AND $PREDICATE_COLUMN_NAME = ? AND $SUBJECT_ID_COLUMN_NAME = ?").use { stmt ->
                 stmt.setObject(1, relationship.objectId)
                 stmt.setString(2, relationship.predicate)
                 stmt.setObject(3, relationship.subjectId)

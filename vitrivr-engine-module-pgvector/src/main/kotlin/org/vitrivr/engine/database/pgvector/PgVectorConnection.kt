@@ -22,12 +22,12 @@ internal val LOGGER: KLogger = logger("org.vitrivr.engine.database.pgvector.PgVe
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: String, internal val connection: Connection): AbstractConnection(schemaName, provider) {
+class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: String, internal val jdbc: Connection): AbstractConnection(schemaName, provider) {
 
     init {
         /* Make sure that the pg_vector extension is installed. */
         try {
-            this.connection.prepareStatement("CREATE EXTENSION IF NOT EXISTS vector;").use {
+            this.jdbc.prepareStatement("CREATE EXTENSION IF NOT EXISTS vector;").use {
                 it.execute()
             }
         } catch (e: SQLException) {
@@ -36,12 +36,12 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
         }
 
         /* Register the vector data type. */
-        this.connection.unwrap(PGConnection::class.java).addDataType("vector", PgVector::class.java)
-        this.connection.unwrap(PGConnection::class.java).addDataType("bit", PgBitVector::class.java)
+        this.jdbc.unwrap(PGConnection::class.java).addDataType("vector", PgVector::class.java)
+        this.jdbc.unwrap(PGConnection::class.java).addDataType("bit", PgBitVector::class.java)
 
         /* Create necessary database. */
         try {
-            this.connection.prepareStatement("CREATE DATABASE $schemaName;").use {
+            this.jdbc.prepareStatement("CREATE DATABASE $schemaName;").use {
                 it.execute()
             }
         } catch (e: SQLException) {
@@ -60,7 +60,7 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
      * @return [RetrievableInitializer]
      */
     override fun getRetrievableInitializer(): RetrievableInitializer
-        = org.vitrivr.engine.database.pgvector.retrievable.RetrievableInitializer(this.connection)
+        = org.vitrivr.engine.database.pgvector.retrievable.RetrievableInitializer(this)
 
     /**
      * Generates and returns a [RetrievableWriter] for this [PgVectorConnection].
@@ -68,7 +68,7 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
      * @return [RetrievableWriter]
      */
     override fun getRetrievableWriter(): RetrievableWriter
-        = org.vitrivr.engine.database.pgvector.retrievable.RetrievableWriter(this.connection)
+        = org.vitrivr.engine.database.pgvector.retrievable.RetrievableWriter(this)
 
     /**
      * Generates and returns a [RetrievableWriter] for this [PgVectorConnection].
@@ -76,19 +76,19 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
      * @return [RetrievableReader]
      */
     override fun getRetrievableReader(): RetrievableReader
-        = org.vitrivr.engine.database.pgvector.retrievable.RetrievableReader(this.connection)
+        = org.vitrivr.engine.database.pgvector.retrievable.RetrievableReader(this)
 
     /**
      * Returns the human-readable description of this [PgVectorConnection].
      */
-    override fun description(): String = this.connection.toString()
+    override fun description(): String = this.jdbc.toString()
 
     /**
      * Closes this [PgVectorConnection]
      */
     override fun close() {
         try {
-            this.connection.close()
+            this.jdbc.close()
         } catch (e: SQLException) {
             LOGGER.warn(e) { "Failed to close database connection due to exception." }
         }

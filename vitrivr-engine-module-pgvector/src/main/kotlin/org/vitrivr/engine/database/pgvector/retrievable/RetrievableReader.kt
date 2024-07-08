@@ -4,11 +4,7 @@ import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
-import org.vitrivr.engine.database.pgvector.LOGGER
-import org.vitrivr.engine.database.pgvector.RETRIEVABLE_ENTITY_NAME
-import org.vitrivr.engine.database.pgvector.RETRIEVABLE_ID_COLUMN_NAME
-import org.vitrivr.engine.database.pgvector.RETRIEVABLE_TYPE_COLUMN_NAME
-import java.sql.Connection
+import org.vitrivr.engine.database.pgvector.*
 import java.util.*
 
 /**
@@ -17,13 +13,13 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class RetrievableReader(private val connection: Connection): RetrievableReader {
+class RetrievableReader(override val connection: PgVectorConnection): RetrievableReader {
     /**
      * Returns the [Retrievable]s that matches the provided [RetrievableId]
      */
     override fun get(id: RetrievableId): Retrievable? {
         try {
-            this.connection.prepareStatement("SELECT * FROM $RETRIEVABLE_ENTITY_NAME WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?").use { stmt ->
+            this.connection.jdbc.prepareStatement("SELECT * FROM $RETRIEVABLE_ENTITY_NAME WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?").use { stmt ->
                 stmt.setObject(1, id)
                 stmt.executeQuery().use { res ->
                     if (res.next() ) {
@@ -47,7 +43,7 @@ class RetrievableReader(private val connection: Connection): RetrievableReader {
      */
     override fun exists(id: RetrievableId): Boolean {
         try {
-            this.connection.prepareStatement("SELECT count(*) FROM $RETRIEVABLE_ENTITY_NAME WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?").use { stmt ->
+            this.connection.jdbc.prepareStatement("SELECT count(*) FROM $RETRIEVABLE_ENTITY_NAME WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?").use { stmt ->
                 stmt.setObject(1, id)
                 stmt.executeQuery().use { res ->
                     res.next()
@@ -68,9 +64,9 @@ class RetrievableReader(private val connection: Connection): RetrievableReader {
      */
     override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrievable> {
         try {
-            this.connection.prepareStatement("SELECT * FROM $RETRIEVABLE_ENTITY_NAME WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY (?)").use { stmt ->
+            this.connection.jdbc.prepareStatement("SELECT * FROM $RETRIEVABLE_ENTITY_NAME WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY (?)").use { stmt ->
                 val values = ids.map { it }.toTypedArray()
-                stmt.setArray(1, connection.createArrayOf("uuid", values))
+                stmt.setArray(1, this.connection.jdbc.createArrayOf("uuid", values))
                 val result = stmt.executeQuery()
                 return sequence {
                     while (result.next()) {
@@ -92,7 +88,7 @@ class RetrievableReader(private val connection: Connection): RetrievableReader {
      */
     override fun getAll(): Sequence<Retrievable> {
         try {
-            this.connection.prepareStatement("SELECT * FROM $RETRIEVABLE_ENTITY_NAME").use { stmt ->
+            this.connection.jdbc.prepareStatement("SELECT * FROM $RETRIEVABLE_ENTITY_NAME").use { stmt ->
                 val result = stmt.executeQuery()
                 return sequence {
                     while (result.next()) {
@@ -122,7 +118,7 @@ class RetrievableReader(private val connection: Connection): RetrievableReader {
      */
     override fun count(): Long {
         try {
-            this.connection.prepareStatement("SELECT COUNT(*) FROM $RETRIEVABLE_ENTITY_NAME;").use { stmt ->
+            this.connection.jdbc.prepareStatement("SELECT COUNT(*) FROM $RETRIEVABLE_ENTITY_NAME;").use { stmt ->
                 stmt.executeQuery().use { result ->
                     result.next()
                     return result.getLong(1)

@@ -28,7 +28,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @author Ralph Gasser
  * @version 1.0.0
  */
-internal class RetrievableWriter(private val connection: CottontailConnection) : RetrievableWriter {
+internal class RetrievableWriter(override val connection: CottontailConnection) : RetrievableWriter {
 
     /** The [Name.EntityName] of the retrievable entity. */
     private val entityName: Name.EntityName = Name.EntityName.create(this.connection.schemaName, RETRIEVABLE_ENTITY_NAME)
