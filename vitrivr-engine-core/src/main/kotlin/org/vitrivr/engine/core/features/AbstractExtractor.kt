@@ -34,7 +34,7 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final ov
     final override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
         if (this.matches(retrievable)) {
             /* Perform extraction. */
-            logger.debug{"Extraction for retrievable: $retrievable" }
+            logger.debug{"Extraction on field ${field?.fieldName} for retrievable: $retrievable" }
             val descriptors = extract(retrievable)
 
             /* Append descriptor. */

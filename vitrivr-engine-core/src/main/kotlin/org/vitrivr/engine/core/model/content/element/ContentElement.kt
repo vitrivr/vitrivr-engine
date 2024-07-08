@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.model.content.element
 
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.ContentType
+import java.util.UUID
 
 /**
  * A [Content] element is a piece of [Content] that is tied to some actual [Content].
@@ -19,6 +20,9 @@ sealed interface ContentElement<T>: Content {
      */
     val content: T
 
+    val id: UUID
+
     /** The [ContentType] of this [ContentElement]. */
     val type: ContentType
+
 }

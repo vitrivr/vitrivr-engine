@@ -76,7 +76,8 @@ class ASR : ExternalFesAnalyser<AudioContent, StringDescriptor>() {
         context: IndexContext
     ): Extractor<AudioContent, StringDescriptor> {
         val batchSize = context.getProperty(name, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
-        return object : FesExtractor<StringDescriptor, AudioContent, ASR>(input, null, batchSize) {
+        val contentSources = context.getProperty(name, "contentSources")?.split(",")?.toSet()
+        return object : FesExtractor<StringDescriptor, AudioContent, ASR>(input, null, batchSize, contentSources) {
             override fun assignRetrievableId(descriptor: StringDescriptor, retrievableId: RetrievableId): StringDescriptor {
                 return descriptor.copy(retrievableId = retrievableId)
             }
@@ -98,7 +99,8 @@ class ASR : ExternalFesAnalyser<AudioContent, StringDescriptor>() {
         context: IndexContext
     ): Extractor<AudioContent, StringDescriptor> {
         val batchSize = context.getProperty(field.fieldName, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
-        return object : FesExtractor<StringDescriptor, AudioContent, ASR>(input, field, batchSize) {
+        val contentSources = context.getProperty(field.fieldName, "contentSources")?.split(",")?.toSet()
+        return object : FesExtractor<StringDescriptor, AudioContent, ASR>(input, field, batchSize, contentSources) {
             override fun assignRetrievableId(descriptor: StringDescriptor, retrievableId: RetrievableId): StringDescriptor {
                 return descriptor.copy(retrievableId = retrievableId, field = field)
             }

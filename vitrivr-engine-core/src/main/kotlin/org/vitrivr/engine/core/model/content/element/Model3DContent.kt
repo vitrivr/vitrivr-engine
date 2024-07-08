@@ -13,9 +13,6 @@ import java.awt.image.BufferedImage
 interface Model3DContent: ContentElement<Model3D>{
     /** The [ContentType] of a [Model3DContent] is always [ContentType.MESH]. */
 
-    val id: String
-        get() = this.content.id
-
     override val type: ContentType
         get() = ContentType.MESH
 }

@@ -7,8 +7,10 @@ import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
+import java.util.*
 
 /**
  * An abstract [Transformer] implementation for aggregators; aggregators are used to aggregate the content of [Ingested] objects.
@@ -16,7 +18,7 @@ import org.vitrivr.engine.core.operators.general.Transformer
  * @author Ralph Gasser
  * @version 1.1.0
  */
-abstract class AbstractAggregator(override val input: Operator<out Retrievable>, protected open val context: Context) : Transformer {
+abstract class AbstractAggregator(override val input: Operator<out Retrievable>, protected open val context: Context, protected val name: String, val newContent: Boolean = true) : Transformer {
     /**
      *  Creates a flow for this [AbstractAggregator].
      *
@@ -27,8 +29,12 @@ abstract class AbstractAggregator(override val input: Operator<out Retrievable>,
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).map {
         if (it.content.isNotEmpty()) {
             val aggregated = this.aggregate(it.content)
-            it.clearContent()
-            aggregated.forEach { c -> it.addContent(c) }
+            aggregated.forEach { c ->
+                if (newContent) {
+                    it.addContent(c)
+                }
+                it.addAttribute(ContentAuthorAttribute(c.id, name))
+            }
             it
         } else {
             it

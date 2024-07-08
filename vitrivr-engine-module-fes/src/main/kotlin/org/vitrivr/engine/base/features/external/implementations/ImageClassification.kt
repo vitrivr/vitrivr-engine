@@ -100,7 +100,8 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
         context: IndexContext
     ): Extractor<ImageContent, LabelDescriptor> {
         val batchSize = context.getProperty(name, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
-        return object : FesExtractor<LabelDescriptor, ImageContent, ImageClassification>(input, null, batchSize) {
+        val contentSources = context.getProperty(name, "contentSources")?.split(",")?.toSet()
+        return object : FesExtractor<LabelDescriptor, ImageContent, ImageClassification>(input, null, batchSize, contentSources) {
             override fun assignRetrievableId(descriptor: LabelDescriptor, retrievableId: RetrievableId): LabelDescriptor {
                 return descriptor.copy(retrievableId = retrievableId)
             }
@@ -122,7 +123,8 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
         context: IndexContext
     ): Extractor<ImageContent, LabelDescriptor> {
         val batchSize = context.getProperty(field.fieldName, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
-        return object : FesExtractor<LabelDescriptor, ImageContent, ImageClassification>(input, field, batchSize) {
+        val contentSources = context.getProperty(field.fieldName, "contentSources")?.split(",")?.toSet()
+        return object : FesExtractor<LabelDescriptor, ImageContent, ImageClassification>(input, field, batchSize, contentSources) {
             override fun assignRetrievableId(descriptor: LabelDescriptor, retrievableId: RetrievableId): LabelDescriptor {
                 return descriptor.copy(retrievableId = retrievableId, field = field)
             }

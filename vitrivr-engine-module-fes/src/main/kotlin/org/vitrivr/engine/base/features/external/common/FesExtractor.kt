@@ -8,6 +8,7 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import java.util.logging.Logger
 
@@ -21,9 +22,10 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @param A The type of the [ExternalFesAnalyser] to use.
  */
 abstract class FesExtractor<D:Descriptor,C:ContentElement<*>, A:ExternalFesAnalyser<C,D>>(
-        input: Operator<Retrievable>,
-        field: Schema.Field<C, D>?,
-        bufferSize: Int
+    input: Operator<Retrievable>,
+    field: Schema.Field<C, D>?,
+    bufferSize: Int,
+    private val contentSources : Set<String>?
 ) : AbstractBatchedExtractor<C, D>(input, field, bufferSize) {
 
 
@@ -55,11 +57,16 @@ abstract class FesExtractor<D:Descriptor,C:ContentElement<*>, A:ExternalFesAnaly
         val allContent : List<List<C>> = retrievables.map { retrievable ->
             retrievable.findContent { contentItem ->
                 analyser.contentClasses.any { contentClass ->
-                    contentClass.isInstance(contentItem)
+                    contentClass.isInstance(contentItem) && contentSources?.let { sources ->
+                        retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getAuthors(contentItem.id)?.any { it in sources }
+                    } ?: true
                 }
             }.map{ it as C}
         }
-        logger.debug { "Extracting descriptors from ${retrievables.size} retrievables (${allContent.flatten().size} content elements total)." }
+
+        val idString: String = retrievables.joinToString(", ") { it.id.toString() }
+
+        logger.debug { "Extracting descriptors for field ${this.field?.fieldName} from ${retrievables.size} retrievables (${allContent.flatten().size} content elements total): $idString" }
 
         val allDescriptors: List<List<D>>
         try {

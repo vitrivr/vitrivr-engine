@@ -5,6 +5,7 @@ import java.lang.ref.SoftReference
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
+import java.util.*
 
 /**
  * A [TextContent] implementation that is backed by a cache file.
@@ -13,6 +14,8 @@ import java.nio.file.StandardOpenOption
  * @version 1.0.0
  */
 class CachedTextContent(override val path: Path, text: String) : TextContent, CachedContent {
+
+    override val id: UUID = UUID.randomUUID()
 
     /** The [SoftReference] of the [String] used for caching. */
     private var reference: SoftReference<String> = SoftReference(text)
