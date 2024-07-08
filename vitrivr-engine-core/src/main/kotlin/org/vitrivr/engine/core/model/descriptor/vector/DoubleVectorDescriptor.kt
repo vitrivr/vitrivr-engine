@@ -1,6 +1,6 @@
 package org.vitrivr.engine.core.model.descriptor.vector
 
-import org.vitrivr.engine.core.model.descriptor.FieldSchema
+import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Type
@@ -12,19 +12,19 @@ import java.util.*
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 
 data class DoubleVectorDescriptor(
     override var id: UUID = UUID.randomUUID(),
     override var retrievableId: RetrievableId? = null,
-    override val vector: List<Value.Double>,
+    override val vector: Value.DoubleVector,
     override val field: Schema.Field<*, DoubleVectorDescriptor>? = null
-) : VectorDescriptor<Value.Double> {
+) : VectorDescriptor<Value.DoubleVector> {
     /**
-     * Returns the [FieldSchema] [List ]of this [DoubleVectorDescriptor].
+     * Returns the [Attribute] [List ]of this [DoubleVectorDescriptor].
      *
-     * @return [List] of [FieldSchema]
+     * @return [List] of [Attribute]
      */
-    override fun schema(): List<FieldSchema> = listOf(FieldSchema("vector", Type.DOUBLE, intArrayOf(this.dimensionality)))
+    override fun schema(): List<Attribute> = listOf(Attribute("vector", Type.DoubleVector(this.dimensionality)))
 }

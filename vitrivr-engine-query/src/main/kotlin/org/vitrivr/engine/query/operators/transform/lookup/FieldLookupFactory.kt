@@ -17,7 +17,7 @@ class FieldLookupFactory() : TransformerFactory {
             if(providedKeys.length == 1 && providedKeys == "*") {
                 schemaField.analyser.prototype(schemaField).schema().map { it.name }
             }else{
-                providedKeys.split(",").map { s -> s.trim() } ?: emptyList()
+                providedKeys.split(",").map { s -> s.trim() }
             }
         }else{
             emptyList()

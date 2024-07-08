@@ -67,7 +67,7 @@ open class RGBFloatColorContainer(open val red: Float, open val green: Float, op
      *
      * @return [List] of [Value.Float]s
      */
-    fun toValueList() = listOf(Value.Float(this.red), Value.Float(this.green), Value.Float(this.blue))
+    fun toVector() = Value.FloatVector(floatArrayOf(this.red, this.green, this.blue))
 
     fun distanceTo(other: RGBFloatColorContainer): Float = sqrt(
         (this.red - other.red) * (this.red - other.red) + (this.green - other.green) * (this.green - other.green) + (this.blue - other.blue) * (this.blue - other.blue)
