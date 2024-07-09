@@ -125,34 +125,34 @@ sealed interface Type {
      * A [Type] that represents a [BooleanVector] value.
      */
     data class BooleanVector(override val dimensions: kotlin.Int) : Type {
-        override fun defaultValue(): Value<*> = Value.BooleanVector(BooleanArray(this.dimensions))
+        override fun defaultValue(): Value<*> = Value.BooleanVector(this.dimensions)
     }
 
     /**
      * A [Type] that represents a [IntVector] value.
      */
     data class IntVector(override val dimensions: kotlin.Int) : Type {
-        override fun defaultValue(): Value<*> = Value.IntVector(IntArray(this.dimensions))
+        override fun defaultValue(): Value<*> = Value.IntVector(this.dimensions)
     }
 
     /**
      * A [Type] that represents a [LongVector] value.
      */
     data class LongVector(override val dimensions: kotlin.Int) : Type {
-        override fun defaultValue(): Value<*> = Value.LongVector(LongArray(this.dimensions))
+        override fun defaultValue(): Value<*> = Value.LongVector(this.dimensions)
     }
 
     /**
      * A [Type] that represents a [FloatVector] value.
      */
     data class FloatVector(override val dimensions: kotlin.Int) : Type {
-        override fun defaultValue(): Value<*> = Value.FloatVector(FloatArray(this.dimensions))
+        override fun defaultValue(): Value<*> = Value.FloatVector(this.dimensions)
     }
 
     /**
      * A [Type] that represents a [DoubleVector] value.
      */
     data class DoubleVector(override val dimensions: kotlin.Int) : Type {
-        override fun defaultValue(): Value<*> = Value.DoubleVector(DoubleArray(this.dimensions))
+        override fun defaultValue(): Value<*> = Value.DoubleVector(this.dimensions)
     }
 }
