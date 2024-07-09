@@ -57,7 +57,12 @@ private fun convertType(directory: Directory, tagType: Int, type: Type): Value<*
     Type.Long -> Value.Long(directory.getLong(tagType))
     Type.Short -> Value.Short(directory.getObject(tagType) as Short)
     Type.String -> Value.String(directory.getString(tagType))
-    else -> throw IllegalArgumentException("Unsupported type: $type")
+    Type.Text -> Value.String(directory.getString(tagType))
+    is Type.BooleanVector -> throw IllegalArgumentException("Unsupported type: $type")
+    is Type.DoubleVector -> throw IllegalArgumentException("Unsupported type: $type")
+    is Type.FloatVector -> throw IllegalArgumentException("Unsupported type: $type")
+    is Type.IntVector -> throw IllegalArgumentException("Unsupported type: $type")
+    is Type.LongVector -> throw IllegalArgumentException("Unsupported type: $type")
 }
 
 private fun JsonElement.convertType(type: Type): Value<*>? {
