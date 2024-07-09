@@ -18,10 +18,9 @@ class VectorDescriptorInitializer(field: Schema.Field<*, VectorDescriptor<*>>, c
      * Initializes the [RetrievableInitializer].
      */
     override fun initialize() {
-        val type = this.field.analyser.prototype(this.field)
         try {
             /* Create 'retrievable' entity. */
-            this.connection.prepareStatement(/* sql = postgres */ "CREATE TABLE IF NOT EXISTS $tableName ($DESCRIPTOR_ID_COLUMN_NAME uuid NOT NULL, $RETRIEVABLE_ID_COLUMN_NAME uuid NOT NULL, $DESCRIPTOR_COLUMN_NAME vector(${type.dimensionality}) NOT NULL, PRIMARY KEY ($DESCRIPTOR_ID_COLUMN_NAME), FOREIGN KEY ($RETRIEVABLE_ID_COLUMN_NAME) REFERENCES $RETRIEVABLE_ENTITY_NAME($RETRIEVABLE_ID_COLUMN_NAME));")
+            this.connection.prepareStatement(/* sql = postgres */ "CREATE TABLE IF NOT EXISTS $tableName ($DESCRIPTOR_ID_COLUMN_NAME uuid NOT NULL, $RETRIEVABLE_ID_COLUMN_NAME uuid NOT NULL, $DESCRIPTOR_COLUMN_NAME vector(${this.prototype.dimensionality}) NOT NULL, PRIMARY KEY ($DESCRIPTOR_ID_COLUMN_NAME), FOREIGN KEY ($RETRIEVABLE_ID_COLUMN_NAME) REFERENCES $RETRIEVABLE_ENTITY_NAME($RETRIEVABLE_ID_COLUMN_NAME));")
                 .use {
                     it.execute()
             }
