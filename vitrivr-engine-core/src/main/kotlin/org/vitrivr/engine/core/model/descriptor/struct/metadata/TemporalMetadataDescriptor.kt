@@ -1,7 +1,9 @@
 package org.vitrivr.engine.core.model.descriptor.struct.metadata
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
-import org.vitrivr.engine.core.model.descriptor.FieldSchema
+import org.vitrivr.engine.core.model.descriptor.Attribute
+import org.vitrivr.engine.core.model.descriptor.AttributeName
+import org.vitrivr.engine.core.model.descriptor.struct.MapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
@@ -13,41 +15,29 @@ import java.util.*
  * A [StructDescriptor] used to store temporal metadata.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 2.0.0
  */
-data class TemporalMetadataDescriptor(
+class TemporalMetadataDescriptor(
     override var id: DescriptorId,
     override var retrievableId: RetrievableId?, //retrievable Id must come first, due to reflection
-    val startNs: Value.Long,
-    val endNs: Value.Long,
+    values: Map<AttributeName, Value<*>?>,
     override val field: Schema.Field<*, TemporalMetadataDescriptor>? = null
-) : StructDescriptor {
+) : MapStructDescriptor(id, retrievableId, SCHEMA, values, field) {
 
     companion object {
         /** The field schema associated with a [TemporalMetadataDescriptor]. */
         private val SCHEMA = listOf(
-            FieldSchema("start", Type.LONG),
-            FieldSchema("end", Type.LONG),
+            Attribute("start", Type.Long),
+            Attribute("end", Type.Long),
         )
 
         /** The prototype [TemporalMetadataDescriptor]. */
-        val PROTOTYPE = TemporalMetadataDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.Long(0L), Value.Long(0L))
+        val PROTOTYPE = TemporalMetadataDescriptor(UUID.randomUUID(), UUID.randomUUID(), mapOf("start" to Value.Long(0L), "end" to Value.Long(0L)))
     }
 
-    /**
-     * Returns the [FieldSchema] [List ]of this [TemporalMetadataDescriptor].
-     *
-     * @return [List] of [FieldSchema]
-     */
-    override fun schema(): List<FieldSchema> = SCHEMA
+    /** The start timestamp in nanoseconds. */
+    val start: Value.Long by this.values
 
-    /**
-     * Returns the fields and its values of this [TemporalMetadataDescriptor] as a [Map].
-     *
-     * @return A [Map] of this [TemporalMetadataDescriptor]'s fields (without the IDs).
-     */
-    override fun values(): List<Pair<String, Any?>> = listOf(
-        "start" to this.startNs,
-        "end" to this.endNs
-    )
+    /** The end timestamp in nanoseconds. */
+    val end: Value.Long by this.values
 }

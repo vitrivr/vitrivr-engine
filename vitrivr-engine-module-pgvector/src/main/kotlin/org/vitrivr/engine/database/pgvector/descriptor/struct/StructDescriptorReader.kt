@@ -13,6 +13,8 @@ import org.vitrivr.engine.database.pgvector.LOGGER
 import org.vitrivr.engine.database.pgvector.PgVectorConnection
 import org.vitrivr.engine.database.pgvector.RETRIEVABLE_ID_COLUMN_NAME
 import org.vitrivr.engine.database.pgvector.descriptor.AbstractDescriptorReader
+import org.vitrivr.engine.database.pgvector.descriptor.model.PgBitVector
+import org.vitrivr.engine.database.pgvector.descriptor.model.PgVector
 import java.sql.ResultSet
 import java.util.*
 import kotlin.reflect.full.primaryConstructor
@@ -69,15 +71,18 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
         for (field in this.prototype.schema()) {
             parameters.add(
                 when(field.type) {
-                    Type.STRING -> result.getString(field.name)
-                    Type.BOOLEAN -> result.getBoolean(field.name)
-                    Type.BYTE -> result.getByte(field.name)
-                    Type.SHORT -> result.getShort(field.name)
-                    Type.INT -> result.getInt(field.name)
-                    Type.LONG -> result.getLong(field.name)
-                    Type.FLOAT ->  result.getFloat(field.name)
-                    Type.DOUBLE -> result.getDouble(field.name)
-                    Type.DATETIME -> result.getDate(field.name).toLocalDate()
+                    Type.String -> result.getString(field.name)
+                    Type.Boolean -> result.getBoolean(field.name)
+                    Type.Byte -> result.getByte(field.name)
+                    Type.Short -> result.getShort(field.name)
+                    Type.Int -> result.getInt(field.name)
+                    Type.Long -> result.getLong(field.name)
+                    Type.Float -> result.getFloat(field.name)
+                    Type.Double -> result.getDouble(field.name)
+                    Type.Datetime -> result.getDate(field.name).toLocalDate()
+                    is Type.BooleanVector -> result.getObject(field.name, PgBitVector::class.java)
+                    is Type.FloatVector -> result.getObject(field.name, PgVector::class.java)
+                    else -> throw IllegalArgumentException("Unsupported type ${field.type} in struct descriptor.")
                 }
             )
         }

@@ -17,7 +17,7 @@ import java.util.*
 class InceptionResNetV2 : Analyser<ContentElement<*>, FloatVectorDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = FloatVectorDescriptor::class
-    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(1536) { Value.Float(0.0f) })
+    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(1536))
 
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, FloatVectorDescriptor> {
         TODO("Not yet implemented")

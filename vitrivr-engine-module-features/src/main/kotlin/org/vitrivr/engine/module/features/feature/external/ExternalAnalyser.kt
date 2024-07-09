@@ -83,7 +83,7 @@ abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor> : Analyse
                 if (responseCode != HttpURLConnection.HTTP_OK) return null
                 return connection.inputStream.use { stream ->
                     when (U::class) {
-                        FloatVectorDescriptor::class -> FloatVectorDescriptor(UUID.randomUUID(), null, Json.decodeFromStream<FloatArray>(stream).map { Value.Float(it) })
+                        FloatVectorDescriptor::class -> FloatVectorDescriptor(UUID.randomUUID(), null, Value.FloatVector(Json.decodeFromStream<FloatArray>(stream)))
                         else -> null
                     } as U?
                 }

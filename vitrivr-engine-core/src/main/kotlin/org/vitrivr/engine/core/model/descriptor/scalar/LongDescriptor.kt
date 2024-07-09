@@ -1,7 +1,7 @@
 package org.vitrivr.engine.core.model.descriptor.scalar
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
-import org.vitrivr.engine.core.model.descriptor.FieldSchema
+import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Type
@@ -21,13 +21,13 @@ data class LongDescriptor(
     override val field: Schema.Field<*, LongDescriptor>? = null
 ) : ScalarDescriptor<Value.Long> {
     companion object {
-        private val SCHEMA = listOf(FieldSchema("value", Type.LONG))
+        private val SCHEMA = listOf(Attribute("value", Type.Long))
     }
 
     /**
-     * Returns the [FieldSchema] [List] of this [LongDescriptor].
+     * Returns the [Attribute] [List] of this [LongDescriptor].
      *
-     * @return [List] of [FieldSchema]
+     * @return [List] of [Attribute]
      */
-    override fun schema(): List<FieldSchema> = SCHEMA
+    override fun schema(): List<Attribute> = SCHEMA
 }

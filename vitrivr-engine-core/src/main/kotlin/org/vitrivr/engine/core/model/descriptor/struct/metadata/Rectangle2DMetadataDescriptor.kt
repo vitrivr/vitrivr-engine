@@ -1,7 +1,9 @@
 package org.vitrivr.engine.core.model.descriptor.struct.metadata
 
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
-import org.vitrivr.engine.core.model.descriptor.FieldSchema
+import org.vitrivr.engine.core.model.descriptor.Attribute
+import org.vitrivr.engine.core.model.descriptor.AttributeName
+import org.vitrivr.engine.core.model.descriptor.struct.MapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
@@ -13,47 +15,46 @@ import java.util.*
  * A [StructDescriptor] used to store spatial metadata in a 2D raster graphic.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 2.0.0
  */
-data class Rectangle2DMetadataDescriptor(
+class Rectangle2DMetadataDescriptor(
     override var id: DescriptorId,
     override var retrievableId: RetrievableId?,
-    val leftX: Value.Int,
-    val leftY: Value.Int,
-    val width: Value.Int,
-    val height: Value.Int,
+    values: Map<AttributeName, Value<*>?>,
     override val field: Schema.Field<*, Rectangle2DMetadataDescriptor>? = null
-) : StructDescriptor {
+) : MapStructDescriptor(id, retrievableId, SCHEMA, values, field) {
 
     companion object {
         /** The field schema associated with a [Rectangle2DMetadataDescriptor]. */
         private val SCHEMA = listOf(
-            FieldSchema("leftX", Type.INT),
-            FieldSchema("leftY", Type.INT),
-            FieldSchema("width", Type.INT),
-            FieldSchema("height", Type.INT),
+            Attribute("leftX", Type.Int),
+            Attribute("leftY", Type.Int),
+            Attribute("width", Type.Int),
+            Attribute("height", Type.Int),
         )
 
         /** The prototype [Rectangle2DMetadataDescriptor]. */
-        val PROTOTYPE = Rectangle2DMetadataDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.Int(0), Value.Int(0), Value.Int(0), Value.Int(0))
+        val PROTOTYPE = Rectangle2DMetadataDescriptor(
+            UUID.randomUUID(),
+            UUID.randomUUID(),
+            mapOf(
+                "leftX" to Value.Int(0),
+                "leftY" to Value.Int(0),
+                "width" to Value.Int(0),
+                "height" to Value.Int(0)
+            )
+        )
     }
 
-    /**
-     * Returns the [FieldSchema] [List ]of this [StructDescriptor].
-     *
-     * @return [List] of [FieldSchema]
-     */
-    override fun schema(): List<FieldSchema> = SCHEMA
+    /** The top left pixel of the rectangle (X-component). */
+    val leftX: Value.Int by this.values
 
-    /**
-     * Returns the fields and its values of this [Rectangle2DMetadataDescriptor] as a [Map].
-     *
-     * @return A [Map] of this [Rectangle2DMetadataDescriptor]'s fields (without the IDs).
-     */
-    override fun values(): List<Pair<String, Any?>> = listOf(
-        "leftX" to this.leftX,
-        "leftY" to this.leftY,
-        "width" to this.width,
-        "height" to this.height
-    )
+    /** The top left pixel of the rectangle (Y-component). */
+    val leftY: Value.Int by this.values
+
+    /** The width of the rectangle. */
+    val width: Value.Int by this.values
+
+    /** The height of the rectangle. */
+    val height: Value.Int by this.values
 }

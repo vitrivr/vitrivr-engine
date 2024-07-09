@@ -19,6 +19,9 @@ abstract class AbstractDescriptorInitializer<D : Descriptor>(final override val 
     /** The name of the table backing this [AbstractDescriptorInitializer]. */
     protected val tableName: String = "${DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName}"
 
+    /** The [Descriptor] prototype for this [AbstractDescriptorWriter]. */
+    protected val prototype = this.field.analyser.prototype(this.field)
+
     /**
      * Checks if the schema for this [AbstractDescriptorInitializer] has been properly initialized.
      *
