@@ -23,6 +23,7 @@ class StructDescriptorInitializer(field: Schema.Field<*, StructDescriptor>, conn
         for (field in this.prototype.schema()) {
             when (field.type) {
                 Type.String -> statement.append("\"${field.name}\" varchar(255), ")
+                Type.Text -> statement.append("\"${field.name}\" text, ")
                 Type.Boolean -> statement.append("\"${field.name}\" boolean, ")
                 Type.Byte -> statement.append("$\"{field.name}\" smallint, ")
                 Type.Short -> statement.append("\"${field.name}\" smallint, ")

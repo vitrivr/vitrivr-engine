@@ -55,6 +55,7 @@ const val SCORE_COLUMN_NAME = "score"
  */
 internal fun Type.toCottontailType(): Types<*> = when (this) {
     Type.String -> Types.String
+    Type.Text -> Types.String
     Type.Byte -> Types.Byte
     Type.Short -> Types.Short
     Type.Boolean -> Types.Boolean

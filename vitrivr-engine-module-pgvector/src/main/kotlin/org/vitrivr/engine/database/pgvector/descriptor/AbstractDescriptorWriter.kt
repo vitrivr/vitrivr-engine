@@ -92,6 +92,7 @@ abstract class AbstractDescriptorWriter<D : Descriptor>(final override val field
         Type.Double -> JDBCType.DOUBLE
         Type.Datetime -> JDBCType.DATE
         Type.String -> JDBCType.VARCHAR
+        Type.Text -> JDBCType.CLOB
         is Type.BooleanVector -> JDBCType.ARRAY
         is Type.DoubleVector -> JDBCType.ARRAY
         is Type.FloatVector -> JDBCType.ARRAY

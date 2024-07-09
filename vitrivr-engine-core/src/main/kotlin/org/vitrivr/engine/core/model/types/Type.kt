@@ -20,6 +20,7 @@ sealed interface Type {
          */
         fun valueOf(type: kotlin.String, dimensions: kotlin.Int = 0): Type {
             return when (type.uppercase()) {
+                "TEXT" -> Text
                 "STRING" -> String
                 "BOOLEAN" -> Boolean
                 "BYTE" -> Byte
@@ -50,7 +51,19 @@ sealed interface Type {
     fun defaultValue(): Value<*>
 
     /**
-     * A [Type] that represents a String.
+     * A [Type] that represents a (longer) text.
+     *
+     * Primarily needed, since simple strings and longer texts are treated differently by certain databases.
+     */
+    data object Text : Type {
+        override val dimensions: kotlin.Int = 1
+        override fun defaultValue(): Value<*> = Value.String("")
+    }
+
+    /**
+     * A [Type] that represents a simple String.
+     *
+     * Primarily needed, since simple strings and longer texts are treated differently by certain databases.
      */
     data object String : Type {
         override val dimensions: kotlin.Int = 1
