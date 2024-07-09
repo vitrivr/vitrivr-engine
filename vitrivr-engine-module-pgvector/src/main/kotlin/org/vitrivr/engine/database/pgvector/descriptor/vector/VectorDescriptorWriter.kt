@@ -1,6 +1,5 @@
 package org.vitrivr.engine.database.pgvector.descriptor.vector
 
-import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.types.Value

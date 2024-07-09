@@ -20,7 +20,7 @@ class StructDescriptorInitializer(field: Schema.Field<*, StructDescriptor>, conn
         statement.append("$RETRIEVABLE_ID_COLUMN_NAME uuid NOT NULL, ")
 
         /* Add columns for each field in the struct. */
-        for (field in this.field.analyser.prototype(this.field).schema()) {
+        for (field in this.prototype.schema()) {
             when (field.type) {
                 Type.String -> statement.append("\"${field.name}\" varchar(255), ")
                 Type.Boolean -> statement.append("\"${field.name}\" boolean, ")
