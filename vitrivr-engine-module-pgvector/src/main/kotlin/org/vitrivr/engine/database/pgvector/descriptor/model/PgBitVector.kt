@@ -138,7 +138,8 @@ class PgBitVector () : PGobject(), PGBinaryObject, Serializable {
      *
      * @return an array
      */
-    fun toArray(): BooleanArray {
+    fun toArray(): BooleanArray? {
+        if (this.vec == null) return null
         val bits = BooleanArray(this.length)
         for (i in 0 until this.length) {
             bits[i] = ((this.vec!![i / 8].toInt() shr (7 - (i % 8))) and 1) == 1

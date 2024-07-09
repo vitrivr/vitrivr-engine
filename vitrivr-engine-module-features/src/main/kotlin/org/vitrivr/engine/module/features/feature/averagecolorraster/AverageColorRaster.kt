@@ -1,9 +1,8 @@
-package org.vitrivr.engine.module.features.feature.migration
+package org.vitrivr.engine.module.features.feature.averagecolorraster
 
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.descriptor.struct.RasterDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
@@ -18,7 +17,7 @@ class AverageColorRaster: Analyser<ContentElement<*>, RasterDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = RasterDescriptor::class
     override fun prototype(field: Schema.Field<*, *>): RasterDescriptor =
-        RasterDescriptor(id = UUID.randomUUID(), retrievableId = UUID.randomUUID(), hist = List(15) { Value.Float(0.0f) }, raster = List(64) { Value.Float(0.0f) }) // should transient be false? what is transient?
+        RasterDescriptor(id = UUID.randomUUID(), retrievableId = UUID.randomUUID(), mapOf("hist" to Value.FloatVector(FloatArray(15)), "raster" to Value.FloatVector(FloatArray(64))))
 
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, RasterDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, RasterDescriptor> {
         TODO("Not yet implemented")

@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.descriptor.scalar
 
+import org.vitrivr.engine.core.model.descriptor.AttributeName
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.types.Value
 
@@ -7,7 +8,7 @@ import org.vitrivr.engine.core.model.types.Value
  * A [Descriptor] with a scalar value [T].
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 sealed interface ScalarDescriptor<T : Value<*>> : Descriptor {
 
@@ -19,5 +20,5 @@ sealed interface ScalarDescriptor<T : Value<*>> : Descriptor {
      *
      * @return A [Map] of this [ScalarDescriptor]'s fields (without the IDs).
      */
-    override fun values(): List<Pair<String, T?>> = listOf("value" to this.value)
+    override fun values(): Map<AttributeName, T?> = mapOf("value" to this.value)
 }

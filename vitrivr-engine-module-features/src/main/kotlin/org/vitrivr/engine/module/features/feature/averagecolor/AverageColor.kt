@@ -41,7 +41,7 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param field [Schema.Field] to create the prototype for.
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), listOf(Value.Float(0.0f), Value.Float(0.0f), Value.Float(0.0f)))
+    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(3))
 
     /**
      * Generates and returns a new [AverageColorExtractor] instance for this [AverageColor].
@@ -78,9 +78,9 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      */
     override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, context: QueryContext): AverageColorRetriever {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        require(query is ProximityQuery<*> && query.value.first() is Value.Float) { "The query is not a ProximityQuery<Value.Float>." }
+        require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
         @Suppress("UNCHECKED_CAST")
-        return AverageColorRetriever(field, query as ProximityQuery<Value.Float>)
+        return AverageColorRetriever(field, query as ProximityQuery<Value.FloatVector>)
     }
 
     /**
@@ -130,6 +130,6 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
 
         /* Generate descriptor. */
         val averageColor = RGBFloatColorContainer(color.red / rgb.size, color.green / rgb.size, color.blue / rgb.size)
-        FloatVectorDescriptor(UUID.randomUUID(), null, averageColor.toValueList())
+        FloatVectorDescriptor(UUID.randomUUID(), null, averageColor.toVector())
     }
 }

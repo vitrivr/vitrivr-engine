@@ -63,11 +63,11 @@ companion object {
             when (element) {
                 is ImageContent -> {
                     val index = imageContents.indexOf(element)
-                    listOf(FloatVectorDescriptor(UUID.randomUUID(), null, imageResults!![index].map { Value.Float(it) }, null))
+                    listOf(FloatVectorDescriptor(UUID.randomUUID(), null, Value.FloatVector(imageResults!![index].toFloatArray()), null))
                 }
                 is TextContent -> {
                     val index = textContents.indexOf(element)
-                    listOf(FloatVectorDescriptor(UUID.randomUUID(), null, textResults!![index].map { Value.Float(it) }, null))
+                    listOf(FloatVectorDescriptor(UUID.randomUUID(), null, Value.FloatVector(textResults!![index].toFloatArray()), null))
                 }
                 else -> throw(IllegalArgumentException("Content type not supported"))
             }
@@ -86,7 +86,7 @@ companion object {
     override fun prototype(field: Schema.Field<*, *>) : FloatVectorDescriptor {
         //convert to integer
         val length = field.parameters[LENGTH_PARAMETER_NAME]?.toIntOrNull() ?: LENGTH_PARAMETER_DEFAULT
-        return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(length) { Value.Float(0.0f) })
+        return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(length))
     }
 
     /**
@@ -100,9 +100,9 @@ companion object {
      */
     override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        require(query is ProximityQuery<*> && query.value.first() is Value.Float) { "The query is not a ProximityQuery<Value.Float>." }
+        require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
         @Suppress("UNCHECKED_CAST")
-        return DenseRetriever(field, query as ProximityQuery<Value.Float>, context)
+        return DenseRetriever(field, query as ProximityQuery<Value.FloatVector>, context)
     }
 
     /**

@@ -1,16 +1,16 @@
 package org.vitrivr.engine.core.features.metadata.source.exif
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.MapStructDescriptor
+import org.vitrivr.engine.core.model.descriptor.Attribute
+import org.vitrivr.engine.core.model.descriptor.struct.MapStructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
@@ -18,11 +18,17 @@ import java.util.*
 
 class ExifMetadata : Analyser<ContentElement<*>, MapStructDescriptor> {
 
-    private val logger: KLogger = KotlinLogging.logger {}
-
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = MapStructDescriptor::class
-    override fun prototype(field: Schema.Field<*, *>) = MapStructDescriptor.prototype(field.parameters)
+    override fun prototype(field: Schema.Field<*, *>): MapStructDescriptor {
+        val parameters = field.parameters.map { (k, v) -> Attribute(k, Type.valueOf(v)) }
+        return MapStructDescriptor(
+            UUID.randomUUID(),
+            UUID.randomUUID(),
+            parameters,
+            parameters.associate { it.name to it.type.defaultValue() },
+        )
+    }
     override fun newExtractor(
         name: String,
         input: Operator<Retrievable>,

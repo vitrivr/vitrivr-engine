@@ -68,22 +68,22 @@ class StructDescriptorWriter(field: Schema.Field<*, StructDescriptor>, connectio
 
         /* Insert values. */
         for (item in items) {
-            val values = item.values()
+            val attributes = item.schema()
             if (index == 0) {
-                val columns = Array(values.size + 2) {
+                val columns = Array(attributes.size + 2) {
                     when (it) {
                         0 -> DESCRIPTOR_ID_COLUMN_NAME
                         1 -> RETRIEVABLE_ID_COLUMN_NAME
-                        else -> values[it - 2].first
+                        else -> attributes[it - 2].name
                     }
                 }
                 insert.columns(*columns)
             }
-            val inserts: Array<Any?> = Array(values.size + 2) {
+            val inserts: Array<Any?> = Array(attributes.size + 2) {
                 when (it) {
                     0 -> UuidValue(item.id)
                     1 -> item.retrievableId?.let { v -> UuidValue(v) }
-                    else -> values[it - 2].second?.toCottontailValue()
+                    else -> item.values()[attributes[it - 2].name]?.toCottontailValue()
                 }
             }
             insert.any(*inserts)
