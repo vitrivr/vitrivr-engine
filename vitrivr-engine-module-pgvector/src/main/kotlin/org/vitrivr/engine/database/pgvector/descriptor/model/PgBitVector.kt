@@ -3,6 +3,7 @@ package org.vitrivr.engine.database.pgvector.descriptor.model
 import org.postgresql.util.ByteConverter
 import org.postgresql.util.PGBinaryObject
 import org.postgresql.util.PGobject
+import org.vitrivr.engine.core.model.types.Value
 import java.io.Serializable
 import java.sql.SQLException
 
@@ -134,16 +135,16 @@ class PgBitVector () : PGobject(), PGBinaryObject, Serializable {
     fun toByteArray(): ByteArray? = this.vec
 
     /**
-     * Returns an array
+     * Returns a [Value.BooleanVector] representation of this [PgBitVector].
      *
-     * @return an array
+     * @return [Value.BooleanVector]
      */
-    fun toArray(): BooleanArray? {
+    fun toBooleanVector(): Value.BooleanVector? {
         if (this.vec == null) return null
         val bits = BooleanArray(this.length)
         for (i in 0 until this.length) {
             bits[i] = ((this.vec!![i / 8].toInt() shr (7 - (i % 8))) and 1) == 1
         }
-        return bits
+        return Value.BooleanVector(bits)
     }
 }

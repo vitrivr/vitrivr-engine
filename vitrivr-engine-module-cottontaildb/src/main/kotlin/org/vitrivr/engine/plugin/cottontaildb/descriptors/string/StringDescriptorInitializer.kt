@@ -8,10 +8,10 @@ import org.vitrivr.cottontail.client.language.ddl.CreateIndex
 import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.types.Types
 import org.vitrivr.cottontail.grpc.CottontailGrpc
+import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor.Companion.VALUE_ATTRIBUTE_NAME
 import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.plugin.cottontaildb.CottontailConnection
-import org.vitrivr.engine.plugin.cottontaildb.DESCRIPTOR_COLUMN_NAME
 import org.vitrivr.engine.plugin.cottontaildb.DESCRIPTOR_ID_COLUMN_NAME
 import org.vitrivr.engine.plugin.cottontaildb.RETRIEVABLE_ID_COLUMN_NAME
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorInitializer
@@ -33,7 +33,7 @@ class StringDescriptorInitializer(field: Schema.Field<*, StringDescriptor>, conn
         val create = CreateEntity(this.entityName)
             .column(Name.ColumnName.create(DESCRIPTOR_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = true, autoIncrement = false)
             .column(Name.ColumnName.create(RETRIEVABLE_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = false, autoIncrement = false)
-            .column(Name.ColumnName.create(DESCRIPTOR_COLUMN_NAME), Types.String, nullable = false, primaryKey = false, autoIncrement = false)
+            .column(Name.ColumnName.create(VALUE_ATTRIBUTE_NAME), Types.String, nullable = false, primaryKey = false, autoIncrement = false)
 
         try {
             /* Try to create entity. */
@@ -42,7 +42,7 @@ class StringDescriptorInitializer(field: Schema.Field<*, StringDescriptor>, conn
             /* Create entity if necessary. */
             if (this.field.parameters.containsKey("index")) {
                 val createIndex = CreateIndex(this.entityName, CottontailGrpc.IndexType.LUCENE)
-                    .column(this.entityName.column(DESCRIPTOR_COLUMN_NAME))
+                    .column(this.entityName.column(VALUE_ATTRIBUTE_NAME))
                 this.connection.client.create(createIndex)
             }
         } catch (e: StatusRuntimeException) {

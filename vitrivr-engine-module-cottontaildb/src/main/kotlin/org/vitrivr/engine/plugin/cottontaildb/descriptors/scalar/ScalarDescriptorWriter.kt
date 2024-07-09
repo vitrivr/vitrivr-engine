@@ -1,7 +1,5 @@
 package org.vitrivr.engine.plugin.cottontaildb.descriptors.scalar
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.basics.expression.Column
 import org.vitrivr.cottontail.client.language.basics.expression.Literal
@@ -11,17 +9,16 @@ import org.vitrivr.cottontail.client.language.dml.Insert
 import org.vitrivr.cottontail.client.language.dml.Update
 import org.vitrivr.cottontail.core.values.UuidValue
 import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor
+import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor.Companion.VALUE_ATTRIBUTE_NAME
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.plugin.cottontaildb.*
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorWriter
-
-private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * An [AbstractDescriptorWriter] for [ScalarDescriptor]s.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.0.1
  */
 class ScalarDescriptorWriter(field: Schema.Field<*, ScalarDescriptor<*>>, connection: CottontailConnection) : AbstractDescriptorWriter<ScalarDescriptor<*>>(field, connection) {
 
@@ -35,14 +32,14 @@ class ScalarDescriptorWriter(field: Schema.Field<*, ScalarDescriptor<*>>, connec
         val insert = Insert(this.entityName).values(
             DESCRIPTOR_ID_COLUMN_NAME to UuidValue(item.id),
             RETRIEVABLE_ID_COLUMN_NAME to UuidValue(item.retrievableId ?: throw IllegalArgumentException("A scalar descriptor must be associated with a retrievable ID.")),
-            DESCRIPTOR_COLUMN_NAME to item.toCottontailValue()
+            VALUE_ATTRIBUTE_NAME to item.toCottontailValue()
         )
         return try {
             this.connection.client.insert(insert).use {
                 it.hasNext()
             }
         } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to persist descriptor ${item.id} due to exception." }
+            LOGGER.error(e) { "Failed to persist descriptor ${item.id} due to exception." }
             false
         }
     }
@@ -56,7 +53,7 @@ class ScalarDescriptorWriter(field: Schema.Field<*, ScalarDescriptor<*>>, connec
     override fun addAll(items: Iterable<ScalarDescriptor<*>>): Boolean {
         /* Prepare insert query. */
         var size = 0
-        val insert = BatchInsert(this.entityName).columns(DESCRIPTOR_ID_COLUMN_NAME, RETRIEVABLE_ID_COLUMN_NAME, DESCRIPTOR_COLUMN_NAME)
+        val insert = BatchInsert(this.entityName).columns(DESCRIPTOR_ID_COLUMN_NAME, RETRIEVABLE_ID_COLUMN_NAME, VALUE_ATTRIBUTE_NAME)
         for (item in items) {
             size += 1
             insert.values(UuidValue(item.id.toString()), UuidValue(item.retrievableId ?: throw IllegalArgumentException("A scalar descriptor must be associated with a retrievable ID.")), item.toCottontailValue())
@@ -68,7 +65,7 @@ class ScalarDescriptorWriter(field: Schema.Field<*, ScalarDescriptor<*>>, connec
                 it.hasNext()
             }
         } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to persist $size scalar descriptors due to exception." }
+            LOGGER.error(e) { "Failed to persist $size scalar descriptors due to exception." }
             false
         }
     }
@@ -86,14 +83,14 @@ class ScalarDescriptorWriter(field: Schema.Field<*, ScalarDescriptor<*>>, connec
                 Compare.Operator.EQUAL,
                 Literal(UuidValue(item.id))
             )
-        ).values(DESCRIPTOR_COLUMN_NAME to item.toCottontailValue())
+        ).values(VALUE_ATTRIBUTE_NAME to item.toCottontailValue())
 
         /* Delete values. */
         return try {
             this.connection.client.update(update)
             true
         } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to update descriptor due to exception." }
+            LOGGER.error(e) { "Failed to update descriptor due to exception." }
             false
         }
     }

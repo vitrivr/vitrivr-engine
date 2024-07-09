@@ -5,6 +5,8 @@ import org.vitrivr.cottontail.client.language.basics.expression.Literal
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.core.tuple.Tuple
 import org.vitrivr.engine.core.model.descriptor.scalar.*
+import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor.Companion.VALUE_ATTRIBUTE_NAME
+import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor.Companion.VECTOR_ATTRIBUTE_NAME
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
@@ -36,8 +38,8 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
         val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
             .select(RETRIEVABLE_ID_COLUMN_NAME)
             .select(DESCRIPTOR_ID_COLUMN_NAME)
-            .select(DESCRIPTOR_COLUMN_NAME)
-            .where(Compare(Column(this.entityName.column(DESCRIPTOR_COLUMN_NAME)), query.operator(), Literal(query.value.toCottontailValue())))
+            .select(VALUE_ATTRIBUTE_NAME)
+            .where(Compare(Column(this.entityName.column(VALUE_ATTRIBUTE_NAME)), query.operator(), Literal(query.value.toCottontailValue())))
 
         /* Execute query. */
         return this.connection.client.query(cottontailQuery).asSequence().map {
@@ -64,12 +66,12 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
         val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
         val descriptorId = tuple.asUuidValue(DESCRIPTOR_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${DESCRIPTOR_ID_COLUMN_NAME}'.")
         return when (this.prototype) {
-            is BooleanDescriptor -> BooleanDescriptor(retrievableId, descriptorId, tuple.asBoolean(DESCRIPTOR_COLUMN_NAME)?.toValue() ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'."))
-            is DoubleDescriptor -> DoubleDescriptor(retrievableId, descriptorId, tuple.asDouble(DESCRIPTOR_COLUMN_NAME)?.toValue() ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'."))
-            is FloatDescriptor -> FloatDescriptor(retrievableId, descriptorId, tuple.asFloat(DESCRIPTOR_COLUMN_NAME)?.toValue() ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'."))
-            is IntDescriptor -> IntDescriptor(retrievableId, descriptorId, tuple.asInt(DESCRIPTOR_COLUMN_NAME)?.toValue() ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'."))
-            is LongDescriptor -> LongDescriptor(retrievableId, descriptorId, tuple.asLong(DESCRIPTOR_COLUMN_NAME)?.toValue() ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'."))
-            is StringDescriptor -> StringDescriptor(retrievableId, descriptorId, tuple.asString(DESCRIPTOR_COLUMN_NAME)?.toValue() ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'."))
+            is BooleanDescriptor -> BooleanDescriptor(retrievableId, descriptorId, tuple.asBoolean(VALUE_ATTRIBUTE_NAME)?.toValue() ?: throw IllegalArgumentException("The provided tuple is missing the required field '$VECTOR_ATTRIBUTE_NAME'."))
+            is DoubleDescriptor -> DoubleDescriptor(retrievableId, descriptorId, tuple.asDouble(VALUE_ATTRIBUTE_NAME)?.toValue() ?: throw IllegalArgumentException("The provided tuple is missing the required field '$VECTOR_ATTRIBUTE_NAME'."))
+            is FloatDescriptor -> FloatDescriptor(retrievableId, descriptorId, tuple.asFloat(VALUE_ATTRIBUTE_NAME)?.toValue() ?: throw IllegalArgumentException("The provided tuple is missing the required field '$VECTOR_ATTRIBUTE_NAME'."))
+            is IntDescriptor -> IntDescriptor(retrievableId, descriptorId, tuple.asInt(VALUE_ATTRIBUTE_NAME)?.toValue() ?: throw IllegalArgumentException("The provided tuple is missing the required field '$VECTOR_ATTRIBUTE_NAME'."))
+            is LongDescriptor -> LongDescriptor(retrievableId, descriptorId, tuple.asLong(VALUE_ATTRIBUTE_NAME)?.toValue() ?: throw IllegalArgumentException("The provided tuple is missing the required field '$VECTOR_ATTRIBUTE_NAME'."))
+            is StringDescriptor -> StringDescriptor(retrievableId, descriptorId, tuple.asString(VALUE_ATTRIBUTE_NAME)?.toValue() ?: throw IllegalArgumentException("The provided tuple is missing the required field '$VECTOR_ATTRIBUTE_NAME'."))
         }
     }
 }

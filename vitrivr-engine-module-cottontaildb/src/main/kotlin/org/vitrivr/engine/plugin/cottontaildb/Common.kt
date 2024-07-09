@@ -39,9 +39,6 @@ const val DESCRIPTOR_ENTITY_PREFIX = "descriptor"
 /** The column name of a descriptor ID. */
 const val DESCRIPTOR_ID_COLUMN_NAME = "descriptorId"
 
-/** The column name of a descriptor ID. */
-const val DESCRIPTOR_COLUMN_NAME = "descriptor"
-
 /** The column name used to describe a distance.*/
 const val DISTANCE_COLUMN_NAME = "distance"
 
@@ -128,6 +125,7 @@ internal fun Value<*>.toCottontailValue(): PublicValue = when (this) {
     is Value.Long -> LongValue(this.value)
     is Value.Short -> ShortValue(this.value)
     is Value.String -> StringValue(this.value)
+    is Value.Text -> StringValue(this.value)
     is Value.DateTime -> DateValue(this.value)
     is Value.BooleanVector -> BooleanVectorValue(this.value)
     is Value.DoubleVector -> DoubleVectorValue(this.value)

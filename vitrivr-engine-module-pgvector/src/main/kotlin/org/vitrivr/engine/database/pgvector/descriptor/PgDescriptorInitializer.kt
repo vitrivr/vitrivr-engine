@@ -1,19 +1,29 @@
-package org.vitrivr.engine.database.pgvector.descriptor.struct
+package org.vitrivr.engine.database.pgvector.descriptor
 
-import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
+import org.vitrivr.engine.core.database.descriptor.DescriptorInitializer
+import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.database.pgvector.*
-import org.vitrivr.engine.database.pgvector.descriptor.AbstractDescriptorInitializer
 import java.sql.SQLException
 
 /**
- * A [AbstractDescriptorInitializer] implementation for [StructDescriptor]s.
+ * An abstract implementation of a [DescriptorInitializer] for PostgreSQL with pgVector.
  *
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class StructDescriptorInitializer(field: Schema.Field<*, StructDescriptor>, connection: PgVectorConnection) : AbstractDescriptorInitializer<StructDescriptor>(field, connection.jdbc) {
+open class PgDescriptorInitializer<D : Descriptor>(final override val field: Schema.Field<*, D>, protected val connection: PgVectorConnection): DescriptorInitializer<D> {
+
+    /** The name of the table backing this [PgDescriptorInitializer]. */
+    protected val tableName: String = "${DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName}"
+
+    /** The [Descriptor] prototype for this [PgDescriptorWriter]. */
+    protected val prototype = this.field.analyser.prototype(this.field)
+
+    /**
+     *
+     */
     override fun initialize() {
         val statement = StringBuilder("CREATE TABLE IF NOT EXISTS $tableName(")
         statement.append("$DESCRIPTOR_ID_COLUMN_NAME uuid NOT NULL, ")
@@ -25,7 +35,7 @@ class StructDescriptorInitializer(field: Schema.Field<*, StructDescriptor>, conn
                 Type.String -> statement.append("\"${field.name}\" varchar(255), ")
                 Type.Text -> statement.append("\"${field.name}\" text, ")
                 Type.Boolean -> statement.append("\"${field.name}\" boolean, ")
-                Type.Byte -> statement.append("$\"{field.name}\" smallint, ")
+                Type.Byte -> statement.append("\"${field.name}\" smallint, ")
                 Type.Short -> statement.append("\"${field.name}\" smallint, ")
                 Type.Int -> statement.append("\"${field.name}\" integer, ")
                 Type.Long -> statement.append("\"${field.name}\" bigint, ")
@@ -46,11 +56,40 @@ class StructDescriptorInitializer(field: Schema.Field<*, StructDescriptor>, conn
 
         try {
             /* Create 'retrievable' entity. */
-            this.connection.prepareStatement(/* sql = postgres */ statement.toString()).use {
+            this.connection.jdbc.prepareStatement(/* sql = postgres */ statement.toString()).use {
                 it.execute()
             }
         } catch (e: SQLException) {
             LOGGER.error(e) { "Failed to initialize entity '$tableName' due to exception." }
+        }
+    }
+
+    /**
+     * Checks if the schema for this [PgDescriptorInitializer] has been properly initialized.
+     *
+     * @return True if entity has been initialized, false otherwise.
+     */
+    override fun isInitialized(): Boolean {
+        try {
+            this.connection.jdbc.prepareStatement(/* sql = postgres */ "SELECT count(*) FROM $tableName").use {
+                it.execute()
+            }
+        } catch (e: SQLException) {
+            return false
+        }
+        return true
+    }
+
+    /**
+     * Truncates the table backing this [PgDescriptorInitializer].
+     */
+    override fun truncate() {
+        try {
+            this.connection.jdbc.prepareStatement(/* sql = postgres */ "TRUNCATE $tableName").use {
+                it.execute()
+            }
+        } catch (e: SQLException) {
+            LOGGER.error(e) { "Failed to truncate entities due to exception." }
         }
     }
 }

@@ -109,9 +109,30 @@ class PgVector(private var vec: FloatArray? = null) : PGobject(), PGBinaryObject
     }
 
     /**
-     * Returns an array
+     * Returns an [Value.FloatVector] representation of this [PgVector].
      *
-     * @return an array
+     * @return [Value.FloatVector]
      */
-    fun toArray(): FloatArray? = this.vec
+    fun toFloatVector(): Value.FloatVector? = this.vec?.let { Value.FloatVector(it) }
+
+    /**
+     * Returns an [Value.DoubleVector] representation of this [PgVector].
+     *
+     * @return [Value.DoubleVector]
+     */
+    fun toDoubleVector(): Value.DoubleVector? = this.vec?.let { vec -> Value.DoubleVector(DoubleArray(vec.size) { i -> vec[i].toDouble()}) }
+
+    /**
+     * Returns an [Value.IntVector] representation of this [PgVector].
+     *
+     * @return [Value.IntVector]
+     */
+    fun toIntVector(): Value.IntVector? = this.vec?.let { vec -> Value.IntVector(IntArray(vec.size) { i -> vec[i].toInt()}) }
+
+    /**
+     * Returns an [Value.LongVector] representation of this [PgVector].
+     *
+     * @return [Value.LongVector]
+     */
+    fun toLongVector(): Value.LongVector? = this.vec?.let { vec -> Value.LongVector(LongArray(vec.size) { i -> vec[i].toLong()}) }
 }

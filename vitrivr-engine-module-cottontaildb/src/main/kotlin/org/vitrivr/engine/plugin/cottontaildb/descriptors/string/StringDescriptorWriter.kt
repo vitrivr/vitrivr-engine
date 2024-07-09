@@ -10,11 +10,15 @@ import org.vitrivr.cottontail.client.language.dml.BatchInsert
 import org.vitrivr.cottontail.client.language.dml.Insert
 import org.vitrivr.cottontail.client.language.dml.Update
 import org.vitrivr.cottontail.core.values.UuidValue
+import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor.Companion.VALUE_ATTRIBUTE_NAME
 import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.plugin.cottontaildb.*
+import org.vitrivr.engine.plugin.cottontaildb.CottontailConnection
+import org.vitrivr.engine.plugin.cottontaildb.DESCRIPTOR_ID_COLUMN_NAME
+import org.vitrivr.engine.plugin.cottontaildb.RETRIEVABLE_ID_COLUMN_NAME
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorWriter
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.vector.VectorDescriptorWriter
+import org.vitrivr.engine.plugin.cottontaildb.toCottontailValue
 
 private val logger: KLogger = KotlinLogging.logger {}
 
@@ -36,7 +40,7 @@ class StringDescriptorWriter(field: Schema.Field<*, StringDescriptor>, connectio
         val insert = Insert(this.entityName).values(
             DESCRIPTOR_ID_COLUMN_NAME to UuidValue(item.id),
             RETRIEVABLE_ID_COLUMN_NAME to UuidValue(item.retrievableId ?: throw IllegalArgumentException("A string descriptor must be associated with a retrievable ID.")),
-            DESCRIPTOR_COLUMN_NAME to item.toCottontailValue()
+            VALUE_ATTRIBUTE_NAME to item.toCottontailValue()
         )
         return try {
             this.connection.client.insert(insert).use {
@@ -57,7 +61,7 @@ class StringDescriptorWriter(field: Schema.Field<*, StringDescriptor>, connectio
     override fun addAll(items: Iterable<StringDescriptor>): Boolean {
         /* Prepare insert query. */
         var size = 0
-        val insert = BatchInsert(this.entityName).columns(DESCRIPTOR_ID_COLUMN_NAME, RETRIEVABLE_ID_COLUMN_NAME, DESCRIPTOR_COLUMN_NAME)
+        val insert = BatchInsert(this.entityName).columns(DESCRIPTOR_ID_COLUMN_NAME, RETRIEVABLE_ID_COLUMN_NAME, VALUE_ATTRIBUTE_NAME)
         for (item in items) {
             size += 1
             insert.values(UuidValue(item.id.toString()), UuidValue(item.retrievableId ?: throw IllegalArgumentException("A string descriptor must be associated with a retrievable ID.")), item.toCottontailValue())
@@ -87,7 +91,7 @@ class StringDescriptorWriter(field: Schema.Field<*, StringDescriptor>, connectio
                 Compare.Operator.EQUAL,
                 Literal(UuidValue(item.id))
             )
-        ).values(DESCRIPTOR_COLUMN_NAME to item.toCottontailValue())
+        ).values(VALUE_ATTRIBUTE_NAME to item.toCottontailValue())
 
         /* Updates values. */
         return try {

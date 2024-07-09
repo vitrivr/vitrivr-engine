@@ -2,6 +2,7 @@ package org.vitrivr.engine.database.pgvector.descriptor.vector
 
 import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.model.descriptor.vector.*
+import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor.Companion.VECTOR_ATTRIBUTE_NAME
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.basics.Distance
@@ -32,7 +33,7 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>>, connec
     override fun query(query: Query): Sequence<VectorDescriptor<*>> {
         try {
             val statement = when (query) {
-                is ProximityQuery<*> -> this.connection.jdbc.prepareStatement("SELECT *, $DESCRIPTOR_COLUMN_NAME ${query.distance.operator()} ? AS $DISTANCE_COLUMN_NAME FROM $tableName ORDER BY $DISTANCE_COLUMN_NAME LIMIT ${query.k}").apply {
+                is ProximityQuery<*> -> this.connection.jdbc.prepareStatement("SELECT *, $VECTOR_ATTRIBUTE_NAME ${query.distance.operator()} ? AS $DISTANCE_COLUMN_NAME FROM $tableName ORDER BY $DISTANCE_COLUMN_NAME LIMIT ${query.k}").apply {
                     when (val vector = query.value) {
                         is Value.FloatVector -> this.setObject(1, PgVector(vector.value))
                         is Value.BooleanVector -> this.setObject(1, PgBitVector(vector.value))
@@ -61,7 +62,7 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>>, connec
             return when (query) {
                 is ProximityQuery<*> -> {
                     val descriptors = mutableListOf<Pair<VectorDescriptor<*>, Float>>()
-                    this.connection.jdbc.prepareStatement("SELECT *, $DESCRIPTOR_COLUMN_NAME ${query.distance.operator()} ? AS $DISTANCE_COLUMN_NAME FROM $tableName ORDER BY $DISTANCE_COLUMN_NAME LIMIT ${query.k}").use { stmt ->
+                    this.connection.jdbc.prepareStatement("SELECT *, $VECTOR_ATTRIBUTE_NAME ${query.distance.operator()} ? AS $DISTANCE_COLUMN_NAME FROM $tableName ORDER BY $DISTANCE_COLUMN_NAME LIMIT ${query.k}").use { stmt ->
                         when (val vector = query.value) {
                             is Value.FloatVector -> stmt.setObject(1, PgVector(vector.value))
                             is Value.BooleanVector -> stmt.setObject(1, PgBitVector(vector.value))
@@ -108,17 +109,31 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>>, connec
             is FloatVectorDescriptor -> FloatVectorDescriptor(
                 descriptorId,
                 retrievableId,
-                result.getObject(DESCRIPTOR_COLUMN_NAME, PgVector::class.java).let { vector ->
-                    Value.FloatVector(vector.toArray() ?: throw IllegalArgumentException("The provided vector value is missing the required field '$DESCRIPTOR_COLUMN_NAME'."))
-                }
+                result.getObject(VECTOR_ATTRIBUTE_NAME, PgVector::class.java)?.toFloatVector() ?: throw IllegalArgumentException("The provided vector value is missing the required field '$VECTOR_ATTRIBUTE_NAME'.")
+            )
+
+            is DoubleVectorDescriptor -> DoubleVectorDescriptor(
+                descriptorId,
+                retrievableId,
+                result.getObject(VECTOR_ATTRIBUTE_NAME, PgVector::class.java)?.toDoubleVector() ?: throw IllegalArgumentException("The provided vector value is missing the required field '$VECTOR_ATTRIBUTE_NAME'.")
+            )
+
+            is IntVectorDescriptor -> IntVectorDescriptor(
+                descriptorId,
+                retrievableId,
+                result.getObject(VECTOR_ATTRIBUTE_NAME, PgVector::class.java)?.toIntVector() ?: throw IllegalArgumentException("The provided vector value is missing the required field '$VECTOR_ATTRIBUTE_NAME'.")
+            )
+
+            is LongVectorDescriptor -> LongVectorDescriptor(
+                descriptorId,
+                retrievableId,
+                result.getObject(VECTOR_ATTRIBUTE_NAME, PgVector::class.java)?.toLongVector() ?: throw IllegalArgumentException("The provided vector value is missing the required field '$VECTOR_ATTRIBUTE_NAME'.")
             )
 
             is BooleanVectorDescriptor -> BooleanVectorDescriptor(
                 descriptorId,
                 retrievableId,
-                result.getObject(DESCRIPTOR_COLUMN_NAME, PgBitVector::class.java).let { vector ->
-                    Value.BooleanVector(vector.toArray() ?: throw IllegalArgumentException("The provided vector value is missing the required field '$DESCRIPTOR_COLUMN_NAME'."))
-                }
+                result.getObject(VECTOR_ATTRIBUTE_NAME, PgBitVector::class.java)?.toBooleanVector() ?: throw IllegalArgumentException("The provided vector value is missing the required field '$VECTOR_ATTRIBUTE_NAME'.")
             )
 
             else -> throw IllegalArgumentException("Unsupported descriptor type ${this.prototype::class}.")

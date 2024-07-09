@@ -1,6 +1,6 @@
 package org.vitrivr.engine.core.model.types
 
-import java.util.Date
+import java.util.*
 
 /**
  * A [Value] in vitrivr-engine maps primitive data types.
@@ -30,32 +30,38 @@ sealed interface Value<T> {
     /** The actual, primitive value. */
     val value: T
 
-    @JvmInline
-    value class String(override val value: kotlin.String) : Value<kotlin.String>
+
+    sealed interface ScalarValue<T>: Value<T>
 
     @JvmInline
-    value class Boolean(override val value: kotlin.Boolean) : Value<kotlin.Boolean>
+    value class String(override val value: kotlin.String) : ScalarValue<kotlin.String>
 
     @JvmInline
-    value class Byte(override val value: kotlin.Byte) : Value<kotlin.Byte>
+    value class Text(override val value: kotlin.String) : ScalarValue<kotlin.String>
 
     @JvmInline
-    value class Short(override val value: kotlin.Short) : Value<kotlin.Short>
+    value class Boolean(override val value: kotlin.Boolean) : ScalarValue<kotlin.Boolean>
 
     @JvmInline
-    value class Int(override val value: kotlin.Int) : Value<kotlin.Int>
+    value class Byte(override val value: kotlin.Byte) : ScalarValue<kotlin.Byte>
 
     @JvmInline
-    value class Long(override val value: kotlin.Long) : Value<kotlin.Long>
+    value class Short(override val value: kotlin.Short) : ScalarValue<kotlin.Short>
 
     @JvmInline
-    value class Float(override val value: kotlin.Float) : Value<kotlin.Float>
+    value class Int(override val value: kotlin.Int) : ScalarValue<kotlin.Int>
 
     @JvmInline
-    value class Double(override val value: kotlin.Double) : Value<kotlin.Double>
+    value class Long(override val value: kotlin.Long) : ScalarValue<kotlin.Long>
 
     @JvmInline
-    value class DateTime(override val value: Date) : Value<Date>
+    value class Float(override val value: kotlin.Float) : ScalarValue<kotlin.Float>
+
+    @JvmInline
+    value class Double(override val value: kotlin.Double) : ScalarValue<kotlin.Double>
+
+    @JvmInline
+    value class DateTime(override val value: Date) : ScalarValue<Date>
 
     /**
      * A [Vector] in vitrivr-engine maps primitive data types.

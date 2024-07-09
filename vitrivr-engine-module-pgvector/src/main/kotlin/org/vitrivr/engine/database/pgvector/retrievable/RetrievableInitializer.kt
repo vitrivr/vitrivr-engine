@@ -17,15 +17,14 @@ internal class RetrievableInitializer(private val connection: PgVectorConnection
      */
     override fun initialize() {
         try {
-            /* Create 'retrievable' entity. */
+            /* Create 'retrievable' entity and index. */
             this.connection.jdbc.prepareStatement(/* sql = postgres */ "CREATE TABLE IF NOT EXISTS $RETRIEVABLE_ENTITY_NAME ($RETRIEVABLE_ID_COLUMN_NAME uuid NOT NULL, type VARCHAR(100), PRIMARY KEY ($RETRIEVABLE_ID_COLUMN_NAME));").use {
                 it.execute()
             }
 
             /* Create 'relationship' entity. */
-            this.connection.jdbc.prepareStatement(/* sql = postgres */ "CREATE TABLE IF NOT EXISTS $RELATIONSHIP_ENTITY_NAME ($OBJECT_ID_COLUMN_NAME uuid NOT NULL, $PREDICATE_COLUMN_NAME VARCHAR(100) NOT NULL, $SUBJECT_ID_COLUMN_NAME uuid NOT NULL, PRIMARY KEY ($OBJECT_ID_COLUMN_NAME, $PREDICATE_COLUMN_NAME, $SUBJECT_ID_COLUMN_NAME), FOREIGN KEY($OBJECT_ID_COLUMN_NAME) REFERENCES $RETRIEVABLE_ENTITY_NAME($RETRIEVABLE_ID_COLUMN_NAME), FOREIGN KEY($SUBJECT_ID_COLUMN_NAME) REFERENCES $RETRIEVABLE_ENTITY_NAME($RETRIEVABLE_ID_COLUMN_NAME));")
-                .use {
-                    it.execute()
+            this.connection.jdbc.prepareStatement(/* sql = postgres */ "CREATE TABLE IF NOT EXISTS $RELATIONSHIP_ENTITY_NAME ($OBJECT_ID_COLUMN_NAME uuid NOT NULL, $PREDICATE_COLUMN_NAME VARCHAR(100) NOT NULL, $SUBJECT_ID_COLUMN_NAME uuid NOT NULL, PRIMARY KEY ($OBJECT_ID_COLUMN_NAME, $PREDICATE_COLUMN_NAME, $SUBJECT_ID_COLUMN_NAME), FOREIGN KEY($OBJECT_ID_COLUMN_NAME) REFERENCES $RETRIEVABLE_ENTITY_NAME($RETRIEVABLE_ID_COLUMN_NAME), FOREIGN KEY($SUBJECT_ID_COLUMN_NAME) REFERENCES $RETRIEVABLE_ENTITY_NAME($RETRIEVABLE_ID_COLUMN_NAME));").use {
+                it.execute()
             }
         } catch (e: SQLException) {
             LOGGER.error(e) { "Failed to initialize entity due to exception." }
