@@ -4,6 +4,7 @@ import org.vitrivr.cottontail.client.language.basics.expression.Column
 import org.vitrivr.cottontail.client.language.basics.expression.Literal
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.core.tuple.Tuple
+import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor.Companion.VALUE_ATTRIBUTE_NAME
 import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
@@ -36,7 +37,7 @@ class StringDescriptorReader(field: Schema.Field<*, StringDescriptor>, connectio
             is SimpleFulltextQuery -> {
                 cottontailQuery
                     .select("*")
-                    .fulltext(DESCRIPTOR_COLUMN_NAME, query.value.value, "score")
+                    .fulltext(VALUE_ATTRIBUTE_NAME, query.value.value, "score")
                 if (query.limit < Long.MAX_VALUE) {
                     cottontailQuery.limit(query.limit)
                 }
@@ -44,7 +45,7 @@ class StringDescriptorReader(field: Schema.Field<*, StringDescriptor>, connectio
 
             is SimpleBooleanQuery<*> -> {
                 require(query.value is Value.String) { "StringDescriptorReader can only perform comparisons to string values." }
-                cottontailQuery.where(Compare(Column(this.entityName.column(DESCRIPTOR_COLUMN_NAME)), query.operator(), Literal(query.value.toCottontailValue())))
+                cottontailQuery.where(Compare(Column(this.entityName.column(VALUE_ATTRIBUTE_NAME)), query.operator(), Literal(query.value.toCottontailValue())))
             }
             else -> throw IllegalArgumentException("Query of typ ${query::class} is not supported by StringDescriptorReader.")
         }
@@ -69,9 +70,9 @@ class StringDescriptorReader(field: Schema.Field<*, StringDescriptor>, connectio
         when (query) {
             is SimpleFulltextQuery -> {
                 cottontailQuery
-                    .select(DESCRIPTOR_COLUMN_NAME)
+                    .select(VALUE_ATTRIBUTE_NAME)
                     .select(DESCRIPTOR_ID_COLUMN_NAME)
-                    .fulltext(DESCRIPTOR_COLUMN_NAME, query.value.value, "score")
+                    .fulltext(VALUE_ATTRIBUTE_NAME, query.value.value, "score")
 
                 if (query.limit < Long.MAX_VALUE) {
                     cottontailQuery.limit(query.limit)
@@ -80,7 +81,7 @@ class StringDescriptorReader(field: Schema.Field<*, StringDescriptor>, connectio
 
             is SimpleBooleanQuery<*> -> {
                 require(query.value is Value.String) { "StringDescriptorReader can only perform comparisons to string values." }
-                cottontailQuery.where(Compare(Column(this.entityName.column(DESCRIPTOR_COLUMN_NAME)), query.operator(), Literal(query.value.toCottontailValue())))
+                cottontailQuery.where(Compare(Column(this.entityName.column(VALUE_ATTRIBUTE_NAME)), query.operator(), Literal(query.value.toCottontailValue())))
             }
 
             else -> throw IllegalArgumentException("Query of typ ${query::class} is not supported by StringDescriptorReader.")
@@ -112,7 +113,7 @@ class StringDescriptorReader(field: Schema.Field<*, StringDescriptor>, connectio
     override fun tupleToDescriptor(tuple: Tuple): StringDescriptor {
         val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
         val descriptorId = tuple.asUuidValue(DESCRIPTOR_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${DESCRIPTOR_ID_COLUMN_NAME}'.")
-        val value = tuple.asString(DESCRIPTOR_COLUMN_NAME)?.toValue() ?: throw IllegalArgumentException("The provided tuple is missing the required field '$DESCRIPTOR_COLUMN_NAME'.")
+        val value = tuple.asString(VALUE_ATTRIBUTE_NAME)?.toValue() ?: throw IllegalArgumentException("The provided tuple is missing the required field '$VALUE_ATTRIBUTE_NAME'.")
         return StringDescriptor(descriptorId, retrievableId, value)
     }
 }

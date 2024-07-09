@@ -4,6 +4,7 @@ import org.vitrivr.engine.core.database.AbstractConnectionProvider
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
+import org.vitrivr.engine.core.model.descriptor.scalar.*
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.MapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.MediaDimensionsDescriptor
@@ -13,6 +14,7 @@ import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourc
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.database.pgvector.descriptor.scalar.ScalarDescriptorProvider
 import org.vitrivr.engine.database.pgvector.descriptor.struct.StructDescriptorProvider
 import org.vitrivr.engine.database.pgvector.descriptor.vector.VectorDescriptorProvider
 import java.sql.DriverManager
@@ -60,6 +62,14 @@ class PgVectorConnectionProvider: AbstractConnectionProvider() {
      * This method is called during initialization of the [PgVectorConnectionProvider] and can be used to register [DescriptorProvider]s.
      */
     override fun initialize() {
+        /* Scalar descriptors. */
+        this.register(BooleanDescriptor::class, ScalarDescriptorProvider)
+        this.register(IntDescriptor::class, ScalarDescriptorProvider)
+        this.register(LongDescriptor::class, ScalarDescriptorProvider)
+        this.register(FloatDescriptor::class, ScalarDescriptorProvider)
+        this.register(DoubleDescriptor::class, ScalarDescriptorProvider)
+        this.register(StringDescriptor::class, ScalarDescriptorProvider)
+
         /* Vector descriptors. */
         this.register(BooleanVectorDescriptor::class, VectorDescriptorProvider)
         this.register(IntVectorDescriptor::class, VectorDescriptorProvider)

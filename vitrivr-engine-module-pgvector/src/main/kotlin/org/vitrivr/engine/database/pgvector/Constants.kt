@@ -27,8 +27,5 @@ const val DESCRIPTOR_ENTITY_PREFIX = "descriptor"
 /** The column name of a descriptor ID. */
 const val DESCRIPTOR_ID_COLUMN_NAME = "descriptorId"
 
-/** The column name of a descriptor ID. */
-const val DESCRIPTOR_COLUMN_NAME = "descriptor"
-
 /** The column name used to describe a distance.*/
 const val DISTANCE_COLUMN_NAME = "distance"

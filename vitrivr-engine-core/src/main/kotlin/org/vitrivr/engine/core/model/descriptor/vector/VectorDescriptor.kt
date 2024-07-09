@@ -13,6 +13,10 @@ import org.vitrivr.engine.core.model.types.Value
  * @version 1.1.0
  */
 sealed interface VectorDescriptor<T : Value.Vector<*>> : Descriptor {
+    companion object {
+        const val VECTOR_ATTRIBUTE_NAME = "vector"
+    }
+
     /** The size of this [VectorDescriptor]. */
     val dimensionality: Int
         get() = this.vector.size
@@ -25,5 +29,5 @@ sealed interface VectorDescriptor<T : Value.Vector<*>> : Descriptor {
      *
      * @return A [Map] of this [ScalarDescriptor]'s fields (without the IDs).
      */
-    override fun values(): Map<AttributeName, T?> = mapOf("vector" to this.vector)
+    override fun values(): Map<AttributeName, T?> = mapOf(VECTOR_ATTRIBUTE_NAME to this.vector)
 }

@@ -10,7 +10,11 @@ import org.vitrivr.engine.core.model.types.Value
  * @author Ralph Gasser
  * @version 1.1.0
  */
-sealed interface ScalarDescriptor<T : Value<*>> : Descriptor {
+sealed interface ScalarDescriptor<T : Value.ScalarValue<*>> : Descriptor {
+
+    companion object {
+        const val VALUE_ATTRIBUTE_NAME = "value"
+    }
 
     /** The [Value] held by this [ScalarDescriptor]. */
     val value: T
