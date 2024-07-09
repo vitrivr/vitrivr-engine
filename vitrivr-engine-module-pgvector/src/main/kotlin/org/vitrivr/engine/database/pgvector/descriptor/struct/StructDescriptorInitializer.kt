@@ -31,7 +31,7 @@ class StructDescriptorInitializer(field: Schema.Field<*, StructDescriptor>, conn
                 Type.Float -> statement.append("\"${field.name}\" real, ")
                 Type.Double -> statement.append("\"${field.name}\" double precision, ")
                 Type.Datetime -> statement.append("\"${field.name}\" datetime, ")
-                is Type.BooleanVector -> statement.append("\"${field.name}\" vector(${field.type.dimensions}), ")
+                is Type.BooleanVector -> statement.append("\"${field.name}\" bit(${field.type.dimensions}), ")
                 is Type.DoubleVector -> statement.append("\"${field.name}\" vector(${field.type.dimensions}), ")
                 is Type.FloatVector -> statement.append("\"${field.name}\" vector(${field.type.dimensions}), ")
                 is Type.IntVector -> statement.append("\"${field.name}\" vector(${field.type.dimensions}), ")
