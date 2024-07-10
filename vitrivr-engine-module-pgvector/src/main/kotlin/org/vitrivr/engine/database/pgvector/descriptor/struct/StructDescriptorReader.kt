@@ -48,7 +48,8 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
         val parameters: MutableList<Any?> = mutableListOf(
             result.getObject(DESCRIPTOR_ID_COLUMN_NAME, UUID::class.java) ?: throw IllegalArgumentException("The provided tuple is missing the required field '${DESCRIPTOR_ID_COLUMN_NAME}'."),
             result.getObject(RETRIEVABLE_ID_COLUMN_NAME, UUID::class.java) ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'."),
-            values
+            values,
+            this.field
         )
 
         /* Append dynamic parameters of struct. */
@@ -105,7 +106,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
      */
     private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<StructDescriptor> {
         require(query.attributeName != null) { "Query attribute must not be null for a fulltext query on a struct descriptor." }
-        val statement = "SELECT * FROM $tableName WHERE ${query.value} ${query.comparison.toSql()} ?"
+        val statement = "SELECT * FROM $tableName WHERE ${query.attributeName} ${query.comparison.toSql()} ?"
         return sequence {
             this@StructDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
                 stmt.setValue(1, query.value)
