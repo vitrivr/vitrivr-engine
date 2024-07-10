@@ -33,7 +33,7 @@ compileKotlin {
     dependsOn 'generateFESClient'
 }
 
-//sourcesJar.dependsOn 'generateFESClient'
+sourcesJar.dependsOn 'generateFESClient'
 
 /* Add generated Open API client as source directory. */
 sourceSets {
