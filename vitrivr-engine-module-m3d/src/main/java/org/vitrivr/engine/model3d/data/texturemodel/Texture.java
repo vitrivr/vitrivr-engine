@@ -2,6 +2,7 @@ package org.vitrivr.engine.model3d.data.texturemodel;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import java.awt.image.BufferedImage;
 
 /**
  * This class represents a texture.
@@ -13,7 +14,12 @@ public class Texture {
   /**
    * Path to the texture file.
    */
-  private final String texturePath;
+  private String texturePath;
+
+  /**
+   * BufferedImages texture.
+   */
+  private BufferedImage image;
 
   /**
    * Default texture path.
@@ -40,11 +46,22 @@ public class Texture {
     this.texturePath = texturePath;
   }
 
+  public Texture(BufferedImage image) {
+    this.image = image;
+  }
+
   /**
    * @return Path to the texture file.
    */
   public String getTexturePath() {
     return this.texturePath;
+  }
+
+  /**
+   * @return BufferedImage texture.
+   */
+  public BufferedImage getTextureImage() {
+    return this.image;
   }
 
   /**

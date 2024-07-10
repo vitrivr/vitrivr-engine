@@ -1,10 +1,19 @@
 package org.vitrivr.engine.model3d.data.render.lwjgl.glmodel;
 
+import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
+
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
 import org.vitrivr.engine.model3d.data.texturemodel.Texture;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * The GLTexture class is a wrapper for the {@link Texture} class.
@@ -41,14 +50,50 @@ public class GLTexture {
       var w = memoryStack.mallocInt(1);
       var h = memoryStack.mallocInt(1);
       var channels = memoryStack.mallocInt(1);
-
-      var imageBuffer = STBImage.stbi_load(this.texture.getTexturePath(), w, h, channels, 4);
-      if (imageBuffer == null) {
+      ByteBuffer imageBuffer;
+      if (this.texture.getTexturePath()!= null){
+        imageBuffer = STBImage.stbi_load(this.texture.getTexturePath(), w, h, channels, 4);
+      } else if (this.texture.getTextureImage() != null) {
+        String imagePath = "tmp.png";
+        File outputFile = new File(imagePath);
+        try {
+          // Write image to file
+          ImageIO.write(this.texture.getTextureImage(), "png", outputFile);
+        } catch (IOException e) {
+          System.err.println("Error saving tmp texture image: " + e.getMessage());
+        }
+        imageBuffer = STBImage.stbi_load(imagePath, w, h, channels, 4);
+        if (outputFile.exists()) {
+          // Attempt to delete the file
+         outputFile.delete();
+        };
+      } else {
         throw new RuntimeException("Could not load texture file: " + this.texture.getTexturePath());
       }
       this.generateTexture(w.get(), h.get(), imageBuffer);
       STBImage.stbi_image_free(imageBuffer);
     }
+  }
+
+  // TODO Convert the image data to a byte buffer to avoid tmp texture file --> requires further debugging as the rendering afterward is not correct
+  public ByteBuffer convertImageData(BufferedImage image) {
+
+    int[] pixels = new int[image.getWidth() * image.getHeight()];
+    image.getRGB(0, 0, image.getWidth(), image.getHeight(), pixels, 0, image.getWidth());
+
+    ByteBuffer buffer = BufferUtils.createByteBuffer(image.getWidth() * image.getHeight() * 3);
+
+    buffer.clear() ;
+    for (int y = 0; y < image.getHeight(); y++) {
+      for (int x = 0; x < image.getWidth(); x++) {
+        int pixel = pixels[y * image.getWidth() + x];
+        buffer.put((byte) ((pixel >> 16) & 0xFF)); // Red component
+        buffer.put((byte) ((pixel >> 8) & 0xFF)); // Green component
+        buffer.put((byte) (pixel & 0xFF)); // Blue component
+      }
+    }
+    buffer.clear();
+    return buffer;
   }
 
   /**
@@ -91,5 +136,10 @@ public class GLTexture {
   public String getTexturePath() {
     return this.texture.getTexturePath();
   }
+
+  public BufferedImage getTextureImage() {
+    return this.texture.getTextureImage();
+  }
+
 }
 
