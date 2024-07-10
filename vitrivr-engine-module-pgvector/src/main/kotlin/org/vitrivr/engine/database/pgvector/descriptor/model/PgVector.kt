@@ -11,12 +11,12 @@ import java.util.*
 /**
  * The [PgVector] class represents a vector in PostgreSQL.
  *
- * @see https://github.com/pgvector/pgvector-java/blob/master/src/main/java/com/pgvector/PGvector.java
+ * @link https://github.com/pgvector/pgvector-java/blob/master/src/main/java/com/pgvector/PGvector.java
  *
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class PgVector(private var vec: FloatArray? = null) : PGobject(), PGBinaryObject, Serializable {
+class PgVector(private var vec: FloatArray? = null) : PGobject(), PGBinaryObject, Serializable, Cloneable {
 
     init {
         this.type = "vector"
@@ -134,6 +134,13 @@ class PgVector(private var vec: FloatArray? = null) : PGobject(), PGBinaryObject
             ByteConverter.float4(bytes, offset + 4 + i * 4, vec!![i])
         }
     }
+
+    /**
+     * Clones this [PgVector].
+     *
+     * @return Copy of this [PgVector].
+     */
+    override fun clone(): PgVector = PgVector(this.vec?.copyOf())
 
     /**
      * Returns an [Value.FloatVector] representation of this [PgVector].
