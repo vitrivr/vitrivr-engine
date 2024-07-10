@@ -1,8 +1,10 @@
 package org.vitrivr.engine.database.pgvector.descriptor
 
+import org.vitrivr.engine.core.config.schema.IndexType
 import org.vitrivr.engine.core.database.descriptor.DescriptorInitializer
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.database.pgvector.*
 import java.sql.SQLException
@@ -22,7 +24,7 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
     protected val prototype = this.field.analyser.prototype(this.field)
 
     /**
-     *
+     * Initializes the PostgreSQL table entity backing this [PgDescriptorInitializer].
      */
     override fun initialize() {
         val statement = StringBuilder("CREATE TABLE IF NOT EXISTS $tableName(")
@@ -54,13 +56,31 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
         statement.append("PRIMARY KEY ($DESCRIPTOR_ID_COLUMN_NAME), ")
         statement.append("FOREIGN KEY ($RETRIEVABLE_ID_COLUMN_NAME) REFERENCES $RETRIEVABLE_ENTITY_NAME($RETRIEVABLE_ID_COLUMN_NAME));")
 
+        /* Create entity. */
         try {
-            /* Create 'retrievable' entity. */
             this.connection.jdbc.prepareStatement(/* sql = postgres */ statement.toString()).use {
                 it.execute()
             }
         } catch (e: SQLException) {
             LOGGER.error(e) { "Failed to initialize entity '$tableName' due to exception." }
+        }
+
+        /* Create indexes (optional). */
+        for (index in this.field.indexes) {
+            try {
+                val indexStatement = when (index.type) {
+                    IndexType.SCALAR -> "CREATE INDEX IF NOT EXISTS ON $tableName (${index.attributes.joinToString(",")});"
+                    IndexType.FULLTEXT -> "CREATE INDEX IF NOT EXISTS ON $tableName USING GIN(${index.attributes.joinToString(",")});"
+                    IndexType.NNS ->  {
+                        require(index.attributes.size == 1) { "NNS index can only be created on a single attribute." }
+                        val distance = index.parameters["distance"]?.let { Distance.valueOf(it.uppercase()) } ?: Distance.EUCLIDEAN
+                        "CREATE INDEX IF NOT EXISTS ON $tableName USING HNSW(${index.attributes.first()} ${distance.toIndexName()});"
+                    }
+                }
+                this.connection.jdbc.prepareStatement(/* sql = postgres */ indexStatement).use { it.execute() }
+            } catch (e: SQLException) {
+                LOGGER.error(e) { "Failed to create index ${index.type} for entity '$tableName' due to exception." }
+            }
         }
     }
 
@@ -91,5 +111,16 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
         } catch (e: SQLException) {
             LOGGER.error(e) { "Failed to truncate entities due to exception." }
         }
+    }
+
+    /**
+     * Closes the [PgDescriptorInitializer].
+     */
+    private fun Distance.toIndexName() = when (this) {
+        Distance.MANHATTAN -> "vector_l1_ops"
+        Distance.EUCLIDEAN -> "sparsevec_l2_ops"
+        Distance.COSINE -> "vector_cosine_ops"
+        Distance.HAMMING -> "bit_hamming_ops"
+        Distance.JACCARD -> "bit_jaccard_ops"
     }
 }
