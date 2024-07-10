@@ -21,10 +21,10 @@ tasks.register('generateFESClient', GenerateTask) {
 }
 
 compileKotlin {
-    //dependsOn 'generateFESClient'
+    dependsOn 'generateFESClient'
 }
 
-//sourcesJar.dependsOn 'generateFESClient'
+sourcesJar.dependsOn 'generateFESClient'
 
 /* Add generated Open API client as source directory. */
 sourceSets {
