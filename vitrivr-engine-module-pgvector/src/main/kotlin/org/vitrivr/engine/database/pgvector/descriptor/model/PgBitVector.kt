@@ -11,12 +11,12 @@ import java.sql.SQLException
 /**
  * The [PgBitVector] class represents a bit vector in PostgreSQL.
  *
- * @see https://github.com/pgvector/pgvector-java/blob/master/src/main/java/com/pgvector/PGbit.java
+ * @link https://github.com/pgvector/pgvector-java/blob/master/src/main/java/com/pgvector/PGbit.java
  *
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class PgBitVector () : PGobject(), PGBinaryObject, Serializable {
+class PgBitVector() : PGobject(), PGBinaryObject, Serializable, Cloneable {
 
     /** The [ByteArray] backing this [PgBitVector]. */
     private var vec: ByteArray? = null
@@ -118,6 +118,18 @@ class PgBitVector () : PGobject(), PGBinaryObject, Serializable {
         for (i in data.indices) {
             bytes[offset + 4 + i] = data[i]
         }
+    }
+
+    /**
+     * Clones this [PgBitVector].
+     *
+     * @return Copy of this [PgBitVector].
+     */
+    override fun clone(): PgBitVector {
+        val clone = PgBitVector()
+        clone.vec = this.vec?.copyOf()
+        clone.length = this.length
+        return clone
     }
 
     /**
