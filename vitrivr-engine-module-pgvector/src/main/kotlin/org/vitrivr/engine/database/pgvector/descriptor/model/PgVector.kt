@@ -42,6 +42,33 @@ class PgVector(private var vec: FloatArray? = null) : PGobject(), PGBinaryObject
     /**
      * Constructor
      *
+     * @param vector [DoubleArray]
+     */
+    constructor(vector: DoubleArray) : this(FloatArray(vector.size) {
+        vector[it].toFloat()
+    })
+
+    /**
+     * Constructor
+     *
+     * @param vector [IntArray]
+     */
+    constructor(vector: IntArray) : this(FloatArray(vector.size) {
+        vector[it].toFloat()
+    })
+
+    /**
+     * Constructor
+     *
+     * @param vector [LongArray]
+     */
+    constructor(vector: LongArray) : this(FloatArray(vector.size) {
+        vector[it].toFloat()
+    })
+
+    /**
+     * Constructor
+     *
      * @param s text representation of a vector
      * @throws SQLException exception
      */

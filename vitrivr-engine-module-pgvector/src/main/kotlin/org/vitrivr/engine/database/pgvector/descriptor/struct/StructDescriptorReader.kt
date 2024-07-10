@@ -9,10 +9,7 @@ import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
-import org.vitrivr.engine.database.pgvector.DESCRIPTOR_ID_COLUMN_NAME
-import org.vitrivr.engine.database.pgvector.LOGGER
-import org.vitrivr.engine.database.pgvector.PgVectorConnection
-import org.vitrivr.engine.database.pgvector.RETRIEVABLE_ID_COLUMN_NAME
+import org.vitrivr.engine.database.pgvector.*
 import org.vitrivr.engine.database.pgvector.descriptor.AbstractDescriptorReader
 import org.vitrivr.engine.database.pgvector.descriptor.model.PgBitVector
 import org.vitrivr.engine.database.pgvector.descriptor.model.PgVector
@@ -24,7 +21,7 @@ import kotlin.reflect.full.primaryConstructor
  * An [AbstractDescriptorReader] for [StructDescriptor]s.
  *
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.0.0
  */
 class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connection: PgVectorConnection) : AbstractDescriptorReader<StructDescriptor>(field, connection) {
     /**
@@ -33,26 +30,10 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
      * @param query The [Query] to execute.
      * @return [Sequence] of [StructDescriptor]s that match the query.
      */
-    override fun query(query: Query): Sequence<StructDescriptor> {
-        try {
-            /* Prepare statement based on query. */
-            val statement = when (query) {
-                is SimpleFulltextQuery -> TODO()
-                is SimpleBooleanQuery<*> -> {
-                    require(query.attributeName != null) { "Boolean query on a struct field requires specification of a field's attribute name." }
-                    this.connection.jdbc.prepareStatement("SELECT * FROM $tableName WHERE ${query.attributeName} = ?;").apply {
-                        setString(1, query.value.toString())
-                    }
-                }
-                else -> throw IllegalArgumentException("Query of typ ${query::class} is not supported by StringDescriptorReader.")
-            }
-
-            /* Execute statement and return it. */
-            return statement.executeAndStream()
-        } catch (e: Exception) {
-            LOGGER.error(e) { "Failed to execute query on '$tableName' due to SQL error." }
-            return emptySequence()
-        }
+    override fun query(query: Query): Sequence<StructDescriptor> = when (query) {
+        is SimpleFulltextQuery -> queryFulltext(query)
+        is SimpleBooleanQuery<*> -> queryBoolean(query)
+        else -> throw IllegalArgumentException("Query of typ ${query::class} is not supported by StructDescriptorReader.")
     }
 
     /**
@@ -93,5 +74,47 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
 
         /* Call constructor. */
         return constructor.call(*parameters.toTypedArray())
+    }
+
+    /**
+     * Executes a [SimpleFulltextQuery] and returns a [Sequence] of [StructDescriptor]s.
+     *
+     * @param query The [SimpleFulltextQuery] to execute.
+     * @return [Sequence] of [StructDescriptor]s.
+     */
+    private fun queryFulltext(query: SimpleFulltextQuery): Sequence<StructDescriptor> {
+        require(query.attributeName != null) { "Query attribute must not be null for a fulltext query on a struct descriptor." }
+        val statement = "SELECT * FROM $tableName WHERE ${query.attributeName} @@ to_tsquery(?)"
+        return sequence {
+            this@StructDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
+                stmt.setString(1, query.value.value)
+                stmt.executeQuery().use { result ->
+                    while (result.next()) {
+                        yield(rowToDescriptor(result))
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Executes a [SimpleBooleanQuery] and returns a [Sequence] of [StructDescriptor]s.
+     *
+     * @param query The [SimpleBooleanQuery] to execute.
+     * @return [Sequence] of [StructDescriptor]s.
+     */
+    private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<StructDescriptor> {
+        require(query.attributeName != null) { "Query attribute must not be null for a fulltext query on a struct descriptor." }
+        val statement = "SELECT * FROM $tableName WHERE ${query.value} ${query.comparison.toSql()} ?"
+        return sequence {
+            this@StructDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
+                stmt.setValue(1, query.value)
+                stmt.executeQuery().use { result ->
+                    while (result.next()) {
+                        yield(rowToDescriptor(result))
+                    }
+                }
+            }
+        }
     }
 }
