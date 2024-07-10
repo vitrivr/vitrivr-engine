@@ -74,7 +74,7 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
                     IndexType.NNS ->  {
                         require(index.attributes.size == 1) { "NNS index can only be created on a single attribute." }
                         val distance = index.parameters["distance"]?.let { Distance.valueOf(it.uppercase()) } ?: Distance.EUCLIDEAN
-                        "CREATE INDEX IF NOT EXISTS ON $tableName USING HNSW(${index.attributes.first()} ${distance.toIndexName()});"
+                        "CREATE INDEX ON $tableName USING hnsw (${index.attributes.first()} ${distance.toIndexName()});"
                     }
                 }
                 this.connection.jdbc.prepareStatement(/* sql = postgres */ indexStatement).use { it.execute() }
