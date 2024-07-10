@@ -5,10 +5,7 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.types.Type
-import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.database.pgvector.*
-import org.vitrivr.engine.database.pgvector.descriptor.model.PgBitVector
-import org.vitrivr.engine.database.pgvector.descriptor.model.PgVector
 import java.sql.*
 
 /**
@@ -146,24 +143,6 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
             LOGGER.error(e) { "Failed to delete descriptors due to SQL error." }
             return false
         }
-    }
-
-    /**
-     * Sets a value of [Value] type in a [PreparedStatement].
-     */
-    protected fun PreparedStatement.setValue(index: Int, value: Value<*>) = when (value) {
-        is Value.Boolean -> this.setBoolean(index, value.value)
-        is Value.Byte -> this.setByte(index, value.value)
-        is Value.DateTime -> this.setDate(index, Date(value.value.toInstant().toEpochMilli()))
-        is Value.Double -> this.setDouble(index, value.value)
-        is Value.Float -> this.setFloat(index, value.value)
-        is Value.Int -> this.setInt(index, value.value)
-        is Value.Long -> this.setLong(index, value.value)
-        is Value.Short -> this.setShort(index, value.value)
-        is Value.String -> this.setString(index, value.value)
-        is Value.BooleanVector -> this.setObject(index, PgBitVector(value.value))
-        is Value.FloatVector -> this.setObject(index, PgVector(value.value))
-        else -> throw IllegalArgumentException("Unsupported value type for vector value.")
     }
 
     /**

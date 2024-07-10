@@ -8,7 +8,6 @@ import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.database.pgvector.*
-import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.util.*
 
@@ -212,23 +211,6 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
                 retrievable as Retrieved
             } else {
                 null
-            }
-        }
-    }
-
-
-    /**
-     * Converts a [PreparedStatement] to a [Sequence] of [Descriptor] of type [D].
-     *
-     * @return [Sequence] of [Descriptor]s of type [D]
-     */
-    protected fun PreparedStatement.executeAndStream(): Sequence<D> = this.use {
-        val result = this.executeQuery()
-        return sequence {
-            result.use {
-                while (result.next()) {
-                    yield(this@AbstractDescriptorReader.rowToDescriptor(result))
-                }
             }
         }
     }
