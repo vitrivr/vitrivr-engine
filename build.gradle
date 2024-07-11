@@ -47,9 +47,10 @@ subprojects {
     }
 
     /* Common plugins. */
-    apply plugin: 'java'
     apply plugin: 'idea'
     apply plugin: 'kotlin'
+    apply plugin: 'java'
+    apply plugin: 'java-test-fixtures'
 
     /* Java Version */
     sourceCompatibility = JavaVersion.VERSION_21
