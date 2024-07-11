@@ -1,6 +1,7 @@
 package org.vitrivr.engine.core.database
 
 import org.vitrivr.engine.core.config.schema.SchemaConfig
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
 
 /**
@@ -10,11 +11,9 @@ import org.vitrivr.engine.core.model.metamodel.SchemaManager
  * @version 1.0.0
  */
 abstract class AbstractDatabaseTest(schemaPath: String) {
-
     companion object {
         val SCHEMA_NAME = "vitrivr-test"
     }
-
 
     /** [SchemaManager] for this [AbstractDatabaseTest]. */
     protected val manager = SchemaManager()
@@ -25,7 +24,9 @@ abstract class AbstractDatabaseTest(schemaPath: String) {
         this.manager.load(schema)
     }
 
+    /** The test [Schema]. */
+    protected val testSchema: Schema = this.manager.getSchema("vitrivr-test") ?: throw IllegalArgumentException("Schema 'vitrivr-test' not found!")
 
-    /** */
-    protected val schema = this.manager.getSchema("vitrivr-test") ?: throw IllegalArgumentException("Schema 'vitrivr-test' not found!")
+    /** The [Connection] object backing the [Schema]. */
+    protected val testConnection = this.testSchema.connection
 }
