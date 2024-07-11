@@ -14,11 +14,10 @@ import org.lwjgl.assimp.*
 import org.lwjgl.assimp.Assimp.*
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
+import org.vitrivr.engine.core.model.mesh.texturemodel.Material
 import org.vitrivr.engine.core.model.mesh.texturemodel.Mesh
 import org.vitrivr.engine.core.model.mesh.texturemodel.Model
 import org.vitrivr.engine.core.model.mesh.texturemodel.Texture
-import org.vitrivr.engine.model3d.ModelHandler
-import org.vitrivr.engine.model3d.ModelHandler.Companion
 import java.io.InputStream
 import java.nio.ByteBuffer
 

@@ -9,7 +9,7 @@ import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ModelContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.mesh.Mesh
+import org.vitrivr.engine.core.model.mesh.texturemodel.Mesh
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query

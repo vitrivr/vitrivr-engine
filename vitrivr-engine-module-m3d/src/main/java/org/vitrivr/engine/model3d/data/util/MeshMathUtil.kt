@@ -2,7 +2,8 @@ package org.vitrivr.engine.model3d.data.util
 
 import org.joml.Vector3f
 import org.joml.Vector3fc
-import org.vitrivr.engine.core.model.mesh.Mesh
+import org.vitrivr.engine.core.model.mesh.texturemodel.Mesh
+
 import kotlin.math.sqrt
 
 /**
