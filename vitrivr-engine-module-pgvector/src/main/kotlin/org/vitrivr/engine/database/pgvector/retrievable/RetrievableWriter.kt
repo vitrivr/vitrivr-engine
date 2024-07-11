@@ -63,7 +63,7 @@ internal class RetrievableWriter(override val connection: PgVectorConnection): R
             this.connection.jdbc.prepareStatement("UPDATE $RETRIEVABLE_ENTITY_NAME SET $RETRIEVABLE_TYPE_COLUMN_NAME = ? WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?").use { stmt ->
                 stmt.setString(1, item.type)
                 stmt.setObject(2, item.id)
-                return stmt.execute()
+                return stmt.executeUpdate() == 1
             }
         } catch (e: SQLException) {
             LOGGER.error(e) { "Failed to update retrievable ${item.id} due to SQL error." }

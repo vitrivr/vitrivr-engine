@@ -82,6 +82,60 @@ abstract class AbstractRetrievableWriterTest(schemaPath: String) : AbstractDatab
     }
 
     /**
+     * Tests if the [RetrievableWriter.add] works as expected.
+     */
+    @Test
+    fun testDeleteAll() {
+        val writer = this.testConnection.getRetrievableWriter()
+        val reader = this.testConnection.getRetrievableReader()
+        val size = Random().nextInt(500, 5000)
+
+        /* Create and add retrievable. */
+        val ids = (0 until size).map { UUID.randomUUID() }
+        val ingested = ids.map { Ingested(it, "INGESTED:TEST", false) }
+
+        /* Execute actions. */
+        Assertions.assertTrue(writer.addAll(ingested))
+
+        /* Check if retrievable can be read. */
+        Assertions.assertEquals(ids.size.toLong(), reader.count())
+        reader.getAll(ids).forEachIndexed() { i, it ->
+            Assertions.assertEquals("INGESTED:TEST", it.type)
+        }
+
+        /* Execute actions. */
+        Assertions.assertTrue(writer.deleteAll(ingested))
+        Assertions.assertEquals(0L, reader.count())
+    }
+
+
+    /**
+     * Tests if the [RetrievableWriter.add] works as expected.
+     */
+    @Test
+    fun testUpdate() {
+        val writer = this.testConnection.getRetrievableWriter()
+        val reader = this.testConnection.getRetrievableReader()
+        val size = Random().nextInt(500, 5000)
+
+        /* Create and add retrievable. */
+        val ids = (0 until size).map { UUID.randomUUID() }
+        val ingested = ids.map { Ingested(it, "INGESTED:TEST", false) }
+        val update = ingested[Random().nextInt(0, ingested.size)]
+
+        /* Execute actions. */
+        Assertions.assertTrue(writer.addAll(ingested))
+
+        /* Check if retrievable can be read. */
+        Assertions.assertEquals(ids.size.toLong(), reader.count())
+        Assertions.assertTrue(writer.update(update.copy(type = "INGESTED:TEST2")))
+
+        /* Execute actions. */
+        Assertions.assertEquals(ids.size.toLong(), reader.count())
+        Assertions.assertEquals("INGESTED:TEST2", reader[update.id]?.type)
+    }
+
+    /**
      * Cleans up the database after each test.
      */
     @BeforeEach
