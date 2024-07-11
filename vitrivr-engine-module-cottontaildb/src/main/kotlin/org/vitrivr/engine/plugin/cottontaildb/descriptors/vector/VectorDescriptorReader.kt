@@ -18,7 +18,7 @@ import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorRead
  * An [AbstractDescriptorReader] for [FloatVectorDescriptor]s.
  *
  * @author Ralph Gasser
- * @version 1.3.0
+ * @version 1.3.1
  */
 internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>>, connection: CottontailConnection) : AbstractDescriptorReader<VectorDescriptor<*>>(field, connection) {
 
@@ -31,28 +31,7 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
      * @param query The [Query] to execute.
      */
     override fun query(query: Query): Sequence<VectorDescriptor<*>> = when (query) {
-        is ProximityQuery<*> -> {
-            val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
-                .select(RETRIEVABLE_ID_COLUMN_NAME)
-                .distance(
-                    VECTOR_ATTRIBUTE_NAME,
-                    query.value.toCottontailValue(),
-                    Distances.valueOf(query.distance.toString()),
-                    DISTANCE_COLUMN_NAME
-                )
-                .order(DISTANCE_COLUMN_NAME, Direction.valueOf(query.order.name))
-                .limit(query.k)
-
-            if (query.fetchVector) {
-                cottontailQuery.select(VECTOR_ATTRIBUTE_NAME)
-                cottontailQuery.select(DESCRIPTOR_ID_COLUMN_NAME)
-            }
-
-            this.connection.client.query(cottontailQuery).asSequence().map {
-                tupleToDescriptor(it)
-            }
-        }
-
+        is ProximityQuery<*> -> queryProximity(query)
         else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by FloatVectorDescriptorReader.")
     }
 
@@ -64,47 +43,9 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
      * @param query The [Query] that should be executed.
      * @return [Sequence] of [Retrieved].
      */
-    override fun queryAndJoin(query: Query): Sequence<Retrieved> {
-        when (query) {
-            is ProximityQuery<*> -> {
-                val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
-                    .select(VECTOR_ATTRIBUTE_NAME)
-                    .select(DESCRIPTOR_ID_COLUMN_NAME)
-                    .select(RETRIEVABLE_ID_COLUMN_NAME)
-                    .distance(
-                        VECTOR_ATTRIBUTE_NAME,
-                        query.value.toCottontailValue(),
-                        Distances.valueOf(query.distance.toString()),
-                        DISTANCE_COLUMN_NAME
-                    )
-                    .order(DISTANCE_COLUMN_NAME, Direction.valueOf(query.order.name))
-                    .limit(query.k)
-
-                /* Fetch descriptors */
-                val descriptors = this.connection.client.query(cottontailQuery).asSequence().map { tuple ->
-                    val scoreIndex = tuple.indexOf(DISTANCE_COLUMN_NAME)
-                    tupleToDescriptor(tuple) to if (scoreIndex > -1) {
-                        tuple.asFloat(DISTANCE_COLUMN_NAME)?.let { DistanceAttribute(it) }
-                    } else {
-                        null
-                    }
-                }.toList()
-                if (descriptors.isEmpty()) return emptySequence()
-
-                /* Fetch retrievable ids. */
-                val retrievables = this.fetchRetrievable(descriptors.mapNotNull { it.first.retrievableId }.toSet())
-                return descriptors.asSequence().mapNotNull { descriptor ->
-                    val retrievable = retrievables[descriptor.first.retrievableId] ?: return@mapNotNull null
-
-                    /* Append descriptor and distance attribute. */
-                    retrievable.addDescriptor(descriptor.first)
-                    descriptor.second?.let { retrievable.addAttribute(it) }
-                    retrievable
-                }
-            }
-
-            else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by FloatVectorDescriptorReader.")
-        }
+    override fun queryAndJoin(query: Query): Sequence<Retrieved> = when (query) {
+        is ProximityQuery<*> -> queryAndJoinProximity(query)
+        else -> super.queryAndJoin(query)
     }
 
     /**
@@ -148,6 +89,77 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
                 retrievableId,
                 Value.LongVector(tuple.asLongVector(VECTOR_ATTRIBUTE_NAME) ?: throw IllegalArgumentException("The provided tuple is missing the required field '$VECTOR_ATTRIBUTE_NAME'."))
             )
+        }
+    }
+
+    /**
+     * Executes a [ProximityQuery] and returns a [Sequence] of [VectorDescriptor]s.
+     *
+     * @param query The [ProximityQuery] to execute.
+     * @return [Sequence] of [VectorDescriptor]s.
+     */
+    private fun queryAndJoinProximity(query: ProximityQuery<*>): Sequence<Retrieved> {
+        val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
+            .select(VECTOR_ATTRIBUTE_NAME)
+            .select(DESCRIPTOR_ID_COLUMN_NAME)
+            .select(RETRIEVABLE_ID_COLUMN_NAME)
+            .distance(
+                VECTOR_ATTRIBUTE_NAME,
+                query.value.toCottontailValue(),
+                Distances.valueOf(query.distance.toString()),
+                DISTANCE_COLUMN_NAME
+            )
+            .order(DISTANCE_COLUMN_NAME, Direction.valueOf(query.order.name))
+            .limit(query.k)
+
+        /* Fetch descriptors */
+        val descriptors = this.connection.client.query(cottontailQuery).asSequence().map { tuple ->
+            val scoreIndex = tuple.indexOf(DISTANCE_COLUMN_NAME)
+            tupleToDescriptor(tuple) to if (scoreIndex > -1) {
+                tuple.asFloat(DISTANCE_COLUMN_NAME)?.let { DistanceAttribute(it) }
+            } else {
+                null
+            }
+        }.toList()
+        if (descriptors.isEmpty()) return emptySequence()
+
+        /* Fetch retrievable ids. */
+        val retrievables = this.fetchRetrievable(descriptors.mapNotNull { it.first.retrievableId }.toSet())
+        return descriptors.asSequence().mapNotNull { descriptor ->
+            val retrievable = retrievables[descriptor.first.retrievableId] ?: return@mapNotNull null
+
+            /* Append descriptor and distance attribute. */
+            retrievable.addDescriptor(descriptor.first)
+            descriptor.second?.let { retrievable.addAttribute(it) }
+            retrievable
+        }
+    }
+
+    /**
+     * Executes a [ProximityQuery] and returns a [Sequence] of [VectorDescriptor]s.
+     *
+     * @param query The [ProximityQuery] to execute.
+     * @return [Sequence] of [VectorDescriptor]s.
+     */
+    private fun queryProximity(query: ProximityQuery<*>): Sequence<VectorDescriptor<*>> {
+        val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
+            .select(RETRIEVABLE_ID_COLUMN_NAME)
+            .distance(
+                VECTOR_ATTRIBUTE_NAME,
+                query.value.toCottontailValue(),
+                Distances.valueOf(query.distance.toString()),
+                DISTANCE_COLUMN_NAME
+            )
+            .order(DISTANCE_COLUMN_NAME, Direction.valueOf(query.order.name))
+            .limit(query.k)
+
+        if (query.fetchVector) {
+            cottontailQuery.select(VECTOR_ATTRIBUTE_NAME)
+            cottontailQuery.select(DESCRIPTOR_ID_COLUMN_NAME)
+        }
+
+        return this.connection.client.query(cottontailQuery).asSequence().map {
+            tupleToDescriptor(it)
         }
     }
 }

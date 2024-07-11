@@ -63,6 +63,7 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
             }
         } catch (e: SQLException) {
             LOGGER.error(e) { "Failed to initialize entity '$tableName' due to exception." }
+            throw e
         }
 
         /* Create indexes (optional). */
@@ -80,6 +81,7 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
                 this.connection.jdbc.prepareStatement(/* sql = postgres */ indexStatement).use { it.execute() }
             } catch (e: SQLException) {
                 LOGGER.error(e) { "Failed to create index ${index.type} for entity '$tableName' due to exception." }
+                throw e
             }
         }
     }

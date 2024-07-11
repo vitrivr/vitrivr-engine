@@ -11,7 +11,7 @@ dependencies {
     api project(':vitrivr-engine-core')
 
     /** PostgreSQL driver. */
-    implementation group: 'org.postgresql', name: 'postgresql', version: '42.7.3'
+    implementation group: 'org.postgresql', name: 'postgresql', version: version_jdbc_postgres
 }
 
 /* Publication of vitrivr engine query to Maven Central. */
