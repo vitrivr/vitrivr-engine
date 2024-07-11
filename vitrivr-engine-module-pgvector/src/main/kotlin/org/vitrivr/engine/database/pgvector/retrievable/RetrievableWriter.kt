@@ -23,7 +23,7 @@ internal class RetrievableWriter(override val connection: PgVectorConnection): R
             this.connection.jdbc.prepareStatement("INSERT INTO $RETRIEVABLE_ENTITY_NAME ($RETRIEVABLE_ID_COLUMN_NAME, $RETRIEVABLE_TYPE_COLUMN_NAME) VALUES (?, ?);").use { stmt ->
                 stmt.setObject(1, item.id)
                 stmt.setString(2, item.type)
-                return stmt.execute()
+                return stmt.executeUpdate() == 1
             }
         } catch (e: SQLException) {
             LOGGER.error(e) { "Failed to persist retrievable ${item.id} due to SQL error." }
