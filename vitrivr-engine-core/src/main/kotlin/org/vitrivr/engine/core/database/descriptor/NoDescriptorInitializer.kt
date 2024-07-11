@@ -12,10 +12,15 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  * @version 1.0.0
  */
 class NoDescriptorInitializer<D: Descriptor>(override val field: Schema.Field<*,D>) : DescriptorInitializer<D> {
-    override fun initialize() { /* No op. */
+    override fun initialize() {
+        /* No op. */
     }
 
+    override fun deinitialize() {
+        /* No op. */
+    }
     override fun isInitialized(): Boolean = false
-    override fun truncate() { /* No op. */
+    override fun truncate() {
+        /* No op. */
     }
 }
