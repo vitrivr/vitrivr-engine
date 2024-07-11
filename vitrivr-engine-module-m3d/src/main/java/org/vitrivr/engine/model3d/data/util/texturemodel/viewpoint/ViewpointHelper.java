@@ -4,10 +4,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joml.Vector3f;
 import org.vitrivr.engine.core.model.mesh.texturemodel.IModel;
-import org.vitrivr.engine.model3d.texturemodel.util.entropyoptimizer.EntopyCalculationMethod;
-import org.vitrivr.engine.model3d.texturemodel.util.entropyoptimizer.EntropyOptimizerStrategy;
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.EntopyCalculationMethod;
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.EntropyOptimizerStrategy;
 import org.vitrivr.engine.model3d.data.util.texturemodel.entropyoptimizer.ModelEntropyOptimizer;
-import org.vitrivr.engine.model3d.texturemodel.util.entropyoptimizer.OptimizerOptions;
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.OptimizerOptions;
 import org.vitrivr.engine.model3d.data.util.math.MathConstants;
 
 import java.util.LinkedList;

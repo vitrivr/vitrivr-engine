@@ -13,7 +13,7 @@ import org.vitrivr.engine.core.operators.ingest.DecoderFactory
 import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Source
-import org.vitrivr.engine.model3d.texturemodel.ModelLoader
+import org.vitrivr.engine.model3d.ModelLoader
 import java.io.IOException
 
 /**

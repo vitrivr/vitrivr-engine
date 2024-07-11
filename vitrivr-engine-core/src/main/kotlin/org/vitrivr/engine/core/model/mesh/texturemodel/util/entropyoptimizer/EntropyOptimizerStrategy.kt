@@ -1,4 +1,4 @@
-package org.vitrivr.engine.model3d.texturemodel.util.entropyoptimizer
+package org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer
 
 /**
  * The method used to calculate the entropy.

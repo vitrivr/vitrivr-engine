@@ -1,4 +1,4 @@
-package org.vitrivr.engine.model3d.texturemodel
+package org.vitrivr.engine.model3d
 
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
