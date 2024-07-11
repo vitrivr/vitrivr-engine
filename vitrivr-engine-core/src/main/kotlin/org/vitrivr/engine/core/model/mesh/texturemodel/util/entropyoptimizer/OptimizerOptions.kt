@@ -1,8 +1,8 @@
-package org.vitrivr.engine.model3d.texturemodel.util.entropyoptimizer
+package org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer
 
 import org.joml.Vector3f
-import org.vitrivr.engine.model3d.texturemodel.util.entropyoptimizer.EntopyCalculationMethod
-import org.vitrivr.engine.model3d.texturemodel.util.entropyoptimizer.EntropyOptimizerStrategy
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.EntopyCalculationMethod
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.EntropyOptimizerStrategy
 
 
 /**

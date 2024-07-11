@@ -1,4 +1,4 @@
-package org.vitrivr.engine.model3d.texturemodel.util.entropyoptimizer
+package org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer
 
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger

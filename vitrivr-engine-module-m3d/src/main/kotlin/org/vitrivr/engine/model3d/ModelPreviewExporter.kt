@@ -25,9 +25,9 @@ import org.vitrivr.engine.model3d.data.render.lwjgl.renderer.RenderJob
 import org.vitrivr.engine.model3d.data.render.lwjgl.renderer.RenderWorker
 import org.vitrivr.engine.model3d.data.render.lwjgl.window.WindowOptions
 import org.vitrivr.engine.model3d.data.util.texturemodel.entropyoptimizer.ModelEntropyOptimizer
-import org.vitrivr.engine.model3d.texturemodel.util.entropyoptimizer.EntopyCalculationMethod
-import org.vitrivr.engine.model3d.texturemodel.util.entropyoptimizer.EntropyOptimizerStrategy
-import org.vitrivr.engine.model3d.texturemodel.util.entropyoptimizer.OptimizerOptions
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.EntopyCalculationMethod
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.EntropyOptimizerStrategy
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.OptimizerOptions
 
 private val logger: KLogger = KotlinLogging.logger {}
 
