@@ -81,7 +81,7 @@ internal class RetrievableWriter(override val connection: PgVectorConnection): R
         try {
             this.connection.jdbc.prepareStatement("DELETE FROM $RETRIEVABLE_ENTITY_NAME WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?;").use { stmt ->
                 stmt.setObject(1, item.id)
-                return stmt.execute()
+                return stmt.executeUpdate() > 0
             }
         } catch (e: SQLException) {
             LOGGER.error(e) {  "Failed to delete retrievable ${item.id} due to SQL error." }
@@ -100,10 +100,10 @@ internal class RetrievableWriter(override val connection: PgVectorConnection): R
             this.connection.jdbc.prepareStatement("DELETE FROM $RETRIEVABLE_ENTITY_NAME WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY (?);").use { stmt ->
                 val values = items.map { it.id }.toTypedArray()
                 stmt.setArray(1, this.connection.jdbc.createArrayOf("uuid", values))
-                return stmt.execute()
+                return stmt.executeUpdate() > 0
             }
         } catch (e: SQLException) {
-            LOGGER.error(e) { "Failed to delete retrievables due to SQL error." }
+            LOGGER.error(e) { "Failed to delete retrievable due to SQL error." }
             return false
         }
     }

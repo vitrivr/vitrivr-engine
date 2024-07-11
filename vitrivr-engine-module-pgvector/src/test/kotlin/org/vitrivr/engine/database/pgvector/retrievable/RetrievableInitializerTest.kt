@@ -1,6 +1,9 @@
-package org.vitrivr.engine.database.pgvector
+package org.vitrivr.engine.database.pgvector.retrievable
 
 import org.vitrivr.engine.core.database.retrievable.AbstractRetrievableInitializerTest
+import org.vitrivr.engine.database.pgvector.PgVectorConnection
+import org.vitrivr.engine.database.pgvector.RELATIONSHIP_ENTITY_NAME
+import org.vitrivr.engine.database.pgvector.RETRIEVABLE_ENTITY_NAME
 
 /**
  * An [AbstractRetrievableInitializerTest] for the [PgVectorConnection].
