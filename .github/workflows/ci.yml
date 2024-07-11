@@ -26,7 +26,7 @@ jobs:
 
     # Start actual job.
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Cottontail DB connection test
         run: nc -zv 127.0.0.1 1865
       - name: PostgreSQL connection test
