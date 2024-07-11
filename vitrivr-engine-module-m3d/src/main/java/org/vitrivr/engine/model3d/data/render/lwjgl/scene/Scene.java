@@ -2,8 +2,8 @@ package org.vitrivr.engine.model3d.data.render.lwjgl.scene;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.vitrivr.engine.model3d.data.texturemodel.Entity;
-import org.vitrivr.engine.model3d.data.texturemodel.IModel;
+import org.vitrivr.engine.core.model.mesh.texturemodel.Entity;
+import org.vitrivr.engine.core.model.mesh.texturemodel.IModel;
 
 /**
  * The Scene class holds generic 3D scene elements (models, etc.).

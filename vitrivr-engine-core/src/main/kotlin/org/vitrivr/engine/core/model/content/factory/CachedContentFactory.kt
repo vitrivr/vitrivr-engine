@@ -8,7 +8,7 @@ import org.vitrivr.engine.core.model.content.impl.cache.CachedAudioContent
 import org.vitrivr.engine.core.model.content.impl.cache.CachedContent
 import org.vitrivr.engine.core.model.content.impl.cache.CachedImageContent
 import org.vitrivr.engine.core.model.content.impl.cache.CachedTextContent
-import org.vitrivr.engine.core.model.mesh.Model3D
+import org.vitrivr.engine.core.model.mesh.texturemodel.Model
 import org.vitrivr.engine.core.model.metamodel.Schema
 import java.awt.image.BufferedImage
 import java.io.IOException
@@ -117,12 +117,7 @@ class CachedContentFactory : ContentFactoriesFactory {
             return content
         }
 
-        override fun newMeshContent(model3D: Model3D): Model3DContent {
-            check(!this.closed) { "CachedContentFactory has been closed." }
-            TODO()
-        }
-
-        override fun newPointCloudContent(pointCloud: Model3D): PointCloudContent {
+        override fun newMeshContent(model: Model): ModelContent {
             check(!this.closed) { "CachedContentFactory has been closed." }
             TODO()
         }

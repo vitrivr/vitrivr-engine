@@ -6,7 +6,10 @@ import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joml.Vector3f;
-import org.vitrivr.engine.model3d.data.texturemodel.IModel;
+import org.vitrivr.engine.core.model.mesh.texturemodel.IModel;
+import org.vitrivr.engine.model3d.texturemodel.util.entropyoptimizer.OptimizerOptions;
+import org.vitrivr.engine.model3d.texturemodel.util.entropyoptimizer.EntropyOptimizerStrategy;
+import org.vitrivr.engine.model3d.texturemodel.util.entropyoptimizer.EntopyCalculationMethod;
 
 
 /**
@@ -35,7 +38,7 @@ public final class ModelEntropyOptimizer {
    */
   public static Vector3f getViewVectorWithMaximizedEntropy(IModel model, OptimizerOptions options) {
     var normals = model.getAllNormals();
-    var viewVector = options.initialViewVector;
+    var viewVector = options.getInitialViewVector();
     var maxEntropyViewVector = optimize(options, normals, viewVector);
     return maxEntropyViewVector;
   }
@@ -49,7 +52,7 @@ public final class ModelEntropyOptimizer {
    * @return Optimized view vector.
    */
   private static Vector3f optimize(OptimizerOptions options, List<Vector3f> normals, Vector3f viewVector) {
-    var optimizer = options.optimizer;
+    var optimizer = options.getOptimizer();
     switch (optimizer) {
       case RANDOMIZED -> {
         return ModelEntropyOptimizer.optimizeRandomized(options, normals, viewVector);
@@ -77,7 +80,7 @@ public final class ModelEntropyOptimizer {
    */
   private static Vector3f optimizeRandomized(OptimizerOptions options, List<Vector3f> normals, Vector3f viewVector) {
     var t0 = System.currentTimeMillis();
-    var iterations = options.iterations;
+    var iterations = options.getIterations();
     var maxEntropy = calculateEntropy(options, normals, viewVector);
     var maxEntropyViewVector = viewVector;
     var ic = 0;
@@ -99,7 +102,7 @@ public final class ModelEntropyOptimizer {
     LOGGER.trace(
         "Optimization took {} ms with {} iterations for {} normals, getting a max. Entropy of {}. Resulting in {} us/normal",
         t1 - t0, ic + 1, normals.size(), maxEntropy, (t1 - t0) * 1000L / (long) normals.size());
-    return maxEntropyViewVector.mul(options.zoomOutFactor);
+    return maxEntropyViewVector.mul(options.getZoomOutFactor());
   }
 
   /**
@@ -124,7 +127,7 @@ public final class ModelEntropyOptimizer {
    * @return Entropy of the model for the given view vector.
    */
   private static float calculateEntropy(OptimizerOptions options, List<Vector3f> normals, Vector3f viewVector) {
-    var method = options.method;
+    var method = options.getMethod();
     switch (method) {
       case RELATIVE_TO_TOTAL_AREA -> {
         return ModelEntropyOptimizer.calculateEntropyRelativeToTotalArea(normals, viewVector);
@@ -217,9 +220,9 @@ public final class ModelEntropyOptimizer {
     normals.stream().parallel().forEach(
         n -> {
           if (n.y > 0) {
-            weightedNormals.add(new Vector3f(n.x, n.y * opts.yPosWeight, n.z));
+            weightedNormals.add(new Vector3f(n.x, n.y * opts.getYPosWeight(), n.z));
           } else {
-            weightedNormals.add(new Vector3f(n.x, n.y * opts.yNegWeight, n.z));
+            weightedNormals.add(new Vector3f(n.x, n.y * opts.getYNegWeight(), n.z));
           }
         }
     );

@@ -7,9 +7,10 @@ import io.javalin.openapi.CookieAuth
 import io.javalin.openapi.plugin.OpenApiPlugin
 import io.javalin.openapi.plugin.SecurityComponentConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin
-import io.javalin.plugin.bundled.CorsPluginConfig
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
+import org.vitrivr.engine.model3d.data.render.lwjgl.renderer.RenderJob
+import org.vitrivr.engine.model3d.data.render.lwjgl.renderer.RenderWorker
 import org.vitrivr.engine.server.api.cli.Cli
 import org.vitrivr.engine.server.api.cli.commands.SchemaCommand
 import org.vitrivr.engine.server.api.rest.KotlinxJsonMapper
@@ -19,6 +20,8 @@ import org.vitrivr.engine.server.api.rest.model.ErrorStatusException
 import org.vitrivr.engine.server.config.ServerConfig
 import org.vitrivr.engine.server.config.ServerConfig.Companion.DEFAULT_SCHEMA_PATH
 import java.nio.file.Paths
+import java.util.concurrent.LinkedBlockingDeque
+import kotlin.concurrent.thread
 import kotlin.system.exitProcess
 
 private val logger: KLogger = KotlinLogging.logger {}
@@ -90,11 +93,30 @@ fun main(args: Array<String>) {
         cli.register(SchemaCommand(schema, executor))
     }
 
-    /* Start the Javalin and CLI. */
+    /* Start the Javalin server. */
     javalin.start(config.api.port)
     logger.info { "vitrivr engine API is listening on port ${config.api.port}." }
-    cli.start() /* Blocks. */
 
-    /* End Javalin once Cli is stopped. */
-    javalin.stop()
+    /* Start the CLI in a new thread. */
+    val cliThread = thread(start = true) {
+        cli.start() /* This will block the thread it runs on. */
+        /* Stop Javalin once CLI is stopped. */
+        javalin.stop()
+    }
+
+    /* Initialize RenderWorker on the main thread. */
+    val renderJobQueue = LinkedBlockingDeque<RenderJob>()
+    val renderWorker = RenderWorker(renderJobQueue)
+
+    /* Run RenderWorker on the main thread. */
+    renderWorker.run()
+
+    // Optionally, you can use cliThread.join() to wait for CLI thread to complete
+    // cliThread.join()
+
+    // To handle shutdown gracefully
+    Runtime.getRuntime().addShutdownHook(Thread {
+        javalin.stop()
+        cli.stop()
+    })
 }

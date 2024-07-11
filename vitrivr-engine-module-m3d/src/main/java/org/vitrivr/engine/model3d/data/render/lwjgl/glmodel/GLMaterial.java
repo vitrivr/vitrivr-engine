@@ -6,7 +6,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joml.Vector4f;
-import org.vitrivr.engine.model3d.data.texturemodel.Material;
+import org.vitrivr.engine.core.model.mesh.texturemodel.Material;
 
 
 /**
@@ -43,7 +43,7 @@ public class GLMaterial {
     this.meshes = new ArrayList<>();
     this.material = material;
     this.material.getMeshes().forEach(mesh -> this.meshes.add(new GLMesh(mesh)));
-    this.texture = new GLTexture(this.material.getTexture());
+    this.texture = new GLTexture(this.material.getMaterialTexture());
   }
 
   /**
@@ -82,6 +82,6 @@ public class GLMaterial {
    * @return The color from wrapped generic material. (r,g,b,opacity)
    */
   public Vector4f getDiffuseColor() {
-    return this.material.getDiffuseColor();
+    return this.material.getMaterialDiffuseColor();
   }
 }

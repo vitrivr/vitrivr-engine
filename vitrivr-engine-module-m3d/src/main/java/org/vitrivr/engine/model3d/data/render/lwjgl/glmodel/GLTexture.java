@@ -7,11 +7,9 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
-import org.vitrivr.engine.model3d.data.texturemodel.Texture;
+import org.vitrivr.engine.core.model.mesh.texturemodel.Texture;
 
 import javax.imageio.ImageIO;
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 

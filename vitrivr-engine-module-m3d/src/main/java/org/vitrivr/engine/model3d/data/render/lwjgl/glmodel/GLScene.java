@@ -6,8 +6,8 @@ import java.util.Map;
 import org.vitrivr.engine.model3d.data.render.lwjgl.scene.Camera;
 import org.vitrivr.engine.model3d.data.render.lwjgl.scene.Projection;
 import org.vitrivr.engine.model3d.data.render.lwjgl.scene.Scene;
-import org.vitrivr.engine.model3d.data.texturemodel.Entity;
-import org.vitrivr.engine.model3d.data.texturemodel.IModel;
+import org.vitrivr.engine.core.model.mesh.texturemodel.Entity;
+import org.vitrivr.engine.core.model.mesh.texturemodel.IModel;
 
 /**
  * The GLScene class ist the top most class of the gl model hierarchy.

@@ -13,7 +13,7 @@ import org.vitrivr.engine.core.operators.ingest.DecoderFactory
 import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Source
-import org.vitrivr.engine.model3d.ModelHandler
+import org.vitrivr.engine.model3d.texturemodel.ModelLoader
 import java.io.IOException
 
 /**
@@ -55,12 +55,14 @@ class MeshDecoder : DecoderFactory {
             logger.info { "Decoding source ${source.name} (${source.sourceId})" }
 
             try {
-                val handler = ModelHandler()
+                val handler = ModelLoader()
                 val model = source.newInputStream().use {
                     handler.loadModel(source.sourceId.toString(), it) // Pass InputStream directly
                 }
-                val modelContent = this.context.contentFactory.newMeshContent(model)
-                sourceRetrievable.addContent(modelContent)
+                val modelContent = model?.let { this.context.contentFactory.newMeshContent(it) }
+                if (modelContent != null) {
+                    sourceRetrievable.addContent(modelContent)
+                }
                 sourceRetrievable
             } catch (e: IOException) {
                 logger.error(e) { "Failed to decode 3D model from $source due to an IO exception." }

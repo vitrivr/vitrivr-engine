@@ -4,7 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.vitrivr.engine.core.context.QueryContext
-import org.vitrivr.engine.core.model.content.element.Model3DContent
+import org.vitrivr.engine.core.model.content.element.ModelContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
@@ -22,7 +22,7 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class SphericalHarmonicsRetriever(override val field: Schema.Field<Model3DContent, FloatVectorDescriptor>, private val query: ProximityQuery<*>, private val context: QueryContext) : Retriever<Model3DContent, FloatVectorDescriptor> {
+class SphericalHarmonicsRetriever(override val field: Schema.Field<ModelContent, FloatVectorDescriptor>, private val query: ProximityQuery<*>, private val context: QueryContext) : Retriever<ModelContent, FloatVectorDescriptor> {
     companion object {
         private const val MAXIMUM_DISTANCE = 1.0f
         fun scoringFunction(retrieved: Retrieved) : Float {

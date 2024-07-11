@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.LinkedBlockingDeque;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,7 +18,7 @@ import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.model.Action;
 import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.model.Graph;
 import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.model.State;
 import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.model.Transition;
-import org.vitrivr.engine.model3d.data.texturemodel.IModel;
+import org.vitrivr.engine.core.model.mesh.texturemodel.IModel;
 import org.vitrivr.engine.model3d.data.render.lwjgl.render.RenderOptions;
 import org.vitrivr.engine.model3d.data.render.lwjgl.window.WindowOptions;
 
