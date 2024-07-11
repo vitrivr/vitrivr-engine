@@ -42,6 +42,12 @@ class PgVectorConnectionProvider: AbstractConnectionProvider() {
         /** Name of the host parameter. */
         const val PARAMETER_DEFAULT_PORT = 5432
 
+        /** Name of the port parameter. */
+        const val PARAMETER_NAME_DATABASE = "database"
+
+        /** Name of the port parameter. */
+        const val PARAMETER_DEFAULT_DATABASE = "postgres"
+
         /** Name of the host parameter. */
         const val PARAMETER_NAME_USERNAME = "username"
 
@@ -50,6 +56,7 @@ class PgVectorConnectionProvider: AbstractConnectionProvider() {
 
         /** Name of the host parameter. */
         const val PARAMETER_NAME_SSL = "ssl"
+
     }
 
     /** The name of this [PgVectorConnectionProvider]. */
@@ -94,11 +101,11 @@ class PgVectorConnectionProvider: AbstractConnectionProvider() {
      * @return [Connection]
      */
     override fun openConnection(schemaName: String, parameters: Map<String, String>): Connection {
-
         /* Prepare connection URL. */
         val host = parameters.getOrDefault(PARAMETER_NAME_HOST, PARAMETER_DEFAULT_HOST)
         val port = parameters[PARAMETER_NAME_PORT]?.toInt() ?: PARAMETER_DEFAULT_PORT
-        val url = "jdbc:postgresql://${host}:${port}/"
+        val database = parameters[PARAMETER_NAME_DATABASE]?.toInt() ?: PARAMETER_DEFAULT_DATABASE
+        val url = "jdbc:postgresql://${host}:${port}/${database}"
 
         /* Prepare properties (optional). */
         val props = Properties()

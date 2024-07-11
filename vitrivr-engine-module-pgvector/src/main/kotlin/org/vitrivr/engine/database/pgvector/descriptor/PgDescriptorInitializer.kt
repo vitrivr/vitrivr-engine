@@ -27,7 +27,7 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
      * Initializes the PostgreSQL table entity backing this [PgDescriptorInitializer].
      */
     override fun initialize() {
-        val statement = StringBuilder("CREATE TABLE IF NOT EXISTS $tableName(")
+        val statement = StringBuilder("CREATE TABLE IF NOT EXISTS \"${tableName}\" (")
         statement.append("$DESCRIPTOR_ID_COLUMN_NAME uuid NOT NULL, ")
         statement.append("$RETRIEVABLE_ID_COLUMN_NAME uuid NOT NULL, ")
 
@@ -83,6 +83,20 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
                 LOGGER.error(e) { "Failed to create index ${index.type} for entity '$tableName' due to exception." }
                 throw e
             }
+        }
+    }
+
+    /**
+     * De-initializes the PostgreSQL table entity backing this [PgDescriptorInitializer].
+     */
+    override fun deinitialize() {
+        try {
+            /* Create 'retrievable' entity and index. */
+            this.connection.jdbc.prepareStatement(/* sql = postgres */ "DROP TABLE IF EXISTS \"${tableName}\";").use {
+                it.execute()
+            }
+        } catch (e: SQLException) {
+            LOGGER.error(e) { "Failed to de-initialize entity '$tableName' due to exception." }
         }
     }
 
