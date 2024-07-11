@@ -1,4 +1,4 @@
-package org.vitrivr.engine.module.features.feature.averagecolor
+package org.vitrivr.engine.core.features.averagecolor
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
