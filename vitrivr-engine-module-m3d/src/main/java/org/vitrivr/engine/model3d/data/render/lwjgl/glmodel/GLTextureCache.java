@@ -2,7 +2,7 @@ package org.vitrivr.engine.model3d.data.render.lwjgl.glmodel;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.vitrivr.engine.model3d.data.texturemodel.Texture;
+import org.vitrivr.engine.core.model.mesh.texturemodel.Texture;
 
 /**
  * A cache for textures

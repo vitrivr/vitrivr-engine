@@ -3,7 +3,7 @@ package org.vitrivr.engine.model3d.features.sphericalharmonics
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataExtractor
 import org.vitrivr.engine.core.model.content.ContentType
-import org.vitrivr.engine.core.model.content.element.Model3DContent
+import org.vitrivr.engine.core.model.content.element.ModelContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
@@ -21,8 +21,8 @@ import org.vitrivr.engine.core.source.file.FileSource
  * @author Ralph Gasser
  * @version 1.1.0
  */
-class SphericalHarmonicsExtractor(input: Operator<Retrievable>, field: Schema.Field<Model3DContent, FloatVectorDescriptor>?, private val gridSize: Int, private val cap: Int, private val minL: Int, private val maxL: Int) :
-    AbstractExtractor<Model3DContent, FloatVectorDescriptor>(input, field) {
+class SphericalHarmonicsExtractor(input: Operator<Retrievable>, field: Schema.Field<ModelContent, FloatVectorDescriptor>?, private val gridSize: Int, private val cap: Int, private val minL: Int, private val maxL: Int) :
+    AbstractExtractor<ModelContent, FloatVectorDescriptor>(input, field) {
     init {
         require(this.minL < this.maxL) { "Parameter mismatch: min_l must be smaller than max_l. "}
     }
@@ -44,7 +44,7 @@ class SphericalHarmonicsExtractor(input: Operator<Retrievable>, field: Schema.Fi
      * @return List of resulting [FloatVectorDescriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
-        val content = retrievable.content.filterIsInstance<Model3DContent>()
-        return content.flatMap { c -> c.content.getMaterials().flatMap { mat -> mat.meshes.map { mesh -> SphericalHarmonics.analyse(mesh, this.gridSize, this.minL, this.maxL, this.cap).copy(field = this.field) } } }
+        val content = retrievable.content.filterIsInstance<ModelContent>()
+        return content.flatMap { c -> c.content.getMaterials().flatMap { mat -> mat.materialMeshes.map { mesh -> SphericalHarmonics.analyse(mesh, this.gridSize, this.minL, this.maxL, this.cap).copy(field = this.field) } } }
     }
 }

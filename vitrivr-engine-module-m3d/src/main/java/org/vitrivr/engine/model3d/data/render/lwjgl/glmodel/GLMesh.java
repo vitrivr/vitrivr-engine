@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
-import org.vitrivr.engine.model3d.data.texturemodel.Mesh;
+import org.vitrivr.engine.core.model.mesh.texturemodel.Mesh;
 
 /**
  * The GLMesh class is a wrapper for the {@link Mesh} class.

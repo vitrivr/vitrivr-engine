@@ -14,7 +14,7 @@ import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.abstractworker.Job;
 import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.abstractworker.JobControlCommand;
 import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.abstractworker.JobType;
 import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.model.Action;
-import org.vitrivr.engine.model3d.data.texturemodel.IModel;
+import org.vitrivr.engine.core.model.mesh.texturemodel.IModel;
 import org.vitrivr.engine.model3d.data.render.lwjgl.render.RenderOptions;
 import org.vitrivr.engine.model3d.data.render.lwjgl.window.WindowOptions;
 
@@ -57,7 +57,6 @@ public class RenderJob extends Job {
   /**
    * Static method to create a standard render job.
    * <p>
-   * @see RenderJob#performStandardRenderJob(BlockingDeque, IModel, LinkedList, WindowOptions, RenderOptions)
    */
   public static List<BufferedImage> performStandardRenderJob(BlockingDeque<RenderJob> renderJobQueue, IModel model, double[][] cameraPositions, WindowOptions windowOptions, RenderOptions renderOptions) {
     var cameraPositionVectors = new LinkedList<Vector3f>();

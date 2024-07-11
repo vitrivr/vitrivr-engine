@@ -94,15 +94,15 @@ object MeshMathUtil {
      * @param mesh Mesh for which bounds should be calculated.
      * @return Float-array spanning the bounds: {max_x, min_x, max_y, min_y, max_z, min_z}
      */
-    fun bounds(mesh: Mesh): FloatArray {
+    fun bounds(mesh: org.vitrivr.engine.core.model.mesh.texturemodel.Mesh): FloatArray {
         /* Extract all vertices that are part of a face. */
-        val vertices: MutableList<Vector3fc> = ArrayList(mesh.numberOfVertices)
-        for (face in mesh.faces()) {
-            for (vertex in face.vertices) {
-                vertices.add(vertex.position)
+        val vertices: MutableList<Vector3fc> = ArrayList(mesh.getNumVertices())
+        for (face in mesh.getNormals()) {
+            for (i in face as List<Vector3f>) {
+                vertices.add(Vector3f(i.x, i.y, i.z))
             }
         }
-        return bounds(mesh.vertexPositions)
+        return bounds(mesh.getNormals())
     }
 
     /**

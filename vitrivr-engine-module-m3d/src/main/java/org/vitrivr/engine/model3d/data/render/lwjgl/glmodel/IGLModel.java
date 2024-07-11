@@ -1,8 +1,8 @@
 package org.vitrivr.engine.model3d.data.render.lwjgl.glmodel;
 
 import java.util.List;
-import org.vitrivr.engine.model3d.data.texturemodel.Entity;
-import org.vitrivr.engine.model3d.data.texturemodel.IModel;
+import org.vitrivr.engine.core.model.mesh.texturemodel.Entity;
+import org.vitrivr.engine.core.model.mesh.texturemodel.IModel;
 
 /**
  * The Interface IGLModel provides functionality for a arbitrary model used in the OpenGl context.
