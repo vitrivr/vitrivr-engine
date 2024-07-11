@@ -35,11 +35,7 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
             throw e
         }
 
-        /* Register the vector data type. */
-        this.jdbc.unwrap(PGConnection::class.java).addDataType("vector", PgVector::class.java)
-        this.jdbc.unwrap(PGConnection::class.java).addDataType("bit", PgBitVector::class.java)
-
-        /* Create necessary database. */
+        /* Create necessary schema. */
         try {
             this.jdbc.prepareStatement("CREATE SCHEMA \"${schemaName}\";").use {
                 it.execute()
@@ -54,13 +50,17 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
         }
 
         try {
-            this.jdbc.prepareStatement("SET search_path TO \"$schemaName\";").use {
+            this.jdbc.prepareStatement("SET search_path TO \"$schemaName\", public;").use {
                 it.execute()
             }
         } catch (e: SQLException) {
             LOGGER.error(e) { "Failed to set search path '$schemaName' due to exception." }
             throw e
         }
+
+        /* Register the vector data type. */
+        this.jdbc.unwrap(PGConnection::class.java).addDataType("vector", PgVector::class.java)
+        this.jdbc.unwrap(PGConnection::class.java).addDataType("bit", PgBitVector::class.java)
     }
 
     /**
