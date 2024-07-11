@@ -1,4 +1,3 @@
-org.vitrivr.engine.module.features.feature.averagecolor.AverageColor
 org.vitrivr.engine.module.features.feature.external.implementations.dino.DINO
 org.vitrivr.engine.module.features.feature.external.implementations.clip.CLIP
 org.vitrivr.engine.module.features.feature.migration.WhisperASR

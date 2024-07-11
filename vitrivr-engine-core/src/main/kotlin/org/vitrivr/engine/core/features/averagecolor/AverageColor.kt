@@ -1,4 +1,4 @@
-package org.vitrivr.engine.module.features.feature.averagecolor
+package org.vitrivr.engine.core.features.averagecolor
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -24,6 +24,9 @@ import java.util.*
 
 /**
  * Implementation of the [AverageColor] [Analyser], which derives the average color from an [ImageContent] as [FloatVectorDescriptor].
+ *
+ * This [Analyser] has little practical relevance these days but acts as a simple example for how to create a custom [Analyser] that uses vectors.
+ * Furthermore, it can be used to implement test cases.
  *
  * @author Ralph Gasser
  * @version 1.0.0
