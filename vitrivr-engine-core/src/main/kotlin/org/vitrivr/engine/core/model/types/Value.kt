@@ -13,6 +13,12 @@ import java.util.*
 sealed interface Value<T> {
 
     companion object {
+        /**
+         * Converts [Any] value to a [Value].
+         *
+         * @param value The value to convert.
+         * @return [Value]
+         */
         fun of(value: Any): Value<*> = when (value) {
             is kotlin.String -> String(value)
             is kotlin.Boolean -> Boolean(value)
@@ -22,6 +28,11 @@ sealed interface Value<T> {
             is kotlin.Long -> Long(value)
             is kotlin.Float -> Float(value)
             is kotlin.Double -> Double(value)
+            is BooleanArray -> BooleanVector(value)
+            is DoubleArray -> DoubleVector(value)
+            is FloatArray -> FloatVector(value)
+            is LongArray -> LongVector(value)
+            is IntArray -> IntVector(value)
             is Date -> DateTime(value)
             else -> throw IllegalArgumentException("Unsupported data type.")
         }
