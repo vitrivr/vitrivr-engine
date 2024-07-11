@@ -38,6 +38,7 @@ class ApiWrapper(private val hostName:String, private val model: String, private
     private val objectDetectionApi = ObjectDetectionApi(basePath = hostName, client = okHttpClient)
     private val automatedSpeechRecognitionApi = AutomatedSpeechRecognitionApi(basePath = hostName, client = okHttpClient)
     private val opticalCharacterRecognitionApi = OpticalCharacterRecognitionApi(basePath = hostName, client = okHttpClient)
+    private val textQueryEmbeddingApi = TextQueryEmbeddingApi(basePath = hostName, client = okHttpClient)
 
     init {
         logger.info{ "Initialized API wrapper with host: $hostName, model: $model, timeout: $timeoutSeconds seconds, polling interval: $pollingIntervalMs ms" }
@@ -419,4 +420,45 @@ class ApiWrapper(private val hostName:String, private val model: String, private
             logger.info{ "Batched optical character recognition result: $it" }
         }
     }
+
+    /*
+    * Method to get the text query embedding for a given text.
+    * @param query The text for which to get the embedding.
+    * @param instruction The instruction detailing the retrieval task.
+    * @return The embedding for the text.
+     */
+    fun textQueryEmbedding(query: String, instruction: String): kotlin.collections.List<Float> {
+        logger.info{ "Starting text query embedding for query: \"$query\"" }
+        val input = TextQueryEmbeddingInput(query, instruction)
+
+        return executeJob(
+            taskName = "Text Query Embedding",
+            inp = input,
+            startJobFunc = { inp -> textQueryEmbeddingApi.newJobApiTasksTextQueryEmbeddingModelJobsPost(model, inp) },
+            getJobResultFunc = { jobId -> textQueryEmbeddingApi.getJobResultsApiTasksTextQueryEmbeddingJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+        ).embedding.map{it.toFloat()}.also {
+            logger.info{ "Text query embedding result: $it" }
+        }
+    }
+
+    /*
+    * Method to get the text query embedding for a list of texts.
+    * @param query The list of texts for which to get the embedding.
+    * @param instruction The instruction detailing the retrieval task.
+    * @return The embedding for the texts.
+     */
+    fun textQueryEmbedding(query: kotlin.collections.List<String>, instruction: String): kotlin.collections.List<kotlin.collections.List<Float>> {
+        logger.info{ "Starting batched text query embedding for queries: \"$query\" (batch size: ${query.size})" }
+        val input = BatchedTextQueryEmbeddingInput(query, instruction)
+
+        return executeJob(
+            taskName = "Batched Text Query Embedding",
+            inp = input,
+            startJobFunc = { inp -> textQueryEmbeddingApi.newBatchedJobApiTasksTextQueryEmbeddingBatchedModelJobsPost(model, inp) },
+            getJobResultFunc = { jobId -> textQueryEmbeddingApi.getBatchedJobResultsApiTasksTextQueryEmbeddingBatchedJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+        ).map { it.embedding.map{it.toFloat()}}.also {
+            logger.info{ "Batched text query embedding result: $it" }
+        }
+    }
+
 }

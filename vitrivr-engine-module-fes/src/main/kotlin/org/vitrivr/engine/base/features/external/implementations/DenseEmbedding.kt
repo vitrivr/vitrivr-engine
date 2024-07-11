@@ -56,7 +56,11 @@ companion object {
             imageResults = apiWrapper.imageEmbedding(imageContents.map { it.content })
         }
         if (textContents.isNotEmpty()) {
-            textResults = apiWrapper.textEmbedding(textContents.map { it.content })
+            if ("retrievalTaskInstructions" in parameters) {
+                textResults = apiWrapper.textQueryEmbedding(textContents.map { it.content }, parameters["retrievalTaskInstructions"]!!)
+            }else{
+                textResults = apiWrapper.textEmbedding(textContents.map { it.content })
+            }
         }
 
         return content.map { element ->
@@ -115,8 +119,13 @@ companion object {
      */
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, FloatVectorDescriptor> {
 
+        val parameters = field.parameters.toMutableMap()
+
         /* Prepare query parameters. */
-        val vector = analyse(content.first(), field.parameters)
+        if (context.getProperty(field.fieldName, "retrievalTaskInstructions") != null) {
+            parameters["retrievalTaskInstructions"] = context.getProperty(field.fieldName, "retrievalTaskInstructions")!!
+        }
+        val vector = analyse(content.first(), parameters)
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
         val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
 
