@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.database.retrievable
 
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.vitrivr.engine.core.database.AbstractDatabaseTest
 
@@ -69,13 +70,18 @@ abstract class AbstractRetrievableInitializerTest(schemaPath: String) : Abstract
 
     /**
      * Cleans up the database after each test.
+     */
+    @BeforeEach
+    open fun prepare() {
+        this.testSchema.connection.getRetrievableInitializer().initialize()
+    }
+
+    /**
+     * Cleans up the database after each test.
      *
      */
     @AfterEach
     open fun cleanup() {
         this.testSchema.connection.getRetrievableInitializer().deinitialize()
-        for (field in this.testSchema.fields()) {
-            field.getInitializer().deinitialize()
-        }
     }
 }
