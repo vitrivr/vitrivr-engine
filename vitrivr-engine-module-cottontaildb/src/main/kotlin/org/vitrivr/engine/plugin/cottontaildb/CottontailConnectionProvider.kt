@@ -14,7 +14,6 @@ import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSour
 import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.scalar.ScalarDescriptorProvider
-import org.vitrivr.engine.plugin.cottontaildb.descriptors.string.StringDescriptorProvider
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.vector.VectorDescriptorProvider
 
@@ -56,9 +55,7 @@ class CottontailConnectionProvider: AbstractConnectionProvider() {
         this.register(LongDescriptor::class, ScalarDescriptorProvider)
         this.register(FloatDescriptor::class, ScalarDescriptorProvider)
         this.register(DoubleDescriptor::class, ScalarDescriptorProvider)
-
-        /* String descriptor. */
-        this.register(StringDescriptor::class, StringDescriptorProvider)
+        this.register(StringDescriptor::class, ScalarDescriptorProvider)
 
         /* Vector descriptors. */
         this.register(BooleanVectorDescriptor::class, VectorDescriptorProvider)

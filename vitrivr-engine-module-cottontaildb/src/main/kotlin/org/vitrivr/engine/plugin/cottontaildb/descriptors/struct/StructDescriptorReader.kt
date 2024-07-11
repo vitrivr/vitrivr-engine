@@ -7,7 +7,6 @@ import org.vitrivr.cottontail.core.tuple.Tuple
 import org.vitrivr.cottontail.core.types.Types
 import org.vitrivr.engine.core.model.descriptor.AttributeName
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
-import org.vitrivr.engine.core.model.descriptor.struct.MapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
@@ -17,7 +16,6 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.plugin.cottontaildb.*
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorReader
-import java.util.*
 import kotlin.reflect.full.primaryConstructor
 
 /**
@@ -43,33 +41,10 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
      * @param query The [Query] to execute.
      * @return [Sequence] of [StructDescriptor]s that match the query.
      */
-    override fun query(query: Query): Sequence<StructDescriptor> {
-        /* Prepare query. */
-        val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName).select(RETRIEVABLE_ID_COLUMN_NAME).select(DESCRIPTOR_ID_COLUMN_NAME)
-        for ((name, _) in this.fieldMap) {
-            cottontailQuery.select(name)
-        }
-
-        when (query) {
-            is SimpleFulltextQuery -> {
-                require(query.attributeName != null) { "Fulltext query on a struct field requires specification of a field's attribute name." }
-                cottontailQuery.fulltext(query.attributeName!!, query.value.value, SCORE_COLUMN_NAME)
-                if (query.limit < Long.MAX_VALUE) {
-                    cottontailQuery.limit(query.limit)
-                }
-            }
-
-            is SimpleBooleanQuery<*> -> {
-                require(query.attributeName != null){"Boolean query on a struct field requires specification of a field's attribute name."}
-                cottontailQuery.where(Compare(Column(query.attributeName!!), query.operator(), Literal(query.value.toCottontailValue())))
-            }
-            else -> throw IllegalArgumentException("Query of typ ${query::class} is not supported by StringDescriptorReader.")
-        }
-
-        /* Execute query. */
-        return this.connection.client.query(cottontailQuery).asSequence().map { tuple ->
-            this.tupleToDescriptor(tuple)
-        }
+    override fun query(query: Query): Sequence<StructDescriptor> = when (query) {
+        is SimpleFulltextQuery -> this.queryFulltext(query)
+        is SimpleBooleanQuery<*> -> this.queryBoolean(query)
+        else -> throw UnsupportedOperationException("The provided query type ${query::class.simpleName} is not supported by this reader.")
     }
 
     /**
@@ -112,5 +87,48 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
 
         /* Call constructor. */
         return constructor.call(*parameters.toTypedArray())
+    }
+
+    /**
+     * Executes a [SimpleFulltextQuery] and returns a [Sequence] of [StructDescriptor]s.
+     *
+     * @param query The [SimpleFulltextQuery] to execute.
+     * @return [Sequence] of [StructDescriptor]s.
+     */
+    private fun queryFulltext(query: SimpleFulltextQuery): Sequence<StructDescriptor> {
+        require(query.attributeName != null) { "Fulltext query on a struct field requires specification of a field's attribute name." }
+        val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName).select(RETRIEVABLE_ID_COLUMN_NAME).select(DESCRIPTOR_ID_COLUMN_NAME)
+        for ((name, _) in this.fieldMap) {
+            cottontailQuery.select(name)
+        }
+        cottontailQuery.fulltext(query.attributeName!!, query.value.value, SCORE_COLUMN_NAME)
+        if (query.limit < Long.MAX_VALUE) {
+            cottontailQuery.limit(query.limit)
+        }
+
+        /* Execute query. */
+        return this.connection.client.query(cottontailQuery).asSequence().map {
+            this.tupleToDescriptor(it)
+        }
+    }
+
+    /**
+     * Executes a [SimpleBooleanQuery] and returns a [Sequence] of [StructDescriptor]s.
+     *
+     * @param query The [SimpleBooleanQuery] to execute.
+     * @return [Sequence] of [StructDescriptor]s.
+     */
+    private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<StructDescriptor> {
+        require(query.attributeName != null) { "Boolean query on a struct field requires specification of a field's attribute name." }
+        val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName).select(RETRIEVABLE_ID_COLUMN_NAME).select(DESCRIPTOR_ID_COLUMN_NAME)
+        for ((name, _) in this.fieldMap) {
+            cottontailQuery.select(name)
+        }
+        cottontailQuery.where(Compare(Column(query.attributeName!!), query.operator(), Literal(query.value.toCottontailValue())))
+
+        /* Execute query. */
+        return this.connection.client.query(cottontailQuery).asSequence().map {
+            this.tupleToDescriptor(it)
+        }
     }
 }

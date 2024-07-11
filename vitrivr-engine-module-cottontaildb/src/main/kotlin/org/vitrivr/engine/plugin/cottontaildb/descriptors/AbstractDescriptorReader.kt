@@ -1,7 +1,5 @@
 package org.vitrivr.engine.plugin.cottontaildb.descriptors
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.basics.expression.Column
 import org.vitrivr.cottontail.client.language.basics.expression.Literal
@@ -19,13 +17,11 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.plugin.cottontaildb.*
 import java.util.*
 
-private val logger: KLogger = KotlinLogging.logger {}
-
 /**
  * An abstract implementation of a [DescriptorReader] for Cottontail DB.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.0.1
  */
 abstract class AbstractDescriptorReader<D : Descriptor>(final override val field: Schema.Field<*, D>, override val connection: CottontailConnection) : DescriptorReader<D> {
 
@@ -51,7 +47,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
                 ret
             }
         } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to retrieve descriptor $descriptorId due to exception." }
+            LOGGER.error(e) { "Failed to retrieve descriptor $descriptorId due to exception." }
             null
         }
     }
@@ -68,7 +64,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
             val result = this.connection.client.query(query)
             result.asSequence().map { this.tupleToDescriptor(it) }
         } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to retrieve descriptors for retrievable $retrievableId due to exception." }
+            LOGGER.error(e) { "Failed to retrieve descriptors for retrievable $retrievableId due to exception." }
             emptySequence()
         }
     }
@@ -86,7 +82,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
             val result = this.connection.client.query(query)
             result.next().asBoolean(0) ?: false
         } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to retrieve descriptor $descriptorId due to exception." }
+            LOGGER.error(e) { "Failed to retrieve descriptor $descriptorId due to exception." }
             false
         }
     }
@@ -102,7 +98,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
             val result = this.connection.client.query(query)
             result.asSequence().map { this.tupleToDescriptor(it) }
         } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to retrieve descriptors due to exception." }
+            LOGGER.error(e) { "Failed to retrieve descriptors due to exception." }
             emptySequence()
         }
     }
@@ -120,7 +116,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
             val result = this.connection.client.query(query)
             result.asSequence().map { this.tupleToDescriptor(it) }
         } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to retrieve descriptors for provided descriptor IDs due to exception." }
+            LOGGER.error(e) { "Failed to retrieve descriptors for provided descriptor IDs due to exception." }
             emptySequence()
         }
     }
@@ -138,7 +134,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
             val result = this.connection.client.query(query)
             result.asSequence().map { this.tupleToDescriptor(it) }
         } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to retrieve descriptors for provided retrievable IDs due to exception." }
+            LOGGER.error(e) { "Failed to retrieve descriptors for provided retrievable IDs due to exception." }
             emptySequence()
         }
     }
@@ -160,7 +156,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
             result.close()
             ret
         } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to count descriptors due to exception." }
+            LOGGER.error(e) { "Failed to count descriptors due to exception." }
             0L
         }
     }
