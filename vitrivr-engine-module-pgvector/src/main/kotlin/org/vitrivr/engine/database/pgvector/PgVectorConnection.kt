@@ -22,7 +22,7 @@ internal val LOGGER: KLogger = logger("org.vitrivr.engine.database.pgvector.PgVe
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: String, internal val jdbc: Connection): AbstractConnection(schemaName, provider) {
+class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: String, val jdbc: Connection) : AbstractConnection(schemaName, provider) {
 
     init {
         /* Make sure that the pg_vector extension is installed. */
@@ -41,16 +41,25 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
 
         /* Create necessary database. */
         try {
-            this.jdbc.prepareStatement("CREATE DATABASE $schemaName;").use {
+            this.jdbc.prepareStatement("CREATE SCHEMA \"${schemaName}\";").use {
                 it.execute()
             }
         } catch (e: SQLException) {
             if (e.sqlState == "42P04") {
-                LOGGER.info { "Database '$schemaName' already exists." }
+                LOGGER.info { "Schema '$schemaName' already exists." }
             } else {
-                LOGGER.error(e) { "Failed to create database '$schemaName' due to exception." }
+                LOGGER.error(e) { "Failed to create schema '$schemaName' due to exception." }
                 throw e
             }
+        }
+
+        try {
+            this.jdbc.prepareStatement("SET search_path TO \"$schemaName\";").use {
+                it.execute()
+            }
+        } catch (e: SQLException) {
+            LOGGER.error(e) { "Failed to set search path '$schemaName' due to exception." }
+            throw e
         }
     }
 
