@@ -2,6 +2,7 @@ package org.vitrivr.engine.plugin.cottontaildb.descriptors
 
 import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.ddl.CreateEntity
+import org.vitrivr.cottontail.client.language.ddl.DropEntity
 import org.vitrivr.cottontail.client.language.ddl.ListEntities
 import org.vitrivr.cottontail.client.language.ddl.TruncateEntity
 import org.vitrivr.cottontail.core.database.Name
@@ -39,7 +40,19 @@ open class CottontailDescriptorInitializer<D : Descriptor>(final override val fi
             /* Try to create entity. */
             this.connection.client.create(create)
         } catch (e: StatusRuntimeException) {
-            LOGGER.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
+            LOGGER.error(e) { "Failed to initialize entity '${this.entityName}' due to exception." }
+        }
+    }
+
+    /**
+     * Initializes the Cottontail DB entity backing this [CottontailDescriptorInitializer].
+     */
+    override fun deinitialize() {
+        try {
+            /* Try to drop entity. */
+            this.connection.client.drop(DropEntity(this.entityName))
+        } catch (e: StatusRuntimeException) {
+            LOGGER.error(e) { "Failed to de-initialize entity '${this.entityName}' due to exception." }
         }
     }
 

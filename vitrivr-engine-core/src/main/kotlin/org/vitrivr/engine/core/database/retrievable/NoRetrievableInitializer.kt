@@ -12,6 +12,10 @@ class NoRetrievableInitializer :  RetrievableInitializer {
     override fun initialize() { /* No op. */
     }
 
+    override fun deinitialize() {
+        TODO("Not yet implemented")
+    }
+
     override fun isInitialized(): Boolean = false
     override fun truncate() { /* No op. */
     }

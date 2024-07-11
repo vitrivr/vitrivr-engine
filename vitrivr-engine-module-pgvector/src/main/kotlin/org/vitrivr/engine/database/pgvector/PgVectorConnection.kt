@@ -45,7 +45,7 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
                 it.execute()
             }
         } catch (e: SQLException) {
-            if (e.sqlState == "42P04") {
+            if (e.sqlState == "42P06") {
                 LOGGER.info { "Schema '$schemaName' already exists." }
             } else {
                 LOGGER.error(e) { "Failed to create schema '$schemaName' due to exception." }

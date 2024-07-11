@@ -92,7 +92,7 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
     override fun deinitialize() {
         try {
             /* Create 'retrievable' entity and index. */
-            this.connection.jdbc.prepareStatement(/* sql = postgres */ "DROP TABLE IF EXISTS \"${tableName}\";").use {
+            this.connection.jdbc.prepareStatement(/* sql = postgres */ "DROP TABLE IF EXISTS \"${tableName}\" CASCADE;").use {
                 it.execute()
             }
         } catch (e: SQLException) {
