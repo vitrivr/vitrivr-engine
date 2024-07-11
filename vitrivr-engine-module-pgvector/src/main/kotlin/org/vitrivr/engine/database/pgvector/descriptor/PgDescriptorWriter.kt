@@ -4,7 +4,6 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.database.pgvector.*
 import java.sql.*
 
@@ -38,10 +37,10 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
                     if (value != null) {
                         stmt.setValue(i++, value)
                     } else {
-                        stmt.setNull(i++, attribute.type.toSqlType())
+                        stmt.setNull(i++, attribute.type.toSql())
                     }
                 }
-                return stmt.execute()
+                return stmt.executeUpdate() == 1
             }
         } catch (e: SQLException) {
             LOGGER.error(e) { "Failed to INSERT descriptor ${item.id} into '$tableName' due to SQL error." }
@@ -67,7 +66,7 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
                         if (value != null) {
                             stmt.setValue(i++, value)
                         } else {
-                            stmt.setNull(i++, attribute.type.toSqlType())
+                            stmt.setNull(i++, attribute.type.toSql())
                         }
                     }
                     stmt.addBatch()
@@ -96,7 +95,7 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
                     if (value != null) {
                         stmt.setValue(i++, value)
                     } else {
-                        stmt.setNull(i++, attribute.type.toSqlType())
+                        stmt.setNull(i++, attribute.type.toSql())
                     }
                 }
                 stmt.setObject(i, item.id)
@@ -118,7 +117,7 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
         try {
             this.connection.jdbc.prepareStatement("DELETE FROM $tableName WHERE $DESCRIPTOR_ID_COLUMN_NAME = ?;").use { stmt ->
                 stmt.setObject(1, item.id)
-                return stmt.execute()
+                return stmt.executeUpdate() == 1
             }
         } catch (e: SQLException) {
             LOGGER.error(e) {  "Failed to delete descriptor ${item.id} due to SQL error." }
@@ -137,7 +136,7 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
             this.connection.jdbc.prepareStatement("DELETE FROM $tableName WHERE $DESCRIPTOR_ID_COLUMN_NAME = ANY (?);").use { stmt ->
                 val values = items.map { it.id }.toTypedArray()
                 stmt.setArray(1, this.connection.jdbc.createArrayOf("uuid", values))
-                return stmt.execute()
+                return stmt.executeUpdate() > 0
             }
         } catch (e: SQLException) {
             LOGGER.error(e) { "Failed to delete descriptors due to SQL error." }
@@ -145,26 +144,6 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
         }
     }
 
-    /**
-     * Converts a [Type] to a [SQLType].
-     */
-    protected fun Type.toSqlType(): Int = when (this) {
-        Type.Boolean -> JDBCType.BOOLEAN
-        Type.Byte -> JDBCType.TINYINT
-        Type.Short -> JDBCType.SMALLINT
-        Type.Int -> JDBCType.INTEGER
-        Type.Long -> JDBCType.BIGINT
-        Type.Float -> JDBCType.REAL
-        Type.Double -> JDBCType.DOUBLE
-        Type.Datetime -> JDBCType.DATE
-        Type.String -> JDBCType.VARCHAR
-        Type.Text -> JDBCType.CLOB
-        is Type.BooleanVector -> JDBCType.ARRAY
-        is Type.DoubleVector -> JDBCType.ARRAY
-        is Type.FloatVector -> JDBCType.ARRAY
-        is Type.IntVector -> JDBCType.ARRAY
-        is Type.LongVector -> JDBCType.ARRAY
-    }.ordinal
 
     /**
      * Prepares an INSERT statement for this [StructDescriptorWriter].

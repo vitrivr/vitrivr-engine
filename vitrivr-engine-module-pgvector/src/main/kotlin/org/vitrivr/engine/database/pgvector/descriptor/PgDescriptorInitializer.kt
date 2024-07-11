@@ -54,7 +54,7 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
 
         /* Finalize statement*/
         statement.append("PRIMARY KEY ($DESCRIPTOR_ID_COLUMN_NAME), ")
-        statement.append("FOREIGN KEY ($RETRIEVABLE_ID_COLUMN_NAME) REFERENCES $RETRIEVABLE_ENTITY_NAME($RETRIEVABLE_ID_COLUMN_NAME));")
+        statement.append("FOREIGN KEY ($RETRIEVABLE_ID_COLUMN_NAME) REFERENCES $RETRIEVABLE_ENTITY_NAME($RETRIEVABLE_ID_COLUMN_NAME) ON DELETE CASCADE);")
 
         /* Create entity. */
         try {
