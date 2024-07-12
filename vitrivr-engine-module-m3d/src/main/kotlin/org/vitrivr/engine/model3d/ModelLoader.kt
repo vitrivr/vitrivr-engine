@@ -354,7 +354,7 @@ class ModelLoader {
           material.materialDiffuseColor = Material.DEFAULT_COLOR
         }
       } else {
-        LOGGER.warn("No texture path found for material")
+        //LOGGER.warn("No texture path found for material")
       }
       return material
     }
