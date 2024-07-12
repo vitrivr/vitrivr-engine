@@ -96,11 +96,8 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>>, connec
      * @return [Sequence] of [VectorDescriptor]s.
      */
     private fun queryProximity(query: ProximityQuery<*>): Sequence<VectorDescriptor<*>> = sequence {
-        val statement = if (query.fetchVector) {
-            "SELECT $DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $VECTOR_ATTRIBUTE_NAME, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME FROM $tableName ORDER BY $DISTANCE_COLUMN_NAME ${query.order} LIMIT ${query.k}"
-        } else {
-            "SELECT $DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME FROM $tableName ORDER BY $DISTANCE_COLUMN_NAME ${query.order} LIMIT ${query.k}"
-        }
+        val statement =
+            "SELECT $DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $VECTOR_ATTRIBUTE_NAME, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME FROM \"${tableName}\" ORDER BY $DISTANCE_COLUMN_NAME ${query.order} LIMIT ${query.k}"
         this@VectorDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
             stmt.setValue(1, query.value)
             stmt.executeQuery().use { result ->
@@ -119,11 +116,8 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>>, connec
      */
     private fun queryAndJoinProximity(query: ProximityQuery<*>): Sequence<Retrieved> {
         val descriptors = mutableListOf<Pair<VectorDescriptor<*>, Float>>()
-        val statement = if (query.fetchVector) {
-            "SELECT $DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $VECTOR_ATTRIBUTE_NAME, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME FROM $tableName ORDER BY $DISTANCE_COLUMN_NAME ${query.order} LIMIT ${query.k}"
-        } else {
-            "SELECT $DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME FROM $tableName ORDER BY $DISTANCE_COLUMN_NAME ${query.order} LIMIT ${query.k}"
-        }
+        val statement =
+            "SELECT $DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $VECTOR_ATTRIBUTE_NAME, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME FROM \"${tableName}\" ORDER BY $DISTANCE_COLUMN_NAME ${query.order} LIMIT ${query.k}"
         this@VectorDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
             stmt.setValue(1, query.value)
             stmt.executeQuery().use { result ->
@@ -137,7 +131,9 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>>, connec
             return descriptors.asSequence().mapNotNull { (descriptor, distance) ->
                 val retrievable = retrievables[descriptor.retrievableId]
                 if (retrievable != null) {
-                    retrievable.addDescriptor(descriptor)
+                    if (query.fetchVector) {
+                        retrievable.addDescriptor(descriptor)
+                    }
                     retrievable.addAttribute(DistanceAttribute(distance))
                     retrievable as Retrieved
                 } else {
