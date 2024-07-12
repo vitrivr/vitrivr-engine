@@ -16,7 +16,21 @@
     },
     {
       "name": "file",
-      "factory": "FileSourceMetadata"
+      "factory": "FileSourceMetadata",
+      "indexes": [
+        {
+          "attributes": [
+            "path"
+          ],
+          "type": "FULLTEXT"
+        },
+        {
+          "attributes": [
+            "size"
+          ],
+          "type": "SCALAR"
+        }
+      ]
     },
     {
       "name": "time",

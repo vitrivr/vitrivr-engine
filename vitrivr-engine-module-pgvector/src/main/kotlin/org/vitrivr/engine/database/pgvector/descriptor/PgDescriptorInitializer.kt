@@ -70,12 +70,12 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
         for (index in this.field.indexes) {
             try {
                 val indexStatement = when (index.type) {
-                    IndexType.SCALAR -> "CREATE INDEX IF NOT EXISTS ON $tableName (${index.attributes.joinToString(",")});"
-                    IndexType.FULLTEXT -> "CREATE INDEX IF NOT EXISTS ON $tableName USING GIN(${index.attributes.joinToString(",")});"
+                    IndexType.SCALAR -> "CREATE INDEX ON $tableName (${index.attributes.joinToString(",")});"
+                    IndexType.FULLTEXT -> "CREATE INDEX ON $tableName USING gin(${index.attributes.joinToString(",") { "to_tsvector('${index.parameters["language"] ?: "english"}', $it)" }});"
                     IndexType.NNS ->  {
                         require(index.attributes.size == 1) { "NNS index can only be created on a single attribute." }
                         val distance = index.parameters["distance"]?.let { Distance.valueOf(it.uppercase()) } ?: Distance.EUCLIDEAN
-                        "CREATE INDEX ON $tableName USING hnsw (${index.attributes.first()} ${distance.toIndexName()});"
+                        "CREATE INDEX ON $tableName USING hnsw(${index.attributes.first()} ${distance.toIndexName()});"
                     }
                 }
                 this.connection.jdbc.prepareStatement(/* sql = postgres */ indexStatement).use { it.execute() }
