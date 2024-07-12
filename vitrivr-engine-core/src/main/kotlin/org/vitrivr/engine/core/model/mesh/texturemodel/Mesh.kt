@@ -68,7 +68,7 @@ class Mesh(
     /**
      * MinimalBoundingBox that encloses the mesh.
      */
-    public val minBoundingBox: MinimalBoundingBox
+    val minBoundingBox: MinimalBoundingBox
 
     init {
         // Calculate face normals
@@ -163,14 +163,14 @@ class Mesh(
      * @return the scaling factor to norm 1 size.
      * @deprecated use [getMinimalBoundingBox] instead.
      */
-    @Deprecated("use getMinimalBoundingBox() instead")
+    @Deprecated("use getMinimalBoundingBox() instead", ReplaceWith("minBoundingBox.scalingFactorToNorm"))
     fun getNormalizedScalingFactor(): Float = minBoundingBox.scalingFactorToNorm
 
     /**
      * @return the translation to origin (0,0,0).
      * @deprecated use [getMinimalBoundingBox] instead.
      */
-    @Deprecated("use getMinimalBoundingBox() instead")
+    @Deprecated("use getMinimalBoundingBox() instead", ReplaceWith("minBoundingBox.translationToNorm"))
     fun getNormalizedPosition(): Vector3f = minBoundingBox.translationToNorm
 
     /**

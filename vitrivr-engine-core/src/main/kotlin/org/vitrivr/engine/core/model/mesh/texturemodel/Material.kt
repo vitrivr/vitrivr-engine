@@ -114,7 +114,7 @@ class Material {
         materialMeshes.clear()
         materialTexture?.close()
         materialTexture = null
-        materialDiffuseColor = DEFAULT_COLOR // TODO CHECK RAHEL 10. Juli
+        materialDiffuseColor = DEFAULT_COLOR
         LOGGER.trace("Closed Material")
     }
 }
