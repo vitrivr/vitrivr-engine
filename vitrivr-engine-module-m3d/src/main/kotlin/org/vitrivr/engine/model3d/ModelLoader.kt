@@ -86,29 +86,30 @@ class ModelLoader {
         loadModel(
             modelId,
             inputStream,
-            Assimp.aiProcess_JoinIdenticalVertices or
-                Assimp.aiProcess_GlobalScale or
-                Assimp.aiProcess_FixInfacingNormals or
-                Assimp.aiProcess_Triangulate or
-                Assimp.aiProcess_CalcTangentSpace or
-                Assimp.aiProcess_LimitBoneWeights or
-                Assimp.aiProcess_PreTransformVertices)
+            aiProcess_JoinIdenticalVertices or
+                aiProcess_GlobalScale or
+                aiProcess_FixInfacingNormals or
+                aiProcess_Triangulate or
+                aiProcess_CalcTangentSpace or
+                aiProcess_LimitBoneWeights or
+                aiProcess_PreTransformVertices)
     LOGGER.trace("Try return Model 2")
     return model
   }
 
+  // Keep function if we want to extend at a later point to load models again from path to get external textures
   fun loadModelPath(modelId: String?, path: String): Model? {
     val model =
       loadModel(
         modelId,
         path,
-        Assimp.aiProcess_JoinIdenticalVertices or
-                Assimp.aiProcess_GlobalScale or
-                Assimp.aiProcess_FixInfacingNormals or
-                Assimp.aiProcess_Triangulate or
-                Assimp.aiProcess_CalcTangentSpace or
-                Assimp.aiProcess_LimitBoneWeights or
-                Assimp.aiProcess_PreTransformVertices)
+        aiProcess_JoinIdenticalVertices or
+                aiProcess_GlobalScale or
+                aiProcess_FixInfacingNormals or
+                aiProcess_Triangulate or
+                aiProcess_CalcTangentSpace or
+                aiProcess_LimitBoneWeights or
+                aiProcess_PreTransformVertices)
     LOGGER.trace("Try return Model 2")
     return model
   }
@@ -119,11 +120,11 @@ class ModelLoader {
    * Textures. 3.4 Process all Indices.
    *
    * @param modelId Arbitrary unique ID of the model.
-   * @param modelPath Path to the model file.
+   * @param inputStream InputStream where the model file is.
    * @param flags Flags for the model loading process.
    * @return Model object.
    */
-  fun loadModel(modelId: String?, inputStream: InputStream, flags: Int): Model? {
+  private fun loadModel(modelId: String?, inputStream: InputStream, flags: Int): Model? {
     LOGGER.trace("Try loading file {}.", modelId)
 
     val aiScene = modelId?.let { loadAIScene(it, inputStream) }
@@ -144,7 +145,7 @@ class ModelLoader {
             ?: throw RuntimeException("Error loading model [modelPath: $modelPath]")
 */
     val numMaterials = aiScene?.mNumMaterials()
-    val materialList: MutableList<org.vitrivr.engine.core.model.mesh.texturemodel.Material> = ArrayList()
+    val materialList: MutableList<Material> = ArrayList()
 
     // TODO: Warning
     for (ic in 0 until numMaterials!!) {
@@ -155,7 +156,7 @@ class ModelLoader {
 
     val numMeshes = aiScene.mNumMeshes()
     val aiMeshes = aiScene.mMeshes()
-    val defaultMaterial = org.vitrivr.engine.core.model.mesh.texturemodel.Material()
+    val defaultMaterial = Material()
     for (ic in 0 until numMeshes) {
       LOGGER.trace("Try create AI Mesh {}", ic)
       // TODO: Warning
@@ -163,7 +164,7 @@ class ModelLoader {
       val mesh = processMesh(aiMesh)
       LOGGER.trace("Try get Material idx")
       val materialIdx = aiMesh.mMaterialIndex()
-      var material =
+      val material =
           if (materialIdx >= 0 && materialIdx < materialList.size) {
             materialList[materialIdx]
           } else {
@@ -173,13 +174,13 @@ class ModelLoader {
       material.addMesh(mesh)
     }
 
-    if (!defaultMaterial.materialMeshes.isEmpty()) {
+    if (defaultMaterial.materialMeshes.isNotEmpty()) {
       LOGGER.trace("Try add default Material")
       materialList.add(defaultMaterial)
     }
 
     LOGGER.trace("Try instantiate Model")
-    Assimp.aiReleaseImport(aiScene)
+    aiReleaseImport(aiScene)
 
     val model = modelId?.let { Model(it, materialList) }
     LOGGER.trace("Try return Model")
@@ -187,7 +188,16 @@ class ModelLoader {
   }
 
 
-
+  /**
+   * Loads a model from a file. 1. Loads the model file to an aiScene. 2. Process all Materials. 3.
+   * Process all Meshes. 3.1 Process all Vertices. 3.2 Process all Normals. 3.3 Process all
+   * Textures. 3.4 Process all Indices.
+   *
+   * @param modelId Arbitrary unique ID of the model.
+   * @param modelPath String to the model file.
+   * @param flags Flags for the model loading process.
+   * @return Model object.
+   */
   fun loadModel(modelId: String?, modelPath: String, flags: Int): Model? {
     LOGGER.trace("Try loading file {}.", modelId)
 
@@ -196,7 +206,6 @@ class ModelLoader {
     if (!file.exists()) {
       throw RuntimeException("Model path does not exist [$modelPath]")
     }
-    val modelDir = file.parent
 
     LOGGER.trace("Loading aiScene")
 
@@ -204,11 +213,11 @@ class ModelLoader {
     // ITERATION!
     // RAPHAEL WALTENSPUEL 2023-01-20
     val aiScene =
-        Assimp.aiImportFile(modelPath, flags)
+        aiImportFile(modelPath, flags)
             ?: throw RuntimeException("Error loading model [modelPath: $modelPath]")
 
-    val numMaterials = aiScene?.mNumMaterials()
-    val materialList: MutableList<org.vitrivr.engine.core.model.mesh.texturemodel.Material> = ArrayList()
+    val numMaterials = aiScene.mNumMaterials()
+    val materialList: MutableList<Material> = ArrayList()
 
     // TODO: Warning
     for (ic in 0 until numMaterials!!) {
@@ -219,7 +228,7 @@ class ModelLoader {
 
     val numMeshes = aiScene.mNumMeshes()
     val aiMeshes = aiScene.mMeshes()
-    val defaultMaterial = org.vitrivr.engine.core.model.mesh.texturemodel.Material()
+    val defaultMaterial = Material()
     for (ic in 0 until numMeshes) {
       LOGGER.trace("Try create AI Mesh {}", ic)
       // TODO: Warning
@@ -237,13 +246,13 @@ class ModelLoader {
       material.addMesh(mesh)
     }
 
-    if (!defaultMaterial.materialMeshes.isEmpty()) {
+    if (defaultMaterial.materialMeshes.isNotEmpty()) {
       LOGGER.trace("Try add default Material")
       materialList.add(defaultMaterial)
     }
 
     LOGGER.trace("Try instantiate Model")
-    Assimp.aiReleaseImport(aiScene)
+    aiReleaseImport(aiScene)
 
     val model = modelId?.let { Model(it, materialList) }
     LOGGER.trace("Try return Model")
@@ -264,10 +273,7 @@ class ModelLoader {
     buffer.flip()
 
     val aiScene = aiImportFileFromMemory(buffer, aiProcess_JoinIdenticalVertices or aiProcess_GlobalScale or aiProcess_FixInfacingNormals or aiProcess_Triangulate or aiProcess_CalcTangentSpace or aiProcess_LimitBoneWeights or aiProcess_PreTransformVertices, null as ByteBuffer?)
-
-    if (aiScene == null) {
-      throw RuntimeException("Error loading model from InputStream")
-    }
+      ?: throw RuntimeException("Error loading model from InputStream")
 
     return aiScene
   }
@@ -291,7 +297,7 @@ class ModelLoader {
       }
     }
     LOGGER.trace("End processing indices")
-    return indices.stream().mapToInt { obj: Int -> obj.toInt() }.toArray()
+    return indices.stream().mapToInt { obj: Int -> obj }.toArray()
   }
 
   /**
@@ -305,22 +311,22 @@ class ModelLoader {
   private fun processMaterial(
       aiMaterial: AIMaterial,
       aiScene: AIScene
-  ): org.vitrivr.engine.core.model.mesh.texturemodel.Material {
+  ): Material {
     LOGGER.trace("Start processing material")
-    val material = org.vitrivr.engine.core.model.mesh.texturemodel.Material()
+    val material = Material()
     MemoryStack.stackPush().use { stack ->
       val color = AIColor4D.create()
       val result =
-          Assimp.aiGetMaterialColor(
-              aiMaterial, Assimp.AI_MATKEY_COLOR_DIFFUSE, Assimp.aiTextureType_NONE, 0, color)
-      if (result == Assimp.aiReturn_SUCCESS) {
+          aiGetMaterialColor(
+              aiMaterial, AI_MATKEY_COLOR_DIFFUSE, aiTextureType_NONE, 0, color)
+      if (result == aiReturn_SUCCESS) {
         material.materialDiffuseColor = Vector4f(color.r(), color.g(), color.b(), color.a())
       }
 
       val aiTexturePath = AIString.calloc(stack)
-      Assimp.aiGetMaterialTexture(
+      aiGetMaterialTexture(
           aiMaterial,
-          Assimp.aiTextureType_DIFFUSE,
+          aiTextureType_DIFFUSE,
           0,
           aiTexturePath,
           null as IntBuffer?,
@@ -331,7 +337,7 @@ class ModelLoader {
           null)
       val texturePath = aiTexturePath.dataString()
       LOGGER.debug("Texture path: {}", texturePath)
-      if (texturePath != null && texturePath.length > 0) {
+      if (texturePath != null && texturePath.isNotEmpty()) {
         if (texturePath[0] == '*') {
           val textureIndex = texturePath.substring(1).toInt()
           LOGGER.debug("Embedded texture index: {}", textureIndex)
@@ -418,7 +424,7 @@ class ModelLoader {
     val indices = processIndices(aiMesh)
 
     // Texture coordinates may not have been populated. We need at least the empty slots
-    if (textCoords.size == 0) {
+    if (textCoords.isEmpty()) {
       val numElements = (vertices.size / 3) * 2
       textCoords = FloatArray(numElements)
     }
