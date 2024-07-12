@@ -80,5 +80,5 @@ abstract class AbstractDescriptorInitializerTest(schemaPath: String) : AbstractD
      *
      * @return [Stream] of [Schema.Field]s
      */
-    fun getFields(): Stream<Schema.Field<*, *>> = this.testSchema.fields().map { it as Schema.Field<*, *> }.stream()
+    private fun getFields(): Stream<Schema.Field<*, *>> = this.testSchema.fields().map { it as Schema.Field<*, *> }.stream()
 }

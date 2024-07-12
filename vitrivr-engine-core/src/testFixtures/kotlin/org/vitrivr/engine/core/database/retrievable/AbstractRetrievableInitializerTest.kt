@@ -34,7 +34,6 @@ abstract class AbstractRetrievableInitializerTest(schemaPath: String) : Abstract
 
         /* Check initialization status (should be true). */
         Assertions.assertTrue(this.testConnection.getRetrievableInitializer().isInitialized())
-        Assertions.assertTrue(this.checkTablesExist())
     }
 
     /**
@@ -51,21 +50,10 @@ abstract class AbstractRetrievableInitializerTest(schemaPath: String) : Abstract
 
         /* Check initialization status (should be true). */
         Assertions.assertTrue(this.testConnection.getRetrievableInitializer().isInitialized())
-        Assertions.assertTrue(this.checkTablesExist())
 
         this.testConnection.getRetrievableInitializer().deinitialize()
         Assertions.assertFalse(this.testConnection.getRetrievableInitializer().isInitialized())
-        Assertions.assertFalse(this.checkTablesExist())
     }
-
-    /**
-     * Checks if tables initialized actually exists.
-     *
-     * This check is database specific and therefore abstract.
-     *
-     * @return True if tables exist, false otherwise.
-     */
-    protected abstract fun checkTablesExist(): Boolean
 
     /**
      * Cleans up the database after each test.

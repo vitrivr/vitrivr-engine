@@ -7,12 +7,16 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.vitrivr.engine.core.database.AbstractDatabaseTest
+import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
+import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.query.basics.SortOrder
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.model.types.Value
 import java.util.*
 
@@ -28,6 +32,37 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
     private val field: Schema.Field<*, FloatVectorDescriptor> = this.testSchema["averagecolor"]!! as Schema.Field<*, FloatVectorDescriptor>
 
     /**
+     * Tests [VectorDescriptorReader.queryAndJoin] method.
+     */
+    @ParameterizedTest
+    @EnumSource(mode = EnumSource.Mode.EXCLUDE, names = ["JACCARD", "HAMMING"])
+    fun testQueryAndJoin(distance: Distance) {
+        val writer = this.testConnection.getDescriptorWriter(this.field)
+        val reader = this.testConnection.getDescriptorReader(this.field)
+        val random = SplittableRandom()
+
+        /* Generate and store test data. */
+        val descriptors = this.initialize(writer, random)
+
+        /* Perform nearest neighbour search. */
+        val query = ProximityQuery(
+            Value.FloatVector(FloatArray(3) { random.nextFloat() }),
+            distance,
+            SortOrder.ASC,
+            100,
+            fetchVector = true
+        )
+        val result = reader.queryAndJoin(query).toList()
+
+        /* Make manual query and compare. */
+        val manual = descriptors.sortedBy { distance(it.vector, query.value) }.take(100)
+        result.zip(manual).forEach {
+            Assertions.assertEquals(it.first.id, it.second.retrievableId)
+            Assertions.assertTrue(it.first.hasAttribute(DistanceAttribute::class.java))
+        }
+    }
+
+    /**
      * Tests nearest neighbour search through the [VectorDescriptorReader.query] method.
      */
     @ParameterizedTest
@@ -36,18 +71,9 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
         val writer = this.testConnection.getDescriptorWriter(this.field)
         val reader = this.testConnection.getDescriptorReader(this.field)
         val random = SplittableRandom()
-        val size = random.nextInt(500, 5000)
 
         /* Generate and store test data. */
-        val retrievables = (0 until size).map {
-            Ingested(UUID.randomUUID(), "SOURCE:TEST", true)
-        }
-        Assertions.assertTrue(this.testConnection.getRetrievableWriter().addAll(retrievables))
-
-        val descriptors = retrievables.map {
-            FloatVectorDescriptor(UUID.randomUUID(), it.id, Value.FloatVector(FloatArray(3) { random.nextFloat() }))
-        }
-        Assertions.assertTrue(writer.addAll(descriptors))
+        val descriptors = this.initialize(writer, random)
 
         /* Perform nearest neighbour search. */
         val query = ProximityQuery(
@@ -75,18 +101,9 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
         val writer = this.testConnection.getDescriptorWriter(this.field)
         val reader = this.testConnection.getDescriptorReader(this.field)
         val random = SplittableRandom()
-        val size = random.nextInt(500, 5000)
 
         /* Generate and store test data. */
-        val retrievables = (0 until size).map {
-            Ingested(UUID.randomUUID(), "SOURCE:TEST", true)
-        }
-        Assertions.assertTrue(this.testConnection.getRetrievableWriter().addAll(retrievables))
-
-        val descriptors = retrievables.map {
-            FloatVectorDescriptor(UUID.randomUUID(), it.id, Value.FloatVector(FloatArray(3) { random.nextFloat() }))
-        }
-        Assertions.assertTrue(writer.addAll(descriptors))
+        val descriptors = this.initialize(writer, random)
 
         /* Perform nearest neighbour search. */
         val query = ProximityQuery(
@@ -103,6 +120,25 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
         result.zip(manual).forEach {
             Assertions.assertEquals(it.first.id, it.second.id)
         }
+    }
+
+    /**
+     * Initializes the test data.
+     */
+    private fun initialize(writer: DescriptorWriter<FloatVectorDescriptor>, random: SplittableRandom): List<FloatVectorDescriptor> {
+        val size = random.nextInt(500, 5000)
+
+        /* Generate and store test data. */
+        val retrievables = (0 until size).map {
+            Ingested(UUID.randomUUID(), "SOURCE:TEST", true)
+        }
+        Assertions.assertTrue(this.testConnection.getRetrievableWriter().addAll(retrievables))
+
+        val descriptors = retrievables.map {
+            FloatVectorDescriptor(UUID.randomUUID(), it.id, Value.FloatVector(FloatArray(3) { random.nextFloat() }))
+        }
+        Assertions.assertTrue(writer.addAll(descriptors))
+        return descriptors
     }
 
     /**
