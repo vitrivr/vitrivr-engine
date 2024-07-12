@@ -122,8 +122,8 @@ internal class RetrievableWriter(override val connection: CottontailConnection) 
 
         /* Delete values. */
         return try {
-            this.connection.client.delete(delete)
-            true
+            val result = this.connection.client.delete(delete)
+            return result.hasNext() && result.next().asLong(0)!! > 0L
         } catch (e: StatusRuntimeException) {
             logger.error(e) { "Failed to delete retrievable due to exception." }
             false
