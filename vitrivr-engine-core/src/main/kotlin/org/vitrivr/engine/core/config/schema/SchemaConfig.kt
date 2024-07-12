@@ -58,7 +58,7 @@ data class SchemaConfig(
          */
         fun loadFromResource(resourcePath: String): SchemaConfig {
             val json = Json { ignoreUnknownKeys = true } // Configure Json to ignore unknown keys
-            val uri = this::class.java.classLoader.resources("test-schema-postgres.json").findFirst().orElseThrow { IllegalArgumentException("Resource '$resourcePath' not found!") }.toURI()
+            val uri = this::class.java.classLoader.resources(resourcePath).findFirst().orElseThrow { IllegalArgumentException("Resource '$resourcePath' not found!") }.toURI()
             val path = Paths.get(uri)
             val jsonString = Files.readString(path)
             return json.decodeFromString<SchemaConfig>(jsonString)
