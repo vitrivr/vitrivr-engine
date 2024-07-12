@@ -1,5 +1,6 @@
 package org.vitrivr.engine.database.pgvector.retrievable
 
+import org.junit.jupiter.api.Assertions
 import org.vitrivr.engine.core.database.retrievable.AbstractRetrievableInitializerTest
 import org.vitrivr.engine.database.pgvector.PgVectorConnection
 import org.vitrivr.engine.database.pgvector.RELATIONSHIP_ENTITY_NAME
@@ -12,12 +13,21 @@ import org.vitrivr.engine.database.pgvector.RETRIEVABLE_ENTITY_NAME
  * @version 1.0.0
  */
 class RetrievableInitializerTest : AbstractRetrievableInitializerTest("test-schema-postgres.json") {
+
+    /**
+     *
+     */
+    override fun testInitializeEntities() {
+        super.testInitializeEntities()
+        Assertions.assertTrue(checkTablesExist())
+    }
+
     /**
      * Checks if tables initialized actually exists.
      *
      * @return True if tables exist, false otherwise.
      */
-    override fun checkTablesExist(): Boolean {
+    private fun checkTablesExist(): Boolean {
         /* Check for existence of tables. */
         (this.testConnection as PgVectorConnection).jdbc.prepareStatement("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = ? AND table_name = ?)").use { statement ->
             /* Check existence of retrievable table. */

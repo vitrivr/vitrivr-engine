@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.database.descriptor
 
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
@@ -65,11 +66,19 @@ abstract class AbstractDescriptorInitializerTest(schemaPath: String) : AbstractD
     }
 
     /**
+     * Prepares the database before each test.
+     */
+    @BeforeEach
+    open fun prepare() {
+        this.testSchema.connection.getRetrievableInitializer().initialize()
+    }
+
+    /**
      * Cleans up the database after each test.
-     *
      */
     @AfterEach
     open fun cleanup() {
+        this.testSchema.connection.getRetrievableInitializer().deinitialize()
         for (field in this.testSchema.fields()) {
             this.testSchema.connection.getDescriptorInitializer(field).deinitialize()
         }
