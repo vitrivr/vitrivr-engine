@@ -16,7 +16,7 @@ abstract class AbstractRetrievableInitializerTest(schemaPath: String) : Abstract
      * Tests if the [RetrievableInitializer.isInitialized] works as expected.,
      */
     @Test
-    fun testIsInitializedWithoutInitialization() {
+    open fun testIsInitializedWithoutInitialization() {
         Assertions.assertFalse(this.testConnection.getRetrievableInitializer().isInitialized())
     }
 
@@ -25,7 +25,7 @@ abstract class AbstractRetrievableInitializerTest(schemaPath: String) : Abstract
      * the test should check if the necessary tables have been created.
      */
     @Test
-    fun testInitializeEntities() {
+    open fun testInitializeEntities() {
         /* Check initialization status (should be false). */
         Assertions.assertFalse(this.testConnection.getRetrievableInitializer().isInitialized())
 
@@ -41,7 +41,7 @@ abstract class AbstractRetrievableInitializerTest(schemaPath: String) : Abstract
      * the test should check if the necessary tables have been created.
      */
     @Test
-    fun testDeInitializeEntities() {
+    open fun testDeInitializeEntities() {
         /* Check initialization status (should be false). */
         Assertions.assertFalse(this.testConnection.getRetrievableInitializer().isInitialized())
 
