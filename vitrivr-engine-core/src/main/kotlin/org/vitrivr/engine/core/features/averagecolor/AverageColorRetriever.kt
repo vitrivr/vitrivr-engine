@@ -32,8 +32,8 @@ class AverageColorRetriever(
     companion object {
         private const val MAXIMUM_DISTANCE = 3f
         fun scoringFunction(retrieved: Retrieved): Float {
-            val distance = retrieved.filteredAttribute<DistanceAttribute>()?.distance ?: return 0f
-            return 1f - (distance / MAXIMUM_DISTANCE)
+            val distance = retrieved.filteredAttribute<DistanceAttribute>()?.distance ?: return 0.0f
+            return 1.0f - (distance / MAXIMUM_DISTANCE)
         }
     }
 
