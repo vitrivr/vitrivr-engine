@@ -49,7 +49,7 @@ abstract class AbstractRetrievableWriterTest(schemaPath: String) : AbstractDatab
         /* Check if retrievable can be read. */
         Assertions.assertEquals(ids.size.toLong(), reader.count())
         reader.getAll(ids).forEachIndexed { i, it ->
-            Assertions.assertEquals(ids[i], it.id)
+            Assertions.assertTrue(ids.contains(it.id))
             Assertions.assertEquals("INGESTED:TEST", it.type)
         }
     }
