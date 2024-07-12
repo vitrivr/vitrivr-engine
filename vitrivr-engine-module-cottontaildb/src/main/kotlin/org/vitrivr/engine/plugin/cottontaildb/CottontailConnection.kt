@@ -4,7 +4,9 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
+import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.SimpleClient
+import org.vitrivr.cottontail.client.language.ddl.CreateSchema
 import org.vitrivr.engine.core.database.AbstractConnection
 import org.vitrivr.engine.plugin.cottontaildb.retrievable.RetrievableInitializer
 import org.vitrivr.engine.plugin.cottontaildb.retrievable.RetrievableReader
@@ -26,6 +28,15 @@ class CottontailConnection(provider: CottontailConnectionProvider, schemaName: S
 
     /** The [SimpleClient] instance used by this [CottontailConnection]. */
     internal val client = SimpleClient(this.channel)
+
+
+    init {
+        try {
+            this.client.create(CreateSchema(this.schemaName).ifNotExists())
+        } catch (e: StatusRuntimeException) {
+            LOGGER.error(e) { "Failed to create schema '${this.schemaName}' due to exception." }
+        }
+    }
 
     /**
      * Tries to execute a given action within a database transaction.
