@@ -283,14 +283,14 @@ class ModelPreviewExporter : ExporterFactory {
           for ((index, frame) in frames.withIndex()) {
             val image = IIOImage(frame, null, getMetadata(gifWriter, delayTime))
             gifWriter.writeToSequence(image, param)
-            println("Added frame ${index + 1} to GIF.")
+            //println("Added frame ${index + 1} to GIF.")
           }
 
           gifWriter.endWriteSequence()
           outputImageStream.close()
           gifWriter.dispose()
 
-          println("GIF created successfully.")
+          // println("GIF created successfully.")
           return byteArrayOutputStream
         } else {
           println("Failed to create GIF writer.")
