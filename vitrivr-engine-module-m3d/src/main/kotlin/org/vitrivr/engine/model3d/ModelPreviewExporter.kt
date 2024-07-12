@@ -131,7 +131,7 @@ class ModelPreviewExporter : ExporterFactory {
         val windowOptions =
             object : WindowOptions(400, 400) {
               init {
-                hideWindow = false
+                hideWindow = true
               }
             }
         val renderOptions =
@@ -220,7 +220,7 @@ class ModelPreviewExporter : ExporterFactory {
         val windowOptions =
             object : WindowOptions(400, 400) {
               init {
-                hideWindow = false
+                hideWindow = true
               }
             }
         val renderOptions =
