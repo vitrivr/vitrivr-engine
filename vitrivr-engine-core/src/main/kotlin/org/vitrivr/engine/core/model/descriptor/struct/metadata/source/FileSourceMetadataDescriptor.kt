@@ -1,8 +1,8 @@
 package org.vitrivr.engine.core.model.descriptor.struct.metadata.source
 
-import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.AttributeName
+import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.struct.MapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -23,6 +23,9 @@ class FileSourceMetadataDescriptor(
     values: Map<AttributeName, Value<*>?>,
     override val field: Schema.Field<*, FileSourceMetadataDescriptor>? = null
 ) : MapStructDescriptor(id, retrievableId, SCHEMA, values, field) {
+
+    constructor(id: DescriptorId, retrievableId: RetrievableId?, path: Value.String, size: Value.Long, field: Schema.Field<*, FileSourceMetadataDescriptor>) :
+            this(id, retrievableId, mapOf("path" to path, "size" to size), field)
 
     /** The path to the file. */
     val path: Value.String by this.values
