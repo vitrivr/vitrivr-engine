@@ -1,16 +1,16 @@
 package org.vitrivr.engine.plugin.cottontaildb.descriptors
 
 import io.grpc.StatusRuntimeException
-import org.vitrivr.cottontail.client.language.ddl.CreateEntity
-import org.vitrivr.cottontail.client.language.ddl.DropEntity
-import org.vitrivr.cottontail.client.language.ddl.ListEntities
-import org.vitrivr.cottontail.client.language.ddl.TruncateEntity
+import org.vitrivr.cottontail.client.language.ddl.*
 import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.types.Types
+import org.vitrivr.cottontail.grpc.CottontailGrpc
+import org.vitrivr.engine.core.config.schema.IndexType
 import org.vitrivr.engine.core.database.descriptor.DescriptorInitializer
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.plugin.cottontaildb.*
+import java.sql.SQLException
 
 /**
  * An abstract implementation of a [DescriptorInitializer] for Cottontail DB.
@@ -41,6 +41,22 @@ open class CottontailDescriptorInitializer<D : Descriptor>(final override val fi
             this.connection.client.create(create)
         } catch (e: StatusRuntimeException) {
             LOGGER.error(e) { "Failed to initialize entity '${this.entityName}' due to exception." }
+        }
+
+        /* Create indexes (optional). */
+        for (index in this.field.indexes) {
+            require(index.attributes.size == 1) { "Cottontail DB currently only supports single-column indexes." }
+            try {
+                val createIndex = when (index.type) {
+                    IndexType.SCALAR -> CreateIndex(this.entityName, CottontailGrpc.IndexType.BTREE).column(index.attributes.first())
+                    IndexType.FULLTEXT -> CreateIndex(this.entityName, CottontailGrpc.IndexType.LUCENE).column(index.attributes.first())
+                    IndexType.NNS -> CreateIndex(this.entityName, CottontailGrpc.IndexType.PQ).column(index.attributes.first())
+                }
+                this.connection.client.create(createIndex)
+            } catch (e: SQLException) {
+                LOGGER.error(e) { "Failed to create index ${index.type} for entity '$entityName' due to exception." }
+                throw e
+            }
         }
     }
 
