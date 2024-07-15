@@ -9,14 +9,17 @@ package org.vitrivr.engine.core.database.retrievable
  * @version 1.0.0
  */
 class NoRetrievableInitializer :  RetrievableInitializer {
-    override fun initialize() { /* No op. */
+    override fun initialize() {
+        /* No op. */
     }
 
     override fun deinitialize() {
-        TODO("Not yet implemented")
+        /* No op. */
+    }
+
+    override fun truncate() {
+        /* No op. */
     }
 
     override fun isInitialized(): Boolean = false
-    override fun truncate() { /* No op. */
-    }
 }
