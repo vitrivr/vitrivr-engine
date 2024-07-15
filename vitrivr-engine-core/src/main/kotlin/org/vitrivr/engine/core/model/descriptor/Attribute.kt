@@ -12,4 +12,4 @@ typealias AttributeName = String
  * @author Ralph Gasser
  * @version 1.0.0
  */
-data class Attribute(val name: AttributeName, val type: Type, val nullable: Boolean = false, val indexed: Boolean = false)
+data class Attribute(val name: AttributeName, val type: Type, val nullable: Boolean = false)
