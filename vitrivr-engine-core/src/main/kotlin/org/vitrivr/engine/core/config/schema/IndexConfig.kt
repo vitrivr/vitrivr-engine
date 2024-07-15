@@ -13,4 +13,8 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  * @version 1.0.0
  */
 @Serializable
-data class IndexConfig(val attributes: List<AttributeName>, val type: IndexType, val parameters: Map<String,String> = emptyMap())
+data class IndexConfig(val attributes: List<AttributeName>, val type: IndexType, val parameters: Map<String, String> = emptyMap()) {
+    init {
+        require(attributes.isNotEmpty()) { "Cannot define index on empty list of attributes." }
+    }
+}
