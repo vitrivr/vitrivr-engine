@@ -36,7 +36,7 @@ interface Descriptor : Persistable {
      *
      * @return [List] of [Attribute]
      */
-    fun schema(): List<Attribute>
+    fun layout(): List<Attribute>
 
     /**
      * Returns the fields and its values of this [Descriptor] as a [Map].

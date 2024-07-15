@@ -30,7 +30,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
     private val fieldMap = mutableListOf<Pair<String, Types<*>>>()
     init {
         val prototype = this.field.analyser.prototype(this.field)
-        for (f in prototype.schema()) {
+        for (f in prototype.layout()) {
             this.fieldMap.add(f.name to f.type.toCottontailType())
         }
     }

@@ -42,7 +42,7 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
         statement.append("$RETRIEVABLE_ID_COLUMN_NAME uuid NOT NULL, ")
 
         /* Add columns for each field in the struct. */
-        for (field in this.prototype.schema()) {
+        for (field in this.prototype.layout()) {
             when (field.type) {
                 Type.String -> statement.append("\"${field.name}\" varchar(255), ")
                 Type.Text -> statement.append("\"${field.name}\" text, ")

@@ -32,7 +32,7 @@ open class CottontailDescriptorInitializer<D : Descriptor>(final override val fi
             .column(Name.ColumnName.create(RETRIEVABLE_ID_COLUMN_NAME), Types.Uuid, nullable = false, primaryKey = false, autoIncrement = false)
 
         /* Append fields. */
-        for (field in this.field.analyser.prototype(this.field).schema()) {
+        for (field in this.field.analyser.prototype(this.field).layout()) {
             create.column(Name.ColumnName.create(field.name), field.type.toCottontailType(), nullable = field.nullable, primaryKey = false, autoIncrement = false)
         }
 
