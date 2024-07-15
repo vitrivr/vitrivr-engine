@@ -56,7 +56,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      * @param retrievableId The [RetrievableId] to search for.
      * @return [Sequence] of [Descriptor]  of type [D]
      */
-    override fun getFor(retrievableId: RetrievableId): Sequence<D> {
+    override fun getForRetrievable(retrievableId: RetrievableId): Sequence<D> {
         try {
             this.connection.jdbc.prepareStatement("SELECT * FROM $tableName WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?").use { stmt ->
                 stmt.setObject(1, retrievableId)
@@ -151,7 +151,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      * @param retrievableIds A [Iterable] of [RetrievableId]s to return [Descriptor]s for
      * @return [Sequence] of [Descriptor] of type [D]
      */
-    override fun getAllFor(retrievableIds: Iterable<RetrievableId>): Sequence<D> {
+    override fun getAllForRetrievable(retrievableIds: Iterable<RetrievableId>): Sequence<D> {
         try {
             this.connection.jdbc.prepareStatement("SELECT * FROM $tableName WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY (?)").use { stmt ->
                 val values = retrievableIds.map { it }.toTypedArray()

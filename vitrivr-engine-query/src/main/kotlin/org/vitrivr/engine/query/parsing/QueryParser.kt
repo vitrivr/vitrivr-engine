@@ -89,7 +89,7 @@ class QueryParser(val schema: Schema) {
             is RetrievableIdInputData -> {
                 val id = UUID.fromString(input.id)
                 val reader = field.getReader()
-                val descriptor = reader.getFor(id).firstOrNull() ?: throw IllegalArgumentException("No retrievable with id '$id' present in ${field.fieldName}")
+                val descriptor = reader.getForRetrievable(id).firstOrNull() ?: throw IllegalArgumentException("No retrievable with id '$id' present in ${field.fieldName}")
                 field.getRetrieverForDescriptor(descriptor, description.context)
             }
             is VectorInputData -> field.getRetrieverForDescriptor(FloatVectorDescriptor(vector = Value.FloatVector(input.data.toFloatArray())), description.context)

@@ -38,7 +38,7 @@ class ObjectFieldLookup(override val input: Operator<out Retrievable>, private v
 
         /* Fetch descriptors for retrievables that should be enriched. */
         val descriptors = if (enrich.isNotEmpty()) {
-            this@ObjectFieldLookup.reader.getAllFor(enrich.keys).associateBy { it.retrievableId!! }
+            this@ObjectFieldLookup.reader.getAllForRetrievable(enrich.keys).associateBy { it.retrievableId!! }
         } else {
             emptyMap()
         }
