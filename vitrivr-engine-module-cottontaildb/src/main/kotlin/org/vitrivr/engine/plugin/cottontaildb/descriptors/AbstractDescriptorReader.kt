@@ -58,7 +58,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      * @param retrievableId The [RetrievableId] to search for.
      * @return [Sequence] of [Descriptor]  of type [D]
      */
-    override fun getFor(retrievableId: RetrievableId): Sequence<D> {
+    override fun getForRetrievable(retrievableId: RetrievableId): Sequence<D> {
         val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName).where(Compare(Column(this.entityName.column(RETRIEVABLE_ID_COLUMN_NAME)), Compare.Operator.EQUAL, Literal(UuidValue(retrievableId))))
         return try {
             val result = this.connection.client.query(query)
@@ -127,7 +127,7 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      * @param retrievableIds A [Iterable] of [RetrievableId]s to return [Descriptor]s for
      * @return [Sequence] of [Descriptor] of type [D]
      */
-    override fun getAllFor(retrievableIds: Iterable<RetrievableId>): Sequence<D> {
+    override fun getAllForRetrievable(retrievableIds: Iterable<RetrievableId>): Sequence<D> {
         val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
             .where(Compare(Column(this.entityName.column(RETRIEVABLE_ID_COLUMN_NAME)), Compare.Operator.IN, org.vitrivr.cottontail.client.language.basics.expression.List(retrievableIds.map { UuidValue(it) }.toTypedArray())))
         return try {
