@@ -1,6 +1,8 @@
 package org.vitrivr.engine.database.pgvector.descriptor
 
 import org.vitrivr.engine.core.config.schema.IndexType
+import org.vitrivr.engine.core.database.Initializer.Companion.DISTANCE_PARAMETER_NAME
+import org.vitrivr.engine.core.database.Initializer.Companion.INDEX_TYPE_PARAMETER_NAME
 import org.vitrivr.engine.core.database.descriptor.DescriptorInitializer
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -16,6 +18,14 @@ import java.sql.SQLException
  * @version 1.0.0
  */
 open class PgDescriptorInitializer<D : Descriptor>(final override val field: Schema.Field<*, D>, protected val connection: PgVectorConnection): DescriptorInitializer<D> {
+
+    companion object {
+        /** Set of scalar index structures supported by PostgreSQL. */
+        private val INDEXES_SCALAR = setOf("btree", "brin", "hash")
+
+        /** Set of NNS index structures supported by PostgreSQL. */
+        private val INDEXES_NNS = setOf("hnsw", "ivfflat")
+    }
 
     /** The name of the table backing this [PgDescriptorInitializer]. */
     protected val tableName: String = "${DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName}"
@@ -70,12 +80,18 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
         for (index in this.field.indexes) {
             try {
                 val indexStatement = when (index.type) {
-                    IndexType.SCALAR -> "CREATE INDEX ON $tableName (${index.attributes.joinToString(",")});"
+                    IndexType.SCALAR -> {
+                        val type = index.parameters[INDEX_TYPE_PARAMETER_NAME]?.lowercase() ?: "btree"
+                        require(type in INDEXES_SCALAR) { "Index type '$type' is not supported by PostgreSQL." }
+                        "CREATE INDEX ON $tableName USING $type(${index.attributes.joinToString(",")});"
+                    }
                     IndexType.FULLTEXT -> "CREATE INDEX ON $tableName USING gin(${index.attributes.joinToString(",") { "to_tsvector('${index.parameters["language"] ?: "english"}', $it)" }});"
                     IndexType.NNS ->  {
                         require(index.attributes.size == 1) { "NNS index can only be created on a single attribute." }
-                        val distance = index.parameters["distance"]?.let { Distance.valueOf(it.uppercase()) } ?: Distance.EUCLIDEAN
-                        "CREATE INDEX ON $tableName USING hnsw(${index.attributes.first()} ${distance.toIndexName()});"
+                        val type = index.parameters[INDEX_TYPE_PARAMETER_NAME]?.lowercase() ?: "hnsw"
+                        val distance = index.parameters[DISTANCE_PARAMETER_NAME]?.let { Distance.valueOf(it.uppercase()) } ?: Distance.EUCLIDEAN
+                        require(type in INDEXES_NNS) { "Index type '$type' is not supported by PostgreSQL." }
+                        "CREATE INDEX ON $tableName USING $type(${index.attributes.first()} ${distance.toIndexName()});"
                     }
                 }
                 this.connection.jdbc.prepareStatement(/* sql = postgres */ indexStatement).use { it.execute() }
