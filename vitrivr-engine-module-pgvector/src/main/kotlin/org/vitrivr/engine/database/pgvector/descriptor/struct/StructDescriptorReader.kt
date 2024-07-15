@@ -53,7 +53,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
         )
 
         /* Append dynamic parameters of struct. */
-        for (field in this.prototype.schema()) {
+        for (field in this.prototype.layout()) {
             values[field.name] = when(field.type) {
                 Type.String -> result.getString(field.name)?.let { Value.String(it) }
                 Type.Text -> result.getString(field.name)?.let { Value.Text(it) }

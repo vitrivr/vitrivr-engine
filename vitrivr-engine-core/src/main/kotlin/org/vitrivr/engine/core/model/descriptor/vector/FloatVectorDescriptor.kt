@@ -28,5 +28,5 @@ data class FloatVectorDescriptor(
      *
      * @return [List] of [Attribute]
      */
-    override fun schema(): List<Attribute> = listOf(Attribute(VECTOR_ATTRIBUTE_NAME, Type.FloatVector(this.dimensionality)))
+    override fun layout(): List<Attribute> = listOf(Attribute(VECTOR_ATTRIBUTE_NAME, Type.FloatVector(this.dimensionality)))
 }

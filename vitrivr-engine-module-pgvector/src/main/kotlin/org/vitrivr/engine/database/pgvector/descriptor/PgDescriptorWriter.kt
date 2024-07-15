@@ -32,7 +32,7 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
                 stmt.setObject(1, item.id)
                 stmt.setObject(2, item.retrievableId)
                 var i = 3
-                for (attribute in item.schema()) {
+                for (attribute in item.layout()) {
                     val value = item.values()[attribute.name]
                     if (value != null) {
                         stmt.setValue(i++, value)
@@ -61,7 +61,7 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
                     stmt.setObject(1, item.id)
                     stmt.setObject(2, item.retrievableId)
                     var i = 3
-                    for (attribute in item.schema()) {
+                    for (attribute in item.layout()) {
                         val value = item.values()[attribute.name]
                         if (value != null) {
                             stmt.setValue(i++, value)
@@ -90,7 +90,7 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
             this.prepareUpdateStatement().use { stmt ->
                 stmt.setObject(1, item.retrievableId)
                 var i = 2
-                for (attribute in item.schema()) {
+                for (attribute in item.layout()) {
                     val value = item.values()[attribute.name]
                     if (value != null) {
                         stmt.setValue(i++, value)
@@ -152,7 +152,7 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
      */
     protected fun prepareUpdateStatement(): PreparedStatement {
         val statement = StringBuilder("UPDATE $tableName SET $RETRIEVABLE_ID_COLUMN_NAME = ?")
-        for (field in this.prototype.schema()) {
+        for (field in this.prototype.layout()) {
             statement.append(", \"${field.name}\" = ?")
         }
         statement.append("WHERE $DESCRIPTOR_ID_COLUMN_NAME = ?;")
@@ -166,11 +166,11 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
      */
     protected fun prepareInsertStatement(): PreparedStatement {
         val statement = StringBuilder("INSERT INTO $tableName ($DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME")
-        for (field in this.prototype.schema()) {
+        for (field in this.prototype.layout()) {
             statement.append(", \"${field.name}\"")
         }
         statement.append(") VALUES (?, ?")
-        for (field in this.field.analyser.prototype(this.field).schema()) {
+        for (field in this.field.analyser.prototype(this.field).layout()) {
             statement.append(", ?")
         }
         statement.append(");")

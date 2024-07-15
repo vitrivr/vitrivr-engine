@@ -27,5 +27,5 @@ data class LongVectorDescriptor(
      *
      * @return [List] of [Attribute]
      */
-    override fun schema(): List<Attribute> = listOf(Attribute(VECTOR_ATTRIBUTE_NAME, Type.Long))
+    override fun layout(): List<Attribute> = listOf(Attribute(VECTOR_ATTRIBUTE_NAME, Type.Long))
 }

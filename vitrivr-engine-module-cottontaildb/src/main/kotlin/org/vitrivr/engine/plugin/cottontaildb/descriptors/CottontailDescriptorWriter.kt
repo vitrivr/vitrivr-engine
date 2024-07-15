@@ -66,7 +66,7 @@ open class CottontailDescriptorWriter<D : Descriptor>(final override val field: 
 
         /* Insert values. */
         for (item in items) {
-            val attributes = item.schema()
+            val attributes = item.layout()
             if (index == 0) {
                 val columns = Array(attributes.size + 2) {
                     when (it) {

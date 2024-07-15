@@ -30,5 +30,5 @@ data class LongDescriptor(
      *
      * @return [List] of [Attribute]
      */
-    override fun schema(): List<Attribute> = SCHEMA
+    override fun layout(): List<Attribute> = SCHEMA
 }

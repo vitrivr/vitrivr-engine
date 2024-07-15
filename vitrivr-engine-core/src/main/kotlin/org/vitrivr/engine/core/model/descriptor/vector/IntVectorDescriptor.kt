@@ -27,5 +27,5 @@ data class IntVectorDescriptor(
      *
      * @return [List] of [Attribute]
      */
-    override fun schema(): List<Attribute> = listOf(Attribute(VECTOR_ATTRIBUTE_NAME, Type.Int))
+    override fun layout(): List<Attribute> = listOf(Attribute(VECTOR_ATTRIBUTE_NAME, Type.Int))
 }

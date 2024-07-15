@@ -1,9 +1,9 @@
 package org.vitrivr.engine.core.model.descriptor.struct
 
-import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.AttributeName
 import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Value
@@ -26,7 +26,7 @@ open class MapStructDescriptor(
      *
      * @return [List] of [Attribute]
      */
-    final override fun schema(): List<Attribute> = this.layout
+    final override fun layout(): List<Attribute> = this.layout
 
     /**
      * Returns the fields and its values of this [Descriptor] as a [Map].
