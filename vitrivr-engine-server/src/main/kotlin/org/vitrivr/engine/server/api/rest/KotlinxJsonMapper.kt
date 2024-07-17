@@ -1,51 +1,55 @@
-package org.vitrivr.engine.server.api.rest
-
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.javalin.json.JsonMapper
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerializationException
+import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializer
-import org.vitrivr.engine.core.features.metadata.source.exif.logger
+import kotlin.reflect.KType
+import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
+import kotlin.reflect.KTypeProjection
+import kotlin.reflect.full.createType
 
 object KotlinxJsonMapper : JsonMapper {
 
-    private val fallbackMapper = jacksonObjectMapper()
+    private val json = Json {
+        serializersModule = SerializersModule { }
+        isLenient = true
+        ignoreUnknownKeys = true
+    }
 
-    override fun <T : Any> fromJsonString(json: String, targetType: Type): T {
-
+    override fun <T : Any> fromJsonString(jsonString: String, targetType: Type): T {
         return try {
-            @Suppress("UNCHECKED_CAST")
-            val serializer = serializer(targetType) as KSerializer<T>
-            Json.decodeFromString(serializer, json)
+            val kType : KType = targetType.toKType()
+            val serializer = json.serializersModule.serializer(kType)
+            json.decodeFromString(serializer, jsonString) as T
         } catch (e: SerializationException) {
-            "Error while deserializing JSON: ${e.message}".let {
-                logger.error { it }
-                throw Exception(it)
-            }
-            null
+            throw Exception("Error while deserializing JSON: ${e.message}")
         } catch (e: IllegalStateException) {
-            "Error state: ${e.message}".let {
-                logger.error { it }
-                throw Exception(it)
-            }
-            null
-        } ?: fallbackMapper.readValue(json, fallbackMapper.typeFactory.constructType(targetType))
-
+            throw Exception("Error state: ${e.message}")
+        }
     }
 
     override fun toJsonString(obj: Any, type: Type): String {
-
         return try {
-            val serializer = serializer(type)
-            Json.encodeToString(serializer, obj)
+            val kType = type.toKType()
+            val serializer = json.serializersModule.serializer(kType)
+            json.encodeToString(serializer, obj)
         } catch (e: SerializationException) {
-            null
+            throw Exception("Error while serializing JSON: ${e.message}")
         } catch (e: IllegalStateException) {
-            null
-        } ?: fallbackMapper.writeValueAsString(obj)
+            throw Exception("Error state: ${e.message}")
+        }
+    }
 
+    private fun Type.toKType(): KType {
+        return when (this) {
+            is ParameterizedType -> {
+                val rawType = (this.rawType as Class<*>).kotlin
+                val args = this.actualTypeArguments.map { it.toKType() }
+                rawType.createType(args.map { KTypeProjection.invariant(it) })
+            }
+            is Class<*> -> this.kotlin.createType()
+            else -> throw IllegalArgumentException("Unsupported Type: $this")
+        }
     }
 }
