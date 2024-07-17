@@ -83,7 +83,7 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
                 val descriptors = this.connection.client.query(cottontailQuery).asSequence().map { tuple ->
                     val scoreIndex = tuple.indexOf(DISTANCE_COLUMN_NAME)
                     tupleToDescriptor(tuple) to if (scoreIndex > -1) {
-                        tuple.asFloat(DISTANCE_COLUMN_NAME)?.let { DistanceAttribute(it) }
+                        tuple.asDouble(DISTANCE_COLUMN_NAME)?.let { DistanceAttribute(it.toFloat()) }
                     } else {
                         null
                     }
