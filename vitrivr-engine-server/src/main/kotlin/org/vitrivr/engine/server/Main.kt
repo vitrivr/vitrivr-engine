@@ -1,5 +1,6 @@
 package org.vitrivr.engine.server
 
+import KotlinxJsonMapper
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.Javalin
@@ -12,7 +13,6 @@ import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.server.api.cli.Cli
 import org.vitrivr.engine.server.api.cli.commands.SchemaCommand
-import org.vitrivr.engine.server.api.rest.KotlinxJsonMapper
 import org.vitrivr.engine.server.api.rest.configureApiRoutes
 import org.vitrivr.engine.server.api.rest.model.ErrorStatus
 import org.vitrivr.engine.server.api.rest.model.ErrorStatusException
