@@ -16,6 +16,12 @@ import org.vitrivr.engine.core.operators.general.TransformerFactory
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ * A [Transformer] that takes an input template with placeholders and inserts content from fields in their place.
+ *
+ * @author Laura Rettig
+ * @version 1.0.0
+ */
 class ContentMergingTransformer : TransformerFactory {
     override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
         val contentFields = context[name, "contentFields"]?.split(",") ?: throw IllegalArgumentException("The content merging transformer requires a list of content fields.")

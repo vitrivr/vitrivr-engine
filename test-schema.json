@@ -1,0 +1,86 @@
+{
+  "schemas": [
+    {
+      "name": "test",
+      "connection": {
+        "database": "CottontailConnectionProvider",
+        "parameters": {
+          "Host": "127.0.0.1",
+          "port": "1865"
+        }
+      },
+      "fields": [
+        {
+          "name": "averagecolor",
+          "factory": "AverageColor"
+        },
+        {
+          "name": "file",
+          "factory": "FileSourceMetadata"
+        },
+        {
+          "name": "time",
+          "factory": "TemporalMetadata"
+        },
+        {
+          "name": "video",
+          "factory": "VideoSourceMetadata"
+        },
+        {
+          "name": "asr_sparse",
+          "factory": "ASR",
+          "parameters": {
+            "host": "http://10.34.64.84:8888/",
+            "model": "whisper",
+            "timeoutSeconds": "100",
+            "retries":"1000"
+          }
+        },
+        {
+          "name": "caption_sparse",
+          "factory": "ImageCaption",
+          "parameters": {
+            "host": "http://10.34.64.84:8888/",
+            "timeoutSeconds": "100",
+            "retries":"1000"
+          }
+        },
+        {
+          "name": "ocr_sparse",
+          "factory": "OCR",
+          "parameters": {
+            "host": "http://10.34.64.84:8888/",
+            "model": "tesseract",
+            "timeoutSeconds": "100",
+            "retries":"1000"
+          }
+        }
+      ],
+      "resolvers": {
+        "disk": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "../thumbnails"
+          }
+        }
+      },
+      "exporters": [
+        {
+          "name": "thumbnail",
+          "factory": "ThumbnailExporter",
+          "resolverName": "disk",
+          "parameters": {
+            "maxSideResolution": "400",
+            "mimeType": "JPG"
+          }
+        }
+      ],
+      "extractionPipelines": [
+        {
+          "name": "full",
+          "path": "./test-pipeline.json"
+        }
+      ]
+    }
+  ]
+}
