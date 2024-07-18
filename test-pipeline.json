@@ -42,8 +42,9 @@
         "contentSources": "video_decoder"
       },
       "merge_prompt": {
-        "contentFields": "asr_sparse,caption_sparse,ocr_sparse",
-        "template": "test $asr_sparse ASR \n $caption_sparse CAPTION \n $ocr_sparse OCR"
+        "contentFields": "asr_content,caption_content,ocr_content",
+        "template": "test $asr_content ASR \n $caption_content CAPTION \n $ocr_content OCR",
+        "defaultValue": "no content provided"
       }
     }
   },
