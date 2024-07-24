@@ -6,11 +6,11 @@ import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.types.Types
 import org.vitrivr.cottontail.grpc.CottontailGrpc
 import org.vitrivr.engine.core.config.schema.IndexType
+import org.vitrivr.engine.core.database.Initializer.Companion.INDEX_TYPE_PARAMETER_NAME
 import org.vitrivr.engine.core.database.descriptor.DescriptorInitializer
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.plugin.cottontaildb.*
-import java.sql.SQLException
 
 /**
  * An abstract implementation of a [DescriptorInitializer] for Cottontail DB.
@@ -48,12 +48,26 @@ open class CottontailDescriptorInitializer<D : Descriptor>(final override val fi
             require(index.attributes.size == 1) { "Cottontail DB currently only supports single-column indexes." }
             try {
                 val createIndex = when (index.type) {
-                    IndexType.SCALAR -> CreateIndex(this.entityName, CottontailGrpc.IndexType.BTREE).column(index.attributes.first())
+                    IndexType.SCALAR -> {
+                        val type = CottontailGrpc.IndexType.valueOf(index.parameters[INDEX_TYPE_PARAMETER_NAME]?.uppercase() ?: "BTREE")
+                        require(type in setOf(CottontailGrpc.IndexType.BTREE, CottontailGrpc.IndexType.BTREE_UQ)) { "Index type '$type' is not supported for scalar search." }
+                        CreateIndex(this.entityName, CottontailGrpc.IndexType.BTREE).column(index.attributes.first())
+                    }
                     IndexType.FULLTEXT -> CreateIndex(this.entityName, CottontailGrpc.IndexType.LUCENE).column(index.attributes.first())
-                    IndexType.NNS -> CreateIndex(this.entityName, CottontailGrpc.IndexType.PQ).column(index.attributes.first())
+                    IndexType.NNS -> {
+                        val type = CottontailGrpc.IndexType.valueOf(index.parameters[INDEX_TYPE_PARAMETER_NAME]?.uppercase() ?: "PQ")
+                        require(type in setOf(CottontailGrpc.IndexType.VAF, CottontailGrpc.IndexType.PQ, CottontailGrpc.IndexType.LSH, CottontailGrpc.IndexType.IVFPQ)) { "Index type '$type' is not supported for vector search." }
+                        CreateIndex(this.entityName, type).column(index.attributes.first()).apply {
+                            for ((k,v,) in index.parameters) {
+                                if (k != INDEX_TYPE_PARAMETER_NAME) {
+                                    this.param(k, v)
+                                }
+                            }
+                        }
+                    }
                 }
                 this.connection.client.create(createIndex)
-            } catch (e: SQLException) {
+            } catch (e: StatusRuntimeException) {
                 LOGGER.error(e) { "Failed to create index ${index.type} for entity '$entityName' due to exception." }
                 throw e
             }
