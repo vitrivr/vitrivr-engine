@@ -161,6 +161,11 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
         val parameters: Map<String, String> = emptyMap(),
         val indexes: List<IndexConfig> = emptyList()
     ) {
+
+        init {
+            require(this.fieldName.matches(Regex("^[a-zA-Z0-9]+$"))) { "Field name can only contain alpha-numeric characters and numbers." }
+        }
+
         /** Pointer to the [Schema] this [Field] belongs to.*/
         val schema: Schema
             get() = this@Schema
