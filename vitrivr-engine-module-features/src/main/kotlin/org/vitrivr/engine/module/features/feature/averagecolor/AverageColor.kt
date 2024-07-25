@@ -114,22 +114,25 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param context The [QueryContext] to use with the [Retriever]
      */
     override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext): AverageColorRetriever =
-        this.newRetrieverForDescriptors(field, this.analyse(content), context)
+        this.newRetrieverForDescriptors(field, analyse(content), context)
 
-    /**
-     * Performs the [AverageColor] analysis on the provided [List] of [ImageContent] elements.
-     *
-     * @param content The [List] of [ImageContent] elements.
-     * @return [List] of [FloatVectorDescriptor]s.
-     */
-    fun analyse(content: Collection<ImageContent>): List<FloatVectorDescriptor> = content.map {
-        logger.trace{"Analysing"}
-        val color = MutableRGBFloatColorContainer()
-        val rgb = it.content.getRGBArray()
-        rgb.forEach { c -> color += RGBByteColorContainer.fromRGB(c) }
+    companion object {
 
-        /* Generate descriptor. */
-        val averageColor = RGBFloatColorContainer(color.red / rgb.size, color.green / rgb.size, color.blue / rgb.size)
-        FloatVectorDescriptor(UUID.randomUUID(), null, averageColor.toValueList())
+        /**
+         * Performs the [AverageColor] analysis on the provided [List] of [ImageContent] elements.
+         *
+         * @param content The [List] of [ImageContent] elements.
+         * @return [List] of [FloatVectorDescriptor]s.
+         */
+        fun analyse(content: Collection<ImageContent>): List<FloatVectorDescriptor> = content.map {
+            val color = MutableRGBFloatColorContainer()
+            val rgb = it.content.getRGBArray()
+            rgb.forEach { c -> color += RGBByteColorContainer.fromRGB(c) }
+
+            /* Generate descriptor. */
+            val averageColor =
+                RGBFloatColorContainer(color.red / rgb.size, color.green / rgb.size, color.blue / rgb.size)
+            FloatVectorDescriptor(UUID.randomUUID(), null, averageColor.toValueList())
+        }
     }
 }
