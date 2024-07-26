@@ -9,7 +9,9 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.MapStructDescriptor
+import org.vitrivr.engine.core.model.descriptor.Attribute
+import org.vitrivr.engine.core.model.descriptor.AttributeName
+import org.vitrivr.engine.core.model.descriptor.struct.MapStructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
@@ -45,33 +47,37 @@ private fun convertDate(date: String): Date? {
 }
 
 
-private fun convertType(directory: Directory, tagType: Int, type: Type): Value<*>? =
-    when (type) {
-        Type.STRING -> Value.String(directory.getString(tagType))
-        Type.BOOLEAN -> Value.Boolean(directory.getBoolean(tagType))
-        Type.BYTE -> Value.Byte(directory.getObject(tagType) as Byte)
-        Type.SHORT -> Value.Short(directory.getObject(tagType) as Short)
-        Type.INT -> Value.Int(directory.getInt(tagType))
-        Type.LONG -> Value.Long(directory.getLong(tagType))
-        Type.FLOAT -> Value.Float(directory.getFloat(tagType))
-        Type.DOUBLE -> Value.Double(directory.getDouble(tagType))
-        Type.DATETIME -> convertDate(directory.getString(tagType))?.let { Value.DateTime(it) }
-    }
+private fun convertType(directory: Directory, tagType: Int, type: Type): Value<*>? = when (type) {
+    Type.Boolean -> Value.Boolean(directory.getBoolean(tagType))
+    Type.Byte -> Value.Byte(directory.getObject(tagType) as Byte)
+    Type.Datetime -> convertDate(directory.getString(tagType))?.let { Value.DateTime(it) }
+    Type.Double -> Value.Double(directory.getDouble(tagType))
+    Type.Float -> Value.Float(directory.getFloat(tagType))
+    Type.Int -> Value.Int(directory.getInt(tagType))
+    Type.Long -> Value.Long(directory.getLong(tagType))
+    Type.Short -> Value.Short(directory.getObject(tagType) as Short)
+    Type.String -> Value.String(directory.getString(tagType))
+    Type.Text -> Value.String(directory.getString(tagType))
+    is Type.BooleanVector -> throw IllegalArgumentException("Unsupported type: $type")
+    is Type.DoubleVector -> throw IllegalArgumentException("Unsupported type: $type")
+    is Type.FloatVector -> throw IllegalArgumentException("Unsupported type: $type")
+    is Type.IntVector -> throw IllegalArgumentException("Unsupported type: $type")
+    is Type.LongVector -> throw IllegalArgumentException("Unsupported type: $type")
+}
 
 private fun JsonElement.convertType(type: Type): Value<*>? {
-    if (this.isJsonNull) {
-        return null
-    }
+    if (this.isJsonNull) return null
     return when (type) {
-        Type.STRING -> Value.String(this.asString)
-        Type.BOOLEAN -> Value.Boolean(this.asBoolean)
-        Type.BYTE -> Value.Byte(this.asByte)
-        Type.SHORT -> Value.Short(this.asShort)
-        Type.INT -> Value.Int(this.asInt)
-        Type.LONG -> Value.Long(this.asLong)
-        Type.FLOAT -> Value.Float(this.asFloat)
-        Type.DOUBLE -> Value.Double(this.asDouble)
-        Type.DATETIME -> convertDate(this.asString)?.let { Value.DateTime(it) }
+        Type.String -> Value.String(this.asString)
+        Type.Boolean -> Value.Boolean(this.asBoolean)
+        Type.Byte -> Value.Byte(this.asByte)
+        Type.Short -> Value.Short(this.asShort)
+        Type.Int -> Value.Int(this.asInt)
+        Type.Long -> Value.Long(this.asLong)
+        Type.Float -> Value.Float(this.asFloat)
+        Type.Double -> Value.Double(this.asDouble)
+        Type.Datetime -> convertDate(this.asString)?.let { Value.DateTime(it) }
+        else -> throw IllegalArgumentException("Unsupported type: $type")
     }
 }
 
@@ -86,25 +92,23 @@ class ExifMetadataExtractor(
 
     override fun extract(retrievable: Retrievable): List<MapStructDescriptor> {
         val metadata = ImageMetadataReader.readMetadata((retrievable.filteredAttribute(SourceAttribute::class.java)?.source as FileSource).path.toFile())
-        val columnValues = mutableMapOf<String, Value<*>>()
+        val columnValues = mutableMapOf<AttributeName, Value<*>>()
 
-        val subfields = this.field!!.parameters
-
-
+        val attributes = this.field?.parameters?.map { (k, v) -> k to Attribute(k, Type.valueOf(v)) }?.toMap() ?: emptyMap()
         for (directory in metadata.directories) {
             for (tag in directory.tags) {
                 val tagname = tag.tagName.replace(NON_ALPHANUMERIC_REGEX, "")
                 val fullname = "${directory.name.replace(NON_ALPHANUMERIC_REGEX, "")}_$tagname"
 
                 if (fullname == "ExifSubIFD_UserComment" || fullname == "JpegComment_JPEGComment") {
-                    if (fullname in subfields){
+                    if (fullname in attributes) {
                         columnValues[fullname] = Value.String(tag.description)
                     }
                     try {
                         val json = JsonParser.parseString(tag.description).asJsonObject
                         json.entrySet().forEach { (key, value) ->
-                            subfields[key]?.let { typeString ->
-                                value.convertType(Type.valueOf(typeString))?.let { converted ->
+                            attributes[key]?.let { attribute ->
+                                value.convertType(attribute.type)?.let { converted ->
                                     columnValues[key] = converted
                                 }
                             }
@@ -113,17 +117,16 @@ class ExifMetadataExtractor(
                         logger.warn { "Failed to parse JSON from $fullname: ${tag.description}" }
                     }
                 } else {
-                    subfields[fullname]?.let { typeString ->
-                        convertType(directory, tag.tagType, Type.valueOf(typeString))?.let { converted ->
+                    attributes[fullname]?.let { attribute ->
+                        convertType(directory, tag.tagType, attribute.type)?.let { converted ->
                             columnValues[fullname] = converted
                         }
                     }
-
                 }
             }
         }
         logger.info { "Extracted fields: ${columnValues.entries.joinToString { (key, value) -> "$key = ${value.value}" }}" }
 
-        return listOf(MapStructDescriptor(UUID.randomUUID(), retrievable.id, subfields, columnValues.mapValues { it.value.value }, field = this.field))
+        return listOf(MapStructDescriptor(UUID.randomUUID(), retrievable.id, attributes.values.toList(), columnValues.mapValues { it.value }, field = this.field))
     }
 }

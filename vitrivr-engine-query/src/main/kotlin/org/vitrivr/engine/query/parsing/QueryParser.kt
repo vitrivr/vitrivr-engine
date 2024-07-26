@@ -89,38 +89,39 @@ class QueryParser(val schema: Schema) {
             is RetrievableIdInputData -> {
                 val id = UUID.fromString(input.id)
                 val reader = field.getReader()
-                val descriptor = reader.getFor(id).firstOrNull() ?: throw IllegalArgumentException("No retrievable with id '$id' present in ${field.fieldName}")
+                val descriptor = reader.getForRetrievable(id).firstOrNull() ?: throw IllegalArgumentException("No retrievable with id '$id' present in ${field.fieldName}")
                 field.getRetrieverForDescriptor(descriptor, description.context)
             }
-            is VectorInputData -> field.getRetrieverForDescriptor(FloatVectorDescriptor(vector = input.data.map { Value.Float(it) }), description.context)
+            is VectorInputData -> field.getRetrieverForDescriptor(FloatVectorDescriptor(vector = Value.FloatVector(input.data.toFloatArray())), description.context)
             else -> {
                 /* Is this a boolean sub-field query ? */
                 if(fieldAndAttributeName.second != null && input.comparison != null){
                     /* yes */
-                    val subfield = field.analyser.prototype(field).schema().find { it.name == fieldAndAttributeName.second } ?: throw IllegalArgumentException("Field '${field.fieldName}' does not have a subfield with name '${fieldAndAttributeName.second}'")
+                    val subfield =
+                        field.analyser.prototype(field).layout().find { it.name == fieldAndAttributeName.second } ?: throw IllegalArgumentException("Field '${field.fieldName}' does not have a subfield with name '${fieldAndAttributeName.second}'")
                     /* For now, we support not all input data */
                     val value = when(input){
                         is TextInputData -> {
-                            require(subfield.type == Type.STRING){"The given sub-field ${fieldAndAttributeName.first}.${fieldAndAttributeName.second}'s type is ${subfield.type}, which is not the expexted ${Type.STRING}"}
+                            require(subfield.type == Type.String) { "The given sub-field ${fieldAndAttributeName.first}.${fieldAndAttributeName.second}'s type is ${subfield.type}, which is not the expected ${Type.String}" }
                             Value.String(input.data)
                         }
                         is BooleanInputData -> {
-                            require(subfield.type == Type.BOOLEAN){"The given sub-field ${fieldAndAttributeName.first}.${fieldAndAttributeName.second}'s type is ${subfield.type}, which is not the expexted ${Type.BOOLEAN}"}
+                            require(subfield.type == Type.Boolean) { "The given sub-field ${fieldAndAttributeName.first}.${fieldAndAttributeName.second}'s type is ${subfield.type}, which is not the expected ${Type.Boolean}" }
                             Value.Boolean(input.data)
                         }
                         is NumericInputData -> {
                             when(subfield.type){
-                                Type.DOUBLE -> Value.Double(input.data)
-                                Type.INT -> Value.Int(input.data.toInt())
-                                Type.LONG -> Value.Long(input.data.toLong())
-                                Type.SHORT -> Value.Short(input.data.toInt().toShort())
-                                Type.BYTE -> Value.Byte(input.data.toInt().toByte())
-                                Type.FLOAT -> Value.Float(input.data.toFloat())
+                                Type.Double -> Value.Double(input.data)
+                                Type.Float -> Value.Float(input.data.toFloat())
+                                Type.Long -> Value.Long(input.data.toLong())
+                                Type.Int -> Value.Int(input.data.toInt())
+                                Type.Short -> Value.Short(input.data.toInt().toShort())
+                                Type.Byte -> Value.Byte(input.data.toInt().toByte())
                                 else -> throw IllegalArgumentException("Cannot work with NumericInputData $input but non-numerical sub-field $subfield")
                             }
                         }
                         is DateInputData -> {
-                            require(subfield.type == Type.DATETIME){"The given sub-field ${fieldAndAttributeName.first}.${fieldAndAttributeName.second}'s type is ${subfield.type}, which is not the expexted ${Type.DATETIME}"}
+                            require(subfield.type == Type.Datetime) { "The given sub-field ${fieldAndAttributeName.first}.${fieldAndAttributeName.second}'s type is ${subfield.type}, which is not the expected ${Type.Datetime}" }
                             Value.DateTime(input.parseDate())
                         }
                         else -> throw UnsupportedOperationException("Subfield query for $input is currently not supported")

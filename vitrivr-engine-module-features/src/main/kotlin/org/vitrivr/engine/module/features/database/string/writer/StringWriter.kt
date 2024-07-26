@@ -2,11 +2,12 @@ package org.vitrivr.engine.module.features.database.string.writer
 
 import org.vitrivr.engine.core.database.Writer
 import org.vitrivr.engine.core.model.Persistable
+import org.vitrivr.engine.module.features.database.string.StringConnection
 import java.io.IOException
 import java.io.OutputStream
 import java.io.PrintWriter
 
-open class StringWriter<T : Persistable>(outputStream: OutputStream, private val stringify: (Persistable) -> String) : Writer<T> {
+open class StringWriter<T : Persistable>(override val connection: StringConnection, outputStream: OutputStream, private val stringify: (Persistable) -> String) : Writer<T> {
 
     private val writer = PrintWriter(outputStream)
 

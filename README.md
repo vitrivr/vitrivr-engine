@@ -26,12 +26,12 @@
 vitrivr-engine is [vitrivr](https://vitrivr.org)'s next generation retrieval engine with a flexible, modular architecture.
 Based on the experiences with its predecessor, [Cineast](https://github.com/vitrivr/cineast),
 vitrivr engine's data model, ingestion pipeline and retrieval logic have been reworked from the ground.
-Essentially, vitrivr-engine enables the analysis (i.e. ingestion) and querying (i.e. retrieval ) of 
+Essentially, vitrivr-engine enables the analysis (i.e. ingestion) and querying (i.e. retrieval ) of
 multimedia data.
 
 ## Built With
 
-* [Kotlin](https://kotlinlang.org) for the JVM, e.g. [OpenJDK](https://openjdk.org/) 
+* [Kotlin](https://kotlinlang.org) for the JVM, e.g. [OpenJDK](https://openjdk.org/)
 * [OpenApi](https://www.openapis.org/)
 * [CottontailDB](https://github.com/vitrivr/CottontailDB)
 * ... and more ...

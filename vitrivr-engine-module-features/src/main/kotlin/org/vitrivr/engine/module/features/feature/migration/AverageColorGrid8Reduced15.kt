@@ -17,7 +17,7 @@ import java.util.*
 class AverageColorGrid8Reduced15 : Analyser<ContentElement<*>, FloatVectorDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = FloatVectorDescriptor::class
-    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(192) { Value.Float(0.0f) })
+    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(192))
 
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, FloatVectorDescriptor> {
         TODO("Not yet implemented")

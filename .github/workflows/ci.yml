@@ -1,0 +1,50 @@
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # Setup Cottontail DB and PostgreSQL service container
+    services:
+      cottontail:
+        image: vitrivr/cottontaildb:0.16.7
+        ports:
+          - 1865:1865
+        options: -it
+      pgvector:
+        image: pgvector/pgvector:pg16
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: vitrivr
+
+    # Start actual job.
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cottontail DB connection test
+        run: nc -zv 127.0.0.1 1865
+      - name: PostgreSQL connection test
+        run: nc -zv 127.0.0.1 5432
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+      - name: Test with gradle ubuntu
+        if: matrix.os == 'ubuntu-latest'
+        run: ./gradlew test --info
+      - name: Test with gradle windows
+        if: matrix.os == 'windows-latest'
+        run: ./gradlew test --info
