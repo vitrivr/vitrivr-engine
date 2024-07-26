@@ -6,7 +6,6 @@ import org.joml.Vector4f
 import org.lwjgl.BufferUtils
 import org.lwjgl.assimp.*
 import org.lwjgl.assimp.Assimp.*
-
 import org.lwjgl.system.MemoryStack
 import org.vitrivr.engine.core.model.mesh.*
 import java.io.File
@@ -15,7 +14,6 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
 import java.util.*
-import kotlin.collections.ArrayList
 
 class ModelHandler {
 
@@ -95,9 +93,6 @@ class ModelHandler {
         LOGGER.trace("Try loading model {} from InputStream", modelId)
 
         val aiScene = loadAIScene(modelId, inputStream)
-
-        val modelDir = File("").absolutePath // You may need to adjust this to the appropriate directory
-
         val materialList: MutableList<Material> = ArrayList()
         val defaultMaterial = Material(mutableListOf()) // Define a default material
         val aiMeshes = aiScene.mMeshes()
