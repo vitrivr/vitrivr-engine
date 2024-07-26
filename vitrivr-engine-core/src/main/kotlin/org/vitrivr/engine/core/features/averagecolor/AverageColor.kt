@@ -44,7 +44,7 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
         fun analyse(content: Collection<ImageContent>): List<FloatVectorDescriptor> = content.map {
             val color = MutableRGBFloatColorContainer()
             val rgb = it.content.getRGBArray()
-            rgb.forEach { c -> color += RGBByteColorContainer.fromRGB(c) }
+            rgb.forEach { c -> color += RGBByteColorContainer(c) }
 
             /* Generate descriptor. */
             val averageColor = RGBFloatColorContainer(color.red / rgb.size, color.green / rgb.size, color.blue / rgb.size)
