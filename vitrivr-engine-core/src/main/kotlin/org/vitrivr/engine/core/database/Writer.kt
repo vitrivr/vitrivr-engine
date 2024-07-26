@@ -15,6 +15,9 @@ import java.util.*
  */
 interface Writer<in T : Persistable> {
 
+    /** The [Connection] used by this [Writer]. */
+    val connection: Connection
+
     /**
      * Adds (and typically persists) a single [Persistable] of type [T] through this [Writer].
      *

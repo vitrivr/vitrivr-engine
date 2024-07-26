@@ -18,7 +18,7 @@ import java.util.*
  * An [Extractor] that extracts [TemporalMetadataDescriptor]s from [Ingested] objects.
  *
  * @author Ralph Gasser
- * @version 1.2.0
+ * @version 1.3.0
  */
 class TemporalMetadataExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>?) : AbstractExtractor<ContentElement<*>, TemporalMetadataDescriptor>(input, field) {
 
@@ -33,10 +33,10 @@ class TemporalMetadataExtractor(input: Operator<Retrievable>, field: Schema.Fiel
     override fun extract(retrievable: Retrievable): List<TemporalMetadataDescriptor> {
         if (retrievable.hasAttribute(TimePointAttribute::class.java)) {
             val timestamp = retrievable.filteredAttribute(TimePointAttribute::class.java)!!
-            return listOf(TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, Value.Long(timestamp.timepointNs), Value.Long(timestamp.timepointNs), this@TemporalMetadataExtractor.field))
+            return listOf(TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, mapOf("start" to Value.Long(timestamp.timepointNs), "end" to Value.Long(timestamp.timepointNs)), this@TemporalMetadataExtractor.field))
         } else if (retrievable.hasAttribute(TimeRangeAttribute::class.java)) {
             val span = retrievable.filteredAttribute(TimeRangeAttribute::class.java)!!
-            return listOf(TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, Value.Long(span.startNs), Value.Long(span.endNs), this@TemporalMetadataExtractor.field))
+            return listOf(TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, mapOf("start" to Value.Long(span.startNs), "end" to Value.Long(span.endNs)), this@TemporalMetadataExtractor.field))
         }
         return emptyList()
     }

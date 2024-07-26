@@ -16,6 +16,9 @@ dependencies {
     /** gRPC and Protobuf. */
     implementation group: 'io.grpc', name: 'grpc-all', version: version_grpc
     implementation group: 'com.google.protobuf', name: 'protobuf-java', version: version_protobuf
+
+    /** vitrivr engine Core is required for running tests. */
+    testImplementation(testFixtures(project(':vitrivr-engine-core')))
 }
 
 /* Publication of vitrivr engine query to Maven Central. */

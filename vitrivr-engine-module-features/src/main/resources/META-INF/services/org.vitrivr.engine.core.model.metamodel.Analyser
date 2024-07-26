@@ -1,10 +1,9 @@
-org.vitrivr.engine.module.features.feature.averagecolor.AverageColor
 org.vitrivr.engine.module.features.feature.external.implementations.dino.DINO
 org.vitrivr.engine.module.features.feature.external.implementations.clip.CLIP
 org.vitrivr.engine.module.features.feature.migration.WhisperASR
 org.vitrivr.engine.module.features.feature.migration.ProvidedOCR
 org.vitrivr.engine.module.features.feature.migration.AudioTranscription
-org.vitrivr.engine.module.features.feature.migration.SkeletonPose
+org.vitrivr.engine.module.features.feature.skeleton.SkeletonPose
 org.vitrivr.engine.module.features.feature.migration.MedianColor
 org.vitrivr.engine.module.features.feature.migration.CLD
 org.vitrivr.engine.module.features.feature.migration.CLDReduced15
@@ -24,7 +23,7 @@ org.vitrivr.engine.module.features.feature.migration.HOGMF25k512
 org.vitrivr.engine.module.features.feature.migration.SURFMF25K512
 org.vitrivr.engine.module.features.feature.migration.InceptionResNetV2
 org.vitrivr.engine.module.features.feature.migration.ConceptMasksADE20k
-org.vitrivr.engine.module.features.feature.migration.AverageColorRaster
+org.vitrivr.engine.module.features.feature.averagecolorraster.AverageColorRaster
 org.vitrivr.engine.module.features.feature.migration.EdgeARP88
 org.vitrivr.engine.module.features.feature.migration.DominantColor
 org.vitrivr.engine.module.features.feature.migration.DominantEdgeGrid8
