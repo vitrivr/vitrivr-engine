@@ -94,12 +94,12 @@ class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
             val numberOfCoefficients: Int = SphericalHarmonicsFunction.numberOfCoefficients(maxL, true) - SphericalHarmonicsFunction.numberOfCoefficients(minL - 1, true)
 
             /* Prepares an empty array for the feature vector. */
-            val feature = Array((R - cap) * numberOfCoefficients) { _ -> Value.Float(0f) }
+            val feature = FloatArray((R - cap) * numberOfCoefficients) { _ -> 0f }
 
             /* Voxelizes the grid from the mesh. If the resulting grid is invisible, the method returns immediately. */
             val grid: VoxelModel = voxelizer.voxelize(mesh, gridSize + 1, gridSize + 1, gridSize + 1)
             if (!grid.isVisible()) {
-                return FloatVectorDescriptor(UUID.randomUUID(), null, feature.toList())
+                return FloatVectorDescriptor(UUID.randomUUID(), null, Value.FloatVector(feature))
             }
 
             val descriptors: MutableList<MutableList<Complex>> = LinkedList()
@@ -144,12 +144,12 @@ class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
             var index = 0
             for (radius in descriptors) {
                 for (descriptor in radius) {
-                    feature[index++] = Value.Float(descriptor.abs().toFloat())
+                    feature[index++] = descriptor.abs().toFloat()
                 }
             }
 
             /* Returns the normalized vector. */
-            return FloatVectorDescriptor(UUID.randomUUID(), null, MathHelper.normalizeL2(feature).toList())
+            return FloatVectorDescriptor(UUID.randomUUID(), null, Value.FloatVector(MathHelper.normalizeL2(feature)))
         }
     }
 
@@ -162,16 +162,16 @@ class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
         val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
         val numberOfCoefficients: Int = SphericalHarmonicsFunction.numberOfCoefficients(maxL, true) - SphericalHarmonicsFunction.numberOfCoefficients(minL - 1, true)
         val vectorSize = ((gridSize / 2) - cap) * numberOfCoefficients
-        return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(vectorSize) { Value.Float(0f) })
+        return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(FloatArray(vectorSize)))
     }
 
     override fun newRetrieverForQuery(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, query: Query, context: QueryContext): Retriever<Model3DContent, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        require(query is ProximityQuery<*> && query.value.first() is Value.Float) { }
+        require(query is ProximityQuery<*> && query.value is Value.FloatVector) { }
 
         /* Construct query. */
         @Suppress("UNCHECKED_CAST")
-        return SphericalHarmonicsRetriever(field, query as ProximityQuery<Value.Float>, context)
+        return SphericalHarmonicsRetriever(field, query as ProximityQuery<Value.FloatVector>, context)
     }
 
     override fun newRetrieverForDescriptors(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): Retriever<Model3DContent, FloatVectorDescriptor> {
