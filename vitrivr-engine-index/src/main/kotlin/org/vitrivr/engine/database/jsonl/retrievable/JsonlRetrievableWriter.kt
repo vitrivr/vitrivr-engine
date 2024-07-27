@@ -1,8 +1,10 @@
-package org.vitrivr.engine.database.jsonl
+package org.vitrivr.engine.database.jsonl.retrievable
 
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.database.jsonl.JsonlConnection
+import org.vitrivr.engine.database.jsonl.LOGGER
 
 class JsonlRetrievableWriter(override val connection: JsonlConnection) : RetrievableWriter {
 

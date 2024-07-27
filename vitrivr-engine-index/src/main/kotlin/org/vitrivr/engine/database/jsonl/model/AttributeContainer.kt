@@ -1,4 +1,4 @@
-package org.vitrivr.engine.database.jsonl
+package org.vitrivr.engine.database.jsonl.model
 
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.descriptor.Attribute

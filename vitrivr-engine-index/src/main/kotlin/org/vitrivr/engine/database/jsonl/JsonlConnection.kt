@@ -6,6 +6,9 @@ import org.vitrivr.engine.core.database.retrievable.RetrievableInitializer
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.database.jsonl.retrievable.JsonlRetrievableInitializer
+import org.vitrivr.engine.database.jsonl.retrievable.JsonlRetrievableReader
+import org.vitrivr.engine.database.jsonl.retrievable.JsonlRetrievableWriter
 import java.io.File
 
 internal val LOGGER = logger("org.vitrivr.engine.database.jsonl.JsonlConnection")
