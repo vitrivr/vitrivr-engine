@@ -9,11 +9,13 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.database.jsonl.JsonlConnection.Companion.DESCRIPTOR_ID_COLUMN_NAME
 import org.vitrivr.engine.database.jsonl.JsonlConnection.Companion.RETRIEVABLE_ID_COLUMN_NAME
+import org.vitrivr.engine.database.jsonl.model.AttributeContainer
+import org.vitrivr.engine.database.jsonl.model.AttributeContainerList
 import java.io.FileWriter
 
 
 class JsonlWriter<D : Descriptor>(override val field: Schema.Field<*, D>, override val connection: JsonlConnection) :
-    DescriptorWriter<D> {
+    DescriptorWriter<D>, AutoCloseable {
 
     private val writer = FileWriter(connection.getFile(field), true)
 
@@ -27,7 +29,6 @@ class JsonlWriter<D : Descriptor>(override val field: Schema.Field<*, D>, overri
             )
         )
 
-
         valueMap.putAll(item.values())
 
         val list = AttributeContainerList(
@@ -38,7 +39,6 @@ class JsonlWriter<D : Descriptor>(override val field: Schema.Field<*, D>, overri
                 )
             }
         )
-
 
 
         writer.write(Json.encodeToString(list))
@@ -67,5 +67,9 @@ class JsonlWriter<D : Descriptor>(override val field: Schema.Field<*, D>, overri
     override fun deleteAll(items: Iterable<D>): Boolean {
         LOGGER.warn { "JsonlWriter.deleteAll is not supported" }
         return false
+    }
+
+    override fun close() {
+        writer.close()
     }
 }

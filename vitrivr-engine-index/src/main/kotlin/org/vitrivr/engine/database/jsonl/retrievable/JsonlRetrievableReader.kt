@@ -1,9 +1,9 @@
-package org.vitrivr.engine.database.jsonl
+package org.vitrivr.engine.database.jsonl.retrievable
 
-import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.database.jsonl.JsonlConnection
 
 class JsonlRetrievableReader(override val connection: JsonlConnection) : RetrievableReader {
 

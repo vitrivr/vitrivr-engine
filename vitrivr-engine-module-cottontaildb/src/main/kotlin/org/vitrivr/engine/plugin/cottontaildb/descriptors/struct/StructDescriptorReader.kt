@@ -74,6 +74,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
                 Types.Long -> tuple.asLong(name)?.let { Value.Long(it) }
                 Types.Short -> tuple.asShort(name)?.let { Value.Short(it) }
                 Types.String -> tuple.asString(name)?.let { Value.String(it) }
+                Types.Uuid -> tuple.asUuidValue(name)?.let { Value.UUIDValue(it.value) }
                 is Types.BooleanVector -> tuple.asBooleanVector(name)?.let { Value.BooleanVector(it) }
                 is Types.DoubleVector -> tuple.asDoubleVector(name)?.let { Value.DoubleVector(it) }
                 is Types.FloatVector -> tuple.asFloatVector(name)?.let { Value.FloatVector(it) }

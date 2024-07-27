@@ -11,6 +11,9 @@ import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadata
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.*
+import org.vitrivr.engine.database.jsonl.scalar.ScalarJsonlProvider
+import org.vitrivr.engine.database.jsonl.struct.StructJsonlProvider
+import org.vitrivr.engine.database.jsonl.vector.VectorJsonlProvider
 import java.io.File
 
 
@@ -29,28 +32,28 @@ class JsonlConnectionProvider() : AbstractConnectionProvider() {
 
     override fun initialize() {
         /* Scalar descriptors. */
-        this.register(BooleanDescriptor::class, JsonlProvider<BooleanDescriptor>())
-        this.register(IntDescriptor::class, JsonlProvider<IntDescriptor>())
-        this.register(LongDescriptor::class, JsonlProvider<LongDescriptor>())
-        this.register(FloatDescriptor::class, JsonlProvider<FloatDescriptor>())
-        this.register(DoubleDescriptor::class, JsonlProvider<DoubleDescriptor>())
-        this.register(StringDescriptor::class, JsonlProvider<StringDescriptor>())
+        this.register(BooleanDescriptor::class, ScalarJsonlProvider)
+        this.register(IntDescriptor::class, ScalarJsonlProvider)
+        this.register(LongDescriptor::class, ScalarJsonlProvider)
+        this.register(FloatDescriptor::class, ScalarJsonlProvider)
+        this.register(DoubleDescriptor::class, ScalarJsonlProvider)
+        this.register(StringDescriptor::class, ScalarJsonlProvider)
 
         /* Vector descriptors. */
-        this.register(BooleanVectorDescriptor::class, JsonlProvider<BooleanVectorDescriptor>())
-        this.register(IntVectorDescriptor::class, JsonlProvider<IntVectorDescriptor>())
-        this.register(LongVectorDescriptor::class, JsonlProvider<LongVectorDescriptor>())
-        this.register(FloatVectorDescriptor::class, JsonlProvider<FloatVectorDescriptor>())
-        this.register(DoubleVectorDescriptor::class, JsonlProvider<DoubleVectorDescriptor>())
+        this.register(BooleanVectorDescriptor::class, VectorJsonlProvider)
+        this.register(IntVectorDescriptor::class, VectorJsonlProvider)
+        this.register(LongVectorDescriptor::class, VectorJsonlProvider)
+        this.register(FloatVectorDescriptor::class, VectorJsonlProvider)
+        this.register(DoubleVectorDescriptor::class, VectorJsonlProvider)
 
         /* Struct descriptor. */
-        this.register(LabelDescriptor::class, JsonlProvider<LabelDescriptor>())
-        this.register(FileSourceMetadataDescriptor::class, JsonlProvider<FileSourceMetadataDescriptor>())
-        this.register(VideoSourceMetadataDescriptor::class, JsonlProvider<VideoSourceMetadataDescriptor>())
-        this.register(TemporalMetadataDescriptor::class, JsonlProvider<TemporalMetadataDescriptor>())
-        this.register(Rectangle2DMetadataDescriptor::class, JsonlProvider<Rectangle2DMetadataDescriptor>())
-        this.register(MediaDimensionsDescriptor::class, JsonlProvider<MediaDimensionsDescriptor>())
-        this.register(MapStructDescriptor::class, JsonlProvider<MapStructDescriptor>())
+        this.register(LabelDescriptor::class, StructJsonlProvider)
+        this.register(FileSourceMetadataDescriptor::class, StructJsonlProvider)
+        this.register(VideoSourceMetadataDescriptor::class, StructJsonlProvider)
+        this.register(TemporalMetadataDescriptor::class, StructJsonlProvider)
+        this.register(Rectangle2DMetadataDescriptor::class, StructJsonlProvider)
+        this.register(MediaDimensionsDescriptor::class, StructJsonlProvider)
+        this.register(MapStructDescriptor::class, StructJsonlProvider)
     }
 
 }

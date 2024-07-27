@@ -1,6 +1,7 @@
-package org.vitrivr.engine.database.jsonl
+package org.vitrivr.engine.database.jsonl.retrievable
 
 import org.vitrivr.engine.core.database.retrievable.RetrievableInitializer
+import org.vitrivr.engine.database.jsonl.JsonlConnection
 
 class JsonlRetrievableInitializer(private val connection: JsonlConnection) : RetrievableInitializer {
 
