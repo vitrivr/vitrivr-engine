@@ -24,7 +24,7 @@ class JsonlConnection(
         return action(Unit)
     }
 
-    private val schemaRoot = File(root, schemaName)
+    internal val schemaRoot = File(root, schemaName)
 
     fun getFile(field: Schema.Field<*, *>) = File(schemaRoot, "${field.fieldName}.jsonl")
 
@@ -42,34 +42,12 @@ class JsonlConnection(
 
     override fun close() {
         writer.close()
-        reader.close()
     }
 
     companion object {
 
-        /** The name of the retrievable entity. */
-        const val RETRIEVABLE_ENTITY_NAME = "retrievable"
-
         /** The column name of a retrievable ID. */
         const val RETRIEVABLE_ID_COLUMN_NAME = "retrievableId"
-
-        /** The column name of a retrievable ID. */
-        const val RETRIEVABLE_TYPE_COLUMN_NAME = "type"
-
-        /** The name of the retrievable entity. */
-        const val RELATIONSHIP_ENTITY_NAME = "relationships"
-
-        /** The column name of a retrievable ID. */
-        const val SUBJECT_ID_COLUMN_NAME = "subjectId"
-
-        /** The column name of a retrievable ID. */
-        const val OBJECT_ID_COLUMN_NAME = "objectId"
-
-        /** The column name of a retrievable ID. */
-        const val PREDICATE_COLUMN_NAME = "predicate"
-
-        /** The prefix for descriptor entities. */
-        const val DESCRIPTOR_ENTITY_PREFIX = "descriptor"
 
         /** The column name of a descriptor ID. */
         const val DESCRIPTOR_ID_COLUMN_NAME = "descriptorId"

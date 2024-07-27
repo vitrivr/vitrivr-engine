@@ -65,6 +65,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
                 Type.Float -> result.getFloat(field.name).let { Value.Float(it) }
                 Type.Double -> result.getDouble(field.name).let { Value.Double(it) }
                 Type.Datetime -> result.getDate(field.name).toInstant().let { Value.DateTime(Date(it.toEpochMilli())) }
+                Type.UUID -> result.getObject(field.name, UUID::class.java).let { Value.UUIDValue(it) }
                 is Type.BooleanVector -> result.getObject(field.name, PgBitVector::class.java).toBooleanVector()
                 is Type.IntVector -> result.getObject(field.name, PgVector::class.java)?.toIntVector()
                 is Type.LongVector -> result.getObject(field.name, PgVector::class.java)?.toLongVector()

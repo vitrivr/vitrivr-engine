@@ -1,15 +1,28 @@
 package org.vitrivr.engine.database.jsonl.retrievable
 
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.database.jsonl.JsonlConnection
 import org.vitrivr.engine.database.jsonl.LOGGER
+import org.vitrivr.engine.database.jsonl.model.JsonlRelationship
+import org.vitrivr.engine.database.jsonl.model.JsonlRetrievable
+import java.io.File
+import java.io.FileWriter
 
-class JsonlRetrievableWriter(override val connection: JsonlConnection) : RetrievableWriter {
+class JsonlRetrievableWriter(override val connection: JsonlConnection) : RetrievableWriter, AutoCloseable {
 
+    private val retrievableWriter = FileWriter(File(connection.schemaRoot, "retrievables.jsonl"), true)
+    private val connectionWriter = FileWriter(File(connection.schemaRoot, "retrievable_connections.jsonl"), true)
+
+    @Synchronized
     override fun connect(relationship: Relationship): Boolean {
-        TODO("Not yet implemented")
+        connectionWriter.write(Json.encodeToString(JsonlRelationship(relationship)))
+        connectionWriter.write("\n")
+        connectionWriter.flush()
+        return true
     }
 
     override fun connectAll(relationships: Iterable<Relationship>): Boolean {
@@ -27,8 +40,12 @@ class JsonlRetrievableWriter(override val connection: JsonlConnection) : Retriev
         return false
     }
 
+    @Synchronized
     override fun add(item: Retrievable): Boolean {
-        TODO("Not yet implemented")
+        retrievableWriter.write(Json.encodeToString(JsonlRetrievable(item)))
+        retrievableWriter.write("\n")
+        retrievableWriter.flush()
+        return true
     }
 
     override fun addAll(items: Iterable<Retrievable>): Boolean {
@@ -51,7 +68,8 @@ class JsonlRetrievableWriter(override val connection: JsonlConnection) : Retriev
         return false
     }
 
-    fun close() {
-
+    override fun close() {
+        retrievableWriter.close()
+        connectionWriter.close()
     }
 }
