@@ -10,13 +10,13 @@ import org.vitrivr.engine.database.jsonl.LOGGER
 import org.vitrivr.engine.database.jsonl.model.JsonlRelationship
 import org.vitrivr.engine.database.jsonl.model.JsonlRetrievable
 import java.io.BufferedReader
-import java.io.File
-import java.io.FileReader
+import java.io.InputStreamReader
+import kotlin.io.path.inputStream
 
 class JsonlRetrievableReader(override val connection: JsonlConnection) : RetrievableReader {
 
-    private val retrievableFile = File(connection.schemaRoot, "retrievables.jsonl")
-    private val connectionFile = File(connection.schemaRoot, "retrievable_connections.jsonl")
+    private val retrievablePath = connection.schemaRoot.resolve("retrievables.jsonl")
+    private val connectionPath = connection.schemaRoot.resolve("retrievable_connections.jsonl")
 
     override fun get(id: RetrievableId): Retrievable? = getAll().firstOrNull { it.id == id }
 
@@ -36,7 +36,7 @@ class JsonlRetrievableReader(override val connection: JsonlConnection) : Retriev
         val predIds = predicates.toSet()
         val objIds = objectIds.toSet()
 
-        return BufferedReader(FileReader(connectionFile)).lineSequence().mapNotNull {
+        return BufferedReader(InputStreamReader(connectionPath.inputStream())).lineSequence().mapNotNull {
             try {
                 Json.decodeFromString<JsonlRelationship>(it)
             } catch (se: SerializationException) {
@@ -54,7 +54,7 @@ class JsonlRetrievableReader(override val connection: JsonlConnection) : Retriev
     }
 
     override fun getAll(): Sequence<Retrievable> {
-        return BufferedReader(FileReader(retrievableFile)).lineSequence().mapNotNull {
+        return BufferedReader(InputStreamReader(retrievablePath.inputStream())).lineSequence().mapNotNull {
             try {
                 Json.decodeFromString<JsonlRetrievable>(it).toRetrieved()
             } catch (se: SerializationException) {
@@ -67,6 +67,6 @@ class JsonlRetrievableReader(override val connection: JsonlConnection) : Retriev
         }
     }
 
-    override fun count(): Long = getAll().count().toLong()
+    override fun count(): Long = BufferedReader(InputStreamReader(retrievablePath.inputStream())).lineSequence().count().toLong()
 
 }

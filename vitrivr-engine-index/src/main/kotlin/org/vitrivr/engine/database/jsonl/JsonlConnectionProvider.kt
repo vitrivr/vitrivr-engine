@@ -14,7 +14,7 @@ import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.database.jsonl.scalar.ScalarJsonlProvider
 import org.vitrivr.engine.database.jsonl.struct.StructJsonlProvider
 import org.vitrivr.engine.database.jsonl.vector.VectorJsonlProvider
-import java.io.File
+import java.nio.file.Path
 
 
 class JsonlConnectionProvider() : AbstractConnectionProvider() {
@@ -26,7 +26,7 @@ class JsonlConnectionProvider() : AbstractConnectionProvider() {
 
         val rootPath = parameters["root"] ?: "."
 
-        return JsonlConnection(schemaName, this, File(rootPath))
+        return JsonlConnection(schemaName, this, Path.of(rootPath))
 
     }
 
