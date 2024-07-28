@@ -11,11 +11,13 @@ import org.vitrivr.engine.database.jsonl.model.JsonlRelationship
 import org.vitrivr.engine.database.jsonl.model.JsonlRetrievable
 import java.io.File
 import java.io.FileWriter
+import java.nio.file.StandardOpenOption
+import kotlin.io.path.writer
 
 class JsonlRetrievableWriter(override val connection: JsonlConnection) : RetrievableWriter, AutoCloseable {
 
-    private val retrievableWriter = FileWriter(File(connection.schemaRoot, "retrievables.jsonl"), true)
-    private val connectionWriter = FileWriter(File(connection.schemaRoot, "retrievable_connections.jsonl"), true)
+    private val retrievableWriter = connection.schemaRoot.resolve("retrievables.jsonl").writer(Charsets.UTF_8, StandardOpenOption.APPEND)
+    private val connectionWriter = connection.schemaRoot.resolve("retrievable_connections.jsonl").writer(Charsets.UTF_8, StandardOpenOption.APPEND)
 
     @Synchronized
     override fun connect(relationship: Relationship): Boolean {
