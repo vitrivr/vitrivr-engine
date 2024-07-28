@@ -11,13 +11,14 @@ import org.vitrivr.engine.database.jsonl.JsonlConnection.Companion.DESCRIPTOR_ID
 import org.vitrivr.engine.database.jsonl.JsonlConnection.Companion.RETRIEVABLE_ID_COLUMN_NAME
 import org.vitrivr.engine.database.jsonl.model.AttributeContainer
 import org.vitrivr.engine.database.jsonl.model.AttributeContainerList
-import java.io.FileWriter
+import java.nio.file.StandardOpenOption
+import kotlin.io.path.writer
 
 
 class JsonlWriter<D : Descriptor>(override val field: Schema.Field<*, D>, override val connection: JsonlConnection) :
     DescriptorWriter<D>, AutoCloseable {
 
-    private val writer = FileWriter(connection.getFile(field), true)
+    private val writer = connection.getPath(field).writer(Charsets.UTF_8, StandardOpenOption.APPEND)
 
     override fun add(item: D): Boolean {
 

@@ -12,6 +12,8 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.database.jsonl.model.AttributeContainerList
 import java.io.BufferedReader
 import java.io.FileReader
+import java.io.InputStreamReader
+import kotlin.io.path.inputStream
 
 abstract class AbstractJsonlReader<D : Descriptor>(
     final override val field: Schema.Field<*, D>,
@@ -22,7 +24,7 @@ abstract class AbstractJsonlReader<D : Descriptor>(
     /** Prototype used to create new instances. */
     protected val prototype = this.field.analyser.prototype(this.field)
 
-    private val file = connection.getFile(field)
+    private val path = connection.getPath(field)
 
     protected abstract fun toDescriptor(list: AttributeContainerList): D
 
@@ -41,7 +43,7 @@ abstract class AbstractJsonlReader<D : Descriptor>(
 
     override fun getAll(): Sequence<D> {
 
-        return BufferedReader(FileReader(file)).lineSequence().mapNotNull {
+        return BufferedReader(InputStreamReader(path.inputStream())).lineSequence().mapNotNull {
             try {
                 val list = Json.decodeFromString<AttributeContainerList>(it)
                 return@mapNotNull toDescriptor(list)
@@ -74,6 +76,6 @@ abstract class AbstractJsonlReader<D : Descriptor>(
     }
 
     override fun count(): Long {
-        return getAll().count().toLong()
+        return BufferedReader(InputStreamReader(path.inputStream())).lineSequence().count().toLong()
     }
 }

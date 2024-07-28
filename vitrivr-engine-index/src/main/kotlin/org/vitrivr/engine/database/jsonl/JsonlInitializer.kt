@@ -4,36 +4,43 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorInitializer
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import java.io.IOException
+import kotlin.io.path.*
 
-class JsonlInitializer<D : Descriptor>(override val field: Schema.Field<*, D>, private val connection: JsonlConnection) : DescriptorInitializer<D> {
+class JsonlInitializer<D : Descriptor>(
+    override val field: Schema.Field<*, D>,
+    connection: JsonlConnection
+) : DescriptorInitializer<D> {
 
-    private val file = connection.getFile(field)
+    private val path = connection.getPath(field)
 
     override fun initialize() {
-        try{
-            file.parentFile.mkdirs()
-            file.createNewFile()
+        try {
+            path.parent.createDirectories()
+            path.createFile()
         } catch (ioe: IOException) {
-            LOGGER.error(ioe) { "Cannot initialize '${file.absolutePath}'" }
+            LOGGER.error(ioe) { "Cannot initialize '${path.absolutePathString()}'" }
         } catch (se: SecurityException) {
-            LOGGER.error(se) { "Cannot initialize '${file.absolutePath}'" }
+            LOGGER.error(se) { "Cannot initialize '${path.absolutePathString()}'" }
         }
 
     }
 
     override fun deinitialize() {
-        /* nop */
+        try {
+            path.deleteExisting()
+        } catch (ioe: IOException) {
+            LOGGER.error(ioe) { "Cannot truncate '${path.absolutePathString()}'" }
+        }
     }
 
-    override fun isInitialized(): Boolean = file.exists()
+    override fun isInitialized(): Boolean = path.exists()
 
     override fun truncate() {
-        try{
-            file.delete()
+        try {
+            path.deleteExisting()
+            path.createFile()
         } catch (ioe: IOException) {
-            LOGGER.error(ioe) { "Cannot delete '${file.absolutePath}'" }
-        } catch (se: SecurityException) {
-            LOGGER.error(se) { "Cannot delete '${file.absolutePath}'" }
+            LOGGER.error(ioe) { "Cannot truncate '${path.absolutePathString()}'" }
         }
     }
 }

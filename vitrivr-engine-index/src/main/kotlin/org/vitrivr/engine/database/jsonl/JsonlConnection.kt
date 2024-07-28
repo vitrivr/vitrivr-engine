@@ -9,14 +9,15 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.database.jsonl.retrievable.JsonlRetrievableInitializer
 import org.vitrivr.engine.database.jsonl.retrievable.JsonlRetrievableReader
 import org.vitrivr.engine.database.jsonl.retrievable.JsonlRetrievableWriter
-import java.io.File
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 
 internal val LOGGER = logger("org.vitrivr.engine.database.jsonl.JsonlConnection")
 
 class JsonlConnection(
     override val schemaName: String,
     connectionProvider: JsonlConnectionProvider,
-    private val root: File
+    private val root: Path
 ) : AbstractConnection(schemaName, connectionProvider) {
 
     override fun <T> withTransaction(action: (Unit) -> T): T {
@@ -24,9 +25,9 @@ class JsonlConnection(
         return action(Unit)
     }
 
-    internal val schemaRoot = File(root, schemaName)
+    internal val schemaRoot = root.resolve(schemaName)
 
-    fun getFile(field: Schema.Field<*, *>) = File(schemaRoot, "${field.fieldName}.jsonl")
+    fun getPath(field: Schema.Field<*, *>) = schemaRoot.resolve("${field.fieldName}.jsonl")
 
     override fun getRetrievableInitializer(): RetrievableInitializer = JsonlRetrievableInitializer(this)
 
@@ -38,7 +39,7 @@ class JsonlConnection(
 
     override fun getRetrievableReader(): RetrievableReader = reader
 
-    override fun description(): String = "JsonlConnection on '${root.absolutePath}'"
+    override fun description(): String = "JsonlConnection on '${root.absolutePathString()}'"
 
     override fun close() {
         writer.close()
