@@ -2,7 +2,6 @@ package org.vitrivr.engine.core.model.mesh.texturemodel
 
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.joml.Vector3f
 import org.joml.Vector4f
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.MinimalBoundingBox
 import java.io.Serializable
@@ -52,32 +51,6 @@ class Material : Serializable {
             mmb.merge(mesh.getMinimalBoundingBox())
         }
         return mmb
-    }
-
-    /**
-     * @return the scaling factor to norm 1 size from all containing meshes merged.
-     * @deprecated use [getMinimalBoundingBox] instead.
-     */
-    @Deprecated("use getMinimalBoundingBox() instead")
-    fun getMaxNormalizedScalingFactor(): Float {
-        var min = Float.MAX_VALUE
-        for (mesh in materialMeshes) {
-            min = Math.min(min, mesh.getMinimalBoundingBox().scalingFactorToNorm)
-        }
-        return min
-    }
-
-    /**
-     * @return the translation to origin (0,0,0) from all containing meshes merged.
-     * @deprecated use [getMinimalBoundingBox] instead.
-     */
-    @Deprecated("use getMinimalBoundingBox() instead")
-    fun getMaxNormalizedPosition(): Vector3f {
-        var min = Vector3f(0f, 0f, 0f)
-        for (mesh in materialMeshes) {
-            min = if (min.length() > mesh.getMinimalBoundingBox().translationToNorm.length()) min else mesh.getMinimalBoundingBox().translationToNorm
-        }
-        return min
     }
 
     /**

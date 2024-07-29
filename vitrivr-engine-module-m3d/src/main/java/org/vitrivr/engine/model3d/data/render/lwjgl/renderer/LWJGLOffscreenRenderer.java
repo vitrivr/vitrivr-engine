@@ -3,22 +3,21 @@ package org.vitrivr.engine.model3d.data.render.lwjgl.renderer;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.LinkedTransferQueue;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joml.Vector3f;
+import org.vitrivr.engine.core.model.mesh.texturemodel.Entity;
+import org.vitrivr.engine.core.model.mesh.texturemodel.IModel;
+import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d;
 import org.vitrivr.engine.model3d.data.render.Renderer;
 import org.vitrivr.engine.model3d.data.render.lwjgl.engine.Engine;
 import org.vitrivr.engine.model3d.data.render.lwjgl.engine.EngineLogic;
-import org.vitrivr.engine.model3d.data.render.lwjgl.scene.LightfieldCamera;
 import org.vitrivr.engine.model3d.data.render.lwjgl.glmodel.GLScene;
+import org.vitrivr.engine.model3d.data.render.lwjgl.render.Render;
 import org.vitrivr.engine.model3d.data.render.lwjgl.render.RenderOptions;
+import org.vitrivr.engine.model3d.data.render.lwjgl.scene.LightfieldCamera;
 import org.vitrivr.engine.model3d.data.render.lwjgl.window.Window;
 import org.vitrivr.engine.model3d.data.render.lwjgl.window.WindowOptions;
-import org.vitrivr.engine.core.model.mesh.texturemodel.Entity;
-import org.vitrivr.engine.core.model.mesh.texturemodel.IModel;
-import org.vitrivr.engine.core.model.mesh.texturemodel.Model;
-import org.vitrivr.engine.model3d.data.render.lwjgl.render.Render;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * This is the top most class of the LWJGL for Java 3D renderer. Its main function is to provide an interface between Engine and the outside world. It sets up the  {@link Engine} and provides the interface to the outside world. {@link Renderer} It extends the abstract class {@link EngineLogic} which allows the instanced engine to call methods depending on the engine state.
@@ -150,7 +149,7 @@ public class LWJGLOffscreenRenderer extends EngineLogic implements Renderer {
     @SuppressWarnings("unused")
     private void loadNextModelFromQueueToScene(Window window, GLScene scene) {
         if (!this.modelQueue.isEmpty()) {
-            var model = (Model) this.modelQueue.poll();
+            var model = (Model3d) this.modelQueue.poll();
             if (model.getEntities().size() == 0) {
                 var entity = new Entity("cube", model.getId());
                 model.addEntityNorm(entity);

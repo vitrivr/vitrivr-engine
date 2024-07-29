@@ -161,20 +161,6 @@ class Mesh(
     }
 
     /**
-     * @return the scaling factor to norm 1 size.
-     * @deprecated use [getMinimalBoundingBox] instead.
-     */
-    @Deprecated("use getMinimalBoundingBox() instead", ReplaceWith("minBoundingBox.scalingFactorToNorm"))
-    fun getNormalizedScalingFactor(): Float = minBoundingBox.scalingFactorToNorm
-
-    /**
-     * @return the translation to origin (0,0,0).
-     * @deprecated use [getMinimalBoundingBox] instead.
-     */
-    @Deprecated("use getMinimalBoundingBox() instead", ReplaceWith("minBoundingBox.translationToNorm"))
-    fun getNormalizedPosition(): Vector3f = minBoundingBox.translationToNorm
-
-    /**
      * @param id sets the id of the mesh.
      */
     fun setId(id: Int) {

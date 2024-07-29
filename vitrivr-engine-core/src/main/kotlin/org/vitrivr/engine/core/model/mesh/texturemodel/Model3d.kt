@@ -9,22 +9,21 @@ import java.util.*
 import java.util.function.Consumer
 
 /**
- * This class represents a model that can be rendered by the [Engine]. The model is composed of a
+ * This class represents a 3d model that can be rendered by the [Engine]. The 3d3 model is composed of a
  * list of [Entity] objects and a list of [Material] objects. The [Entity] objects are used to
- * position and scale the model in the scene. The [Material] objects are used to define the
- * appearance of the model.
+ * position and scale the 3d model in the scene. The [Material] objects are used to define the
+ * appearance of the 3d model.
  */
-data class Model(
-  /** ID of the model. */
+data class Model3d(
+  /** ID of the 3d model. */
     val modelId: String,
-
   /**
      * List of [Material] objects that define the appearance of the model. Contains all Meshes and
-     * Textures that are used by the model.
+   * Textures that are used by the 3d model.
      */
     val modelMaterials: MutableList<Material>
 ) : IModel, Serializable {
-  /** List of [Entity] objects that define the position and scale of the model. */
+  /** List of [Entity] objects that define the position and scale of the 3d model. */
   private val entities: MutableList<Entity> = ArrayList()
 
   /** {@inheritDoc} */
@@ -38,7 +37,7 @@ data class Model(
   }
 
   /**
-   * Adds an entity to the model and normalizes the model.
+   * Adds an entity to the model and normalizes the 3d model.
    *
    * @param entity Entity to be added.
    */
@@ -74,7 +73,7 @@ data class Model(
     return normals
   }
 
-  /** Closes the model and releases all resources. */
+  /** Closes the 3d model and releases all resources. */
   fun close() {
     modelMaterials.forEach(Consumer { obj: Material -> obj.close() })
     modelMaterials.clear()
@@ -87,8 +86,8 @@ data class Model(
     private val LOGGER: Logger = LogManager.getLogger()
 
     /**
-     * Empty model that can be used as a placeholder.
+     * Empty 3d model that can be used as a placeholder.
      */
-    val EMPTY = Model("EmptyModel", listOf(Material.EMPTY).toMutableList())
+    val EMPTY = Model3d("EmptyModel", listOf(Material.EMPTY).toMutableList())
   }
 }
