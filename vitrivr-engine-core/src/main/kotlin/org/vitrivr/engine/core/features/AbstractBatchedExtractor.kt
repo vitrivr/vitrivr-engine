@@ -38,9 +38,6 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(f
             val batch = mutableListOf<Retrievable>()
 
             this@AbstractBatchedExtractor.input.toFlow(scope).collect { retrievable ->
-                if (retrievable.type == "SOURCE:VIDEO") {
-                    logger.info { "Processing video ${retrievable.id} with field ${field?.fieldName}" }
-                }
                 try {
                     if (this@AbstractBatchedExtractor.matches(retrievable)) {
                         batch.add(retrievable)
@@ -49,6 +46,7 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(f
                         emit(retrievable)
                     }
                     if (batch.size >= bufferSize) {
+                        logger.debug { "Batch size reached for field ${field?.fieldName}, extracting descriptors" }
                         val descriptors = extract(batch)
                         // zip descriptors and batch
                         for (i in batch.indices) {
