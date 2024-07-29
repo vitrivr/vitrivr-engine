@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import org.joml.Vector3f
 import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.model.mesh.texturemodel.Model
+import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.EntopyCalculationMethod
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.EntropyOptimizerStrategy
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.OptimizerOptions
@@ -53,12 +53,12 @@ class ModelPreviewExporter : ExporterFactory {
         /**
          * Renders a preview of the given model as a JPEG image.
          *
-         * @param model The [Model] to render.
+         * @param model The [Model3d] to render.
          * @param renderer The [ExternalRenderer] to use for rendering.
          * @param distance The distance of the camera from the model.
          * @return [BufferedImage]
          */
-        fun renderPreviewJPEG(model: Model, renderer: ExternalRenderer, distance: Float = 1.0f): BufferedImage {
+        fun renderPreviewJPEG(model: Model3d, renderer: ExternalRenderer, distance: Float = 1.0f): BufferedImage {
             if (model.modelMaterials.isNotEmpty()) {
                 // Set options for the renderer.
                 val windowOptions =
@@ -75,17 +75,14 @@ class ModelPreviewExporter : ExporterFactory {
                     }
 
                 // Set options for the entropy optimizer.
-                val opts =
-                    object : OptimizerOptions() {
-                        init {
-                            iterations = 100
-                            initialViewVector = Vector3f(0f, 0f, 1f)
-                            method = EntopyCalculationMethod.RELATIVE_TO_TOTAL_AREA_WEIGHTED
-                            optimizer = EntropyOptimizerStrategy.RANDOMIZED
-                            yNegWeight = 0.7f
-                            yPosWeight = 0.8f
-                        }
-                    }
+                val opts = OptimizerOptions(
+                    iterations = 100,
+                    initialViewVector = Vector3f(0f, 0f, 1f),
+                    method = EntopyCalculationMethod.RELATIVE_TO_TOTAL_AREA_WEIGHTED,
+                    optimizer = EntropyOptimizerStrategy.RANDOMIZED,
+                    yNegWeight = 0.7f,
+                    yPosWeight = 0.8f
+                )
 
                 // Define camera positions
                 val cameraPositions = LinkedList<Vector3f>()
@@ -144,7 +141,7 @@ class ModelPreviewExporter : ExporterFactory {
         /**
          *
          */
-        fun createFramesForGif(model: Model, renderer: ExternalRenderer, views: Int, distance: Float = 1.0f): List<BufferedImage> {
+        fun createFramesForGif(model: Model3d, renderer: ExternalRenderer, views: Int, distance: Float = 1.0f): List<BufferedImage> {
             if (model.modelMaterials.isNotEmpty()) {
                 // Set options for the renderer.
                 val windowOptions =
@@ -247,7 +244,7 @@ class ModelPreviewExporter : ExporterFactory {
                 if (source.type == MediaType.MESH) {
                     val resolvable = this.context.resolver.resolve(retrievable.id)
 
-                    val model = retrievable.content[0].content as Model
+                    val model = retrievable.content[0].content as Model3d
                     if (resolvable != null) {
                         logger.debug {
                             "Generating preview for ${retrievable.id} with ${retrievable.type} and resolution $maxResolution. Storing it with ${resolvable::class.simpleName}."

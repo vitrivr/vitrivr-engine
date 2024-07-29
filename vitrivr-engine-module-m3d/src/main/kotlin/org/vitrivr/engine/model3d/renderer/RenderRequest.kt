@@ -1,7 +1,7 @@
 package org.vitrivr.engine.model3d.renderer
 
 import org.joml.Vector3f
-import org.vitrivr.engine.core.model.mesh.texturemodel.Model
+import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
 import org.vitrivr.engine.model3d.data.render.lwjgl.render.RenderOptions
 import org.vitrivr.engine.model3d.data.render.lwjgl.renderer.RenderActions
 import org.vitrivr.engine.model3d.data.render.lwjgl.renderer.RenderData
@@ -19,7 +19,7 @@ import java.util.concurrent.LinkedBlockingDeque
  * @author Ralph Gasser
  * @version 1.0.0
  */
-data class RenderRequest(val model: Model, val cameraPositions: List<Vector3f>, val windowOptions: WindowOptions, val renderOptions: RenderOptions) : Serializable {
+data class RenderRequest(val model: Model3d, val cameraPositions: List<Vector3f>, val windowOptions: WindowOptions, val renderOptions: RenderOptions) : Serializable {
 
 
     companion object {

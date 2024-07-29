@@ -1,7 +1,7 @@
 package org.vitrivr.engine.model3d.renderer
 
 import org.joml.Vector3f
-import org.vitrivr.engine.core.model.mesh.texturemodel.Model
+import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
 import org.vitrivr.engine.model3d.data.render.lwjgl.render.RenderOptions
 import org.vitrivr.engine.model3d.data.render.lwjgl.window.WindowOptions
 import java.awt.image.BufferedImage
@@ -40,14 +40,14 @@ class ExternalRenderer : Closeable {
     }
 
     /**
-     * Renders the given [Model] using the [ExternalRenderer].
+     * Renders the given [Model3d] using the [ExternalRenderer].
      *
-     * @param model The [Model] to render.
+     * @param model The [Model3d] to render.
      * @param cameraPositions The [List] of [Vector3f] representing the camera positions.
      * @param windowOptions The [WindowOptions] to use for rendering.
      * @param renderOptions The [RenderOptions] to use for rendering.
      */
-    fun render(model: Model, cameraPositions: List<Vector3f>, windowOptions: WindowOptions, renderOptions: RenderOptions): List<BufferedImage> {
+    fun render(model: Model3d, cameraPositions: List<Vector3f>, windowOptions: WindowOptions, renderOptions: RenderOptions): List<BufferedImage> {
         /* Create request and write it to stream. */
         val request = RenderRequest(model, cameraPositions, windowOptions, renderOptions)
         this.oos.writeObject(request)
