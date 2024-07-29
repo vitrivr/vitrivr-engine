@@ -1,6 +1,5 @@
 package org.vitrivr.engine.model3d.data.render.lwjgl.renderer;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.LinkedTransferQueue;
 import org.apache.logging.log4j.LogManager;
@@ -9,7 +8,6 @@ import org.joml.Vector3f;
 import org.vitrivr.engine.core.model.mesh.texturemodel.Entity;
 import org.vitrivr.engine.core.model.mesh.texturemodel.IModel;
 import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d;
-import org.vitrivr.engine.model3d.data.render.Renderer;
 import org.vitrivr.engine.model3d.data.render.lwjgl.engine.Engine;
 import org.vitrivr.engine.model3d.data.render.lwjgl.engine.EngineLogic;
 import org.vitrivr.engine.model3d.data.render.lwjgl.glmodel.GLScene;
@@ -20,10 +18,12 @@ import org.vitrivr.engine.model3d.data.render.lwjgl.window.Window;
 import org.vitrivr.engine.model3d.data.render.lwjgl.window.WindowOptions;
 
 /**
- * This is the top most class of the LWJGL for Java 3D renderer. Its main function is to provide an interface between Engine and the outside world. It sets up the  {@link Engine} and provides the interface to the outside world. {@link Renderer} It extends the abstract class {@link EngineLogic} which allows the instanced engine to call methods depending on the engine state.
+ * This is the top most class of the LWJGL for Java 3D renderer. Its main function is to provide an interface between Engine and the outside world. It extends the abstract class {@link EngineLogic} which allows the instanced engine to call methods depending on the engine state.
+ *
+ * @version 1.0.0
+ * @author Raphael Waltenspühl
  */
-@SuppressWarnings("deprecation")
-public class LWJGLOffscreenRenderer extends EngineLogic implements Renderer {
+public class LWJGLOffscreenRenderer extends EngineLogic {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -85,12 +85,10 @@ public class LWJGLOffscreenRenderer extends EngineLogic implements Renderer {
     /**
      * Starts the rendering process.
      */
-    @Override
     public void render() {
         this.engine.runOnce();
         LOGGER.trace("LWJGLOffscreenRenderer rendered");
     }
-
 
     /**
      * Is called once at the initialization of the engine. DO NOT CALL ENGINE METHODS IN THIS METHOD DO NOT CALL THIS METHOD FROM THIS CLASS
@@ -150,7 +148,7 @@ public class LWJGLOffscreenRenderer extends EngineLogic implements Renderer {
     private void loadNextModelFromQueueToScene(Window window, GLScene scene) {
         if (!this.modelQueue.isEmpty()) {
             var model = (Model3d) this.modelQueue.poll();
-            if (model.getEntities().size() == 0) {
+            if (model.getEntities().isEmpty()) {
                 var entity = new Entity("cube", model.getId());
                 model.addEntityNorm(entity);
             }
@@ -196,23 +194,6 @@ public class LWJGLOffscreenRenderer extends EngineLogic implements Renderer {
     }
 
     /**
-     * Set position and orientation of the camera.
-     *
-     * @deprecated Old renderer implementation. Not needed. Use quaternion instead.
-     */
-    @Override
-    @Deprecated
-    public void positionCamera(double ex, double ey, double ez,
-                               double cx, double cy, double cz,
-                               double upx, double upy, double upz) {
-        this.engine.getCamera().setPositionAndOrientation(
-                new Vector3f((float) ex, (float) ey, (float) ez),
-                new Vector3f((float) cx, (float) cy, (float) cz),
-                new Vector3f((float) upx, (float) upy, (float) upz));
-    }
-
-
-    /**
      * Returns the aspect ratio of the window.
      */
     @SuppressWarnings("unused")
@@ -223,7 +204,6 @@ public class LWJGLOffscreenRenderer extends EngineLogic implements Renderer {
     /**
      * Interface to outside to add a model to the scene.
      */
-    @Override
     public void assemble(IModel model) {
         this.modelQueue.add(model);
     }
@@ -231,7 +211,6 @@ public class LWJGLOffscreenRenderer extends EngineLogic implements Renderer {
     /**
      * Interface to outside to get a rendered image.
      */
-    @Override
     public BufferedImage obtain() {
         return this.imageQueue.poll();
     }
@@ -239,40 +218,9 @@ public class LWJGLOffscreenRenderer extends EngineLogic implements Renderer {
     /**
      * This method disposes the engine. Window is destroyed and all resources are freed.
      */
-    @Override
-    public void clear(Color color) {
-        this.clear();
-    }
-
-    /**
-     * This method disposes the engine. Window is destroyed and all resources are freed.
-     */
-    @Override
     public void clear() {
         this.engine.clear();
         this.engine = null;
-    }
-
-    /**
-     * Retains control of the Renderer. While a Thread retains a renderer, no other thread should be allowed to use it!
-     *
-     * @deprecated Old renderer implementation. Indicates that the renderer should be retained.
-     */
-    @Override
-    @Deprecated
-    public boolean retain() {
-        return true;
-    }
-
-    /**
-     * Releases control of the Renderer, making it usable by other Threads again.
-     *
-     * @deprecated Old renderer implementation. Indicates that the renderer should be retained.
-     */
-    @Override
-    @Deprecated
-    public void release() {
-        this.engine.clear();
     }
 
     /**
