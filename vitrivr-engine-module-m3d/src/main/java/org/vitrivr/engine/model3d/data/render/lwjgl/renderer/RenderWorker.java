@@ -4,11 +4,12 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.concurrent.BlockingDeque;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joml.Vector3f;
 import org.lwjgl.system.Configuration;
+import org.vitrivr.engine.core.model.mesh.texturemodel.IModel;
+import org.vitrivr.engine.model3d.data.render.lwjgl.render.RenderOptions;
 import org.vitrivr.engine.model3d.data.render.lwjgl.util.datatype.Variant;
 import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.abstractworker.JobControlCommand;
 import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.abstractworker.StateEnter;
@@ -18,8 +19,6 @@ import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.model.Action;
 import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.model.Graph;
 import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.model.State;
 import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.model.Transition;
-import org.vitrivr.engine.core.model.mesh.texturemodel.IModel;
-import org.vitrivr.engine.model3d.data.render.lwjgl.render.RenderOptions;
 import org.vitrivr.engine.model3d.data.render.lwjgl.window.WindowOptions;
 
 
@@ -66,6 +65,13 @@ public class RenderWorker extends Worker<RenderJob> {
    */
   public RenderWorker(BlockingDeque<RenderJob> jobs) {
     super(jobs);
+
+    Configuration.STACK_SIZE.set((int) Math.pow(2, 17));
+    this.renderer = new LWJGLOffscreenRenderer();
+    var defaultOptions = new WindowOptions();
+    renderer.setWindowOptions(defaultOptions);
+    renderer.startEngine();
+
     RenderWorker.renderJobQueue = jobs;
     LOGGER.trace("Initialized RenderWorker");
   }
@@ -84,11 +90,6 @@ public class RenderWorker extends Worker<RenderJob> {
    * The render worker main thread.
    */
   public void run() {
-    Configuration.STACK_SIZE.set((int) Math.pow(2, 17));
-    this.renderer = new LWJGLOffscreenRenderer();
-    var defaultOptions = new WindowOptions();
-    renderer.setWindowOptions(defaultOptions);
-    renderer.startEngine();
     super.run();
     LOGGER.trace("Running RenderWorker");
   }

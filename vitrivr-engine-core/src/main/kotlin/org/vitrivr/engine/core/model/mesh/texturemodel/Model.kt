@@ -1,11 +1,12 @@
 package org.vitrivr.engine.core.model.mesh.texturemodel
 
-import java.util.*
-import java.util.function.Consumer
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.joml.Vector3f
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.MinimalBoundingBox
+import java.io.Serializable
+import java.util.*
+import java.util.function.Consumer
 
 /**
  * This class represents a model that can be rendered by the [Engine]. The model is composed of a
@@ -16,12 +17,13 @@ import org.vitrivr.engine.core.model.mesh.texturemodel.util.MinimalBoundingBox
 data class Model(
   /** ID of the model. */
     val modelId: String,
+
   /**
      * List of [Material] objects that define the appearance of the model. Contains all Meshes and
      * Textures that are used by the model.
      */
     val modelMaterials: MutableList<Material>
-) : IModel {
+) : IModel, Serializable {
   /** List of [Entity] objects that define the position and scale of the model. */
   private val entities: MutableList<Entity> = ArrayList()
 

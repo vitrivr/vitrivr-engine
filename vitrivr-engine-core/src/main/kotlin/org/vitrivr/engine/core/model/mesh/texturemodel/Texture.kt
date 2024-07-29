@@ -1,14 +1,24 @@
 package org.vitrivr.engine.core.model.mesh.texturemodel
 
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
 import java.awt.image.BufferedImage
+import java.io.*
+import javax.imageio.ImageIO
+
 
 /**
  * This class represents a texture.
  * In the context free 3D model, a texture is basically a path to a texture file.
  */
-class Texture {
+class Texture : Serializable {
+    companion object {
+
+        /**
+         * Default texture path.
+         * Points to a png with one white pixel with 100% opacity.
+         */
+        const val DEFAULT_TEXTURE: String = "/renderer/lwjgl/models/default/default.png"
+    }
+
     /**
      * @return Path to the texture file.
      */
@@ -32,7 +42,9 @@ class Texture {
      * Sets the texture path to the default texture path.
      */
     constructor() {
-        this.texturePath = DEFAULT_TEXTURE
+        this.textureImage = this.javaClass.getResourceAsStream(DEFAULT_TEXTURE).use {
+            ImageIO.read(it)
+        }
     }
 
     /**
@@ -45,26 +57,42 @@ class Texture {
         this.texturePath = texturePath
     }
 
+    /**
+     *
+     */
     constructor(image: BufferedImage?) {
         this.textureImage = image
     }
 
-    /**
-     * Releases all resources associated with this Texture.
-     */
-    fun close() {
-        // Nothing to do here.
-        LOGGER.trace("Closing Texture")
+
+    @Throws(IOException::class)
+    private fun writeObject(oos: ObjectOutputStream) {
+        if (this.texturePath != null) {
+            oos.writeShort(0)
+            val bytes = this.texturePath!!.toByteArray()
+            oos.writeInt(bytes.size)
+            oos.write(bytes)
+        } else if (this.textureImage != null) {
+            val baos = ByteArrayOutputStream()
+            ImageIO.write(this.textureImage, "png", baos)
+            val bytes = baos.toByteArray()
+            oos.writeShort(1)
+            oos.writeInt(bytes.size)
+            oos.write(bytes)
+        }
+
     }
 
-    companion object {
-        private val LOGGER: Logger = LogManager.getLogger()
-
-        /**
-         * Default texture path.
-         * Points to a png with one white pixel with 100% opacity.
-         */
-        const val DEFAULT_TEXTURE: String =
-            "vitrivr-engine-module-m3d/src/main/resources/renderer/lwjgl/models/default/default.png"
+    @Throws(IOException::class)
+    private fun readObject(`in`: ObjectInputStream) {
+        val mode: Short = `in`.readShort()
+        val length: Int = `in`.readInt()
+        val bytes = ByteArray(length)
+        `in`.readFully(bytes)
+        if (mode == 0.toShort()) {
+            this.texturePath = String(bytes)
+        } else if (mode == 1.toShort()) {
+            this.textureImage = ImageIO.read(ByteArrayInputStream(bytes))
+        }
     }
 }

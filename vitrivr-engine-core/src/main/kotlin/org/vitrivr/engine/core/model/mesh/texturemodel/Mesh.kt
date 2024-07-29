@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.joml.Vector3f
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.MinimalBoundingBox
+import java.io.Serializable
 import kotlin.math.sign
 import kotlin.math.sqrt
 
@@ -42,7 +43,7 @@ class Mesh(
      * face2 = (3, 1, 2)
      */
     private val idx: IntArray
-) {
+) : Serializable {
 
     companion object {
         private val LOGGER: Logger = LogManager.getLogger()

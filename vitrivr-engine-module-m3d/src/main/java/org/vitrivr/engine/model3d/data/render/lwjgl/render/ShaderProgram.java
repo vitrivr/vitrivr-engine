@@ -1,6 +1,7 @@
 package org.vitrivr.engine.model3d.data.render.lwjgl.render;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ public class ShaderProgram {
   public ShaderProgram(List<ShaderModuleData> shaderModuleDataList) {
     this.programId = GL30.glCreateProgram();
     if (this.programId == 0) {
-      throw new RuntimeException("Could not Create Shader");
+      throw new RuntimeException("Could not create shader.");
     }
     var shaderModules = new ArrayList<Integer>();
     shaderModuleDataList.forEach(s -> shaderModules.add(this.createShader(ShaderProgram.readShaderFile(s.shaderFile), s.shaderType)));
@@ -70,24 +71,37 @@ public class ShaderProgram {
   }
 
   /**
-   * Creates a new Shader in the GL context
-   * Compiles the shader
-   * Attaches the shader to the program
-   * @return the shader id
+   * Reads the shader file.
+   *
+   * @param filePath Path to the shader file
+   * @return String containing the shader code
    */
-  protected int createShader(String shaderCode, int shaderType) {
-    int shaderId = GL30.glCreateShader(shaderType);
-    if (shaderId == 0) {
-      throw new RuntimeException("Error creating Shader");
-    }
-    GL30.glShaderSource(shaderId, shaderCode);
-    GL30.glCompileShader(shaderId);
+  public static String readShaderFile(String filePath) {
+    String shader = null;
 
-    if (GL30.glGetShaderi(shaderId, GL30.GL_COMPILE_STATUS) == 0) {
-      throw new RuntimeException("Error Compiling Shader");
+    /* First try: Load from resources. */
+    try (final InputStream stream = ShaderProgram.class.getResourceAsStream(filePath)) {
+      if (stream != null) {
+        shader = new String(stream.readAllBytes());
+      }
+    } catch (IOException e) {
+      /* No op. */
     }
-    GL30.glAttachShader(this.programId, shaderId);
-    return shaderId;
+
+    /* Second attempt try: Load from resources. */
+    if (shader == null) {
+      try {
+        shader = new String(Files.readAllBytes(Paths.get(filePath)));
+      } catch (IOException ex) {
+        /* No op. */
+      }
+    }
+
+    /* Make sure shader has been loaded. */
+    if (shader == null) {
+      throw new IllegalStateException("Error reading shader file: " + filePath);
+    }
+    return shader;
   }
 
   /**
@@ -125,18 +139,24 @@ public class ShaderProgram {
   }
 
   /**
-   * Reads the shader file
-   * @param filePath Path to the shader file
-   * @return String containing the shader code
+   * Creates a new Shader in the GL context
+   * Compiles the shader
+   * Attaches the shader to the program
+   * @return the shader id
    */
-  public static String readShaderFile(String filePath) {
-    String str;
-    try {
-      str = new String(Files.readAllBytes(Paths.get(filePath)));
-    } catch (IOException ex) {
-      throw new RuntimeException("Error reading file");
+  protected int createShader(String shaderCode, int shaderType) {
+    int shaderId = GL30.glCreateShader(shaderType);
+    if (shaderId == 0) {
+      throw new IllegalStateException("Error creating shader");
     }
-    return str;
+    GL30.glShaderSource(shaderId, shaderCode);
+    GL30.glCompileShader(shaderId);
+
+    if (GL30.glGetShaderi(shaderId, GL30.GL_COMPILE_STATUS) == 0) {
+      throw new IllegalStateException("Error compiling shader");
+    }
+    GL30.glAttachShader(this.programId, shaderId);
+    return shaderId;
   }
 
   /**

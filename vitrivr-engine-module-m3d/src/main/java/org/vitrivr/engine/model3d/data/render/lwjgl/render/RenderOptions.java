@@ -1,6 +1,7 @@
 
 package org.vitrivr.engine.model3d.data.render.lwjgl.render;
 
+import java.io.Serializable;
 import java.util.function.Function;
 import org.joml.Vector4f;
 
@@ -13,7 +14,7 @@ import org.joml.Vector4f;
  * <li>Can be used to colorize the model custom</li>
  * </ul>
  */
-public class RenderOptions {
+public class RenderOptions implements Serializable {
 
   /**
    * Used to switch on or off the texture rendering
@@ -28,8 +29,8 @@ public class RenderOptions {
 
   /**
    * Returns the color for the given value Can be used to colorize the model custom
+   *
+   * @TODO: This cannot be serialized!
    */
-  public Function<Float, Vector4f> colorfunction =
-      (v) -> new Vector4f(v, v, v, 1f);
-
+  public transient Function<Float, Vector4f> colorfunction = (v) -> new Vector4f(v, v, v, 1f);
 }
