@@ -7,7 +7,7 @@ import org.joml.Quaternionf
 import org.joml.Vector3f
 
 /**
- * An Entity in the context of a [Model] describes a position and scale of a model in the scene.
+ * An Entity in the context of a [Model3d] describes a position and scale of a model in the scene.
  * The Entity is composed of a model matrix that is used to transform the model in the scene.
  * The model matrix is calculated from the position, rotation and scale of the entity.
  * The Entity influences how the model is rendered in the scene.

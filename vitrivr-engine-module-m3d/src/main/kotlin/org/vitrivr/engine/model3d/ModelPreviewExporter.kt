@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onEach
 import org.joml.Vector3f
 import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.model.mesh.texturemodel.Model
+import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.EntopyCalculationMethod
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.EntropyOptimizerStrategy
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.OptimizerOptions
@@ -102,7 +102,7 @@ class ModelPreviewExporter : ExporterFactory {
           if (source.type == MediaType.MESH) {
             val resolvable = this.context.resolver.resolve(retrievable.id)
 
-            val model = retrievable.content[0].content as Model
+            val model3d = retrievable.content[0].content as Model3d
             if (resolvable != null) {
               logger.debug {
                 "Generating preview for ${retrievable.id} with ${retrievable.type} and resolution $maxResolution. Storing it with ${resolvable::class.simpleName}."
@@ -110,12 +110,12 @@ class ModelPreviewExporter : ExporterFactory {
 
               source.newInputStream().use { input ->
                 if (format == "jpg") {
-                  val preview: BufferedImage = createPreviewJPG(model)
+                  val preview: BufferedImage = createPreviewJPG(model3d)
                   resolvable.openOutputStream().use { output ->
                     ImageIO.write(preview, "jpg", output)
                   }
                 } else { // format == "gif"
-                  val frames = createFramesForGif(model, views)
+                  val frames = createFramesForGif(model3d, views)
                   val gif = createGif(frames, 50)
                   resolvable.openOutputStream().use {
                       output -> output.write(gif!!.toByteArray()) }
@@ -125,8 +125,8 @@ class ModelPreviewExporter : ExporterFactory {
           }
         }
 
-    fun createPreviewJPG(model: Model): BufferedImage {
-      if (model.modelMaterials.isNotEmpty()) {
+    fun createPreviewJPG(model3d: Model3d): BufferedImage {
+      if (model3d.modelMaterials.isNotEmpty()) {
         // Set options for the renderer.
         val windowOptions =
             object : WindowOptions(400, 400) {
@@ -165,13 +165,13 @@ class ModelPreviewExporter : ExporterFactory {
                 .mul(distance))
         cameraPositions.add(Vector3f(0f, 0f, 1f).normalize().mul(distance))
         cameraPositions.add(Vector3f(-1f, 1f, 1f).normalize().mul(distance))
-        cameraPositions.add(ModelEntropyOptimizer.getViewVectorWithMaximizedEntropy(model, opts))
+        cameraPositions.add(ModelEntropyOptimizer.getViewVectorWithMaximizedEntropy(model3d, opts))
 
         // Render the model.
         val images =
             RenderJob.performStandardRenderJob(
                 RenderWorker.getRenderJobQueue(),
-                model,
+                model3d,
                 cameraPositions,
                 windowOptions,
                 renderOptions)
@@ -214,8 +214,8 @@ class ModelPreviewExporter : ExporterFactory {
       throw IllegalArgumentException("Model has no materials.")
     }
 
-    fun createFramesForGif(model: Model, views: Int): List<BufferedImage> {
-      if (model.modelMaterials.isNotEmpty()) {
+    fun createFramesForGif(model3d: Model3d, views: Int): List<BufferedImage> {
+      if (model3d.modelMaterials.isNotEmpty()) {
         // Set options for the renderer.
         val windowOptions =
             object : WindowOptions(400, 400) {
@@ -234,7 +234,7 @@ class ModelPreviewExporter : ExporterFactory {
         val camera = generateCameraPositions(views, distance)
         val images =
             RenderJob.performStandardRenderJob(
-                RenderWorker.getRenderJobQueue(), model, camera, windowOptions, renderOptions)
+                RenderWorker.getRenderJobQueue(), model3d, camera, windowOptions, renderOptions)
 
         assert(images.size == views)
         return images

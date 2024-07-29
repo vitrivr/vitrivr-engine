@@ -16,7 +16,7 @@ import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import org.vitrivr.engine.core.model.mesh.texturemodel.Material
 import org.vitrivr.engine.core.model.mesh.texturemodel.Mesh
-import org.vitrivr.engine.core.model.mesh.texturemodel.Model
+import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
 import org.vitrivr.engine.core.model.mesh.texturemodel.Texture
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -81,7 +81,7 @@ class ModelLoader {
    * @param modelPath Path to the model file.
    * @return Model object.
    */
-  fun loadModel(modelId: String?, inputStream: InputStream): Model? {
+  fun loadModel(modelId: String?, inputStream: InputStream): Model3d? {
     val model =
         loadModel(
             modelId,
@@ -98,7 +98,7 @@ class ModelLoader {
   }
 
   // Keep function if we want to extend at a later point to load models again from path to get external textures
-  fun loadModelPath(modelId: String?, path: String): Model? {
+  fun loadModelPath(modelId: String?, path: String): Model3d? {
     val model =
       loadModel(
         modelId,
@@ -124,7 +124,7 @@ class ModelLoader {
    * @param flags Flags for the model loading process.
    * @return Model object.
    */
-  private fun loadModel(modelId: String?, inputStream: InputStream, flags: Int): Model? {
+  private fun loadModel(modelId: String?, inputStream: InputStream, flags: Int): Model3d? {
     LOGGER.trace("Try loading file {}.", modelId)
 
     val aiScene = modelId?.let { loadAIScene(it, inputStream) }
@@ -182,9 +182,9 @@ class ModelLoader {
     LOGGER.trace("Try instantiate Model")
     aiReleaseImport(aiScene)
 
-    val model = modelId?.let { Model(it, materialList) }
+    val model3d = modelId?.let { Model3d(it, materialList) }
     LOGGER.trace("Try return Model")
-    return model
+    return model3d
   }
 
 
@@ -198,7 +198,7 @@ class ModelLoader {
    * @param flags Flags for the model loading process.
    * @return Model object.
    */
-  fun loadModel(modelId: String?, modelPath: String, flags: Int): Model? {
+  fun loadModel(modelId: String?, modelPath: String, flags: Int): Model3d? {
     LOGGER.trace("Try loading file {}.", modelId)
 
 
@@ -254,9 +254,9 @@ class ModelLoader {
     LOGGER.trace("Try instantiate Model")
     aiReleaseImport(aiScene)
 
-    val model = modelId?.let { Model(it, materialList) }
+    val model3d = modelId?.let { Model3d(it, materialList) }
     LOGGER.trace("Try return Model")
-    return model
+    return model3d
   }
 
 
