@@ -28,23 +28,23 @@ private val logger = KotlinLogging.logger {}
 class ContentMergingTransformer : TransformerFactory {
     override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
         val template = context[name, "template"] ?: throw IllegalArgumentException("The content merging transformer requires a template.")
+        val regex = "\\$\\{([^}]+)\\}".toRegex()
+        val contentFields = regex.findAll(template).map { it.groupValues[1] }.toList()
         val defaultValue = context[name, "defaultValue"] ?: ""
         return Instance(
             input = input,
             contentFactory = (context as IndexContext).contentFactory,
             template = template,
+            contentFields = contentFields,
             defaultValue = defaultValue,
             name = name
         )
     }
 
-    private class Instance(override val input: Operator<out Retrievable>, val contentFactory: ContentFactory, val template: String, val defaultValue: String, val name: String) : Transformer {
+    private class Instance(override val input: Operator<out Retrievable>, val contentFactory: ContentFactory, val template: String, val contentFields: List<String>, val defaultValue: String, val name: String) : Transformer {
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
             input.toFlow(scope).collect { retrievable: Retrievable ->
                 var mergedContent = template
-
-                val regex = "\\$\\{([^}]+)\\}".toRegex()
-                val contentFields = regex.findAll(template).map { it.groupValues[1] }.toList()
 
                 contentFields.forEach { fieldName ->
                     val placeholder = "\${${fieldName}}"
