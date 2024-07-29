@@ -117,7 +117,7 @@ class CachedContentFactory : ContentFactoriesFactory {
             return content
         }
 
-        override fun newMeshContent(model3d: Model3d): ModelContent {
+        override fun newMeshContent(model3d: Model3d): Model3DContent {
             check(!this.closed) { "CachedContentFactory has been closed." }
             TODO()
         }

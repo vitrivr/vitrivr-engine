@@ -4,7 +4,7 @@ import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.*
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryAudioContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryImageContent
-import org.vitrivr.engine.core.model.content.impl.memory.InMemoryMeshContent
+import org.vitrivr.engine.core.model.content.impl.memory.InMemoryMesh3DContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryTextContent
 import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -30,6 +30,6 @@ class InMemoryContentFactory : ContentFactoriesFactory {
 
         override fun newTextContent(text: String): TextContent = InMemoryTextContent(text)
 
-        override fun newMeshContent(model3d: Model3d): ModelContent = InMemoryMeshContent(model3d)
+        override fun newMeshContent(model3d: Model3d): Model3DContent = InMemoryMesh3DContent(model3d)
     }
 }
