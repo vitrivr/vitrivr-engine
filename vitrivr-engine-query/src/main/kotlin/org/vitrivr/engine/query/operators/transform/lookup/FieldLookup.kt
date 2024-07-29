@@ -35,7 +35,7 @@ class FieldLookup(
         val descriptors = if (ids.isEmpty()) {
             emptyMap()
         } else {
-            this@FieldLookup.reader.getAllFor(ids).associateBy { it.retrievableId!! }
+            this@FieldLookup.reader.getAllForRetrievable(ids).associateBy { it.retrievableId!! }
         }
 
         /* Emit retrievable with added attribute. */

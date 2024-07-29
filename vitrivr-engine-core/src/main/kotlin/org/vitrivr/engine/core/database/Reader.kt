@@ -13,6 +13,9 @@ import java.util.*
  * @version 1.1.0
  */
 interface Reader<out T : Persistable> {
+    /** The [Connection] used by this [Writer]. */
+    val connection: Connection
+
     /**
      * Returns a [Sequence] of all [Persistable] accessible by this [Reader].
      *

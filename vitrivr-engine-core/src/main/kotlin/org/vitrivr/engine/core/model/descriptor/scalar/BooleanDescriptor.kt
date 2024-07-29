@@ -1,7 +1,8 @@
 package org.vitrivr.engine.core.model.descriptor.scalar
 
+import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
-import org.vitrivr.engine.core.model.descriptor.FieldSchema
+import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor.Companion.VALUE_ATTRIBUTE_NAME
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Type
@@ -21,13 +22,13 @@ data class BooleanDescriptor(
     override val field: Schema.Field<*, BooleanDescriptor>? = null
 ) : ScalarDescriptor<Value.Boolean> {
     companion object {
-        private val SCHEMA = listOf(FieldSchema("value", Type.BOOLEAN))
+        private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.Boolean))
     }
 
     /**
-     * Returns the [FieldSchema] [List ]of this [BooleanDescriptor].
+     * Returns the [Attribute] [List ]of this [BooleanDescriptor].
      *
-     * @return [List] of [FieldSchema]
+     * @return [List] of [Attribute]
      */
-    override fun schema(): List<FieldSchema> = SCHEMA
+    override fun layout(): List<Attribute> = SCHEMA
 }

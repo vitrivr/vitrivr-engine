@@ -52,7 +52,7 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
 
         for (result in results) {
             val filteredResults = result
-                .mapIndexed { index, score -> LabelDescriptor(UUID.randomUUID(), null, Value.String(classes[index]), Value.Float(score), null) }
+                .mapIndexed { index, score -> LabelDescriptor(UUID.randomUUID(), null, mapOf("label" to Value.String(classes[index]), "confidence" to Value.Float(score)), null) }
                 .filter { it.confidence.value >= threshold }
                 .sortedByDescending { it.confidence.value }
                 .take(topk)
@@ -74,7 +74,7 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
      * @return [LabelDescriptor]
      */
     override fun prototype(field: Schema.Field<*,*>): LabelDescriptor {
-        return LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(""), Value.Float(0.0f))
+        return LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), mapOf("label" to Value.String(""), "confidence" to Value.Float(0.0f)))
     }
 
     override fun newRetrieverForContent(field: Schema.Field<ImageContent, LabelDescriptor>, content: Collection<ImageContent>, context: QueryContext): Retriever<ImageContent, LabelDescriptor> {
@@ -102,7 +102,7 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
         val batchSize = context.getProperty(name, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
         return object : FesExtractor<LabelDescriptor, ImageContent, ImageClassification>(input, null, batchSize) {
             override fun assignRetrievableId(descriptor: LabelDescriptor, retrievableId: RetrievableId): LabelDescriptor {
-                return descriptor.copy(retrievableId = retrievableId)
+                return LabelDescriptor(descriptor.id, retrievableId, descriptor.values(), descriptor.field)
             }
         }
     }
@@ -124,7 +124,7 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
         val batchSize = context.getProperty(field.fieldName, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
         return object : FesExtractor<LabelDescriptor, ImageContent, ImageClassification>(input, field, batchSize) {
             override fun assignRetrievableId(descriptor: LabelDescriptor, retrievableId: RetrievableId): LabelDescriptor {
-                return descriptor.copy(retrievableId = retrievableId, field = field)
+                return LabelDescriptor(descriptor.id, retrievableId, descriptor.values(), field)
             }
         }
     }
