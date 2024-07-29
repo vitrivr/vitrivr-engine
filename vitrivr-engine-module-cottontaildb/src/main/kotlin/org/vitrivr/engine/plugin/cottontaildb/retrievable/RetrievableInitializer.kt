@@ -1,7 +1,5 @@
 package org.vitrivr.engine.plugin.cottontaildb.retrievable
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.ddl.*
 import org.vitrivr.cottontail.core.database.Name
@@ -10,9 +8,6 @@ import org.vitrivr.cottontail.grpc.CottontailGrpc
 import org.vitrivr.engine.core.database.retrievable.RetrievableInitializer
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.plugin.cottontaildb.*
-
-/** Defines [KLogger] of the class. */
-private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * A [RetrievableInitializer] implementation for Cottontail DB.
@@ -37,7 +32,7 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
         try {
             this.connection.client.create(createSchema)
         } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
+            LOGGER.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
         }
 
         try {
@@ -55,7 +50,7 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
                     .column(this.entityName.column(RETRIEVABLE_TYPE_COLUMN_NAME))
             )
         } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
+            LOGGER.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
         }
 
         try {
@@ -82,7 +77,24 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
                     .column(this.relationshipEntityName.column(PREDICATE_COLUMN_NAME))
             )
         } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
+            LOGGER.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
+        }
+    }
+
+    /**
+     * De-initializes the entities that is used to store [Retrievable]s in Cottontail DB.
+     */
+    override fun deinitialize() {
+        try {
+            this.connection.client.drop(DropEntity(this.entityName))
+        } catch (e: StatusRuntimeException) {
+            LOGGER.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
+        }
+
+        try {
+            this.connection.client.drop(DropEntity(this.relationshipEntityName))
+        } catch (e: StatusRuntimeException) {
+            LOGGER.error(e) { "Failed to initialize entity '${this.entityName}' due to exception." }
         }
     }
 
@@ -107,7 +119,7 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
         try {
             this.connection.client.truncate(truncate)
         } catch (e: StatusRuntimeException) {
-            logger.error(e) { "Failed to truncate entity ${this.entityName} due to exception." }
+            LOGGER.error(e) { "Failed to truncate entity '${this.entityName}' due to exception." }
         }
     }
 }

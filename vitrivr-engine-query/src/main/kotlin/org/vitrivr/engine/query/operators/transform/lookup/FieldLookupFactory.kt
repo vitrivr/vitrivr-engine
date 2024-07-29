@@ -15,9 +15,9 @@ class FieldLookupFactory() : TransformerFactory {
         val providedKeys = context[name, "keys"]
         val keys = if(providedKeys?.isNotBlank() == true){
             if(providedKeys.length == 1 && providedKeys == "*") {
-                schemaField.analyser.prototype(schemaField).schema().map { it.name }
+                schemaField.analyser.prototype(schemaField).layout().map { it.name }
             }else{
-                providedKeys.split(",").map { s -> s.trim() } ?: emptyList()
+                providedKeys.split(",").map { s -> s.trim() }
             }
         }else{
             emptyList()
