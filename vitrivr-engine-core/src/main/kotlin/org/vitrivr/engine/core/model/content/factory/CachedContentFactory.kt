@@ -8,7 +8,7 @@ import org.vitrivr.engine.core.model.content.impl.cache.CachedAudioContent
 import org.vitrivr.engine.core.model.content.impl.cache.CachedContent
 import org.vitrivr.engine.core.model.content.impl.cache.CachedImageContent
 import org.vitrivr.engine.core.model.content.impl.cache.CachedTextContent
-import org.vitrivr.engine.core.model.mesh.texturemodel.Model
+import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
 import org.vitrivr.engine.core.model.metamodel.Schema
 import java.awt.image.BufferedImage
 import java.io.IOException
@@ -117,7 +117,7 @@ class CachedContentFactory : ContentFactoriesFactory {
             return content
         }
 
-        override fun newMeshContent(model: Model): ModelContent {
+        override fun newMeshContent(model3d: Model3d): ModelContent {
             check(!this.closed) { "CachedContentFactory has been closed." }
             TODO()
         }

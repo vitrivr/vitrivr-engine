@@ -15,7 +15,7 @@ import org.vitrivr.engine.model3d.data.render.lwjgl.window.Window;
 import org.vitrivr.engine.model3d.data.render.lwjgl.window.WindowOptions;
 import org.vitrivr.engine.core.model.mesh.texturemodel.Entity;
 import org.vitrivr.engine.core.model.mesh.texturemodel.IModel;
-import org.vitrivr.engine.core.model.mesh.texturemodel.Model;
+import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d;
 import org.vitrivr.engine.model3d.data.render.lwjgl.render.Render;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -150,7 +150,7 @@ public class LWJGLOffscreenRenderer extends EngineLogic implements Renderer {
     @SuppressWarnings("unused")
     private void loadNextModelFromQueueToScene(Window window, GLScene scene) {
         if (!this.modelQueue.isEmpty()) {
-            var model = (Model) this.modelQueue.poll();
+            var model = (Model3d) this.modelQueue.poll();
             if (model.getEntities().size() == 0) {
                 var entity = new Entity("cube", model.getId());
                 model.addEntityNorm(entity);

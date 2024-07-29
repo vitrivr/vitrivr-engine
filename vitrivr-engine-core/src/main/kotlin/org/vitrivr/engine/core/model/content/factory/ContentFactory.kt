@@ -4,7 +4,7 @@ import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.ModelContent
 import org.vitrivr.engine.core.model.content.element.TextContent
-import org.vitrivr.engine.core.model.mesh.texturemodel.Model
+import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
 import java.awt.image.BufferedImage
 import java.nio.ShortBuffer
 
@@ -15,5 +15,5 @@ interface ContentFactory {
 
     fun newTextContent(text: String): TextContent
 
-    fun newMeshContent(model: Model): ModelContent
+    fun newMeshContent(model3d: Model3d): ModelContent
 }
