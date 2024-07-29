@@ -38,10 +38,13 @@ class M3DTest {
             loader.loadModel("bunny", inp!!)
         } ?: Assertions.fail("Failed to load model.")
 
-
+        /* Render image. */
         val renderer = ExternalRenderer()
         Assertions.assertDoesNotThrow() {
-            ModelPreviewExporter.renderPreviewJPEG(model, renderer, 2.0f)
+            ModelPreviewExporter.renderPreviewJPEG(model, renderer, 1.0f)
+        }
+        Assertions.assertDoesNotThrow() {
+            renderer.close()
         }
     }
 }

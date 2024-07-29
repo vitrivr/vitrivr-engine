@@ -24,7 +24,6 @@ import org.vitrivr.engine.model3d.data.render.lwjgl.window.WindowOptions
 import org.vitrivr.engine.model3d.data.util.texturemodel.entropyoptimizer.ModelEntropyOptimizer
 import org.vitrivr.engine.model3d.renderer.ExternalRenderer
 import java.awt.image.BufferedImage
-import java.awt.image.DataBufferInt
 import java.io.ByteArrayOutputStream
 import java.util.*
 import javax.imageio.*
@@ -99,40 +98,19 @@ class ModelPreviewExporter : ExporterFactory {
                 cameraPositions.add(Vector3f(-1f, 1f, 1f).normalize().mul(distance))
                 cameraPositions.add(ModelEntropyOptimizer.getViewVectorWithMaximizedEntropy(model, opts))
 
-                // Render the model.
+                /* Render the model. */
                 val images = renderer.render(model, cameraPositions, windowOptions, renderOptions)
-                assert(images.size == 4)
+                require(images.size == 4) { "Expected 4 images, but got ${images.size}." }
 
+                /* Combine images into a single image. */
                 val combinedImage = BufferedImage(800, 800, BufferedImage.TYPE_INT_RGB)
-                val combinedData = (combinedImage.raster.dataBuffer as DataBufferInt).data
+                val g = combinedImage.graphics
+                g.drawImage(images[0], 0, 0, null) // Top-left
+                g.drawImage(images[1], images[0].width, 0, null) // Top-right
+                g.drawImage(images[2], 0, images[0].height, null) // Bottom-left
+                g.drawImage(images[3], images[0].width, images[0].height, null)
+                g.dispose()
 
-                val img1Data = (images[0].raster.dataBuffer as DataBufferInt).data
-                val img2Data = (images[1].raster.dataBuffer as DataBufferInt).data
-                val img3Data = (images[2].raster.dataBuffer as DataBufferInt).data
-                val img4Data = (images[3].raster.dataBuffer as DataBufferInt).data
-
-                val imgSize: Int = images[0].width
-
-                fun copyImageData(
-                    srcData: IntArray,
-                    srcOffsetX: Int,
-                    srcOffsetY: Int,
-                    dstOffsetX: Int,
-                    dstOffsetY: Int
-                ) {
-                    for (y in 0 until imgSize) {
-                        for (x in 0 until imgSize) {
-                            combinedData[(dstOffsetY + y) * 800 + (dstOffsetX + x)] =
-                                srcData[(srcOffsetY + y) * imgSize + (srcOffsetX + x)]
-                        }
-                    }
-                }
-
-                // Copy images to their respective corners
-                copyImageData(img1Data, 0, 0, 0, 0) // Top-left corner
-                copyImageData(img2Data, 0, 0, imgSize, 0) // Top-right corner
-                copyImageData(img3Data, 0, 0, 0, imgSize) // Bottom-left corner
-                copyImageData(img4Data, 0, 0, imgSize, imgSize) // Bottom-right corner
                 return combinedImage
             }
             throw IllegalArgumentException("Model has no materials.")
@@ -292,7 +270,7 @@ class ModelPreviewExporter : ExporterFactory {
 
                     val delayTime = (delayTimeMs).toString()
 
-                    for ((index, frame) in frames.withIndex()) {
+                    for (frame in frames) {
                         val image = IIOImage(frame, null, getMetadata(gifWriter, delayTime))
                         gifWriter.writeToSequence(image, param)
                     }
