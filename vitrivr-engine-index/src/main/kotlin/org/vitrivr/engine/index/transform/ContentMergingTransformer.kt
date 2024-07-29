@@ -47,7 +47,7 @@ class ContentMergingTransformer : TransformerFactory {
                 val contentFields = regex.findAll(template).map { it.groupValues[1] }.toList()
 
                 contentFields.forEach { fieldName ->
-                    val placeholder = "\$$fieldName"
+                    val placeholder = "\${${fieldName}}"
                     val contentIds = retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(fieldName)
 
                     val fieldContent = StringBuilder()

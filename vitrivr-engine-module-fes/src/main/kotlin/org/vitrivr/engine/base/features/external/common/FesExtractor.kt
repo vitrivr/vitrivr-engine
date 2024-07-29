@@ -10,6 +10,7 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
+import java.util.*
 import java.util.logging.Logger
 
 private val logger: KLogger = KotlinLogging.logger {}
@@ -55,11 +56,11 @@ abstract class FesExtractor<D:Descriptor,C:ContentElement<*>, A:ExternalFesAnaly
         val analyser = field!!.analyser as A
 
         val allContent : List<List<C>> = retrievables.map { retrievable ->
+            val authors = retrievable.filteredAttribute(ContentAuthorAttribute::class.java)
+            val retrievableContentIds : Set<UUID>? = contentSources?.flatMap { authors?.getContentIds(it)?: emptySet() }?.toSet()
             retrievable.findContent { contentItem ->
                 analyser.contentClasses.any { contentClass ->
-                    contentClass.isInstance(contentItem) && contentSources?.let { sources ->
-                        retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getAuthors(contentItem.id)?.any { it in sources }
-                    } ?: true
+                    contentClass.isInstance(contentItem) && retrievableContentIds?.contains(contentItem.id) ?: true
                 }
             }.map{ it as C}
         }

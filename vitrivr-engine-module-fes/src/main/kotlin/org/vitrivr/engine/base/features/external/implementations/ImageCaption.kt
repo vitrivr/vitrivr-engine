@@ -102,7 +102,7 @@ class ImageCaption : ExternalFesAnalyser<ContentElement<*>, StringDescriptor>() 
 
         val flatResults = makeCaption(imageContents.flatten(), texts.flatten(), apiWrapper)
         var index = 0
-        return content.map { innerList ->
+        return imageContents.map { innerList ->
             innerList.map { _ ->
                 flatResults[index++]
             }

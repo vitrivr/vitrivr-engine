@@ -189,6 +189,7 @@ class VideoDecoder : DecoderFactory {
 
             /* Send source retrievable downstream as a signal that file has been decoded. */
             if (!error) {
+                logger.debug { "Emitting source ${sourceRetrievable.id} as signal that video has been decoded." }
                 channel.send(sourceRetrievable)
             }
         }
