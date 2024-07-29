@@ -8,7 +8,7 @@ import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.Ent
 /**
  * Options for the ModelEntropyOptimizer and entropy calculation.
  */
-open class OptimizerOptions {
+class OptimizerOptions {
     /**
      * The factor the unit vector is multiplied with to zoom.
      *
