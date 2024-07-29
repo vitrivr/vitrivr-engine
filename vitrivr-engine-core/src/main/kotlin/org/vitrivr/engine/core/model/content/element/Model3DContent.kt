@@ -9,8 +9,8 @@ import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
  * @author Rahel Arnold
  * @version 1.0.0
  */
-interface ModelContent: ContentElement<Model3d>{
-    /** The [ContentType] of a [ModelContent] is always [ContentType.MESH]. */
+interface Model3DContent: ContentElement<Model3d>{
+    /** The [ContentType] of a [Model3DContent] is always [ContentType.MESH]. */
 
     val id: String
         get() = this.content.modelId
