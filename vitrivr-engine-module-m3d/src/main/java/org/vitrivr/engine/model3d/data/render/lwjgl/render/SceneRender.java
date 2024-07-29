@@ -21,11 +21,12 @@ public class SceneRender {
   /**
    * Resource path to the scene shader program
    */
-  private static final String VERTEX_SHADER_PATH = "vitrivr-engine-module-m3d/src/main/resources/renderer/lwjgl/shaders/scene.vert";
+  private static final String VERTEX_SHADER_PATH = "/renderer/lwjgl/shaders/scene.vert";
   /**
    * Resource path to the fragment shader program
    */
-  private static final String FRAGMENT_SHADER_PATH = "vitrivr-engine-module-m3d/src/main/resources/renderer/lwjgl/shaders/scene.frag";
+  private static final String FRAGMENT_SHADER_PATH = "/renderer/lwjgl/shaders/scene.frag";
+
   /**
    * Instance of the scene shader program
    */

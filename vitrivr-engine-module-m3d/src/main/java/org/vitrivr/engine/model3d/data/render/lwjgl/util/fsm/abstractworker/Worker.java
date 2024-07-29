@@ -2,11 +2,10 @@ package org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.abstractworker;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.BlockingDeque;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.controller.FiniteStateMachineException;
 import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.controller.FiniteStateMachine;
+import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.controller.FiniteStateMachineException;
 import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.model.Action;
 import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.model.Graph;
 
@@ -113,8 +112,7 @@ public abstract class Worker<T extends Job> implements Runnable {
         while (!this.shutdown) {
             try {
                 //LOGGER.trace("Waiting for job. In Queue:" + this.jobs.size());
-                this.currentJob = this.jobs.take();
-                LOGGER.debug("Perform Job. In Queue:" + this.jobs.size());
+                LOGGER.debug("Perform job. In queue: {}", this.jobs.size());
                 // Determine if job is an order or a control command
                 switch (this.currentJob.getType()) {
                     // If ordered, perform job
@@ -126,10 +124,6 @@ public abstract class Worker<T extends Job> implements Runnable {
                         LOGGER.info("Worker is shutting down.");
                     }
                 }
-            } catch (InterruptedException ex) {
-                // Exception is thrown if the worker is interrupted (needed for blocking queue)
-                LOGGER.fatal("Interrupted worker thread. Critical shutdown.", ex);
-                this.shutdown = true;
             } finally {
                 LOGGER.trace("Worker has performed Job. In Queue:" + this.jobs.size());
             }
@@ -155,7 +149,8 @@ public abstract class Worker<T extends Job> implements Runnable {
      * @see StateLeave
      * @see StateTransition
      */
-    private void performJob(Job job) {
+    public void performJob(T job) {
+        this.currentJob = job;
 
         // Mark if job is finished
         var performed = false;
@@ -195,13 +190,11 @@ public abstract class Worker<T extends Job> implements Runnable {
             } catch (InvocationTargetException | IllegalAccessException ex) {
                 // This exception is thrown if an exception is thrown during invocation of the methods in the concrete worker
                 this.onJobException(ex);
-                LOGGER.error("Error in concrete Worker. Abort: ", ex);
+                LOGGER.error("Error in concrete wWorker. Abort: ", ex);
                 performed = true;
             } finally {
-                LOGGER.trace("Job Sequence ended");
             }
         }
-        LOGGER.trace("Job ended");
     }
 
     /**

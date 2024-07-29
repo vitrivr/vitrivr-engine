@@ -1,11 +1,12 @@
 package org.vitrivr.engine.core.model.mesh.texturemodel.util
 
 import org.joml.Vector3f
+import java.io.Serializable
 
 /**
  * This class represents a minimal bounding box. It can be generated from a list of vertices. It can be merged with another minimal bounding box.
  */
-class MinimalBoundingBox {
+class MinimalBoundingBox : Serializable {
 
     /**
      * Initial value for the maximum vector. The maximum vector contains the highest (positive if normalized) values for x, y, and z of the bounding box.

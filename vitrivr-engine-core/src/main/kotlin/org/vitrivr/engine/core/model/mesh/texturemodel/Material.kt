@@ -5,13 +5,14 @@ import org.apache.logging.log4j.Logger
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.MinimalBoundingBox
-import java.util.Collections
+import java.io.Serializable
+import java.util.*
 
 /**
  * The Material contains all meshes and the texture that are drawn with on the meshes.
  * Further, it contains the diffuse color of the material.
  */
-class Material {
+class Material : Serializable {
 
     /**
      * List of [Mesh] objects that define the appearance of the model.
@@ -112,7 +113,6 @@ class Material {
     fun close() {
         materialMeshes.forEach(Mesh::close)
         materialMeshes.clear()
-        materialTexture?.close()
         materialTexture = null
         materialDiffuseColor = DEFAULT_COLOR
         LOGGER.trace("Closed Material")

@@ -1,10 +1,12 @@
 package org.vitrivr.engine.model3d.data.render.lwjgl.window;
 
 
+import java.io.Serializable;
+
 /**
  * This class holds all options for a window.
  */
-public class WindowOptions {
+public class WindowOptions implements Serializable {
 
   /**
    * set to true if the window should be created with a compatible profile
