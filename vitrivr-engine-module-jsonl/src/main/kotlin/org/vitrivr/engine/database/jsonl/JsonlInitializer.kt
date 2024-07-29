@@ -27,9 +27,9 @@ class JsonlInitializer<D : Descriptor>(
 
     override fun deinitialize() {
         try {
-            path.deleteExisting()
+            path.deleteIfExists()
         } catch (ioe: IOException) {
-            LOGGER.error(ioe) { "Cannot truncate '${path.absolutePathString()}'" }
+            LOGGER.error(ioe) { "Cannot deinitialize '${path.absolutePathString()}'" }
         }
     }
 

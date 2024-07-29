@@ -23,8 +23,8 @@ class JsonlRetrievableInitializer(private val connection: JsonlConnection) : Ret
 
     override fun deinitialize() {
         try {
-            retrievablePath.deleteExisting()
-            connectionPath.deleteExisting()
+            retrievablePath.deleteIfExists()
+            connectionPath.deleteIfExists()
         } catch (ioe: IOException) {
             LOGGER.error(ioe) { "Cannot delete '${connection.schemaRoot.absolutePathString()}'" }
         }
@@ -34,9 +34,9 @@ class JsonlRetrievableInitializer(private val connection: JsonlConnection) : Ret
 
     override fun truncate() {
         try {
-            retrievablePath.deleteExisting()
+            retrievablePath.deleteIfExists()
             retrievablePath.createFile()
-            connectionPath.deleteExisting()
+            connectionPath.deleteIfExists()
             connectionPath.createFile()
         } catch (ioe: IOException) {
             LOGGER.error(ioe) { "Cannot truncate '${connection.schemaRoot.absolutePathString()}'" }
