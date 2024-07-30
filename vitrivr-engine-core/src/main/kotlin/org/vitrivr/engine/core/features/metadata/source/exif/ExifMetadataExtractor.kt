@@ -2,9 +2,16 @@ package org.vitrivr.engine.core.features.metadata.source.exif
 
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.Directory
-import com.google.gson.JsonElement
-import com.google.gson.JsonParseException
-import com.google.gson.JsonParser
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.float
+import kotlinx.serialization.json.double
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.*
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.features.AbstractExtractor
@@ -65,19 +72,25 @@ private fun convertType(directory: Directory, tagType: Int, type: Type): Value<*
     is Type.LongVector -> throw IllegalArgumentException("Unsupported type: $type")
 }
 
-private fun JsonElement.convertType(type: Type): Value<*>? {
-    if (this.isJsonNull) return null
-    return when (type) {
-        Type.String -> Value.String(this.asString)
-        Type.Boolean -> Value.Boolean(this.asBoolean)
-        Type.Byte -> Value.Byte(this.asByte)
-        Type.Short -> Value.Short(this.asShort)
-        Type.Int -> Value.Int(this.asInt)
-        Type.Long -> Value.Long(this.asLong)
-        Type.Float -> Value.Float(this.asFloat)
-        Type.Double -> Value.Double(this.asDouble)
-        Type.Datetime -> convertDate(this.asString)?.let { Value.DateTime(it) }
-        else -> throw IllegalArgumentException("Unsupported type: $type")
+private fun JsonObject.convertType(type: Type): Value<*>? {
+    val jsonPrimitive = this.jsonPrimitive
+    if (jsonPrimitive.isString) {
+        return when (type) {
+            Type.String -> Value.String(jsonPrimitive.content)
+            Type.Datetime -> convertDate(jsonPrimitive.content)?.let { Value.DateTime(it) }
+            else -> null
+        }
+    } else {
+        return when (type) {
+            Type.Boolean -> Value.Boolean(jsonPrimitive.boolean)
+            Type.Byte -> Value.Byte(jsonPrimitive.int.toByte())
+            Type.Short -> Value.Short(jsonPrimitive.int.toShort())
+            Type.Int -> Value.Int(jsonPrimitive.int)
+            Type.Long -> Value.Long(jsonPrimitive.int.toLong())
+            Type.Float -> Value.Float(jsonPrimitive.float)
+            Type.Double -> Value.Double(jsonPrimitive.double)
+            else -> null
+        }
     }
 }
 
@@ -101,19 +114,19 @@ class ExifMetadataExtractor(
                 val fullname = "${directory.name.replace(NON_ALPHANUMERIC_REGEX, "")}_$tagname"
 
                 if (fullname == "ExifSubIFD_UserComment" || fullname == "JpegComment_JPEGComment") {
-                    if (fullname in attributes) {
+                    if (fullname in attributes){
                         columnValues[fullname] = Value.String(tag.description)
                     }
                     try {
-                        val json = JsonParser.parseString(tag.description).asJsonObject
-                        json.entrySet().forEach { (key, value) ->
+                        val json = Json.parseToJsonElement(tag.description).jsonObject
+                        json.forEach { (key, value) ->
                             attributes[key]?.let { attribute ->
-                                value.convertType(attribute.type)?.let { converted ->
+                                value.jsonObject.convertType(attribute.type)?.let { converted ->
                                     columnValues[key] = converted
                                 }
                             }
                         }
-                    } catch (e: JsonParseException) {
+                    } catch (e: SerializationException) {
                         logger.warn { "Failed to parse JSON from $fullname: ${tag.description}" }
                     }
                 } else {
@@ -122,6 +135,7 @@ class ExifMetadataExtractor(
                             columnValues[fullname] = converted
                         }
                     }
+
                 }
             }
         }

@@ -1,13 +1,17 @@
 package org.vitrivr.engine.tools
 
-import com.google.gson.Gson
-import com.google.gson.JsonParser
-import com.google.gson.stream.JsonReader
 import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
 import org.vitrivr.engine.core.config.schema.SchemaConfig
 import org.vitrivr.engine.core.database.Initializer
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -33,104 +37,45 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.reflect.KClass
 
-
-val gson = Gson()
-
-// Define a function to parse a list of objects from a JSON file using streaming
-// Define a function to parse a list of objects from a JSON file using streaming
-fun <T> parseJsonList(filePath: String, clazz: Class<T>): List<T> {
-    val items = mutableListOf<T>()
-    FileReader(filePath).use { fileReader ->
-        JsonReader(fileReader).use { jsonReader ->
-            jsonReader.beginArray() // Start of the JSON array
-            while (jsonReader.hasNext()) {
-                val rawJson = JsonParser.parseReader(jsonReader).toString()
-                //println(rawJson) // Print the raw JSON string
-                val item = gson.fromJson<T>(rawJson, clazz)
-                items.add(item)
-            }
-            jsonReader.endArray() // End of the JSON array
-        }
-    }
-    return items
-}
-
-fun <T> streamJsonItems(filePath: String, clazz: Class<T>): Sequence<T> = sequence {
-    FileReader(filePath).use { fileReader ->
-        JsonReader(fileReader).use { jsonReader ->
-            jsonReader.beginArray() // Start of the JSON array
-            while (jsonReader.hasNext()) {
-                val rawJson = JsonParser.parseReader(jsonReader).toString()
-                val item = gson.fromJson<T>(rawJson, clazz)
-                yield(item) // Yield the item to the sequence
-            }
-            jsonReader.endArray() // End of the JSON array
-        }
-    }
-}
-
-
 @Serializable
 data class CineastMultimediaObject(
-    //@SerialName("cineast.cineast_multimediaobject.objectid")
     val objectid: String,
-    //@SerialName("cineast.cineast_multimediaobject.mediatype")
     val mediatype: Int,
-    //@SerialName("cineast.cineast_multimediaobject.name")
     val name: String,
-    //@SerialName("cineast.cineast_multimediaobject.path")
     val path: String
 )
 
 @Serializable
 data class CineastSegment(
-    //@SerialName("cineast.cineast_segment.segmentid")
     val segmentid: String,
-    //@SerialName("cineast.cineast_segment.objectid")
     val objectid: String,
-    //@SerialName("cineast.cineast_segment.segmentnumber")
     val segmentnumber: Int,
-    //@SerialName("cineast.cineast_segment.segmentstart")
     val segmentstart: Int,
-    //@SerialName("cineast.cineast_segment.segmentend")
     val segmentend: Int,
-    //@SerialName("cineast.cineast_segment.segmentstartabs")
     val segmentstartabs: Float,
-    //@SerialName("cineast.cineast_segment.segmentendabs")
     val segmentendabs: Float
 )
 
-
 @Serializable
 data class CineastObjectMetadata(
-    //@SerialName("cineast.cineast_metadata.objectid")
     val objectid: String,
-    //@SerialName("cineast.cineast_metadata.domain")
     val domain: String,
-    //@SerialName("cineast.cineast_metadata.key")
     val key: String,
-    //@SerialName("cineast.cineast_metadata.value")
     val value: String
 )
 
 @Serializable
 data class CineastSegmentMetadata(
-    //@SerialName("cineast.cineast_segmentmetadata.segmentid")
     val segmentid: String,
-    //@SerialName("cineast.cineast_segmentmetadata.domain")
     val domain: String,
-    //@SerialName("cineast.cineast_segmentmetadata.key")
     val key: String,
-    //@SerialName("cineast.cineast_segmentmetadata.value")
     val value: String
 )
 
 interface CineastFeature {
-
     val id: String
     fun toDescriptor(idmap: Map<String, String>): Descriptor?
 }
-
 
 @Serializable
 data class CineastVectorFeature(override val id: String, val feature: List<Float>) : CineastFeature {
@@ -156,8 +101,7 @@ data class CineastStringFeature(override val id: String, val feature: String) : 
         }
         return StringDescriptor(
             id = DescriptorId.randomUUID(),
-            retrievableId = RetrievableId.fromString(idmap[id])
-                ?: throw IllegalArgumentException("Could not find retrievable id for id $id"),
+            retrievableId = RetrievableId.fromString(idmap[id]),
             value = Value.String(feature)
         )
     }
@@ -218,26 +162,29 @@ data class MigrationConfig(
 @Serializable
 data class FeatureConfig(val path: String, val fieldname: String)
 
+@OptIn(InternalSerializationApi::class)
+fun <T : Any> parseJsonList(filePath: String, clazz: KClass<T>): List<T> {
+    val json = Json { ignoreUnknownKeys = true }
+    return Files.newInputStream(Paths.get(filePath)).use { inputStream ->
+        json.decodeFromStream(ListSerializer(clazz.serializer()), inputStream)
+    }
+}
 
-//fun String.toUUID(): UUID {
-//    val hash = MessageDigest.getInstance("SHA-256")
-//            .digest(this.toByteArray())
-//            .copyOfRange(0, 16) // Take first 128 bits (16 bytes)
-//
-//    // Set the version to 5 - Named Based UUID
-//    hash[6] = (hash[6] and 0x0f).toByte() // Clear version
-//    hash[6] = (hash[6] or 0x50).toByte() // Set to version 5
-//
-//    // Set the variant to 2 as per RFC 4122
-//    hash[8] = (hash[8] and 0x3f).toByte() // Clear the variant
-//    hash[8] = (hash[8] or 0x80.toByte()).toByte() // Set to IETF variant
-//
-//    val long1 = hash.copyOfRange(0, 8).fold(0L) { acc, byte -> (acc shl 8) or (byte.toInt() and 0xff).toLong() }
-//    val long2 = hash.copyOfRange(8, 16).fold(0L) { acc, byte -> (acc shl 8) or (byte.toInt() and 0xff).toLong() }
-//
-//    return UUID(long1, long2)
-//}
-
+@OptIn(InternalSerializationApi::class)
+fun <T : Any> streamJsonItems(filePath: String, clazz: KClass<T>): Sequence<T> = sequence {
+    val json = Json { ignoreUnknownKeys = true }
+    Files.newInputStream(Paths.get(filePath)).use { inputStream ->
+        val element = json.decodeFromStream<JsonElement>(inputStream)
+        if (element is JsonArray) {
+            element.forEach { jsonElement ->
+                val item = Json.decodeFromJsonElement(clazz.serializer(), jsonElement)
+                yield(item)
+            }
+        } else {
+            throw IllegalArgumentException("Expected a JSON array at the root")
+        }
+    }
+}
 
 // Function to obtain a serializer for a given KClass instance at runtime.
 @OptIn(InternalSerializationApi::class)
@@ -308,7 +255,7 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
     fun migrate_objects() {
 
         val objects: List<CineastMultimediaObject> =
-            parseJsonList(migrationConfig.objectspath, CineastMultimediaObject::class.java)
+            parseJsonList(migrationConfig.objectspath, CineastMultimediaObject::class)
         val retrievableWriter = schema.connection.getRetrievableWriter()
         val filemetadatawriter = schema.get("file")?.getWriter()
             ?: throw IllegalArgumentException("Could not find file metadata writer in schema ${schema.name}")
@@ -360,15 +307,13 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
         val heights = mutableMapOf<String, Int>()
 
         val objectmetadata: List<CineastObjectMetadata> =
-            parseJsonList(migrationConfig.objectmetadatapath, CineastObjectMetadata::class.java)
+            parseJsonList(migrationConfig.objectmetadatapath, CineastObjectMetadata::class)
         val mediadimensionswriter = schema.get("dimensions")?.getWriter()
             ?: throw IllegalArgumentException("Could not find media dimensions writer in schema ${schema.name}")
         val videofpswriter = schema.get("fps")?.getWriter()
             ?: throw IllegalArgumentException("Could not find video fps writer in schema ${schema.name}")
         val videodurationwriter = schema.get("duration")?.getWriter()
             ?: throw IllegalArgumentException("Could not find video duration writer in schema ${schema.name}")
-
-
 
         for (mobjectmetadata in objectmetadata) {
             val retrievableId = idmap[mobjectmetadata.objectid]
@@ -386,13 +331,11 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                         ?: throw IllegalArgumentException("Could not find width for object ${mobjectmetadata.objectid}")
                     val dimensionsDescriptor = MediaDimensionsDescriptor(
                         id = DescriptorId.randomUUID(),
-                        retrievableId = RetrievableId.fromString(retrievableId)
-                            ?: throw IllegalArgumentException("Could not find retrievable id for object ${mobjectmetadata.objectid}"),
+                        retrievableId = RetrievableId.fromString(retrievableId),
                         mapOf(
                             "width" to Value.Int(width),
                             "height" to Value.Int(height)
                         )
-
                     )
                     mediadimensionswriter.add(dimensionsDescriptor)
                 }
@@ -403,8 +346,7 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                     ?: throw IllegalArgumentException("Could not find retrievable id for object ${mobjectmetadata.objectid}")
                 val fpsDescriptor = FloatDescriptor(
                     id = DescriptorId.randomUUID(),
-                    retrievableId = RetrievableId.fromString(retrievableId)
-                        ?: throw IllegalArgumentException("Could not find retrievable id for object ${mobjectmetadata.objectid}"),
+                    retrievableId = RetrievableId.fromString(retrievableId),
                     value = Value.Float(fps)
                 )
                 videofpswriter.add(fpsDescriptor)
@@ -416,23 +358,19 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                 val duration = mobjectmetadata.value.toFloat()
                 val durationDescriptor = FloatDescriptor(
                     id = DescriptorId.randomUUID(),
-                    retrievableId = RetrievableId.fromString(retrievableId)
-                        ?: throw IllegalArgumentException("Could not find retrievable id for object ${mobjectmetadata.objectid}"),
+                    retrievableId = RetrievableId.fromString(retrievableId),
                     value = Value.Float(duration)
                 )
                 videodurationwriter.add(durationDescriptor)
             }
-
-
         }
     }
 
     fun migrate_segments() {
-        val segments: List<CineastSegment> = parseJsonList(migrationConfig.segmentspath, CineastSegment::class.java)
+        val segments: List<CineastSegment> = parseJsonList(migrationConfig.segmentspath, CineastSegment::class)
         val temporalmetadatawriter = schema.get("time")?.getWriter()
             ?: throw IllegalArgumentException("Could not find temporal metadata writer in schema ${schema.name}")
         val retrievableWriter = schema.connection.getRetrievableWriter()
-
 
         val batchSize = 5000
         val ingestedList = mutableListOf<Retrievable>()
@@ -466,12 +404,19 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                     ?: throw IllegalArgumentException("Could not find retrievable id for segment ${segment.objectid}")
             )
 
-
             // Check if the batch size is reached
             if ((index + 1) % batchSize == 0 || index == segments.size - 1) {
                 retrievableWriter.addAll(ingestedList)
                 retrievableWriter.connectAll(
-                    ingestedList.zip(parentIdList).map { Relationship.ById(it.first.id, "isPartOf", RetrievableId.fromString(it.second) ?: throw IllegalArgumentException("Could not find retrievable id for segment $it"), false) }
+                    ingestedList.zip(parentIdList).map {
+                        Relationship.ById(
+                            it.first.id,
+                            "isPartOf",
+                            RetrievableId.fromString(it.second)
+                                ?: throw IllegalArgumentException("Could not find retrievable id for segment $it"),
+                            false
+                        )
+                    }
                 )
                 temporalmetadatawriter.addAll(temporalMetadataList)
 
@@ -481,14 +426,11 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                 parentIdList.clear()
             }
         }
-
-
     }
-
 
     fun migrate_segmentmetadata() {
         val segmentmetadata: List<CineastSegmentMetadata> =
-            parseJsonList(migrationConfig.segmentmetadatapath, CineastSegmentMetadata::class.java)
+            parseJsonList(migrationConfig.segmentmetadatapath, CineastSegmentMetadata::class)
         val dominantcolorwriter = schema.get("dominantcolor")?.getWriter()
             ?: throw IllegalArgumentException("Could not find dominant color writer in schema ${schema.name}")
 
@@ -505,12 +447,9 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                         value = Value.String(color)
                     )
                     dominantcolordescriptors.add(dominantColorDescriptor)
-
                 } catch (e: Exception) {
                     println("Could not find retrievable id for segment ${msegmentmetadata.segmentid}")
                 }
-
-
             }
         }
         dominantcolorwriter.addAll(dominantcolordescriptors)
@@ -539,7 +478,7 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
         val featureClass = getFeatureClassFromDescriptor(descriptorClass)
             ?: throw IllegalArgumentException("Feature class not found for descriptor class $descriptorClass")
 
-        val featureStream = streamJsonItems(path, featureClass.java)
+        val featureStream = streamJsonItems(path, featureClass)
 
         val fieldwriter = field.getWriter()
 
@@ -566,8 +505,7 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                         } else {
                             writer.write(",") // Add comma before next entry, except for the first
                         }
-                        writer.write(Gson().toJson(feature.id))
-                        //println("Could not find retrievable id for feature ${feature.id}")
+                        writer.write(Json.encodeToString(feature.id))
                     }
                     descriptor
                 }
@@ -596,14 +534,6 @@ fun main(args: Array<String>) {
     val migrationTool = CineastMigrationTool(migrationConfigPath, schemaConfigPath)
 
     // Perform the migration
-//        migrationTool.initialize()
-//        migrationTool.migrate_objects()
-//        migrationTool.save_idmap()
-//
-//        migrationTool.migrate_objectmetadata()
-
-    // migrationTool.migrate_segments()
-    //migrationTool.migrate_segmentmetadata()
     migrationTool.initialize()
     migrationTool.load_idmap()
 
@@ -611,11 +541,5 @@ fun main(args: Array<String>) {
         migrationTool.migrateFeature("skeletonpose")
     }
 
-
-
     println("Migration completed successfully.")
-
-
 }
-
-
