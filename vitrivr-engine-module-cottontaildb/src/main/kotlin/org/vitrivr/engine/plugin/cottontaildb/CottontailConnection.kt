@@ -1,12 +1,19 @@
 package org.vitrivr.engine.plugin.cottontaildb
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging.logger
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
+import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.SimpleClient
+import org.vitrivr.cottontail.client.language.ddl.CreateSchema
 import org.vitrivr.engine.core.database.AbstractConnection
 import org.vitrivr.engine.plugin.cottontaildb.retrievable.RetrievableInitializer
 import org.vitrivr.engine.plugin.cottontaildb.retrievable.RetrievableReader
 import org.vitrivr.engine.plugin.cottontaildb.retrievable.RetrievableWriter
+
+/** Defines [KLogger] of the class. */
+internal val LOGGER: KLogger = logger("org.vitrivr.engine.plugin.cottontaildb.CottontailConnection")
 
 /**
  * A [AbstractConnection] to connect to a Cottontail DB instance.
@@ -21,6 +28,34 @@ class CottontailConnection(provider: CottontailConnectionProvider, schemaName: S
 
     /** The [SimpleClient] instance used by this [CottontailConnection]. */
     internal val client = SimpleClient(this.channel)
+
+
+    init {
+        try {
+            this.client.create(CreateSchema(this.schemaName).ifNotExists())
+        } catch (e: StatusRuntimeException) {
+            LOGGER.error(e) { "Failed to create schema '${this.schemaName}' due to exception." }
+        }
+    }
+
+    /**
+     * Tries to execute a given action within a database transaction.
+     *
+     * @param action The action to execute within the transaction.
+     */
+    @Synchronized
+    override fun <T> withTransaction(action: (Unit) -> T): T {
+        val transactionId = this.client.begin()
+        try {
+            val ret = action.invoke(Unit)
+            this.client.commit(transactionId)
+            return ret
+        } catch (e: Throwable) {
+            this.client.rollback(transactionId)
+            LOGGER.error(e) { "Failed to execute action in transaction due to erro.." }
+            throw e
+        }
+    }
 
     /**
      * Generates and returns a [RetrievableInitializer] for this [CottontailConnection].
