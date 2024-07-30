@@ -1,7 +1,5 @@
 package org.vitrivr.engine.server.api.rest
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.json.JsonMapper
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
@@ -24,9 +22,6 @@ object KotlinxJsonMapper : JsonMapper {
 
     /** The [Json] object to perform de-/serialization with.  */
     private val json = Json { serializersModule = projectModule }
-
-    /** The [KLogger] instance used by this [KotlinxJsonMapper]. */
-    private val logger: KLogger = KotlinLogging.logger {}
 
     /**
      * Converts a JSON [String] to an object representation using Kotlinx serialization framework.
