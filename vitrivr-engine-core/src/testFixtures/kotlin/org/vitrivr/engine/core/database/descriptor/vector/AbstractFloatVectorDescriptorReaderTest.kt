@@ -26,6 +26,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
+@Suppress("UNCHECKED_CAST")
 abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : AbstractDatabaseTest(schemaPath) {
 
     /** The [Schema.Field] used for this [DescriptorInitializerTest]. */

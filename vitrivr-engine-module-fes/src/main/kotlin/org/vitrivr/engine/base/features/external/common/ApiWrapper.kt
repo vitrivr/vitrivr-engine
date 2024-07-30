@@ -2,13 +2,18 @@ package org.vitrivr.engine.base.features.external.common
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import okhttp3.OkHttpClient
+import io.ktor.client.*
+import io.ktor.client.plugins.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.openapitools.client.apis.*
 import org.openapitools.client.models.*
 import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.util.extension.toDataURL
 import java.awt.image.BufferedImage
 import java.net.SocketTimeoutException
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
 
 
 private val logger: KLogger = KotlinLogging.logger {}
@@ -26,58 +31,71 @@ internal data class JobResult<S>(
  */
 class ApiWrapper(private val hostName:String, private val model: String, private val timeoutSeconds: Long, private val pollingIntervalMs: Long, private val retries: Int) {
 
-    private val okHttpClient = OkHttpClient().newBuilder()
-        .readTimeout(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS).connectTimeout(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS).writeTimeout(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS).callTimeout(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS)
-        .build()
-    private val textEmbeddingApi = TextEmbeddingApi(basePath = hostName, client = okHttpClient)
-    private val imageEmbeddingApi = ImageEmbeddingApi(basePath = hostName, client = okHttpClient)
-    private val imageCaptioningApi = ImageCaptioningApi(basePath = hostName, client = okHttpClient)
-    private val zeroShotImageClassificationApi = ZeroShotImageClassificationApi(basePath = hostName, client = okHttpClient)
-    private val conditionalImageCaptioningApi = ConditionalImageCaptioningApi(basePath = hostName, client = okHttpClient)
-    private val faceEmbeddingApi = FaceEmbeddingApi(basePath = hostName, client = okHttpClient)
-    private val objectDetectionApi = ObjectDetectionApi(basePath = hostName, client = okHttpClient)
-    private val automatedSpeechRecognitionApi = AutomatedSpeechRecognitionApi(basePath = hostName, client = okHttpClient)
-    private val opticalCharacterRecognitionApi = OpticalCharacterRecognitionApi(basePath = hostName, client = okHttpClient)
+
+    private val httpClientConfig: HttpClientConfig<*>.() -> Unit = {
+        install(HttpTimeout) {
+            requestTimeoutMillis = 1000 * timeoutSeconds
+            connectTimeoutMillis = 1000 * timeoutSeconds
+            socketTimeoutMillis = 1000 * timeoutSeconds
+        }
+    }
+
+    private val textEmbeddingApi = TextEmbeddingApi(baseUrl = hostName, httpClientConfig = httpClientConfig)
+    private val imageEmbeddingApi = ImageEmbeddingApi(baseUrl = hostName, httpClientConfig = httpClientConfig)
+    private val imageCaptioningApi = ImageCaptioningApi(baseUrl = hostName, httpClientConfig = httpClientConfig)
+    private val zeroShotImageClassificationApi = ZeroShotImageClassificationApi(baseUrl = hostName, httpClientConfig = httpClientConfig)
+    private val conditionalImageCaptioningApi = ConditionalImageCaptioningApi(baseUrl = hostName, httpClientConfig = httpClientConfig)
+    private val faceEmbeddingApi = FaceEmbeddingApi(baseUrl = hostName, httpClientConfig = httpClientConfig)
+    private val objectDetectionApi = ObjectDetectionApi(baseUrl = hostName, httpClientConfig = httpClientConfig)
+    private val automatedSpeechRecognitionApi = AutomatedSpeechRecognitionApi(baseUrl = hostName, httpClientConfig = httpClientConfig)
+    private val opticalCharacterRecognitionApi = OpticalCharacterRecognitionApi(baseUrl = hostName, httpClientConfig = httpClientConfig)
 
     init {
         logger.info{ "Initialized API wrapper with host: $hostName, model: $model, timeout: $timeoutSeconds seconds, polling interval: $pollingIntervalMs ms" }
     }
 
-    private fun <T, S> executeJob(taskName: String, inp: T, startJobFunc: (T) -> JobStatus, getJobResultFunc: (String) -> JobResult<S>): S {
-        var retries = retries
-        while (retries > 0) {
-            try {
-                val jobStatus: JobStatus
-                try{
-                    jobStatus = startJobFunc(inp)
-                } catch (e: SocketTimeoutException) {
-                    logger.error { "Failed to start $model $taskName Job on Host $hostName: API call timed out." }
-                    throw e
-                }
-                var jobResult = getJobResultFunc(jobStatus.id)
-
-                while (jobResult.status != JobState.complete) {
-                    if (jobResult.status == JobState.failed) {
-                        logger.error{"$model $taskName Job on Host $hostName with ID: ${jobStatus.id} failed."}
-                        throw Exception("Job failed.")
+    private fun <T, S> executeJob(
+        taskName: String,
+        inp: T,
+        startJobFunc: suspend (T) -> JobStatus,
+        getJobResultFunc: suspend (String) -> JobResult<S>
+    ): S {
+        return runBlocking {
+            var retries_left = retries
+            while (retries_left > 0) {
+                try {
+                    val jobStatus = try {
+                        startJobFunc(inp)
+                    } catch (e: SocketTimeoutException) {
+                        logger.error { "Failed to start $model $taskName Job on Host $hostName: API call timed out." }
+                        throw e
                     }
-                    logger.debug{"Waiting for $model $taskName job completion on Host $hostName with ID ${jobStatus.id}. Current status: ${jobResult.status}"}
-                    Thread.sleep(this.pollingIntervalMs)
-                    jobResult = getJobResultFunc(jobStatus.id)
-                }
+                    var jobResult = getJobResultFunc(jobStatus.id)
 
-                return jobResult.result ?: run {
-                    logger.error{"$model $taskName Job on Host $hostName with ID: ${jobStatus.id} returned no result."}
-                    throw Exception("$model $taskName Job on Host $hostName with ID: ${jobStatus.id} returned no result.")
+                    while (jobResult.status != JobState.complete) {
+                        if (jobResult.status == JobState.failed) {
+                            logger.error { "$model $taskName Job on Host $hostName with ID: ${jobStatus.id} failed." }
+                            throw Exception("Job failed.")
+                        }
+                        logger.debug { "Waiting for $model $taskName job completion on Host $hostName with ID ${jobStatus.id}. Current status: ${jobResult.status}" }
+                        delay(this@ApiWrapper.pollingIntervalMs)
+                        jobResult = getJobResultFunc(jobStatus.id)
+                    }
+
+                    return@runBlocking jobResult.result ?: run {
+                        logger.error { "$model $taskName Job on Host $hostName with ID: ${jobStatus.id} returned no result." }
+                        throw Exception("$model $taskName Job on Host $hostName with ID: ${jobStatus.id} returned no result.")
+                    }
+                } catch (e: Exception) {
+                    retries_left -= 1
+                    logger.error { "$model $taskName Job on Host $hostName failed. $e Retrying... ($retries_left retries left)" }
+                    delay(this@ApiWrapper.pollingIntervalMs)
                 }
-            } catch (e: Exception) {
-                logger.error { "$model $taskName Job on Host $hostName failed. Retrying..."}
-                retries -= 1
             }
-            Thread.sleep(this.pollingIntervalMs)
+            throw Exception("$model $taskName Job failed after $retries retries.")
         }
-        throw Exception("$model $taskName Job failed after $retries retries.")
     }
+
 
     /*
     * Method to get the text embedding for a given text.
@@ -91,8 +109,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
         return executeJob(
             taskName = "Text Embedding",
             inp = input,
-            startJobFunc = { inp -> textEmbeddingApi.newJobApiTasksTextEmbeddingModelJobsPost(model, inp) },
-            getJobResultFunc = { jobId -> textEmbeddingApi.getJobResultsApiTasksTextEmbeddingJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+            startJobFunc = { inp -> textEmbeddingApi.newJobApiTasksTextEmbeddingModelJobsPost(model, inp).body() },
+            getJobResultFunc = { jobId -> textEmbeddingApi.getJobResultsApiTasksTextEmbeddingJobsJobGet(jobId).body().let { JobResult(it.status, it.result) } }
         ).embedding.map{it.toFloat()}.also{
             logger.info{ "Text embedding result: $it" }
         }
@@ -110,8 +128,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
         return executeJob(
             taskName = "Batched Text Embedding",
             inp = input,
-            startJobFunc = { inp -> textEmbeddingApi.newBatchedJobApiTasksTextEmbeddingBatchedModelJobsPost(model, inp) },
-            getJobResultFunc = { jobId -> textEmbeddingApi.getBatchedJobResultsApiTasksTextEmbeddingBatchedJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+            startJobFunc = { inp -> textEmbeddingApi.newBatchedJobApiTasksTextEmbeddingBatchedModelJobsPost(model, inp).body() },
+            getJobResultFunc = { jobId -> textEmbeddingApi.getBatchedJobResultsApiTasksTextEmbeddingBatchedJobsJobGet(jobId).body().let { JobResult(it.status, it.result) } }
         ).map { it.embedding.map{it.toFloat()} }.also {
             logger.info{ "Batched text embedding result: $it" }
         }
@@ -129,8 +147,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
         return executeJob(
             taskName = "Image Embedding",
             inp = input,
-            startJobFunc = { inp -> imageEmbeddingApi.newJobApiTasksImageEmbeddingModelJobsPost(model, inp) },
-            getJobResultFunc = { jobId -> imageEmbeddingApi.getJobResultsApiTasksImageEmbeddingJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+            startJobFunc = { inp -> imageEmbeddingApi.newJobApiTasksImageEmbeddingModelJobsPost(model, inp).body() },
+            getJobResultFunc = { jobId -> imageEmbeddingApi.getJobResultsApiTasksImageEmbeddingJobsJobGet(jobId).body().let { JobResult(it.status, it.result) } }
         ).embedding.map{it.toFloat()}.also {
             logger.info{ "Image embedding result: $it" }
         }
@@ -147,8 +165,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
         return executeJob(
             taskName = "Batched Image Embedding",
             inp = input,
-            startJobFunc = { inp -> imageEmbeddingApi.newBatchedJobApiTasksImageEmbeddingBatchedModelJobsPost(model, inp) },
-            getJobResultFunc = { jobId -> imageEmbeddingApi.getBatchedJobResultsApiTasksImageEmbeddingBatchedJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+            startJobFunc = { inp -> imageEmbeddingApi.newBatchedJobApiTasksImageEmbeddingBatchedModelJobsPost(model, inp).body() },
+            getJobResultFunc = { jobId -> imageEmbeddingApi.getBatchedJobResultsApiTasksImageEmbeddingBatchedJobsJobGet(jobId).body().let { JobResult(it.status, it.result) } }
         ).map { it.embedding.map{it.toFloat()}}.also {
             logger.info{ "Batched image embedding result: $it" }
         }
@@ -165,8 +183,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
         return executeJob(
             taskName = "Image Captioning",
             inp = input,
-            startJobFunc = { inp -> imageCaptioningApi.newJobApiTasksImageCaptioningModelJobsPost(model, inp) },
-            getJobResultFunc = { jobId -> imageCaptioningApi.getJobResultsApiTasksImageCaptioningJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+            startJobFunc = { inp -> imageCaptioningApi.newJobApiTasksImageCaptioningModelJobsPost(model, inp).body() },
+            getJobResultFunc = { jobId -> imageCaptioningApi.getJobResultsApiTasksImageCaptioningJobsJobGet(jobId).body().let { JobResult(it.status, it.result) } }
         ).caption.also {
             logger.info{ "Image captioning result: $it" }
         }
@@ -184,8 +202,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
         return executeJob(
             taskName = "Batched Image Captioning",
             inp = input,
-            startJobFunc = { inp -> imageCaptioningApi.newBatchedJobApiTasksImageCaptioningBatchedModelJobsPost(model, inp) },
-            getJobResultFunc = { jobId -> imageCaptioningApi.getBatchedJobResultsApiTasksImageCaptioningBatchedJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+            startJobFunc = { inp -> imageCaptioningApi.newBatchedJobApiTasksImageCaptioningBatchedModelJobsPost(model, inp).body() },
+            getJobResultFunc = { jobId -> imageCaptioningApi.getBatchedJobResultsApiTasksImageCaptioningBatchedJobsJobGet(jobId).body().let { JobResult(it.status, it.result) } }
         ).map { it.caption }.also {
             logger.info{ "Batched image captioning result: $it" }
         }
@@ -203,8 +221,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
         return executeJob(
             taskName = "Zero Shot Image Classification",
             inp = input,
-            startJobFunc = { inp -> zeroShotImageClassificationApi.newJobApiTasksZeroShotImageClassificationModelJobsPost(model, inp) },
-            getJobResultFunc = { jobId -> zeroShotImageClassificationApi.getJobResultsApiTasksZeroShotImageClassificationJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+            startJobFunc = { inp -> zeroShotImageClassificationApi.newJobApiTasksZeroShotImageClassificationModelJobsPost(model, inp).body() },
+            getJobResultFunc = { jobId -> zeroShotImageClassificationApi.getJobResultsApiTasksZeroShotImageClassificationJobsJobGet(jobId).body().let { JobResult(it.status, it.result) } }
         ).probabilities.map{it.toFloat()}.also {
             logger.info{ "Zero shot image classification result: $it" }
         }
@@ -222,8 +240,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
         return executeJob(
             taskName = "Batched Zero Shot Image Classification",
             inp = input,
-            startJobFunc = { inp -> zeroShotImageClassificationApi.newBatchedJobApiTasksZeroShotImageClassificationBatchedModelJobsPost(model, inp) },
-            getJobResultFunc = { jobId -> zeroShotImageClassificationApi.getBatchedJobResultsApiTasksZeroShotImageClassificationBatchedJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+            startJobFunc = { inp -> zeroShotImageClassificationApi.newBatchedJobApiTasksZeroShotImageClassificationBatchedModelJobsPost(model, inp).body() },
+            getJobResultFunc = { jobId -> zeroShotImageClassificationApi.getBatchedJobResultsApiTasksZeroShotImageClassificationBatchedJobsJobGet(jobId).body().let { JobResult(it.status, it.result) } }
         ).map { it.probabilities.map{it.toFloat()}}.also {
             logger.info{ "Batched zero shot image classification result: $it" }
         }
@@ -241,8 +259,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
         return executeJob(
             taskName = "Conditional Image Captioning",
             inp = input,
-            startJobFunc = { inp -> conditionalImageCaptioningApi.newJobApiTasksConditionalImageCaptioningModelJobsPost(model, inp) },
-            getJobResultFunc = { jobId -> conditionalImageCaptioningApi.getJobResultsApiTasksConditionalImageCaptioningJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+            startJobFunc = { inp -> conditionalImageCaptioningApi.newJobApiTasksConditionalImageCaptioningModelJobsPost(model, inp).body() },
+            getJobResultFunc = { jobId -> conditionalImageCaptioningApi.getJobResultsApiTasksConditionalImageCaptioningJobsJobGet(jobId).body().let { JobResult(it.status, it.result) } }
         ).caption.also {
             logger.info{ "Conditional image captioning result: $it" }
         }
@@ -261,8 +279,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
         return executeJob(
             taskName = "Batched Conditional Image Captioning",
             inp = input,
-            startJobFunc = { inp -> conditionalImageCaptioningApi.newBatchedJobApiTasksConditionalImageCaptioningBatchedModelJobsPost(model, inp) },
-            getJobResultFunc = { jobId -> conditionalImageCaptioningApi.getBatchedJobResultsApiTasksConditionalImageCaptioningBatchedJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+            startJobFunc = { inp -> conditionalImageCaptioningApi.newBatchedJobApiTasksConditionalImageCaptioningBatchedModelJobsPost(model, inp).body() },
+            getJobResultFunc = { jobId -> conditionalImageCaptioningApi.getBatchedJobResultsApiTasksConditionalImageCaptioningBatchedJobsJobGet(jobId).body().let { JobResult(it.status, it.result) } }
         ).map { it.caption }.also {
             logger.info{ "Batched conditional image captioning result: $it" }
         }
@@ -279,8 +297,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
         return executeJob(
             taskName = "Face Embedding",
             inp = input,
-            startJobFunc = { inp -> faceEmbeddingApi.newJobApiTasksFaceEmbeddingModelJobsPost(model, inp) },
-            getJobResultFunc = { jobId -> faceEmbeddingApi.getJobResultsApiTasksFaceEmbeddingJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+            startJobFunc = { inp -> faceEmbeddingApi.newJobApiTasksFaceEmbeddingModelJobsPost(model, inp).body() },
+            getJobResultFunc = { jobId -> faceEmbeddingApi.getJobResultsApiTasksFaceEmbeddingJobsJobGet(jobId).body().let { JobResult(it.status, it.result) } }
         ).embedding.map{it.toFloat()}.also {
             logger.info{ "Face embedding result: $it" }
         }
@@ -298,8 +316,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
         return executeJob(
             taskName = "Batched Face Embedding",
             inp = input,
-            startJobFunc = { inp -> faceEmbeddingApi.newBatchedJobApiTasksFaceEmbeddingBatchedModelJobsPost(model, inp) },
-            getJobResultFunc = { jobId -> faceEmbeddingApi.getBatchedJobResultsApiTasksFaceEmbeddingBatchedJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+            startJobFunc = { inp -> faceEmbeddingApi.newBatchedJobApiTasksFaceEmbeddingBatchedModelJobsPost(model, inp).body() },
+            getJobResultFunc = { jobId -> faceEmbeddingApi.getBatchedJobResultsApiTasksFaceEmbeddingBatchedJobsJobGet(jobId).body().let { JobResult(it.status, it.result) } }
         ).map { it.embedding.map{it.toFloat()}}.also {
             logger.info{ "Batched face embedding result: $it" }
         }
@@ -317,8 +335,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
         return executeJob(
             taskName = "Object Detection",
             inp = input,
-            startJobFunc = { inp -> objectDetectionApi.newJobApiTasksObjectDetectionModelJobsPost(model, inp) },
-            getJobResultFunc = { jobId -> objectDetectionApi.getJobResultsApiTasksObjectDetectionJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+            startJobFunc = { inp -> objectDetectionApi.newJobApiTasksObjectDetectionModelJobsPost(model, inp).body() },
+            getJobResultFunc = { jobId -> objectDetectionApi.getJobResultsApiTasksObjectDetectionJobsJobGet(jobId).body().let { JobResult(it.status, it.result) } }
         ).also {
             logger.info{ "Object detection result: $it" }
         }
@@ -335,8 +353,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
         return executeJob(
             taskName = "Batched Object Detection",
             inp = input,
-            startJobFunc = { inp -> objectDetectionApi.newBatchedJobApiTasksObjectDetectionBatchedModelJobsPost(model, inp) },
-            getJobResultFunc = { jobId -> objectDetectionApi.getBatchedJobResultsApiTasksObjectDetectionBatchedJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+            startJobFunc = { inp -> objectDetectionApi.newBatchedJobApiTasksObjectDetectionBatchedModelJobsPost(model, inp).body() },
+            getJobResultFunc = { jobId -> objectDetectionApi.getBatchedJobResultsApiTasksObjectDetectionBatchedJobsJobGet(jobId).body().let { JobResult(it.status, it.result) } }
         ).also {
             logger.info{ "Batched object detection result: $it" }
         }
@@ -354,8 +372,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
         return executeJob(
             taskName = "Automated Speech Recognition",
             inp = input,
-            startJobFunc = { inp -> automatedSpeechRecognitionApi.newJobApiTasksAutomatedSpeechRecognitionModelJobsPost(model, inp) },
-            getJobResultFunc = { jobId -> automatedSpeechRecognitionApi.getJobResultsApiTasksAutomatedSpeechRecognitionJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+            startJobFunc = { inp -> automatedSpeechRecognitionApi.newJobApiTasksAutomatedSpeechRecognitionModelJobsPost(model, inp).body() },
+            getJobResultFunc = { jobId -> automatedSpeechRecognitionApi.getJobResultsApiTasksAutomatedSpeechRecognitionJobsJobGet(jobId).body().let { JobResult(it.status, it.result) } }
         ).transcript.also {
             logger.info{ "Automated speech recognition result: $it" }
         }
@@ -373,8 +391,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
         return executeJob(
             taskName = "Batched Automated Speech Recognition",
             inp = input,
-            startJobFunc = { inp -> automatedSpeechRecognitionApi.newBatchedJobApiTasksAutomatedSpeechRecognitionBatchedModelJobsPost(model, inp) },
-            getJobResultFunc = { jobId -> automatedSpeechRecognitionApi.getBatchedJobResultsApiTasksAutomatedSpeechRecognitionBatchedJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+            startJobFunc = { inp -> automatedSpeechRecognitionApi.newBatchedJobApiTasksAutomatedSpeechRecognitionBatchedModelJobsPost(model, inp).body() },
+            getJobResultFunc = { jobId -> automatedSpeechRecognitionApi.getBatchedJobResultsApiTasksAutomatedSpeechRecognitionBatchedJobsJobGet(jobId).body().let { JobResult(it.status, it.result) } }
         ).map { it.transcript }.also {
             logger.info{ "Batched automated speech recognition result: $it" }
         }
@@ -394,8 +412,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
         return executeJob(
             taskName = "Optical Character Recognition",
             inp = input,
-            startJobFunc = { inp -> opticalCharacterRecognitionApi.newJobApiTasksOpticalCharacterRecognitionModelJobsPost(model, inp) },
-            getJobResultFunc = { jobId -> opticalCharacterRecognitionApi.getJobResultsApiTasksOpticalCharacterRecognitionJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+            startJobFunc = { inp -> opticalCharacterRecognitionApi.newJobApiTasksOpticalCharacterRecognitionModelJobsPost(model, inp).body() },
+            getJobResultFunc = { jobId -> opticalCharacterRecognitionApi.getJobResultsApiTasksOpticalCharacterRecognitionJobsJobGet(jobId).body().let { JobResult(it.status, it.result) } }
         ).text.also {
             logger.info{ "Optical character recognition result: $it" }
         }
@@ -413,8 +431,8 @@ class ApiWrapper(private val hostName:String, private val model: String, private
         return executeJob(
             taskName = "Batched Optical Character Recognition",
             inp = input,
-            startJobFunc = { inp -> opticalCharacterRecognitionApi.newBatchedJobApiTasksOpticalCharacterRecognitionBatchedModelJobsPost(model, inp) },
-            getJobResultFunc = { jobId -> opticalCharacterRecognitionApi.getBatchedJobResultsApiTasksOpticalCharacterRecognitionBatchedJobsJobGet(jobId).let { JobResult(it.status, it.result) } }
+            startJobFunc = { inp -> opticalCharacterRecognitionApi.newBatchedJobApiTasksOpticalCharacterRecognitionBatchedModelJobsPost(model, inp).body() },
+            getJobResultFunc = { jobId -> opticalCharacterRecognitionApi.getBatchedJobResultsApiTasksOpticalCharacterRecognitionBatchedJobsJobGet(jobId).body().let { JobResult(it.status, it.result) } }
         ).map { it.text }.also {
             logger.info{ "Batched optical character recognition result: $it" }
         }

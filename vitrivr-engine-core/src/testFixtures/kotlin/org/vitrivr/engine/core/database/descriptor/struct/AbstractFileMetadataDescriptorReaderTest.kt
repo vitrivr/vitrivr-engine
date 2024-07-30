@@ -22,6 +22,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
+@Suppress("UNCHECKED_CAST")
 abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : AbstractDatabaseTest(schemaPath) {
 
     companion object {
@@ -58,7 +59,6 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
             "test.png"
         )
     }
-
 
     /** The [Schema.Field] used for this [AbstractFileMetadataDescriptorReaderTest]. */
     private val field: Schema.Field<*, FileSourceMetadataDescriptor> = this.testSchema["file"]!! as Schema.Field<*, FileSourceMetadataDescriptor>
