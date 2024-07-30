@@ -20,7 +20,7 @@ import kotlin.io.path.absolutePathString
  * An [Extractor] that extracts [FileSourceMetadataDescriptor]s from [Ingested] objects.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 class FileSourceMetadataExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>?) : AbstractExtractor<ContentElement<*>, FileSourceMetadataDescriptor>(input, field) {
     /**
@@ -47,8 +47,10 @@ class FileSourceMetadataExtractor(input: Operator<Retrievable>, field: Schema.Fi
             FileSourceMetadataDescriptor(
                 id = UUID.randomUUID(),
                 retrievableId = retrievable.id,
-                path = Value.String(source.path.absolutePathString()),
-                size = Value.Long(Files.size(source.path)),
+                mapOf(
+                    "path" to Value.String(source.path.absolutePathString()),
+                    "size" to Value.Long(Files.size(source.path))
+                ),
                 this@FileSourceMetadataExtractor.field
             )
         )

@@ -17,20 +17,12 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 2.0.0
+ * @version 2.0.1
  */
 interface DescriptorReader<D : Descriptor> : Reader<D> {
 
     /** The [Analyser] this [DescriptorReader] belongs to. */
     val field: Schema.Field<*,D>
-
-    /**
-     * Returns the [Descriptor] of type [D]  that corresponds to the provided [DescriptorId].
-     *
-     * @param descriptorId The [DescriptorId] to return.
-     * @return [Descriptor] of type [D] or null
-     */
-    operator fun get(descriptorId: DescriptorId): D?
 
     /**
      * Checks if a [Descriptor] of type [D] for provided [DescriptorId] exists.
@@ -41,12 +33,12 @@ interface DescriptorReader<D : Descriptor> : Reader<D> {
     fun exists(descriptorId: DescriptorId): Boolean
 
     /**
-     * Returns the [Descriptor]s of type [D] that belong to the provided [RetrievableId].
+     * Returns the [Descriptor] of type [D]  that corresponds to the provided [DescriptorId].
      *
-     * @param retrievableId The [RetrievableId] to search for.
-     * @return [Sequence] of [Descriptor]  of type [D]
+     * @param descriptorId The [DescriptorId] to return.
+     * @return [Descriptor] of type [D] or null
      */
-    fun getFor(retrievableId: RetrievableId): Sequence<D>
+    operator fun get(descriptorId: DescriptorId): D?
 
     /**
      * Returns a [Sequence] of all [Descriptor] whose [DescriptorId] is contained in the provided [Iterable].
@@ -57,12 +49,20 @@ interface DescriptorReader<D : Descriptor> : Reader<D> {
     fun getAll(descriptorIds: Iterable<DescriptorId>): Sequence<D>
 
     /**
+     * Returns the [Descriptor]s of type [D] that belong to the provided [RetrievableId].
+     *
+     * @param retrievableId The [RetrievableId] to search for.
+     * @return [Sequence] of [Descriptor]  of type [D]
+     */
+    fun getForRetrievable(retrievableId: RetrievableId): Sequence<D>
+
+    /**
      * Returns a [Sequence] of all [Descriptor]  whose [RetrievableId] is contained in the provided [Iterable].
      *
      * @param retrievableIds A [Iterable] of [RetrievableId]s to return [Descriptor]s for
      * @return [Sequence] of [Descriptor] of type [D]
      */
-    fun getAllFor(retrievableIds: Iterable<RetrievableId>): Sequence<D>
+    fun getAllForRetrievable(retrievableIds: Iterable<RetrievableId>): Sequence<D>
 
     /**
      * Returns a [Sequence] of all [Descriptor]s [D]s that match the given [Query].

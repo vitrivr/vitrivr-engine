@@ -4,6 +4,7 @@ import org.vitrivr.engine.core.model.Persistable
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.types.Value
 import java.util.*
 
 /** A typealias to identify the [UUID] identifying a [Descriptor]. */
@@ -31,16 +32,16 @@ interface Descriptor : Persistable {
         get() = this.field != null
 
     /**
-     * Returns a  [FieldSchema] [List] for this [Descriptor].
+     * Returns a  [Attribute] [List] for this [Descriptor].
      *
-     * @return [List] of [FieldSchema]
+     * @return [List] of [Attribute]
      */
-    fun schema(): List<FieldSchema>
+    fun layout(): List<Attribute>
 
     /**
      * Returns the fields and its values of this [Descriptor] as a [Map].
      *
      * @return A [Map] of this [Descriptor]'s fields (without the IDs).
      */
-    fun values(): List<Pair<String, Any?>>
+    fun values(): Map<AttributeName, Value<*>?>
 }

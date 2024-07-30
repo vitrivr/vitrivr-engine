@@ -18,8 +18,6 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.scalar.FloatDescriptor
 import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
-import org.vitrivr.engine.core.model.descriptor.struct.RasterDescriptor
-import org.vitrivr.engine.core.model.descriptor.struct.SkeletonDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.MediaDimensionsDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
@@ -31,6 +29,8 @@ import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Value
+import org.vitrivr.engine.module.features.feature.averagecolorraster.RasterDescriptor
+import org.vitrivr.engine.module.features.feature.skeleton.SkeletonDescriptor
 import java.io.File
 import java.io.FileReader
 import java.nio.file.Files
@@ -87,7 +87,7 @@ data class CineastVectorFeature(override val id: String, val feature: List<Float
         return FloatVectorDescriptor(
             id = DescriptorId.randomUUID(),
             retrievableId = RetrievableId.fromString(idmap[id]),
-            vector = feature.map { Value.Float(it) }
+            vector = Value.FloatVector(feature.toFloatArray())
         )
     }
 }
@@ -122,9 +122,11 @@ data class CineastSkeletonPoseFeature(
         return SkeletonDescriptor(
             id = DescriptorId.randomUUID(),
             retrievableId = RetrievableId.fromString(idmap[id]),
-            person = Value.Int(person),
-            skeleton = skeleton.map { Value.Float(it) },
-            weights = weights.map { Value.Float(it) }
+            mapOf(
+                "person" to Value.Int(person),
+                "skeleton" to Value.FloatVector(skeleton.toFloatArray()),
+                "weights" to Value.FloatVector(weights.toFloatArray())
+            )
         )
     }
 }
@@ -140,8 +142,10 @@ data class CineastRasterFeature(override val id: String, val hist: List<Float>, 
         return RasterDescriptor(
             id = DescriptorId.randomUUID(),
             retrievableId = RetrievableId.fromString(idmap[id]),
-            hist = hist.map { Value.Float(it) },
-            raster = raster.map { Value.Float(it) },
+            mapOf(
+                "hist" to Value.FloatVector(hist.toFloatArray()),
+                "raster" to Value.FloatVector(raster.toFloatArray())
+            )
         )
     }
 }
@@ -277,8 +281,10 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
             val fileMetadataDescriptor = FileSourceMetadataDescriptor(
                 id = DescriptorId.randomUUID(),
                 retrievableId = objectRetrievable.id,
-                path = Value.String(mobject.path),
-                size = Value.Long(size),
+                mapOf(
+                    "path" to Value.String(mobject.path),
+                    "size" to Value.Long(size),
+                )
             )
             filemetadatawriter.add(fileMetadataDescriptor)
             retrievableWriter.add(objectRetrievable)
@@ -326,8 +332,10 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
                     val dimensionsDescriptor = MediaDimensionsDescriptor(
                         id = DescriptorId.randomUUID(),
                         retrievableId = RetrievableId.fromString(retrievableId),
-                        width = Value.Int(width),
-                        height = Value.Int(height)
+                        mapOf(
+                            "width" to Value.Int(width),
+                            "height" to Value.Int(height)
+                        )
                     )
                     mediadimensionswriter.add(dimensionsDescriptor)
                 }
@@ -382,8 +390,11 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
             val temporalMetadataDescriptor = TemporalMetadataDescriptor(
                 id = DescriptorId.randomUUID(),
                 retrievableId = ingested.id,
-                startNs = Value.Long(segment.segmentstartabs.toLong() * 1000 * 1000 * 1000),
-                endNs = Value.Long(segment.segmentendabs.toLong() * 1000 * 1000 * 1000),
+                mapOf(
+                    "start" to Value.Long(segment.segmentstartabs.toLong() * 1000 * 1000 * 1000),
+                    "end" to Value.Long(segment.segmentendabs.toLong() * 1000 * 1000 * 1000),
+                )
+
             )
 
             ingestedList.add(ingested)

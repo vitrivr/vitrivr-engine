@@ -19,7 +19,7 @@ import java.util.*
  * An [Extractor] that extracts [VideoSourceMetadataDescriptor]s from [Ingested] objects.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 class VideoSourceMetadataExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>?) : AbstractExtractor<ContentElement<*>, VideoSourceMetadataDescriptor>(input, field) {
     /**
@@ -46,12 +46,14 @@ class VideoSourceMetadataExtractor(input: Operator<Retrievable>, field: Schema.F
             VideoSourceMetadataDescriptor(
                 id = UUID.randomUUID(),
                 retrievableId = retrievable.id,
-                width = Value.Int(source.width() ?: 0),
-                height = Value.Int(source.height() ?: 0),
-                fps = Value.Double(source.fps() ?: 0.0),
-                channels = Value.Int(source.channels() ?: 0),
-                sampleRate = Value.Int(source.sampleRate() ?: 0),
-                sampleSize = Value.Int(source.sampleSize() ?: 0),
+                mapOf(
+                    "width" to Value.Int(source.width() ?: 0),
+                    "height" to Value.Int(source.height() ?: 0),
+                    "fps" to Value.Double(source.fps() ?: 0.0),
+                    "channels" to Value.Int(source.channels() ?: 0),
+                    "sampleRate" to Value.Int(source.sampleRate() ?: 0),
+                    "sampleSize" to Value.Int(source.sampleSize() ?: 0)
+                ),
                 this@VideoSourceMetadataExtractor.field
             )
         )
