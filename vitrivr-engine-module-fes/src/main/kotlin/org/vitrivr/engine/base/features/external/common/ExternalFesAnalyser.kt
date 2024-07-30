@@ -48,7 +48,7 @@ abstract class ExternalFesAnalyser<T : ContentElement<*>, U : Descriptor>: Analy
         const val HOST_PARAMETER_NAME = "host"
         const val MODEL_PARAMETER_NAME = "model"
         const val TIMEOUTSECONDS_PARAMETER_NAME = "timeoutSeconds"
-        const val TIMEOUTSECONDS_PARAMETER_DEFAULT = "10"
+        const val TIMEOUTSECONDS_PARAMETER_DEFAULT = "20"
         const val POLLINGINTERVALMS_PARAMETER_NAME = "pollingIntervalMs"
         const val POLLINGINTERVALMS_PARAMETER_DEFAULT = "100"
         const val BATCHSIZE_PARAMETER_NAME = "batchSize"
@@ -85,7 +85,7 @@ abstract class ExternalFesAnalyser<T : ContentElement<*>, U : Descriptor>: Analy
         val retries = parameters[RETRIES_PARAMETER_NAME]?.toIntOrNull() ?: RETRIES_PARAMETER_DEFAULT.toInt()
         val apiWrapper = ApiWrapper(hostName, model, timeoutSeconds, pollingIntervalMs, retries)
 
-        logger.debug { "Analyzing batch of ${content.size} retrievables with ${this::class.simpleName} analyser." }
+        logger.debug { "Analyzing batch of ${content.size} content elements with ${this::class.simpleName} analyser." }
 
         return analyse(content, apiWrapper, parameters)
     }

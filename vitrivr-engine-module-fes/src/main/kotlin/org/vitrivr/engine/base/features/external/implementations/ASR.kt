@@ -5,6 +5,7 @@ import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.base.features.external.common.FesExtractor
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.features.fulltext.FulltextRetriever
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.model.content.element.TextContent
@@ -18,11 +19,8 @@ import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
-import org.vitrivr.engine.module.features.feature.fulltext.FulltextRetriever
 import java.util.*
-import kotlin.IllegalArgumentException
 import kotlin.String
-import kotlin.require
 import org.vitrivr.engine.core.model.types.Value.String as StringValue
 
 /**
