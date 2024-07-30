@@ -1,51 +1,67 @@
 package org.vitrivr.engine.server.api.rest
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.json.JsonMapper
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializer
-import org.vitrivr.engine.core.features.metadata.source.exif.logger
+import java.io.InputStream
 import java.lang.reflect.Type
 
+/**
+ * A [JsonMapper] implementation for Javalin that uses Kotlinx Serialization framework.
+ *
+ * @author Ralph Gasser
+ * @author Luca Rossetto
+ * @version 1.0.0
+ */
 object KotlinxJsonMapper : JsonMapper {
 
-    private val fallbackMapper = jacksonObjectMapper()
+    /** The [SerializersModule] used by this [KotlinxJsonMapper]. */
+    private val projectModule = SerializersModule {}
 
+    /** The [Json] object to perform de-/serialization with.  */
+    private val json = Json { serializersModule = projectModule }
+
+    /** The [KLogger] instance used by this [KotlinxJsonMapper]. */
+    private val logger: KLogger = KotlinLogging.logger {}
+
+    /**
+     * Converts a JSON [String] to an object representation using Kotlinx serialization framework.
+     *
+     * @param json The [String] to parse.
+     * @param targetType The target [Type]
+     * @return Object [T]
+     */
+    @Suppress("UNCHECKED_CAST")
     override fun <T : Any> fromJsonString(json: String, targetType: Type): T {
-
-        return try {
-            @Suppress("UNCHECKED_CAST")
-            val serializer = serializer(targetType) as KSerializer<T>
-            Json.decodeFromString(serializer, json)
-        } catch (e: SerializationException) {
-            "Error while deserializing JSON: ${e.message}".let {
-                logger.error { it }
-                throw Exception(it)
-            }
-            null
-        } catch (e: IllegalStateException) {
-            "Error state: ${e.message}".let {
-                logger.error { it }
-                throw Exception(it)
-            }
-            null
-        } ?: fallbackMapper.readValue(json, fallbackMapper.typeFactory.constructType(targetType))
-
+        val deserializer = this.projectModule.serializer(targetType)
+        return this.json.decodeFromString(deserializer, json) as T
     }
 
+    /**
+     * Converts an object [Any] to a JSON string using Kotlinx serialization. Javalin uses this method for
+     * io.javalin.http.Context.json(Object), as well as the CookieStore class, WebSockets messaging, and JavalinVue.
+     *
+     * @param obj The object [Any] to serialize.
+     * @param type The target [Type]
+     * @return JSON string representation.
+     */
     override fun toJsonString(obj: Any, type: Type): String {
+        return this.json.encodeToString(this.projectModule.serializer(type), obj)
+    }
 
-        return try {
-            val serializer = serializer(type)
-            Json.encodeToString(serializer, obj)
-        } catch (e: SerializationException) {
-            null
-        } catch (e: IllegalStateException) {
-            null
-        } ?: fallbackMapper.writeValueAsString(obj)
-
+    /**
+     * Converts a JSON [InputStream] to an object representation using Kotlinx serialization framework.
+     *
+     * @param json The [InputStream] to parse.
+     * @param targetType The target [Type]
+     * @return Object [T]
+     */
+    override fun <T : Any> fromJsonStream(json: InputStream, targetType: Type): T {
+        val deserializer = this.projectModule.serializer(targetType)
+        return this.json.decodeFromStream(deserializer, json) as T
     }
 }
