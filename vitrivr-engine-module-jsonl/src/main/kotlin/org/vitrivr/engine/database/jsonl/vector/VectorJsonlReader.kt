@@ -2,6 +2,8 @@ package org.vitrivr.engine.database.jsonl.vector
 
 import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.database.jsonl.AbstractJsonlReader
 import org.vitrivr.engine.database.jsonl.model.AttributeContainerList
@@ -53,4 +55,15 @@ class VectorJsonlReader(
             )
         }
     }
+
+    override fun query(query: Query): Sequence<VectorDescriptor<*>> = when (query) {
+        is ProximityQuery<*> -> queryProximity(query)
+        else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by this reader.")
+    }
+
+    private fun queryProximity(query: ProximityQuery<*>): Sequence<VectorDescriptor<*>> {
+        TODO()
+    }
+
+
 }

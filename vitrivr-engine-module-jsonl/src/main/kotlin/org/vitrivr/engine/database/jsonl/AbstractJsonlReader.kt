@@ -67,9 +67,6 @@ abstract class AbstractJsonlReader<D : Descriptor>(
         return getAll().filter { ids.contains(it.retrievableId) }
     }
 
-    override fun query(query: Query): Sequence<D> {
-        TODO("Not yet implemented")
-    }
 
     override fun queryAndJoin(query: Query): Sequence<Retrieved> {
         TODO("Not yet implemented")
