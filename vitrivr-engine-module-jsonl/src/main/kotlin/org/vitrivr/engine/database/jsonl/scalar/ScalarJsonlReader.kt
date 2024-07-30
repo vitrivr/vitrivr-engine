@@ -51,6 +51,6 @@ class ScalarJsonlReader(
 
     private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<ScalarDescriptor<*>> =
         getAll().filter { descriptor ->
-            query.comparison.compare(query.value, descriptor.value)
+            query.comparison.compare(descriptor.value, query.value)
         }
 }
