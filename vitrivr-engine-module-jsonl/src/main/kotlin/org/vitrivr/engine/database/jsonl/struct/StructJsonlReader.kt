@@ -31,6 +31,7 @@ class StructJsonlReader(
         val parameters: MutableList<Any?> = mutableListOf(
             descriptorId,
             retrievableId,
+            prototype.layout(),
             valueMap
         )
 

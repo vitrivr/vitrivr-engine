@@ -10,6 +10,7 @@ import java.util.*
  * @author Loris Sauter
  * @version 2.0.0
  */
+@Serializable
 sealed interface Type {
 
     companion object {
