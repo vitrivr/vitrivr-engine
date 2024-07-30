@@ -8,7 +8,7 @@ import org.vitrivr.engine.core.model.types.Value
 import java.util.*
 
 @Serializable
-sealed class ValueContainer(val type: Type) {
+sealed class ValueContainer(val innerType: Type) { //TODO explicitly use innerType for serialization
 
     companion object {
         fun fromValue(value: Value<*>): ValueContainer = when (value) {
