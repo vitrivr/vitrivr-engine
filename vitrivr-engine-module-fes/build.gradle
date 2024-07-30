@@ -48,10 +48,7 @@ sourceSets {
 
 dependencies {
     /* vitrivr engine features dependency. */
-    implementation project(path: ':vitrivr-engine-module-features')
-
-    implementation group: 'com.squareup.moshi', name: 'moshi-kotlin', version: version_moshi
-    implementation group: 'com.squareup.moshi', name: 'moshi-adapters', version: version_moshi
+    implementation project(path: ':vitrivr-engine-core')
 
     /** OKHttp3 Client */
     implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: version_okhttp3
