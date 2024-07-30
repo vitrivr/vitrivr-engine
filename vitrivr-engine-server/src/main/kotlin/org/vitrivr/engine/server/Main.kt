@@ -1,6 +1,5 @@
 package org.vitrivr.engine.server
 
-import KotlinxJsonMapper
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.Javalin
@@ -8,11 +7,11 @@ import io.javalin.openapi.CookieAuth
 import io.javalin.openapi.plugin.OpenApiPlugin
 import io.javalin.openapi.plugin.SecurityComponentConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin
-import io.javalin.plugin.bundled.CorsPluginConfig
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.server.api.cli.Cli
 import org.vitrivr.engine.server.api.cli.commands.SchemaCommand
+import org.vitrivr.engine.server.api.rest.KotlinxJsonMapper
 import org.vitrivr.engine.server.api.rest.configureApiRoutes
 import org.vitrivr.engine.server.api.rest.model.ErrorStatus
 import org.vitrivr.engine.server.api.rest.model.ErrorStatusException
@@ -41,8 +40,8 @@ fun main(args: Array<String>) {
 
     /* Prepare Javalin endpoint. */
     val javalin = Javalin.create { c ->
+        /* Apply Kotlinx JSON mapper. */
         c.jsonMapper(KotlinxJsonMapper)
-
 
         /* Registers Open API plugin. */
         c.registerPlugin(OpenApiPlugin{
