@@ -31,8 +31,8 @@ class StructJsonlReader(
         val parameters: MutableList<Any?> = mutableListOf(
             descriptorId,
             retrievableId,
-            prototype.layout(),
-            valueMap
+            valueMap,
+            this.field
         )
 
         prototype.layout().forEach { attribute ->
@@ -54,7 +54,7 @@ class StructJsonlReader(
     }
 
     private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<StructDescriptor> = getAll().filter { descriptor ->
-        query.comparison.compare(query.value, descriptor.values()[query.attributeName!!]!!)
+        query.comparison.compare(descriptor.values()[query.attributeName!!]!!, query.value)
     }
 
 
