@@ -1,6 +1,5 @@
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
-
 plugins {
     id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
 }
@@ -23,7 +22,7 @@ tasks.register('generateFESClient', GenerateTask) {
     enablePostProcessFile = false
     library = "multiplatform"
     additionalProperties = [
-            'dateLibrary' : 'kotlinx-datetime'
+        'dateLibrary' : 'kotlinx-datetime'
     ]
 
     dependsOn 'downloadOpenApiSpec'
@@ -33,7 +32,9 @@ compileKotlin {
     dependsOn 'generateFESClient'
 }
 
-//sourcesJar.dependsOn 'generateFESClient'
+sourcesJar {
+    dependsOn 'generateFESClient'
+}
 
 /* Add generated Open API client as source directory. */
 sourceSets {
@@ -44,26 +45,22 @@ sourceSets {
     }
 }
 
-
-
 dependencies {
     /* vitrivr engine features dependency. */
-    implementation project(path: ':vitrivr-engine-module-features')
-
-    implementation group: 'com.squareup.moshi', name: 'moshi-kotlin', version: version_moshi
-    implementation group: 'com.squareup.moshi', name: 'moshi-adapters', version: version_moshi
+    api project(':vitrivr-engine-core')
 
     /** OKHttp3 Client */
     implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: version_okhttp3
     implementation group: 'com.squareup.okhttp3', name: 'logging-interceptor', version: version_okhttp3
 
-    implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: version_kotlinx_coroutines
-    implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-json', version: version_kotlinx_serialization
-
+    /** Ktorm Client */
     implementation group: 'io.ktor', name: 'ktor-client-content-negotiation', version: version_ktor
     implementation group: 'io.ktor', name: 'ktor-serialization-kotlinx-json', version: version_ktor
     implementation group: 'io.ktor', name: 'ktor-client-core', version: version_ktor
     implementation group: 'io.ktor', name: 'ktor-client-okhttp', version: version_ktor
 
+    /** Kotlinx extensions */
+    implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: version_kotlinx_coroutines
+    implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-json', version: version_kotlinx_serialization
     implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-datetime', version: version_kotlinx_datetime
 }

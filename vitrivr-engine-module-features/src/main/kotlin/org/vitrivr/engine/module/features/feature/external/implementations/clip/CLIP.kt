@@ -2,6 +2,7 @@ package org.vitrivr.engine.module.features.feature.external.implementations.clip
 
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
@@ -18,7 +19,6 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.core.util.extension.toDataUrl
 import org.vitrivr.engine.module.features.feature.external.ExternalAnalyser
-import org.vitrivr.engine.module.features.feature.external.common.DenseRetriever
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.util.*
