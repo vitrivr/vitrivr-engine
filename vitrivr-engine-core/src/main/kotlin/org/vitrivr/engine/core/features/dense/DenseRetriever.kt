@@ -1,4 +1,4 @@
-package org.vitrivr.engine.module.features.feature.external.common
+package org.vitrivr.engine.core.features.dense
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flow
