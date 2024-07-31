@@ -104,7 +104,7 @@ data class RetrievableIdInputData(val id: String, override val comparison: Strin
  * Cannot be converted to a [ContentElement]
  */
 @Serializable
-data class BooleanInputData(val value: Boolean, override val comparison: String? = "=="): InputData(){
+data class BooleanInputData(val data: Boolean, override val comparison: String? = "=="): InputData(){
     override val type = InputType.BOOLEAN
     override fun toContent(): ContentElement<*> {
         throw UnsupportedOperationException("Cannot derive content from BooleanInputData")
@@ -116,7 +116,7 @@ data class BooleanInputData(val value: Boolean, override val comparison: String?
  * Cannot be converted to a [ContentElement]
  */
 @Serializable
-data class NumericInputData(val value: Double, override val comparison: String? = "==") : InputData(){
+data class NumericInputData(val data: Double, override val comparison: String? = "==") : InputData(){
     override val type = InputType.NUMERIC
     override fun toContent(): ContentElement<*> {
         throw UnsupportedOperationException("Cannot derive content from NumericInputData")
@@ -128,7 +128,7 @@ data class NumericInputData(val value: Double, override val comparison: String? 
  * Cannot be converted to a [ContentElement]
  */
 @Serializable
-data class DateInputData(val value: String, override val comparison: String? = "==") : InputData() {
+data class DateInputData(val data: String, override val comparison: String? = "==") : InputData() {
     override val type = InputType.DATE
     override fun toContent(): ContentElement<*> {throw UnsupportedOperationException("Cannot derive content from DateInputData")}
 
@@ -137,6 +137,6 @@ data class DateInputData(val value: String, override val comparison: String? = "
      */
     fun parseDate():Date{
         val formatter = SimpleDateFormat("YYYY-mm-dd", Locale.ENGLISH)
-        return formatter.parse(value)
+        return formatter.parse(data)
     }
 }

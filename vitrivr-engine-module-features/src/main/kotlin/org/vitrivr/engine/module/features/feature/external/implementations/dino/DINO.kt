@@ -1,9 +1,8 @@
 package org.vitrivr.engine.module.features.feature.external.implementations.dino
 
-import org.vitrivr.engine.module.features.feature.external.ExternalAnalyser
-import org.vitrivr.engine.module.features.feature.external.common.DenseRetriever
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -18,6 +17,7 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.core.util.extension.toDataUrl
+import org.vitrivr.engine.module.features.feature.external.ExternalAnalyser
 import java.util.*
 
 /**
@@ -55,7 +55,7 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
      *
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(384) { Value.Float(0.0f) })
+    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(384))
 
     /**
      * Generates and returns a new [Extractor] instance for this [DINO].
@@ -99,9 +99,9 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
      */
     override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, context: QueryContext): DenseRetriever<ImageContent> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        require(query is ProximityQuery<*> && query.value.first() is Value.Float) { "The query is not a ProximityQuery<Value.Float>." }
+        require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
         @Suppress("UNCHECKED_CAST")
-        return DenseRetriever(field, query as ProximityQuery<Value.Float>, context)
+        return DenseRetriever(field, query as ProximityQuery<Value.FloatVector>, context)
     }
 
     /**

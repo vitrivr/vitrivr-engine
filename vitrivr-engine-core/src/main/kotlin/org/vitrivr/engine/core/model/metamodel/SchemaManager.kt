@@ -21,7 +21,7 @@ import kotlin.concurrent.write
  * The [SchemaManager] maps [Schema] definitions to database [Connection] objects.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.0.1
  */
 class SchemaManager {
     /** An internal [HashMap] of all open [Connection]. */
@@ -55,7 +55,7 @@ class SchemaManager {
                 throw IllegalArgumentException("Field names must not have a dot (.) in their name.")
             }
             @Suppress("UNCHECKED_CAST")
-            schema.addField(it.name, analyser as Analyser<ContentElement<*>, Descriptor>, it.parameters)
+            schema.addField(it.name, analyser as Analyser<ContentElement<*>, Descriptor>, it.parameters, it.indexes)
         }
         config.resolvers.map {
             schema.addResolver(it.key, (loadServiceForName<ResolverFactory>(it.value.factory) ?: throw IllegalArgumentException("Failed to find resolver factory implementation for '${it.value.factory}'.")).newResolver(schema, it.value.parameters))

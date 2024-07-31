@@ -63,11 +63,13 @@ class PersistingSink(override val input: Operator<Retrievable>, val context: Ind
         collect(retrievable, Triple(retrievables, relationships, descriptors))
 
         /* Write entities to database. */
-        this.writer.addAll(retrievables)
-        this.writer.connectAll(relationships)
-        for ((f, d) in descriptors) {
-            val writer = f.let { field -> this.descriptorWriters.computeIfAbsent(field) { it.getWriter() } } as? DescriptorWriter<Descriptor>
-            writer?.addAll(d)
+        this.writer.connection.withTransaction {
+            this.writer.addAll(retrievables)
+            this.writer.connectAll(relationships)
+            for ((f, d) in descriptors) {
+                val writer = f.let { field -> this.descriptorWriters.computeIfAbsent(field) { it.getWriter() } } as? DescriptorWriter<Descriptor>
+                writer?.addAll(d)
+            }
         }
 
         logger.debug { "Persisted ${retrievables.size} retrievables, ${relationships.size} relationships and ${descriptors.values.sumBy { it.size }} descriptors." }

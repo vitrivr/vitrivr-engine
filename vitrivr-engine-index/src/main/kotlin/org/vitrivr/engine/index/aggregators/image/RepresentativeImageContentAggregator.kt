@@ -56,7 +56,7 @@ class RepresentativeImageContentAggregator : TransformerFactory {
             images.forEach { imageContent ->
                 require(imageContent.height == height && imageContent.width == width) { "Unable to aggregate images! All images must have same dimension." }
                 imageContent.content.getRGBArray().forEachIndexed { index, color ->
-                    colors[index] += RGBByteColorContainer.fromRGB(color)
+                    colors[index] += RGBByteColorContainer(color)
                 }
             }
 
@@ -68,7 +68,7 @@ class RepresentativeImageContentAggregator : TransformerFactory {
             val mostRepresentative = images.minBy { imageContent ->
 
                 imageContent.content.getRGBArray().mapIndexed { index, color ->
-                    RGBByteColorContainer.fromRGB(color).toFloatContainer().distanceTo(colors[index])
+                    RGBByteColorContainer(color).toFloatContainer().distanceTo(colors[index])
                 }.sum()
 
             }

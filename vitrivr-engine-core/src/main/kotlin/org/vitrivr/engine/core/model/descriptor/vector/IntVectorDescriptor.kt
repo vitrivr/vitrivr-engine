@@ -1,6 +1,7 @@
 package org.vitrivr.engine.core.model.descriptor.vector
 
-import org.vitrivr.engine.core.model.descriptor.FieldSchema
+import org.vitrivr.engine.core.model.descriptor.Attribute
+import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor.Companion.VECTOR_ATTRIBUTE_NAME
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Type
@@ -12,19 +13,19 @@ import java.util.*
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 
 data class IntVectorDescriptor(
     override var id: UUID = UUID.randomUUID(),
     override var retrievableId: RetrievableId? = null,
-    override val vector: List<Value.Int>,
+    override val vector: Value.IntVector,
     override val field: Schema.Field<*, IntVectorDescriptor>? = null
-) : VectorDescriptor<Value.Int> {
+) : VectorDescriptor<Value.IntVector> {
     /**
-     * Returns the [FieldSchema] [List ]of this [IntVectorDescriptor].
+     * Returns the [Attribute] [List ]of this [IntVectorDescriptor].
      *
-     * @return [List] of [FieldSchema]
+     * @return [List] of [Attribute]
      */
-    override fun schema(): List<FieldSchema> = listOf(FieldSchema("vector", Type.INT, intArrayOf(this.dimensionality)))
+    override fun layout(): List<Attribute> = listOf(Attribute(VECTOR_ATTRIBUTE_NAME, Type.Int))
 }
