@@ -5,44 +5,62 @@ import org.vitrivr.engine.core.operators.transform.shape.MergeType
 import java.util.*
 
 /**
- * This [Operation] class represents a single operation in the ingest pipeline.
- *
- * @author Ralph Gasser
- * @version 1.0.0
+ * This sealed class represents a base operation in the ingest pipeline.
  */
-data class Operation(val name: String, val opName: String, val opConfig: OperatorConfig, val merge: MergeType? = null) {
+sealed class BaseOperation(val name: String, val merge: MergeType?) {
 
-    /** A [LinkedList] of all input [Operation]s. */
-    private val _input = LinkedList<Operation>()
+    /** A [LinkedList] of all input [BaseOperation]s. */
+    private val _input = LinkedList<BaseOperation>()
 
-    /** A [LinkedList] of all output [Operation]s. */
-    private val _output = LinkedList<Operation>()
+    /** A [LinkedList] of all output [BaseOperation]s. */
+    private val _output = LinkedList<BaseOperation>()
 
-    /** A [List] of all input [Operation]s. */
-    val input: List<Operation>
+    /** A [List] of all input [BaseOperation]s. */
+    val input: List<BaseOperation>
         get() = Collections.unmodifiableList(this._input)
 
-    /** A [List] of all output [Operation]s. */
-    val output: List<Operation>
+    /** A [List] of all output [BaseOperation]s. */
+    val output: List<BaseOperation>
         get() = Collections.unmodifiableList(this._output)
 
     /**
-     * Adds an input [Operation] to this [Operation].
+     * Adds an input [BaseOperation] to this [BaseOperation].
      *
-     * @param operation The [Operation] to add.
+     * @param operation The [BaseOperation] to add.
      */
-    fun addInput(operation: Operation) {
+    fun addInput(operation: BaseOperation) {
         this._input.add(operation)
-        operation._output.add(this)
+        operation.internalAddOutput(this)
     }
 
     /**
-     * Adds an output [Operation] to this [Operation].
+     * Adds an output [BaseOperation] to this [BaseOperation].
      *
-     * @param operation The [Operation] to add.
+     * @param operation The [BaseOperation] to add.
      */
-    fun addOutput(operation: Operation) {
+    fun addOutput(operation: BaseOperation) {
         this._output.add(operation)
-        operation._input.add(this)
+        operation.internalAddInput(this)
+    }
+
+    protected fun internalAddInput(operation: BaseOperation) {
+        this._input.add(operation)
+    }
+
+    protected fun internalAddOutput(operation: BaseOperation) {
+        this._output.add(operation)
     }
 }
+
+/**
+ * This [Operation] class represents a single operation in the ingest pipeline.
+ *
+ * @param opName The specific operation name.
+ * @param opConfig The configuration for the operation.
+ */
+class Operation(name: String, val opName: String, val opConfig: OperatorConfig, merge: MergeType? = null) : BaseOperation(name, merge)
+
+/**
+ * This [PassthroughOperation] class represents a passthrough operation in the ingest pipeline.
+ */
+class PassthroughOperation(name: String, merge: MergeType? = null) : BaseOperation(name, merge)
