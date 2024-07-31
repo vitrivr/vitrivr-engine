@@ -10,6 +10,7 @@ import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.database.jsonl.model.AttributeContainerList
+import org.vitrivr.engine.database.jsonl.retrievable.JsonlRetrievableReader
 import java.io.BufferedReader
 import java.io.FileReader
 import java.io.InputStreamReader
@@ -58,6 +59,19 @@ abstract class AbstractJsonlReader<D : Descriptor>(
 
     }
 
+    override fun queryAndJoin(query: Query): Sequence<Retrieved> {
+        val results = query(query).toList()
+        val ids = results.mapNotNull { it.retrievableId }
+
+        val retrievables = connection.getRetrievableReader().getAll(ids).associateBy { it.id }
+
+        return results.map { descriptor ->
+            val retrieved = retrievables[descriptor.retrievableId]!!
+            retrieved.addDescriptor(descriptor)
+            retrieved as Retrieved
+        }.asSequence()
+    }
+
     override fun getForRetrievable(retrievableId: RetrievableId): Sequence<D> {
         return getAll().filter { it.retrievableId == retrievableId}
     }
@@ -67,10 +81,6 @@ abstract class AbstractJsonlReader<D : Descriptor>(
         return getAll().filter { ids.contains(it.retrievableId) }
     }
 
-
-    override fun queryAndJoin(query: Query): Sequence<Retrieved> {
-        TODO("Not yet implemented")
-    }
 
     override fun count(): Long {
         return BufferedReader(InputStreamReader(path.inputStream())).lineSequence().count().toLong()

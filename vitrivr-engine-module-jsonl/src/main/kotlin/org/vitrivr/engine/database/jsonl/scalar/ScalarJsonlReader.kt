@@ -6,6 +6,7 @@ import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
+import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.database.jsonl.AbstractJsonlReader
 import org.vitrivr.engine.database.jsonl.model.AttributeContainerList
@@ -44,6 +45,7 @@ class ScalarJsonlReader(
         is SimpleBooleanQuery<*> -> this.queryBoolean(query)
         else -> throw UnsupportedOperationException("The provided query type ${query::class.simpleName} is not supported by this reader.")
     }
+
 
     private fun queryFulltext(fulltextQuery: SimpleFulltextQuery): Sequence<ScalarDescriptor<*>> {
 
