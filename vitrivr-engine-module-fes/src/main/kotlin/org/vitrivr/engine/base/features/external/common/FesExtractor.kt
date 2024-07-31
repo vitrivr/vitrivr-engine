@@ -11,7 +11,7 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import java.util.*
-import java.util.logging.Logger
+import org.vitrivr.engine.core.operators.ingest.Extractor
 
 private val logger: KLogger = KotlinLogging.logger {}
 
@@ -28,14 +28,13 @@ abstract class FesExtractor<D:Descriptor,C:ContentElement<*>, A:ExternalFesAnaly
     bufferSize: Int,
     private val contentSources : Set<String>?
 ) : AbstractBatchedExtractor<C, D>(input, field, bufferSize) {
-
-
     /**
      * Checks if the [Retrievable] matches this [Extractor] and should thus be processed.
      *
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,
      */
+    @Suppress("UNCHECKED_CAST")
     override fun matches(retrievable: Retrievable): Boolean {
         val analyser = field!!.analyser as A
         return retrievable.findContent { contentItem ->
@@ -52,6 +51,7 @@ abstract class FesExtractor<D:Descriptor,C:ContentElement<*>, A:ExternalFesAnaly
      * @param retrievables The [Retrievable]s to extract descriptors from.
      * @return List of resulting [Descriptor]s.
      */
+    @Suppress("UNCHECKED_CAST")
     override fun extract(retrievables: List<Retrievable>): List<List<D>> {
         val analyser = field!!.analyser as A
 
@@ -62,7 +62,7 @@ abstract class FesExtractor<D:Descriptor,C:ContentElement<*>, A:ExternalFesAnaly
                 analyser.contentClasses.any { contentClass ->
                     contentClass.isInstance(contentItem) && retrievableContentIds?.contains(contentItem.id) ?: true
                 }
-            }.map{ it as C}
+            }.map{ it as C }
         }
 
         val idString: String = retrievables.joinToString(", ") { it.id.toString() }
