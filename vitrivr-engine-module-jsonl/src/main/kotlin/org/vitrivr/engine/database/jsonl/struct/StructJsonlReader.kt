@@ -50,7 +50,14 @@ class StructJsonlReader(
     }
 
     private fun queryFulltext(fulltextQuery: SimpleFulltextQuery): Sequence<StructDescriptor> {
-        TODO()
+
+        val queryString = fulltextQuery.value.value
+        val attributeName = fulltextQuery.attributeName ?: return emptySequence()
+
+        return getAll().filter { descriptor ->
+            (descriptor.values()[attributeName]!! as Value.String).value.contains(queryString)
+        }
+
     }
 
     private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<StructDescriptor> = getAll().filter { descriptor ->

@@ -4,7 +4,9 @@ import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
+import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.types.Value
+import org.vitrivr.engine.core.util.knn.FixedSizePriorityQueue
 import org.vitrivr.engine.database.jsonl.AbstractJsonlReader
 import org.vitrivr.engine.database.jsonl.model.AttributeContainerList
 import org.vitrivr.engine.database.jsonl.JsonlConnection
@@ -61,8 +63,43 @@ class VectorJsonlReader(
         else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by this reader.")
     }
 
-    private fun queryProximity(query: ProximityQuery<*>): Sequence<VectorDescriptor<*>> {
+
+    private fun queryAndJoinProximity(query: ProximityQuery<*>): Sequence<Retrieved> {
+
+        val queue = knn(query)
+
         TODO()
+    }
+
+    private fun queryProximity(query: ProximityQuery<*>): Sequence<VectorDescriptor<*>> = knn(query).asSequence().map { it.first }
+
+
+    private fun knn(query: ProximityQuery<*>): FixedSizePriorityQueue<Pair<VectorDescriptor<*>, Float>> {
+
+        val queue = FixedSizePriorityQueue(query.k.toInt(),
+            Comparator<Pair<VectorDescriptor<*>, Float>> { p0, p1 ->
+                p0.second.compareTo(p1.second) //TODO consider direction
+            })
+
+        getAll().forEach { descriptor ->
+            val dist = distance(query, descriptor.vector)
+            queue.add(descriptor to dist)
+        }
+
+        return queue
+
+    }
+
+    private fun distance(query: ProximityQuery<*>, vector: Value.Vector<*>): Float {
+        return when (query.value) {
+            is Value.FloatVector -> query.distance(query.value as Value.FloatVector, vector as Value.FloatVector)
+            is Value.DoubleVector -> query.distance(
+                query.value as Value.DoubleVector,
+                vector as Value.DoubleVector
+            ).toFloat()
+
+            else -> error("Unsupported query type ${query.value::class.simpleName}")
+        }
     }
 
 

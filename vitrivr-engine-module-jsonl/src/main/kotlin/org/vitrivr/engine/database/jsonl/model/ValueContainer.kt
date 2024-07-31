@@ -3,12 +3,11 @@ package org.vitrivr.engine.database.jsonl.model
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.serializer.DateSerializer
 import org.vitrivr.engine.core.model.serializer.UUIDSerializer
-import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 import java.util.*
 
 @Serializable
-sealed class ValueContainer(val innerType: Type) { //TODO explicitly use innerType for serialization
+sealed class ValueContainer {
 
     companion object {
         fun fromValue(value: Value<*>): ValueContainer = when (value) {
@@ -36,82 +35,82 @@ sealed class ValueContainer(val innerType: Type) { //TODO explicitly use innerTy
 }
 
 @Serializable
-class BooleanValueContainer(private val value: Boolean) : ValueContainer(Type.Boolean) {
+class BooleanValueContainer(private val value: Boolean) : ValueContainer() {
     override fun toValue(): Value<Boolean> = Value.Boolean(value)
 }
 
 @Serializable
-class ByteValueContainer(private val value: Byte) : ValueContainer(Type.Byte) {
+class ByteValueContainer(private val value: Byte) : ValueContainer() {
     override fun toValue(): Value<Byte> = Value.Byte(value)
 }
 
 @Serializable
 class DateTimeValueContainer(@Serializable(DateSerializer::class) private val value: Date) :
-    ValueContainer(Type.Datetime) {
+    ValueContainer() {
     override fun toValue(): Value<Date> = Value.DateTime(value)
 }
 
 @Serializable
-class DoubleValueContainer(private val value: Double) : ValueContainer(Type.Double) {
+class DoubleValueContainer(private val value: Double) : ValueContainer() {
     override fun toValue(): Value<Double> = Value.Double(value)
 }
 
 @Serializable
-class FloatValueContainer(private val value: Float) : ValueContainer(Type.Float) {
+class FloatValueContainer(private val value: Float) : ValueContainer() {
     override fun toValue(): Value<Float> = Value.Float(value)
 }
 
 @Serializable
-class IntValueContainer(private val value: Int) : ValueContainer(Type.Int) {
+class IntValueContainer(private val value: Int) : ValueContainer() {
     override fun toValue(): Value<Int> = Value.Int(value)
 }
 
 @Serializable
-class LongValueContainer(private val value: Long) : ValueContainer(Type.Long) {
+class LongValueContainer(private val value: Long) : ValueContainer() {
     override fun toValue(): Value<Long> = Value.Long(value)
 }
 
 @Serializable
-class ShortValueContainer(private val value: Short) : ValueContainer(Type.Short) {
+class ShortValueContainer(private val value: Short) : ValueContainer() {
     override fun toValue(): Value<Short> = Value.Short(value)
 }
 
 @Serializable
-class StringValueContainer(private val value: String) : ValueContainer(Type.String) {
+class StringValueContainer(private val value: String) : ValueContainer() {
     override fun toValue(): Value<String> = Value.String(value)
 }
 
 @Serializable
-class TextValueContainer(private val value: String) : ValueContainer(Type.Text) {
+class TextValueContainer(private val value: String) : ValueContainer() {
     override fun toValue(): Value<String> = Value.Text(value)
 }
 
 @Serializable
-class UuidValueContainer(@Serializable(UUIDSerializer::class) private val value: UUID) : ValueContainer(Type.UUID) {
+class UuidValueContainer(@Serializable(UUIDSerializer::class) private val value: UUID) : ValueContainer() {
     override fun toValue(): Value<UUID> = Value.UUIDValue(value)
 }
 
 @Serializable
-class BooleanVectorValueContainer(private val value: BooleanArray) : ValueContainer(Type.BooleanVector(value.size)) {
+class BooleanVectorValueContainer(private val value: BooleanArray) : ValueContainer() {
     override fun toValue(): Value<BooleanArray> = Value.BooleanVector(value)
 }
 
 @Serializable
-class DoubleVectorValueContainer(private val value: DoubleArray) : ValueContainer(Type.DoubleVector(value.size)) {
+class DoubleVectorValueContainer(private val value: DoubleArray) : ValueContainer() {
     override fun toValue(): Value<DoubleArray> = Value.DoubleVector(value)
 }
 
 @Serializable
-class FloatVectorValueContainer(private val value: FloatArray) : ValueContainer(Type.FloatVector(value.size)) {
+class FloatVectorValueContainer(private val value: FloatArray) : ValueContainer() {
     override fun toValue(): Value<FloatArray> = Value.FloatVector(value)
 }
 
 @Serializable
-class IntVectorValueContainer(private val value: IntArray) : ValueContainer(Type.IntVector(value.size)) {
+class IntVectorValueContainer(private val value: IntArray) : ValueContainer() {
     override fun toValue(): Value<IntArray> = Value.IntVector(value)
 }
 
 @Serializable
-class LongVectorValueContainer(private val value: LongArray) : ValueContainer(Type.LongVector(value.size)) {
+class LongVectorValueContainer(private val value: LongArray) : ValueContainer() {
     override fun toValue(): Value<LongArray> = Value.LongVector(value)
 }
