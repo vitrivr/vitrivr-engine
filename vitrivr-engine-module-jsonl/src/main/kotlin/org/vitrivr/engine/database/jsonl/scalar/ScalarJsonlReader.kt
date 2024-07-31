@@ -46,7 +46,14 @@ class ScalarJsonlReader(
     }
 
     private fun queryFulltext(fulltextQuery: SimpleFulltextQuery): Sequence<ScalarDescriptor<*>> {
-        TODO()
+
+        val queryString = fulltextQuery.value.value
+        val attributeName = fulltextQuery.attributeName ?: return emptySequence()
+
+        return getAll().filter { descriptor ->
+            (descriptor.values()[attributeName]!! as Value.String).value.contains(queryString)
+        }
+
     }
 
     private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<ScalarDescriptor<*>> =
