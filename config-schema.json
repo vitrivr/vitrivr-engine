@@ -42,12 +42,9 @@
           }
         }
       },
-      "extractionPipelines": [
-        {
-          "name": "ingestion",
-          "path": "./config-ingestion.json"
-        }
-      ]
+      "extractionPipelines": {
+        "ingestion": { "path": "./config-ingestion.json" }
+      }
     }
   ]
 }

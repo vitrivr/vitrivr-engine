@@ -45,7 +45,7 @@ data class SchemaConfig(
     /**
      * List of [PipelineConfig]s that are part of this [SchemaConfig].
      */
-    val extractionPipelines: List<PipelineConfig> = emptyList()
+    val extractionPipelines: Map<String, PipelineConfig> = emptyMap()
 ) {
 
     companion object {
