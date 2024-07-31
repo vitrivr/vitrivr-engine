@@ -3,8 +3,10 @@ package org.vitrivr.engine.database.jsonl.vector
 import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.basics.SortOrder
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.util.knn.FixedSizePriorityQueue
 import org.vitrivr.engine.database.jsonl.AbstractJsonlReader
@@ -21,8 +23,8 @@ class VectorJsonlReader(
     override fun toDescriptor(list: AttributeContainerList): VectorDescriptor<*> {
 
         val map = list.list.associateBy { it.attribute.name }
-        val retrievableId = (map[DESCRIPTOR_ID_COLUMN_NAME]?.value!!.toValue() as Value.UUIDValue).value
-        val descriptorId = (map[RETRIEVABLE_ID_COLUMN_NAME]?.value!!.toValue() as Value.UUIDValue).value
+        val retrievableId = (map[RETRIEVABLE_ID_COLUMN_NAME]?.value!!.toValue() as Value.UUIDValue).value
+        val descriptorId = (map[DESCRIPTOR_ID_COLUMN_NAME]?.value!!.toValue() as Value.UUIDValue).value
         val value = map["vector"]?.value!!.toValue()
 
         return when (prototype) {
@@ -63,23 +65,45 @@ class VectorJsonlReader(
         else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by this reader.")
     }
 
-
-    private fun queryAndJoinProximity(query: ProximityQuery<*>): Sequence<Retrieved> {
-
-        val queue = knn(query)
-
-        TODO()
+    override fun queryAndJoin(query: Query): Sequence<Retrieved> = when (query) {
+        is ProximityQuery<*> -> queryAndJoinProximity(query)
+        else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by this reader.")
     }
 
-    private fun queryProximity(query: ProximityQuery<*>): Sequence<VectorDescriptor<*>> = knn(query).asSequence().map { it.first }
+
+    private fun queryAndJoinProximity(query: ProximityQuery<*>): Sequence<Retrieved> {
+        val queue = knn(query)
+
+        val ids = queue.mapNotNull { it.first.retrievableId }
+
+        val retrievables = connection.getRetrievableReader().getAll(ids).associateBy { it.id }
+
+        return queue.map {
+            val retrieved = retrievables[it.first.retrievableId]!!
+            retrieved.addDescriptor(it.first)
+            retrieved.addAttribute(DistanceAttribute(it.second))
+            retrieved as Retrieved
+        }.asSequence()
+
+    }
+
+    private fun queryProximity(query: ProximityQuery<*>): Sequence<VectorDescriptor<*>> =
+        knn(query).asSequence().map { it.first }
 
 
     private fun knn(query: ProximityQuery<*>): FixedSizePriorityQueue<Pair<VectorDescriptor<*>, Float>> {
 
         val queue = FixedSizePriorityQueue(query.k.toInt(),
-            Comparator<Pair<VectorDescriptor<*>, Float>> { p0, p1 ->
-                p0.second.compareTo(p1.second) //TODO consider direction
-            })
+            when (query.order) {
+                SortOrder.ASC -> Comparator<Pair<VectorDescriptor<*>, Float>> { p0, p1 ->
+                    p0.second.compareTo(p1.second)
+                }
+
+                SortOrder.DESC -> Comparator { p0, p1 ->
+                    p1.second.compareTo(p0.second)
+                }
+            }
+        )
 
         getAll().forEach { descriptor ->
             val dist = distance(query, descriptor.vector)

@@ -6,12 +6,14 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
+import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.database.jsonl.AbstractJsonlReader
 import org.vitrivr.engine.database.jsonl.JsonlConnection
 import org.vitrivr.engine.database.jsonl.JsonlConnection.Companion.DESCRIPTOR_ID_COLUMN_NAME
 import org.vitrivr.engine.database.jsonl.JsonlConnection.Companion.RETRIEVABLE_ID_COLUMN_NAME
 import org.vitrivr.engine.database.jsonl.model.AttributeContainerList
+import org.vitrivr.engine.database.jsonl.retrievable.JsonlRetrievableReader
 import kotlin.reflect.full.primaryConstructor
 
 class StructJsonlReader(
@@ -48,6 +50,7 @@ class StructJsonlReader(
         is SimpleBooleanQuery<*> -> this.queryBoolean(query)
         else -> throw UnsupportedOperationException("The provided query type ${query::class.simpleName} is not supported by this reader.")
     }
+
 
     private fun queryFulltext(fulltextQuery: SimpleFulltextQuery): Sequence<StructDescriptor> {
 
