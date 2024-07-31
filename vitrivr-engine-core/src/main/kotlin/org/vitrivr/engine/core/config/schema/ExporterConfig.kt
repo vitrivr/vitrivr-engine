@@ -11,10 +11,6 @@ import org.vitrivr.engine.core.resolver.Resolver
 @Serializable
 data class ExporterConfig(
     /**
-     * The name of the [Exporter].
-     */
-    val name: String,
-    /**
      * The simple or fully qualified class name of the [ExporterFactory]
      */
     val factory: String,

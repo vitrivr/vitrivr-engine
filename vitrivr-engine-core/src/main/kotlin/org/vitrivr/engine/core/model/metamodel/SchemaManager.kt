@@ -60,12 +60,12 @@ class SchemaManager {
         config.resolvers.map {
             schema.addResolver(it.key, (loadServiceForName<ResolverFactory>(it.value.factory) ?: throw IllegalArgumentException("Failed to find resolver factory implementation for '${it.value.factory}'.")).newResolver(schema, it.value.parameters))
         }
-        config.exporters.map {
+        config.exporters.forEach { (name, exporterConfig) ->
             schema.addExporter(
-                it.name,
-                loadServiceForName<ExporterFactory>(it.factory) ?: throw IllegalArgumentException("Failed to find exporter factory implementation for '${it.factory}'."),
-                it.parameters,
-                it.resolverName
+                name,
+                loadServiceForName<ExporterFactory>(exporterConfig.factory) ?: throw IllegalArgumentException("Failed to find exporter factory implementation for '${exporterConfig.factory}'."),
+                exporterConfig.parameters,
+                exporterConfig.resolverName
             )
         }
         config.extractionPipelines.map {

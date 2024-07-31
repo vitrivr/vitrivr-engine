@@ -23,9 +23,8 @@
           }
         }
       },
-      "exporters": [
-        {
-          "name": "thumbnail",
+      "exporters": {
+        "thumbnail": {
           "factory": "ThumbnailExporter",
           "resolverName": "disk",
           "parameters": {
@@ -33,8 +32,7 @@
             "mimeType": "JPG"
           }
         },
-        {
-          "name": "preview",
+        "preview": {
           "factory": "VideoPreviewExporter",
           "resolverName": "disk",
           "parameters": {
@@ -43,7 +41,7 @@
             "previewTimeSec": "5"
           }
         }
-      ],
+      },
       "extractionPipelines": [
         {
           "name": "ingestion",
