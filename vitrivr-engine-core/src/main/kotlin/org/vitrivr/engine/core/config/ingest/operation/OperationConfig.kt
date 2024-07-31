@@ -15,7 +15,7 @@ import org.vitrivr.engine.core.operators.transform.shape.MergeType
 @Serializable
 data class OperationConfig(
     /** The name of the [OperatorConfig] at this stage. Must be a name of the [IngestionConfig.operators] property. */
-    val operator: String,
+    val operator: String? = null,
 
     /** The names of the [OperationConfig] that follow this operation. Must be a name of the [IngestionConfig.operations] property. */
     val inputs: List<String> = emptyList(),

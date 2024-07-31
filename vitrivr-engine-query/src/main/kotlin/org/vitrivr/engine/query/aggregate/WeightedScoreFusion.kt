@@ -94,11 +94,6 @@ class WeightedScoreFusion(
                 retrieved.filteredAttribute(ScoreAttribute::class.java)
                 retrieved.addAttribute(ScoreAttribute.Unbound(score))
 
-                if(retrieved.id == UUID.fromString("aea15b88-79a2-4da7-8612-95ed65cf6475")){
-                    println("Score: $score")
-                    println(retrieveds)
-                }
-
                 emit(retrieved)
 
             }

@@ -8,14 +8,11 @@ import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.ContentType
 import org.vitrivr.engine.core.model.content.factory.ContentFactory
-import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 import org.vitrivr.engine.core.operators.general.TransformerFactory
-import java.time.Year
-import javax.swing.text.AbstractDocument.Content
 
 private val logger = KotlinLogging.logger {}
 
@@ -25,9 +22,9 @@ private val logger = KotlinLogging.logger {}
  * @author Laura Rettig
  * @version 1.0.0
  */
-class ContentMergingTransformer : TransformerFactory {
+class TemplateTextTransformer : TransformerFactory {
     override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
-        val template = context[name, "template"] ?: throw IllegalArgumentException("The content merging transformer requires a template.")
+        val template = context[name, "template"] ?: throw IllegalArgumentException("The template text transformer requires a template.")
         val regex = "\\$\\{([^}]+)\\}".toRegex()
         val contentFields = regex.findAll(template).map { it.groupValues[1] }.toList()
         val defaultValue = context[name, "defaultValue"] ?: ""
