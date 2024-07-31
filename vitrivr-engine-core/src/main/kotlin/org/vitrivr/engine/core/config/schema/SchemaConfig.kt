@@ -28,7 +28,7 @@ data class SchemaConfig(
     /**
      * List of [FieldConfig]s that are part of this [SchemaConfig].
      */
-    val fields: List<FieldConfig>,
+    val fields: Map<String, FieldConfig>,
 
     /**
      * The list of [ResolverConfig]s that are part of this [SchemaConfig].

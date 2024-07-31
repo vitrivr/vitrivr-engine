@@ -9,24 +9,12 @@
           "port": "1865"
         }
       },
-      "fields": [
-        {
-          "name": "averagecolor",
-          "factory": "AverageColor"
-        },
-        {
-          "name": "file",
-          "factory": "FileSourceMetadata"
-        },
-        {
-          "name": "time",
-          "factory": "TemporalMetadata"
-        },
-        {
-          "name": "video",
-          "factory": "VideoSourceMetadata"
-        }
-      ],
+      "fields": {
+        "averagecolor": { "factory": "AverageColor" },
+        "file": { "factory": "FileSourceMetadata" },
+        "time": { "factory":  "TemporalMetadata" },
+        "video": { "factory":  "VideoSourceMetadata" }
+      },
       "resolvers": {
         "disk": {
           "factory": "DiskResolver",

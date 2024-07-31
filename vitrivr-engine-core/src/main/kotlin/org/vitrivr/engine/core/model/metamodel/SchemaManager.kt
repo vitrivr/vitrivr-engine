@@ -49,13 +49,13 @@ class SchemaManager {
         /* Create new connection using reflection. */
         val connection = connectionProvider.openConnection(config.name, config.connection.parameters)
         val schema = Schema(config.name, connection)
-        config.fields.map {
-            val analyser = loadServiceForName<Analyser<*,*>>(it.factory) ?: throw IllegalArgumentException("Failed to find a factory implementation for '${it.factory}'.")
-            if(it.name.contains(".")){
+        config.fields.forEach { (name, fieldConfig) ->
+            val analyser = loadServiceForName<Analyser<*,*>>(fieldConfig.factory) ?: throw IllegalArgumentException("Failed to find a factory implementation for '${fieldConfig.factory}'.")
+            if(name.contains(".")){
                 throw IllegalArgumentException("Field names must not have a dot (.) in their name.")
             }
             @Suppress("UNCHECKED_CAST")
-            schema.addField(it.name, analyser as Analyser<ContentElement<*>, Descriptor>, it.parameters, it.indexes)
+            schema.addField(name, analyser as Analyser<ContentElement<*>, Descriptor>, fieldConfig.parameters, fieldConfig.indexes)
         }
         config.resolvers.map {
             schema.addResolver(it.key, (loadServiceForName<ResolverFactory>(it.value.factory) ?: throw IllegalArgumentException("Failed to find resolver factory implementation for '${it.value.factory}'.")).newResolver(schema, it.value.parameters))
