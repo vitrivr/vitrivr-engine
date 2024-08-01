@@ -22,7 +22,8 @@ class MediaDimensionsDescriptor(
     override var id: DescriptorId,
     override var retrievableId: RetrievableId?,
     values: Map<AttributeName, Value<*>?>,
-    override val field: Schema.Field<*, MediaDimensionsDescriptor>? = null
+    override val field: Schema.Field<*, MediaDimensionsDescriptor>? = null,
+    override val sourceName: String? = null
 ) : MapStructDescriptor(id, retrievableId, SCHEMA, values, field) {
     companion object {
         /** The field schema associated with a [VideoSourceMetadataDescriptor]. */

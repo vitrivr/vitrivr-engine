@@ -209,7 +209,7 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
         Assertions.assertTrue(this.testConnection.getRetrievableWriter().addAll(retrievables))
 
         val descriptors = retrievables.map {
-            FileSourceMetadataDescriptor(UUID.randomUUID(), it.id, this.generateRandomPath(random), Value.Long(random.nextLong(0, 100_000_000L)), this.field)
+            FileSourceMetadataDescriptor(UUID.randomUUID(), it.id, this.generateRandomPath(random), Value.Long(random.nextLong(0, 100_000_000L)), this.field, "TEST")
         }
         Assertions.assertTrue(writer.addAll(descriptors))
         return descriptors

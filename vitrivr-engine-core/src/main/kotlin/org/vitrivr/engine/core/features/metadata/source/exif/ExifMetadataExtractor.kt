@@ -46,7 +46,7 @@ private fun convertDate(date: String): Date? {
     for (pattern in DATE_FORMAT_PATTERNS) {
         try {
             return SimpleDateFormat(pattern).parse(date)
-        } catch (e: ParseException) {
+        } catch (_: ParseException) {
         }
     }
     logger.warn { "Failed to parse date: $date" }
@@ -142,6 +142,6 @@ class ExifMetadataExtractor(
         }
         logger.info { "Extracted fields: ${columnValues.entries.joinToString { (key, value) -> "$key = ${value.value}" }}" }
 
-        return listOf(MapStructDescriptor(UUID.randomUUID(), retrievable.id, attributes.values.toList(), columnValues.mapValues { it.value }, field = this.field))
+        return listOf(MapStructDescriptor(UUID.randomUUID(), retrievable.id, attributes.values.toList(), columnValues.mapValues { it.value }, field = this.field, ExifMetadataExtractor::class.java.simpleName))
     }
 }

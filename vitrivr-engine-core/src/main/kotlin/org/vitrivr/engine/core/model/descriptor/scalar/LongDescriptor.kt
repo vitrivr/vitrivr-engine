@@ -19,7 +19,8 @@ data class LongDescriptor(
     override var id: DescriptorId,
     override var retrievableId: RetrievableId?,
     override val value: Value.Long,
-    override val field: Schema.Field<*, LongDescriptor>? = null
+    override val field: Schema.Field<*, LongDescriptor>? = null,
+    override val sourceName: String? = null
 ) : ScalarDescriptor<Value.Long> {
     companion object {
         private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.Long))

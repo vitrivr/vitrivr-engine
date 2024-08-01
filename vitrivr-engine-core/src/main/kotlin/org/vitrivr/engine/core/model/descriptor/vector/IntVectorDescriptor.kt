@@ -20,7 +20,8 @@ data class IntVectorDescriptor(
     override var id: UUID = UUID.randomUUID(),
     override var retrievableId: RetrievableId? = null,
     override val vector: Value.IntVector,
-    override val field: Schema.Field<*, IntVectorDescriptor>? = null
+    override val field: Schema.Field<*, IntVectorDescriptor>? = null,
+    override val sourceName: String? = null
 ) : VectorDescriptor<Value.IntVector> {
     /**
      * Returns the [Attribute] [List ]of this [IntVectorDescriptor].

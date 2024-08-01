@@ -51,7 +51,8 @@ class FileSourceMetadataExtractor(input: Operator<Retrievable>, field: Schema.Fi
                     "path" to Value.String(source.path.absolutePathString()),
                     "size" to Value.Long(Files.size(source.path))
                 ),
-                this@FileSourceMetadataExtractor.field
+                this@FileSourceMetadataExtractor.field,
+                FileSourceMetadataExtractor::class.java.simpleName
             )
         )
     }

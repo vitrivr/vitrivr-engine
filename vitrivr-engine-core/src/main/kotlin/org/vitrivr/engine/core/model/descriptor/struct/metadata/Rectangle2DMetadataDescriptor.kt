@@ -21,7 +21,8 @@ class Rectangle2DMetadataDescriptor(
     override var id: DescriptorId,
     override var retrievableId: RetrievableId?,
     values: Map<AttributeName, Value<*>?>,
-    override val field: Schema.Field<*, Rectangle2DMetadataDescriptor>? = null
+    override val field: Schema.Field<*, Rectangle2DMetadataDescriptor>? = null,
+    override val sourceName: String? = null
 ) : MapStructDescriptor(id, retrievableId, SCHEMA, values, field) {
 
     companion object {

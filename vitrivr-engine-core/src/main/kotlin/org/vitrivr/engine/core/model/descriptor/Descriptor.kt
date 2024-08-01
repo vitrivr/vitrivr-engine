@@ -33,6 +33,9 @@ interface Descriptor : Persistable {
     override val transient: Boolean
         get() = this.field != null
 
+    /** Indicator of what generated that descriptor */
+    val sourceName: String?
+
     /**
      * Returns a  [Attribute] [List] for this [Descriptor].
      *

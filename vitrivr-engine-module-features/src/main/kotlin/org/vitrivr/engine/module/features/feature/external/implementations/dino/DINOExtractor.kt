@@ -38,7 +38,7 @@ class DINOExtractor(input: Operator<Retrievable>, field: Schema.Field<ImageConte
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
         val content = retrievable.content.filterIsInstance<ImageContent>()
         return content.map { c ->
-            DINO.analyse(c, this.host).copy(retrievableId = retrievable.id, field = this@DINOExtractor.field)
+            DINO.analyse(c, this.host).copy(retrievableId = retrievable.id, field = this@DINOExtractor.field, sourceName = DINOExtractor::class.java.simpleName)
         }
     }
 }

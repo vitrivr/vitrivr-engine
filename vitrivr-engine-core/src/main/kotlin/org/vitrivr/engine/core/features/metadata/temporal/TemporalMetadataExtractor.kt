@@ -36,7 +36,7 @@ class TemporalMetadataExtractor(input: Operator<Retrievable>, field: Schema.Fiel
             return listOf(TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, mapOf("start" to Value.Long(timestamp.timepointNs), "end" to Value.Long(timestamp.timepointNs)), this@TemporalMetadataExtractor.field))
         } else if (retrievable.hasAttribute(TimeRangeAttribute::class.java)) {
             val span = retrievable.filteredAttribute(TimeRangeAttribute::class.java)!!
-            return listOf(TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, mapOf("start" to Value.Long(span.startNs), "end" to Value.Long(span.endNs)), this@TemporalMetadataExtractor.field))
+            return listOf(TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, mapOf("start" to Value.Long(span.startNs), "end" to Value.Long(span.endNs)), this@TemporalMetadataExtractor.field, TemporalMetadataExtractor::class.java.simpleName))
         }
         return emptyList()
     }

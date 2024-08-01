@@ -13,6 +13,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -41,14 +42,14 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
          * @param content The [List] of [ImageContent] elements.
          * @return [List] of [FloatVectorDescriptor]s.
          */
-        fun analyse(content: Collection<ImageContent>): List<FloatVectorDescriptor> = content.map {
+        fun analyse(content: Collection<ImageContent>, retrievableId: RetrievableId? = null, field: Schema.Field<*, FloatVectorDescriptor>? = null): List<FloatVectorDescriptor> = content.map {
             val color = MutableRGBFloatColorContainer()
             val rgb = it.content.getRGBArray()
             rgb.forEach { c -> color += RGBByteColorContainer(c) }
 
             /* Generate descriptor. */
             val averageColor = RGBFloatColorContainer(color.red / rgb.size, color.green / rgb.size, color.blue / rgb.size)
-            FloatVectorDescriptor(UUID.randomUUID(), null, averageColor.toVector())
+            FloatVectorDescriptor(UUID.randomUUID(), retrievableId, averageColor.toVector(), field, AverageColor::class.java.simpleName)
         }
     }
 
