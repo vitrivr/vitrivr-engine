@@ -18,7 +18,8 @@ class LabelDescriptor(
     override var id: DescriptorId,
     override var retrievableId: RetrievableId?,
     values: Map<AttributeName, Value<*>?>,
-    override val field: Schema.Field<*, LabelDescriptor>? = null
+    override val field: Schema.Field<*, LabelDescriptor>? = null,
+    override val sourceName: String? = null
 ) : MapStructDescriptor(id, retrievableId, SCHEMA, values, field) {
     companion object {
         private val SCHEMA = listOf(

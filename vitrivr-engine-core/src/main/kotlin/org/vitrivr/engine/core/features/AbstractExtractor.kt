@@ -36,6 +36,9 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final ov
             /* Perform extraction. */
             logger.debug{"Extraction for retrievable: $retrievable" }
             val descriptors = extract(retrievable)
+            descriptors.forEach { descriptor ->
+
+            }
 
             /* Append descriptor. */
             logger.trace{ "Extracted descriptors for retrievable ($retrievable): $descriptors" }

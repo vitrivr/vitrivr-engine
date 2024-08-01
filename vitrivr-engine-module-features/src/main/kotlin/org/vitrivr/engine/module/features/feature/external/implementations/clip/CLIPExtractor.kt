@@ -38,7 +38,7 @@ class CLIPExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentEle
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
         val content = retrievable.content.filterIsInstance<ImageContent>()
         return content.map { c ->
-            CLIP.analyse(c, this.host).copy(retrievableId = retrievable.id, field = this@CLIPExtractor.field)
+            CLIP.analyse(c, this.host).copy(retrievableId = retrievable.id, field = this@CLIPExtractor.field, sourceName = CLIPExtractor::class.java.simpleName)
         }
     }
 }

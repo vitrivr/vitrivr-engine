@@ -21,7 +21,8 @@ class TemporalMetadataDescriptor(
     override var id: DescriptorId,
     override var retrievableId: RetrievableId?, //retrievable Id must come first, due to reflection
     values: Map<AttributeName, Value<*>?>,
-    override val field: Schema.Field<*, TemporalMetadataDescriptor>? = null
+    override val field: Schema.Field<*, TemporalMetadataDescriptor>? = null,
+    override val sourceName: String? = null
 ) : MapStructDescriptor(id, retrievableId, SCHEMA, values, field) {
 
     companion object {

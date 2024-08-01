@@ -20,7 +20,8 @@ data class DoubleVectorDescriptor(
     override var id: UUID = UUID.randomUUID(),
     override var retrievableId: RetrievableId? = null,
     override val vector: Value.DoubleVector,
-    override val field: Schema.Field<*, DoubleVectorDescriptor>? = null
+    override val field: Schema.Field<*, DoubleVectorDescriptor>? = null,
+    override val sourceName: String? = null
 ) : VectorDescriptor<Value.DoubleVector> {
     /**
      * Returns the [Attribute] [List ]of this [DoubleVectorDescriptor].

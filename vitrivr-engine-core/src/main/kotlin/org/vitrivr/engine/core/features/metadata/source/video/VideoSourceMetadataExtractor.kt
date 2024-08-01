@@ -54,7 +54,8 @@ class VideoSourceMetadataExtractor(input: Operator<Retrievable>, field: Schema.F
                     "sampleRate" to Value.Int(source.sampleRate() ?: 0),
                     "sampleSize" to Value.Int(source.sampleSize() ?: 0)
                 ),
-                this@VideoSourceMetadataExtractor.field
+                this@VideoSourceMetadataExtractor.field,
+                VideoSourceMetadataExtractor::class.java.simpleName
             )
         )
     }

@@ -19,7 +19,8 @@ data class BooleanDescriptor(
     override var id: DescriptorId,
     override var retrievableId: RetrievableId?,
     override val value: Value.Boolean,
-    override val field: Schema.Field<*, BooleanDescriptor>? = null
+    override val field: Schema.Field<*, BooleanDescriptor>? = null,
+    override val sourceName: String? = null
 ) : ScalarDescriptor<Value.Boolean> {
     companion object {
         private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.Boolean))

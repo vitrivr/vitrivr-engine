@@ -20,7 +20,8 @@ data class BooleanVectorDescriptor(
     override var id: UUID = UUID.randomUUID(),
     override var retrievableId: RetrievableId? = null,
     override val vector: Value.BooleanVector,
-    override val field: Schema.Field<*, BooleanVectorDescriptor>? = null
+    override val field: Schema.Field<*, BooleanVectorDescriptor>? = null,
+    override val sourceName: String? = null
 ) : VectorDescriptor<Value.BooleanVector> {
     /**
      * Returns the [Attribute] [List ]of this [BooleanVectorDescriptor].

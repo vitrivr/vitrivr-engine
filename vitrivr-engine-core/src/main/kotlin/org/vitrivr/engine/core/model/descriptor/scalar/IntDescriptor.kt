@@ -19,7 +19,8 @@ data class IntDescriptor(
     override var id: DescriptorId,
     override var retrievableId: RetrievableId?,
     override val value: Value.Int,
-    override val field: Schema.Field<*, IntDescriptor>? = null
+    override val field: Schema.Field<*, IntDescriptor>? = null,
+    override val sourceName: String? = null
 ) : ScalarDescriptor<Value.Int> {
     companion object {
         private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.Int))

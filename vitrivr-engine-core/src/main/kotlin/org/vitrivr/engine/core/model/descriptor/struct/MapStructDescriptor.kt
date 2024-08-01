@@ -19,7 +19,8 @@ open class MapStructDescriptor(
     override var retrievableId: RetrievableId?,
     protected val layout: List<Attribute>,
     protected val values: Map<AttributeName, Value<*>?>,
-    override val field: Schema.Field<*, out StructDescriptor>? = null
+    override val field: Schema.Field<*, out StructDescriptor>? = null,
+    override val sourceName: String? = null
 ) : StructDescriptor {
     /**
      * Returns a  [Attribute] [List] for this [Descriptor].
