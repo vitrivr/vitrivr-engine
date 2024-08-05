@@ -12,15 +12,13 @@ import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.util.extension.toDataURL
 import java.awt.image.BufferedImage
 import java.net.SocketTimeoutException
-import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
 
 
 private val logger: KLogger = KotlinLogging.logger {}
 
 internal data class JobResult<S>(
-        val status: JobState,
-        val result: S?
+    val status: JobState,
+    val result: S?
 )
 
 /*
@@ -29,7 +27,7 @@ internal data class JobResult<S>(
     * @param model The model to use for the API.
     * @param timeoutSeconds The timeout in seconds for the API calls.
  */
-class ApiWrapper(private val hostName:String, private val model: String, private val timeoutSeconds: Long, private val pollingIntervalMs: Long, private val retries: Int) {
+class ApiWrapper(private val host: String, private val model: String, private val timeoutSeconds: Long, private val pollingIntervalMs: Long, private val retries: Int) {
 
 
     private val httpClientConfig: HttpClientConfig<*>.() -> Unit = {
@@ -40,18 +38,18 @@ class ApiWrapper(private val hostName:String, private val model: String, private
         }
     }
 
-    private val textEmbeddingApi = TextEmbeddingApi(baseUrl = hostName, httpClientConfig = httpClientConfig)
-    private val imageEmbeddingApi = ImageEmbeddingApi(baseUrl = hostName, httpClientConfig = httpClientConfig)
-    private val imageCaptioningApi = ImageCaptioningApi(baseUrl = hostName, httpClientConfig = httpClientConfig)
-    private val zeroShotImageClassificationApi = ZeroShotImageClassificationApi(baseUrl = hostName, httpClientConfig = httpClientConfig)
-    private val conditionalImageCaptioningApi = ConditionalImageCaptioningApi(baseUrl = hostName, httpClientConfig = httpClientConfig)
-    private val faceEmbeddingApi = FaceEmbeddingApi(baseUrl = hostName, httpClientConfig = httpClientConfig)
-    private val objectDetectionApi = ObjectDetectionApi(baseUrl = hostName, httpClientConfig = httpClientConfig)
-    private val automatedSpeechRecognitionApi = AutomatedSpeechRecognitionApi(baseUrl = hostName, httpClientConfig = httpClientConfig)
-    private val opticalCharacterRecognitionApi = OpticalCharacterRecognitionApi(baseUrl = hostName, httpClientConfig = httpClientConfig)
+    private val textEmbeddingApi = TextEmbeddingApi(baseUrl = host, httpClientConfig = httpClientConfig)
+    private val imageEmbeddingApi = ImageEmbeddingApi(baseUrl = host, httpClientConfig = httpClientConfig)
+    private val imageCaptioningApi = ImageCaptioningApi(baseUrl = host, httpClientConfig = httpClientConfig)
+    private val zeroShotImageClassificationApi = ZeroShotImageClassificationApi(baseUrl = host, httpClientConfig = httpClientConfig)
+    private val conditionalImageCaptioningApi = ConditionalImageCaptioningApi(baseUrl = host, httpClientConfig = httpClientConfig)
+    private val faceEmbeddingApi = FaceEmbeddingApi(baseUrl = host, httpClientConfig = httpClientConfig)
+    private val objectDetectionApi = ObjectDetectionApi(baseUrl = host, httpClientConfig = httpClientConfig)
+    private val automatedSpeechRecognitionApi = AutomatedSpeechRecognitionApi(baseUrl = host, httpClientConfig = httpClientConfig)
+    private val opticalCharacterRecognitionApi = OpticalCharacterRecognitionApi(baseUrl = host, httpClientConfig = httpClientConfig)
 
     init {
-        logger.info{ "Initialized API wrapper with host: $hostName, model: $model, timeout: $timeoutSeconds seconds, polling interval: $pollingIntervalMs ms" }
+        logger.info { "Initialized API wrapper with host: $host, model: $model, timeout: $timeoutSeconds seconds, polling interval: $pollingIntervalMs ms" }
     }
 
     private fun <T, S> executeJob(
@@ -67,28 +65,28 @@ class ApiWrapper(private val hostName:String, private val model: String, private
                     val jobStatus = try {
                         startJobFunc(inp)
                     } catch (e: SocketTimeoutException) {
-                        logger.error { "Failed to start $model $taskName Job on Host $hostName: API call timed out." }
+                        logger.error { "Failed to start $model $taskName Job on Host $host: API call timed out." }
                         throw e
                     }
                     var jobResult = getJobResultFunc(jobStatus.id)
 
                     while (jobResult.status != JobState.complete) {
                         if (jobResult.status == JobState.failed) {
-                            logger.error { "$model $taskName Job on Host $hostName with ID: ${jobStatus.id} failed." }
+                            logger.error { "$model $taskName Job on Host $host with ID: ${jobStatus.id} failed." }
                             throw Exception("Job failed.")
                         }
-                        logger.debug { "Waiting for $model $taskName job completion on Host $hostName with ID ${jobStatus.id}. Current status: ${jobResult.status}" }
+                        logger.debug { "Waiting for $model $taskName job completion on Host $host with ID ${jobStatus.id}. Current status: ${jobResult.status}" }
                         delay(this@ApiWrapper.pollingIntervalMs)
                         jobResult = getJobResultFunc(jobStatus.id)
                     }
 
                     return@runBlocking jobResult.result ?: run {
-                        logger.error { "$model $taskName Job on Host $hostName with ID: ${jobStatus.id} returned no result." }
-                        throw Exception("$model $taskName Job on Host $hostName with ID: ${jobStatus.id} returned no result.")
+                        logger.error { "$model $taskName Job on Host $host with ID: ${jobStatus.id} returned no result." }
+                        throw Exception("$model $taskName Job on Host $host with ID: ${jobStatus.id} returned no result.")
                     }
                 } catch (e: Exception) {
                     retries_left -= 1
-                    logger.error { "$model $taskName Job on Host $hostName failed. $e Retrying... ($retries_left retries left)" }
+                    logger.error { "$model $taskName Job on Host $host failed. $e Retrying... ($retries_left retries left)" }
                     delay(this@ApiWrapper.pollingIntervalMs)
                 }
             }
@@ -102,16 +100,15 @@ class ApiWrapper(private val hostName:String, private val model: String, private
     * @param text The text for which to get the embedding.
     * @return The embedding for the text.
      */
-    fun textEmbedding(text: String): kotlin.collections.List<Float> {
+    fun textEmbedding(text: String): List<Float> {
         logger.info{ "Starting text embedding for text: \"$text\"" }
         val input = TextEmbeddingInput(text)
-
         return executeJob(
             taskName = "Text Embedding",
             inp = input,
             startJobFunc = { inp -> textEmbeddingApi.newJobApiTasksTextEmbeddingModelJobsPost(model, inp).body() },
             getJobResultFunc = { jobId -> textEmbeddingApi.getJobResultsApiTasksTextEmbeddingJobsJobGet(jobId).body().let { JobResult(it.status, it.result) } }
-        ).embedding.map{it.toFloat()}.also{
+        ).embedding.map { it.toFloat() }.also {
             logger.info{ "Text embedding result: $it" }
         }
     }
@@ -121,7 +118,7 @@ class ApiWrapper(private val hostName:String, private val model: String, private
     * @param text The list of texts for which to get the embedding.
     * @return The embedding for the texts.
      */
-    fun textEmbedding(text: kotlin.collections.List<String>): kotlin.collections.List<kotlin.collections.List<Float>> {
+    fun textEmbedding(text: List<String>): List<List<Float>> {
         logger.info{ "Starting batched text embedding for texts: \"$text\" (batch size: ${text.size} )" }
         val input = BatchedTextEmbeddingInput(text)
 
@@ -140,7 +137,7 @@ class ApiWrapper(private val hostName:String, private val model: String, private
     * @param image The image for which to get the embedding.
     * @return The embedding for the image.
      */
-    fun imageEmbedding(image: BufferedImage): kotlin.collections.List<Float> {
+    fun imageEmbedding(image: BufferedImage): List<Float> {
         logger.info{ "Starting image embedding for image: \"$image\"" }
         val input = ImageEmbeddingInput(image.toDataURL())
 
@@ -159,7 +156,7 @@ class ApiWrapper(private val hostName:String, private val model: String, private
     * @param image The list of images for which to get the embedding.
     * @return The embedding for the images.
      */
-    fun imageEmbedding(image: kotlin.collections.List<BufferedImage>): kotlin.collections.List<kotlin.collections.List<Float>> {
+    fun imageEmbedding(image: List<BufferedImage>): List<List<Float>> {
         logger.info{ "Starting batched image embedding for images: \"$image\" (batch size: ${image.size})" }
         val input = BatchedImageEmbeddingInput(image.map { it.toDataURL() })
         return executeJob(
@@ -195,7 +192,7 @@ class ApiWrapper(private val hostName:String, private val model: String, private
     * @param image The list of images for which to get the caption.
     * @return The caption for the images.
      */
-    fun imageCaptioning(image: kotlin.collections.List<BufferedImage>): kotlin.collections.List<String> {
+    fun imageCaptioning(image: List<BufferedImage>): List<String> {
         logger.info{ "Starting batched image captioning for images: \"$image\" (batch size: ${image.size})" }
         val input = BatchedImageCaptioningInput(image.map { it.toDataURL() })
 
@@ -215,7 +212,7 @@ class ApiWrapper(private val hostName:String, private val model: String, private
     * @param labels The list of labels to classify the image.
     * @return The classification probabilities for the image.
      */
-    fun zeroShotImageClassification(image: BufferedImage, labels: kotlin.collections.List<String>): kotlin.collections.List<Float> {
+    fun zeroShotImageClassification(image: BufferedImage, labels: List<String>): List<Float> {
         logger.info{ "Starting zero shot image classification for image: \"$image\"" }
         val input = ZeroShotImageClassificationInput(image.toDataURL(), labels)
         return executeJob(
@@ -234,7 +231,7 @@ class ApiWrapper(private val hostName:String, private val model: String, private
     * @param labels The list of labels to classify the images.
     * @return The classification probabilities for the images.
      */
-    fun zeroShotImageClassification(image: kotlin.collections.List<BufferedImage>, labels: kotlin.collections.List<String>): kotlin.collections.List<kotlin.collections.List<Float>> {
+    fun zeroShotImageClassification(image: List<BufferedImage>, labels: List<String>): List<List<Float>> {
         logger.info{ "Starting batched zero shot image classification for images: \"$image\" (batch size: ${image.size})" }
         val input = BatchedZeroShotImageClassificationInput(image.map { it.toDataURL() }, labels)
         return executeJob(
@@ -272,7 +269,7 @@ class ApiWrapper(private val hostName:String, private val model: String, private
     * @param text The list of texts to condition the caption on.
     * @return The caption for the images.
      */
-    fun conditionalImageCaptioning(image: kotlin.collections.List<BufferedImage>, text: kotlin.collections.List<String>): kotlin.collections.List<String> {
+    fun conditionalImageCaptioning(image: List<BufferedImage>, text: List<String>): List<String> {
         logger.info{ "Starting batched conditional image captioning for images: \"$image\" (batch size: ${image.size})" }
         val input = BatchedConditionalImageCaptioningInput(image.map { it.toDataURL() }, text)
 
@@ -291,7 +288,7 @@ class ApiWrapper(private val hostName:String, private val model: String, private
     * @param image The image for which to get the embedding.
     * @return The embedding for the image.
      */
-    fun faceEmbedding(image: BufferedImage): kotlin.collections.List<Float> {
+    fun faceEmbedding(image: BufferedImage): List<Float> {
         logger.info{ "Starting face embedding for image: \"$image\"" }
         val input = FaceEmbeddingInput(image.toDataURL())
         return executeJob(
@@ -309,7 +306,7 @@ class ApiWrapper(private val hostName:String, private val model: String, private
     * @param image The list of images for which to get the embedding.
     * @return The embedding for the images.
      */
-    fun faceEmbedding(image: kotlin.collections.List<BufferedImage>): kotlin.collections.List<kotlin.collections.List<Float>> {
+    fun faceEmbedding(image: List<BufferedImage>): List<List<Float>> {
         logger.info{ "Starting batched face embedding for images: \"$image\" (batch size: ${image.size})" }
         val input = BatchedFaceEmbeddingInput(image.map { it.toDataURL() })
 
@@ -347,7 +344,7 @@ class ApiWrapper(private val hostName:String, private val model: String, private
     * @param image The list of images for which to get the object detection.
     * @return The object detection for the images.
      */
-    fun objectDetection(image: kotlin.collections.List<BufferedImage>): kotlin.collections.List<ObjectDetectionOutput> {
+    fun objectDetection(image: List<BufferedImage>): List<ObjectDetectionOutput> {
         logger.info{ "Starting batched object detection for images: \"$image\" (batch size: ${image.size})" }
         val input = BatchedObjectDetectionInput(image.map { it.toDataURL() })
         return executeJob(
@@ -384,7 +381,7 @@ class ApiWrapper(private val hostName:String, private val model: String, private
     * @param audio The list of audio for which to get the transcript.
     * @return The transcript for the audio.
      */
-    fun automatedSpeechRecognition(audio: kotlin.collections.List<AudioContent>): kotlin.collections.List<String> {
+    fun automatedSpeechRecognition(audio: List<AudioContent>): List<String> {
         logger.info{ "Starting batched automated speech recognition for audio: \"$audio\" (batch size: ${audio.size} )" }
         val input = BatchedAutomatedSpeechRecognitionInput(audio.map { it.toDataURL() })
 
@@ -424,10 +421,9 @@ class ApiWrapper(private val hostName:String, private val model: String, private
     * @param image The list of images for which to get the text.
     * @return The text for the images.
      */
-    fun opticalCharacterRecognition(image: kotlin.collections.List<BufferedImage>): kotlin.collections.List<String> {
+    fun opticalCharacterRecognition(image: List<BufferedImage>): List<String> {
         logger.info{ "Starting batched optical character recognition for images: \"$image\" (batch size: ${image.size})" }
         val input = BatchedOpticalCharacterRecognitionInput(image.map { it.toDataURL() })
-
         return executeJob(
             taskName = "Batched Optical Character Recognition",
             inp = input,

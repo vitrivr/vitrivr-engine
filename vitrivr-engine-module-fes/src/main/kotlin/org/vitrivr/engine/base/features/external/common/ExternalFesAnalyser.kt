@@ -1,121 +1,78 @@
 package org.vitrivr.engine.base.features.external.common
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
+import org.vitrivr.engine.base.features.external.implementations.ASR
+import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import java.util.logging.Logger
+import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.ingest.Extractor
 
-private val logger: KLogger = KotlinLogging.logger {}
-
-/**
- * Lifts a function that operates on a flat list to a function that operates on a nested list.
- *
- * @param flatFunction The function that operates on a flat list.
- * @return A function that operates on a nested list.
- */
-fun <T, R> liftToNestedListFunction(
-    flatFunction: (List<T>, ApiWrapper, Map<String, String>) -> List<R>
-): (List<List<T>>, ApiWrapper, Map<String, String>) -> List<List<R>> {
-    return { nestedList, apiWrapper, parameters ->
-        // Flatten the nested list
-        val flattenedList = nestedList.flatten()
-
-        // Apply the flat function with additional parameters
-        val flatResults = flatFunction(flattenedList, apiWrapper, parameters)
-
-        // Reorganize the results into the nested structure
-        var index = 0
-        nestedList.map { innerList ->
-            innerList.map { _ ->
-                flatResults[index++]
-            }
-        }
-    }
-}
 
 /**
  * An [Analyser] that uses the [ApiWrapper] to analyse content.
  *
- * @param T The type of the [ContentElement] to analyse.
- * @param U The type of the [Descriptor] to generate.
+ * @param C The type of the [ContentElement] to analyse.
+ * @param D The type of the [Descriptor] to generate.
  */
-abstract class ExternalFesAnalyser<T : ContentElement<*>, U : Descriptor>: Analyser<T, U> {
+abstract class ExternalFesAnalyser<C : ContentElement<*>, D : Descriptor> : Analyser<C, D> {
     companion object {
         const val HOST_PARAMETER_DEFAULT = "http://localhost:8888/"
         const val HOST_PARAMETER_NAME = "host"
-        const val MODEL_PARAMETER_NAME = "model"
         const val TIMEOUTSECONDS_PARAMETER_NAME = "timeoutSeconds"
-        const val TIMEOUTSECONDS_PARAMETER_DEFAULT = "20"
+        const val TIMEOUTSECONDS_PARAMETER_DEFAULT = 20L
         const val POLLINGINTERVALMS_PARAMETER_NAME = "pollingIntervalMs"
-        const val POLLINGINTERVALMS_PARAMETER_DEFAULT = "100"
-        const val BATCHSIZE_PARAMETER_NAME = "batchSize"
-        const val BATCHSIZE_PARAMETER_DEFAULT = "1"
+        const val POLLINGINTERVALMS_PARAMETER_DEFAULT = 500L
         const val RETRIES_PARAMETER_NAME = "retries"
-        const val RETRIES_PARAMETER_DEFAULT = "3"
-    }
-    abstract val defaultModel: String
-
-    /**
-     * Analyse the [ContentElement] using the given parameters.
-     *
-     * @param content The [ContentElement] to analyse.
-     * @param parameters The parameters to use.
-     * @return The (first) [Descriptor] generated from the [ContentElement].
-     */
-    fun analyse(content: T, parameters: Map<String, String>): U {
-        logger.debug { "Analyzing content with ${this::class.simpleName} analyser." }
-        return analyse(listOf(listOf(content)), parameters).first().first()
+        const val RETRIES_PARAMETER_DEFAULT = 3
     }
 
+    /** The name of the model that should be used. */
+    abstract val model: String
+
     /**
-     * Analyse the [ContentElement] using the given parameters.
+     * Generates and returns a new [FesExtractor] instance for this [ASR].
      *
-     * @param content The [ContentElement] to analyse, grouped by [Retrievable].
-     * @param parameters The parameters to use.
-     * @return The [Descriptor]s generated from the content, grouped by [Retrievable].
+     * @param name The name of the extractor.
+     * @param input The [Operator] that acts as input to the new [FesExtractor].
+     * @param context The [IndexContext] to use with the [FesExtractor].
+     *
+     * @return A new [FesExtractor] instance for this [ASR]
      */
-    fun analyse(content: List<List<T>>, parameters: Map<String, String>): List<List<U>> {
-        val model = parameters[MODEL_PARAMETER_NAME] ?: defaultModel
-        val hostName = parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
-        val timeoutSeconds = parameters[TIMEOUTSECONDS_PARAMETER_NAME]?.toLongOrNull() ?: TIMEOUTSECONDS_PARAMETER_DEFAULT.toLong()
-        val pollingIntervalMs = parameters[POLLINGINTERVALMS_PARAMETER_NAME]?.toLongOrNull() ?: POLLINGINTERVALMS_PARAMETER_DEFAULT.toLong()
-        val retries = parameters[RETRIES_PARAMETER_NAME]?.toIntOrNull() ?: RETRIES_PARAMETER_DEFAULT.toInt()
-        val apiWrapper = ApiWrapper(hostName, model, timeoutSeconds, pollingIntervalMs, retries)
-
-        logger.debug { "Analyzing batch of ${content.size} content elements with ${this::class.simpleName} analyser." }
-
-        return analyse(content, apiWrapper, parameters)
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<C, D> {
+        val host = context.getProperty(name, HOST_PARAMETER_NAME) ?: HOST_PARAMETER_DEFAULT
+        val timeoutSeconds = context.getProperty(name, TIMEOUTSECONDS_PARAMETER_NAME)?.toLongOrNull() ?: TIMEOUTSECONDS_PARAMETER_DEFAULT
+        val pollingIntervalMs = context.getProperty(name, POLLINGINTERVALMS_PARAMETER_NAME)?.toLongOrNull() ?: POLLINGINTERVALMS_PARAMETER_DEFAULT
+        val retries = context.getProperty(name, RETRIES_PARAMETER_NAME)?.toIntOrNull() ?: RETRIES_PARAMETER_DEFAULT
+        return FesExtractor(input, null, this, host, this.model, timeoutSeconds, pollingIntervalMs, retries)
     }
 
     /**
-     * Analyse the [ContentElement] using the given [ApiWrapper] and parameters.
-     * This method should be overridden if the extraction is unimodal i.e. each extraction requires a single content element from a given [Retrievable].
+     * Generates and returns a new [FesExtractor] instance for this [ASR].
      *
-     * @param content The [ContentElement] to analyse.
-     * @param apiWrapper The [ApiWrapper] to use for the analysis.
-     * @param parameters The parameters to use.
-     * @return The [Descriptor]s generated from the content, grouped by [ContentElement]
+     * @param field The [Schema.Field] to create an [FesExtractor] for.
+     * @param input The [Operator] that acts as input to the new [FesExtractor].
+     * @param context The [IndexContext] to use with the [FesExtractor].
+     *
+     * @return A new [FesExtractor] instance for this [ExternalFesAnalyser]
      */
-    open fun analyseFlattened(content: List<T>, apiWrapper: ApiWrapper, parameters: Map<String, String>): List<List<U>> {
-        throw UnsupportedOperationException("Flat analysis not implemented")
+    override fun newExtractor(field: Schema.Field<C, D>, input: Operator<Retrievable>, context: IndexContext): Extractor<C, D> {
+        val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
+        val timeoutSeconds = field.parameters[TIMEOUTSECONDS_PARAMETER_NAME]?.toLongOrNull() ?: TIMEOUTSECONDS_PARAMETER_DEFAULT
+        val pollingIntervalMs = field.parameters[POLLINGINTERVALMS_PARAMETER_NAME]?.toLongOrNull() ?: POLLINGINTERVALMS_PARAMETER_DEFAULT
+        val retries = field.parameters[RETRIES_PARAMETER_NAME]?.toIntOrNull() ?: RETRIES_PARAMETER_DEFAULT
+        return FesExtractor(input, field, this, host, this.model, timeoutSeconds, pollingIntervalMs, retries)
     }
 
     /**
-     * Analyse the [ContentElement] using the given [ApiWrapper] and parameters.
-     * This method should be overridden if the extraction is multimodal i.e. each extraction requires multiple content elements from a given [Retrievable].
-     * The default implementation flattens the content and calls the unimodal analysis method.
+     * Performs the analysis of the given [Retrievable]s.
      *
-     * @param content The [ContentElement] to analyse, grouped by [Retrievable].
-     * @param apiWrapper The [ApiWrapper] to use for the analysis.
-     * @param parameters The parameters to use.
-     * @return The [Descriptor]s generated from the content, grouped by [Retrievable].
+     * @param retrievables The [Retrievable]s to analyse.
+     * @param api The [ApiWrapper] to use for the analysis.
+     * @param field The [Schema.Field] to perform the analysis for.
+     * @param parameters The parameters to use for the analysis.
      */
-    open fun analyse(content: List<List<T>>, apiWrapper: ApiWrapper, parameters: Map<String, String>): List<List<U>>{
-        logger.debug{ "Analyzing content with ${this::class.simpleName} analyser by flattening batch of ${content.size} retrievables." }
-        val output = liftToNestedListFunction(::analyseFlattened)(content, apiWrapper, parameters)
-        return output.map { it.flatten() }
-    }
+    abstract fun analyse(retrievables: Retrievable, api: ApiWrapper, field: Schema.Field<C, D>? = null, parameters: Map<String, String> = emptyMap()): List<D>
 }
