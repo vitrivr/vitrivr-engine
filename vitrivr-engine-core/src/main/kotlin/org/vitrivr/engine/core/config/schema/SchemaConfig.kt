@@ -20,7 +20,7 @@ import java.nio.file.Paths
 @Serializable
 data class SchemaConfig(
     /** Name of the [Schema]. */
-    val name: String = "vitrivr",
+    var name: String = "vitrivr",
 
     /** The (database) [ConnectionConfig] for this [SchemaConfig]. */
     val connection: ConnectionConfig,
