@@ -1,7 +1,6 @@
 {
-  "schemas": [
-    {
-      "name": "vitrivr",
+  "schemas": {
+    "vitrivr": {
       "connection": {
         "database": "CottontailConnectionProvider",
         "parameters": {
@@ -10,10 +9,18 @@
         }
       },
       "fields": {
-        "averagecolor": { "factory": "AverageColor" },
-        "file": { "factory": "FileSourceMetadata" },
-        "time": { "factory":  "TemporalMetadata" },
-        "video": { "factory":  "VideoSourceMetadata" }
+        "averagecolor": {
+          "factory": "AverageColor"
+        },
+        "file": {
+          "factory": "FileSourceMetadata"
+        },
+        "time": {
+          "factory": "TemporalMetadata"
+        },
+        "video": {
+          "factory": "VideoSourceMetadata"
+        }
       },
       "resolvers": {
         "disk": {
@@ -43,8 +50,10 @@
         }
       },
       "extractionPipelines": {
-        "ingestion": { "path": "./config-ingestion.json" }
+        "ingestion": {
+          "path": "./config-ingestion.json"
+        }
       }
     }
-  ]
+  }
 }

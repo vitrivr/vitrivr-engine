@@ -31,7 +31,8 @@ fun main(args: Array<String>) {
 
     /* Setup schema manager. */
     val manager = SchemaManager()
-    for (schema in config.schemas) {
+    for ((name, schema) in config.schemas) {
+        schema.name = name
         manager.load(schema)
     }
 
