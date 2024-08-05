@@ -2,18 +2,10 @@ package org.vitrivr.engine.core.features.metadata.source.exif
 
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.Directory
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.int
-import kotlinx.serialization.json.boolean
-import kotlinx.serialization.json.float
-import kotlinx.serialization.json.double
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.*
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.*
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Attribute
@@ -94,10 +86,7 @@ private fun JsonObject.convertType(type: Type): Value<*>? {
     }
 }
 
-class ExifMetadataExtractor(
-    input: Operator<Retrievable>,
-    field: Schema.Field<ContentElement<*>, MapStructDescriptor>?
-) : AbstractExtractor<ContentElement<*>, MapStructDescriptor>(input, field) {
+class ExifMetadataExtractor(input: Operator<Retrievable>, analyser: ExifMetadata, field: Schema.Field<ContentElement<*>, MapStructDescriptor>?) : AbstractExtractor<ContentElement<*>, MapStructDescriptor>(input, analyser, field) {
 
 
     override fun matches(retrievable: Retrievable): Boolean =
