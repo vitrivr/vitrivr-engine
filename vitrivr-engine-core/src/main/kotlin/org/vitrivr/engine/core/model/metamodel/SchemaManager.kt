@@ -57,8 +57,8 @@ class SchemaManager {
             @Suppress("UNCHECKED_CAST")
             schema.addField(name, analyser as Analyser<ContentElement<*>, Descriptor>, fieldConfig.parameters, fieldConfig.indexes)
         }
-        config.resolvers.map {
-            schema.addResolver(it.key, (loadServiceForName<ResolverFactory>(it.value.factory) ?: throw IllegalArgumentException("Failed to find resolver factory implementation for '${it.value.factory}'.")).newResolver(schema, it.value.parameters))
+        config.resolvers.forEach { (name, resolverConfig) ->
+            schema.addResolver(name, (loadServiceForName<ResolverFactory>(resolverConfig.factory) ?: throw IllegalArgumentException("Failed to find resolver factory implementation for '${resolverConfig.factory}'.")).newResolver(schema, resolverConfig.parameters))
         }
         config.exporters.forEach { (name, exporterConfig) ->
             schema.addExporter(
@@ -68,7 +68,7 @@ class SchemaManager {
                 exporterConfig.resolverName
             )
         }
-        config.extractionPipelines.forEach() {(name, extractionPipelineConfig) ->
+        config.extractionPipelines.forEach {(name, extractionPipelineConfig) ->
             val ingestionConfig = IngestionConfig.read(Paths.get(extractionPipelineConfig.path))
                 ?: throw IllegalArgumentException("Failed to read pipeline configuration from '${extractionPipelineConfig.path}'.")
             if (ingestionConfig.schema != schema.name) {
