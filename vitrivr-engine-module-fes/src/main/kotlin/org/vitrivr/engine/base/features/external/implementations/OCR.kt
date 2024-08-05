@@ -2,8 +2,6 @@ package org.vitrivr.engine.base.features.external.implementations
 
 import org.vitrivr.engine.base.features.external.common.ApiWrapper
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
-import org.vitrivr.engine.base.features.external.common.FesExtractor
-import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.fulltext.FulltextRetriever
 import org.vitrivr.engine.core.model.content.Content
@@ -14,10 +12,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Value
-import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
@@ -31,7 +26,7 @@ import java.util.*
 class OCR : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
     override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = StringDescriptor::class
-    override val defaultModel = "tesseract"
+    override val model = "tesseract"
 
     /**
      * Generates a prototypical [StringDescriptor] for this [OCR].
@@ -40,52 +35,6 @@ class OCR : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
      * @return [StringDescriptor]
      */
     override fun prototype(field: Schema.Field<*, *>): StringDescriptor = StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(""))
-
-
-    override fun analyseFlattened(
-        content: List<ImageContent>,
-        apiWrapper: ApiWrapper,
-        parameters: Map<String, String>
-    ): List<List<StringDescriptor>> {
-        val result = apiWrapper.opticalCharacterRecognition(content.map { it.content })
-        return result.map { listOf(StringDescriptor(UUID.randomUUID(), null, Value.String(it))) }
-    }
-
-    /**
-     * Generates and returns a new [FesExtractor] instance for this [OCR].
-     *
-     * @param field The [Schema.Field] to create an [Extractor] for.
-     * @param input The [Operator] that acts as input to the new [Extractor].
-     * @param context The [IndexContext] to use with the [Extractor].
-     * @return A new [Extractor] instance for this [Analyser]
-     */
-    override fun newExtractor(field: Schema.Field<ImageContent, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, StringDescriptor> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        val batchSize = context.getProperty(field.fieldName, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
-        return object : FesExtractor<StringDescriptor, ImageContent, OCR>(input, field, batchSize) {
-            override fun assignRetrievableId(descriptor: StringDescriptor, retrievableId: RetrievableId): StringDescriptor {
-                return descriptor.copy(retrievableId = retrievableId, field = field)
-            }
-
-        }
-    }
-
-    /**
-     * Generates and returns a new [FesExtractor] instance for this [OCR].
-     *
-     * @param name The name of the [Extractor].
-     * @param input The [Operator] that acts as input to the new [FesExtractor].
-     * @param context The [IndexContext] to use with the [FesExtractor].
-     * @return A new [FesExtractor] instance for this [Analyser]
-     */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, StringDescriptor> {
-        val batchSize = context.getProperty(name, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
-        return object : FesExtractor<StringDescriptor, ImageContent, OCR>(input, null, batchSize) {
-            override fun assignRetrievableId(descriptor: StringDescriptor, retrievableId: RetrievableId): StringDescriptor {
-                return descriptor.copy(retrievableId = retrievableId)
-            }
-        }
-    }
 
     /**
      * Generates and returns a new [FulltextRetriever] instance for this [OCR].
@@ -134,5 +83,21 @@ class OCR : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
         val limit = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
 
         return this.newRetrieverForQuery(field, SimpleFulltextQuery(value = Value.String(text.content), limit = limit), context)
+    }
+
+    /**
+     * Performs analysis on the provided [Retrievable] using the given [ApiWrapper].
+     *
+     * @param retrievables [Retrievable] to analyse.
+     * @param api [ApiWrapper] to use for analysis.
+     * @param field The [Schema.Field] to perform the analysis for.
+     * @param parameters Additional parameters for the analysis.
+     */
+    @Suppress("UNCHECKED_CAST")
+    override fun analyse(retrievables: Retrievable, api: ApiWrapper, field: Schema.Field<ImageContent, StringDescriptor>?, parameters: Map<String, String>): List<StringDescriptor> {
+        val content = retrievables.findContent { it is ImageContent } as List<ImageContent>
+        if (content.isEmpty()) return emptyList()
+        val result = api.opticalCharacterRecognition(content.map { it.content })
+        return result.map { StringDescriptor(UUID.randomUUID(), retrievables.id, Value.String(it), field) }
     }
 }

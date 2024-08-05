@@ -2,8 +2,6 @@ package org.vitrivr.engine.base.features.external.implementations
 
 import org.vitrivr.engine.base.features.external.common.ApiWrapper
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
-import org.vitrivr.engine.base.features.external.common.FesExtractor
-import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -14,10 +12,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Value
-import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
@@ -25,55 +20,16 @@ import java.util.*
  * Implementation of the [DenseEmbedding] [ExternalFesAnalyser] that uses the [ApiWrapper] to analyse image and text content.
  *
  * @author Fynn Faber
- * @version 1.0.0
+ * @version 1.1.0
  */
 class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
-companion object {
+
+    companion object {
         const val LENGTH_PARAMETER_DEFAULT = 512
         const val LENGTH_PARAMETER_NAME = "length"
     }
 
-    override val defaultModel = "clip-vit-large-patch14"
-
-    /**
-     * Analyse the provided [ContentElement]s using the provided [apiWrapper] and return a list of [FloatVectorDescriptor]s.
-     *
-     * @param content List of [ContentElement] to analyse.
-     * @param apiWrapper [ApiWrapper] to use for the analysis.
-     * @param parameters Map of parameters to use for the analysis.
-     * @return List of [FloatVectorDescriptor]s.
-     */
-    override fun analyseFlattened(content: List<ContentElement<*>>, apiWrapper: ApiWrapper, parameters: Map<String, String>): List<List<FloatVectorDescriptor>> {
-
-        val imageContents = content.filterIsInstance<ImageContent>()
-        val textContents = content.filterIsInstance<TextContent>()
-
-        var imageResults: List<List<Float>>? = null
-        var textResults: List<List<Float>>? = null
-
-
-        if (imageContents.isNotEmpty()) {
-            imageResults = apiWrapper.imageEmbedding(imageContents.map { it.content })
-        }
-        if (textContents.isNotEmpty()) {
-            textResults = apiWrapper.textEmbedding(textContents.map { it.content })
-        }
-
-        return content.map { element ->
-            when (element) {
-                is ImageContent -> {
-                    val index = imageContents.indexOf(element)
-                    listOf(FloatVectorDescriptor(UUID.randomUUID(), null, Value.FloatVector(imageResults!![index].toFloatArray()), null))
-                }
-                is TextContent -> {
-                    val index = textContents.indexOf(element)
-                    listOf(FloatVectorDescriptor(UUID.randomUUID(), null, Value.FloatVector(textResults!![index].toFloatArray()), null))
-                }
-                else -> throw(IllegalArgumentException("Content type not supported"))
-            }
-        }
-    }
-
+    override val model = "clip-vit-large-patch14"
     override val contentClasses = setOf(ImageContent::class, TextContent::class)
     override val descriptorClass = FloatVectorDescriptor::class
 
@@ -114,57 +70,53 @@ companion object {
      * @return [DenseRetriever]
      */
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, FloatVectorDescriptor> {
-
         /* Prepare query parameters. */
-        val vector = analyse(content.first(), field.parameters)
+        val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
+        val timeoutSeconds = field.parameters[TIMEOUTSECONDS_PARAMETER_NAME]?.toLongOrNull() ?: TIMEOUTSECONDS_PARAMETER_DEFAULT
+        val pollingIntervalMs = field.parameters[POLLINGINTERVALMS_PARAMETER_NAME]?.toLongOrNull() ?: POLLINGINTERVALMS_PARAMETER_DEFAULT
+        val retries = field.parameters[RETRIES_PARAMETER_NAME]?.toIntOrNull() ?: RETRIES_PARAMETER_DEFAULT
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
         val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
 
+        /* Generate vector for content element. */
+        val vector = when (val c = content.first { it is ImageContent || it is TextContent }) {
+            is ImageContent -> Value.FloatVector(ApiWrapper(host, this.model, timeoutSeconds, pollingIntervalMs, retries).imageEmbedding(c.content).toFloatArray())
+            is TextContent -> Value.FloatVector(ApiWrapper(host, this.model, timeoutSeconds, pollingIntervalMs, retries).textEmbedding(c.content).toFloatArray())
+            else -> throw IllegalArgumentException("Unsupported content type ${c.javaClass.simpleName}.")
+        }
+
         /* Return retriever. */
-        return this.newRetrieverForQuery(field, ProximityQuery(value = vector.vector, k = k, fetchVector = fetchVector), context)
+        return this.newRetrieverForQuery(field, ProximityQuery(value = vector, k = k, fetchVector = fetchVector), context)
     }
 
     /**
-     * Generates and returns a new [Extractor] instance for this [DenseEmbedding].
+     * Performs analysis on the provided [Retrievable] using the given [ApiWrapper].
      *
-     * @param field The [Schema.Field] to create an [Extractor] for.
-     * @param input The [Operator] to use with the [Extractor].
-     * @param context The [IndexContext] to use with the [Extractor].
-     * @return [FloatVectorDescriptor]
+     * @param retrievables [Retrievable] to analyse.
+     * @param api [ApiWrapper] to use for analysis.
+     * @param field The [Schema.Field] to perform the analysis for.
+     * @param parameters Additional parameters for the analysis.
      */
-    override fun newExtractor(
-        field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
-        input: Operator<Retrievable>,
-        context: IndexContext
-    ): FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        val batchSize = context.getProperty(field.fieldName, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
-        return object : FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding>(input, field, batchSize) {
-            override fun assignRetrievableId(descriptor: FloatVectorDescriptor, retrievableId: RetrievableId): FloatVectorDescriptor {
-                return descriptor.copy(retrievableId = retrievableId, field = field)
-            }
+    @Suppress("UNCHECKED_CAST")
+    override fun analyse(retrievables: Retrievable, api: ApiWrapper, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>?, parameters: Map<String, String>): List<FloatVectorDescriptor> {
+        val imageContent = retrievables.findContent { it is ImageContent } as List<ImageContent>
+        val textContent = retrievables.findContent { it is TextContent } as List<TextContent>
+
+        /* Perform image analysis. */
+        val d1 = if (imageContent.isNotEmpty()) {
+            val imageResult = api.imageEmbedding(imageContent.map { it.content })
+            imageResult.map { FloatVectorDescriptor(UUID.randomUUID(), retrievables.id, Value.FloatVector(it.toFloatArray()), field) }
+        } else {
+            emptyList()
         }
-    }
 
-    /**
-     * Generates and returns a new [Extractor] instance for this [DenseEmbedding].
-     *
-     * @param name The name of the [Extractor].
-     * @param input The [Operator] that acts as input to the new [Extractor].
-     * @param context The [IndexContext] to use with the [Extractor].
-     */
-    override fun newExtractor(
-        name: String,
-        input: Operator<Retrievable>,
-        context: IndexContext
-    ): FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding>{
-        val batchSize = context.getProperty(name, BATCHSIZE_PARAMETER_NAME)?.toIntOrNull() ?: BATCHSIZE_PARAMETER_DEFAULT.toInt()
-        return object : FesExtractor<FloatVectorDescriptor, ContentElement<*>, DenseEmbedding>(input, null, batchSize) {
-            override fun assignRetrievableId(descriptor: FloatVectorDescriptor, retrievableId: RetrievableId): FloatVectorDescriptor {
-                return descriptor.copy(retrievableId = retrievableId)
-            }
+        /* Perform text analysis. */
+        val d2 = if (textContent.isNotEmpty()) {
+            val textResults = api.textEmbedding(textContent.map { it.content })
+            textResults.map { FloatVectorDescriptor(UUID.randomUUID(), retrievables.id, Value.FloatVector(it.toFloatArray()), field) }
+        } else {
+            emptyList()
         }
+        return d1 + d2
     }
-
-
 }
