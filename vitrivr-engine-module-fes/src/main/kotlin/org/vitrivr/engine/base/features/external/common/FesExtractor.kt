@@ -1,5 +1,11 @@
 package org.vitrivr.engine.base.features.external.common
 
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.HOST_PARAMETER_DEFAULT
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.HOST_PARAMETER_NAME
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.POLLINGINTERVAL_MS_PARAMETER_DEFAULT
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.POLLINGINTERVAL_MS_PARAMETER_NAME
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.RETRIES_PARAMETER_DEFAULT
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.RETRIES_PARAMETER_NAME
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -14,19 +20,29 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Fynn Faber
  * @version 1.1.0
  */
-class FesExtractor<C : ContentElement<*>, D : Descriptor>(
+abstract class FesExtractor<C : ContentElement<*>, D : Descriptor>(
     input: Operator<Retrievable>,
     field: Schema.Field<C, D>?,
     analyser: ExternalFesAnalyser<C, D>,
-    host: String,
-    model: String,
-    timeoutSeconds: Long = ExternalFesAnalyser.TIMEOUTSECONDS_PARAMETER_DEFAULT,
-    pollingIntervalMs: Long = ExternalFesAnalyser.POLLINGINTERVALMS_PARAMETER_DEFAULT,
-    retries: Int = ExternalFesAnalyser.RETRIES_PARAMETER_DEFAULT
+    protected val model: String,
+    protected val parameters: Map<String, String>,
 ) : AbstractExtractor<C, D>(input, analyser, field) {
 
-    /** [ApiWrapper] instance used by this [FesExtractor]. */
-    protected val api = ApiWrapper(host, model, timeoutSeconds, pollingIntervalMs, retries)
+    /** */
+    protected val host: String
+        get() = this.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
+
+    /** */
+    protected val timeoutMs: Long
+        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull() ?: POLLINGINTERVAL_MS_PARAMETER_DEFAULT
+
+    /** */
+    protected val pollingIntervalMs: Long
+        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull() ?: POLLINGINTERVAL_MS_PARAMETER_DEFAULT
+
+    /** */
+    protected val retries: Int
+        get() = parameters[RETRIES_PARAMETER_NAME]?.toIntOrNull() ?: RETRIES_PARAMETER_DEFAULT
 
     /**
      * Checks if the [Retrievable] matches this [Extractor] and should thus be processed.
@@ -37,12 +53,4 @@ class FesExtractor<C : ContentElement<*>, D : Descriptor>(
     override fun matches(retrievable: Retrievable): Boolean = retrievable.content.any { content ->
         this.analyser.contentClasses.any { it.isInstance(content) }
     }
-
-    /**
-     * Internal method to perform extraction on [Retrievable].
-     *
-     * @param retrievable The [Retrievable] to process.
-     * @return List of resulting [Descriptor]s.
-     */
-    override fun extract(retrievable: Retrievable): List<D> = (this.analyser as ExternalFesAnalyser<C, D>).analyse(retrievable, this.api, this.field, this.field?.parameters ?: emptyMap())
 }

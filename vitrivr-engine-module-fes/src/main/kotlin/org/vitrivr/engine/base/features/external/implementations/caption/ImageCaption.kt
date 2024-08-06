@@ -1,7 +1,8 @@
-package org.vitrivr.engine.base.features.external.implementations
+package org.vitrivr.engine.base.features.external.implementations.caption
 
-import org.vitrivr.engine.base.features.external.common.ApiWrapper
+import org.vitrivr.engine.base.features.external.api.AbstractApi
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
+import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.fulltext.FulltextRetriever
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -12,12 +13,13 @@ import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Value
+import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
 
 /**
- * Implementation of the [ImageCaption] [ExternalFesAnalyser] that uses the [ApiWrapper] to extract captions from images.
+ * Implementation of the [ImageCaption] [ExternalFesAnalyser] that uses the [AbstractApi] to extract captions from images.
  *
  * @author Fynn Faber
  * @version 1.0.0
@@ -39,6 +41,26 @@ class ImageCaption : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
      * @return [StringDescriptor]
      */
     override fun prototype(field: Schema.Field<*, *>): StringDescriptor = StringDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(""))
+
+    /**
+     * Generates and returns a new [ImageCaptionExtractor] instance for this [ImageCaption].
+     *
+     * @param name The name of the extractor.
+     * @param input The [Operator] that acts as input to the new [ImageCaptionExtractor].
+     * @param context The [IndexContext] to use with the [ImageCaptionExtractor].
+     * @return [ImageCaptionExtractor]
+     */
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ImageCaptionExtractor(input, null, this, this.model, context.local[name] ?: emptyMap())
+
+    /**
+     * Generates and returns a new [ImageCaptionExtractor] instance for this [ImageCaption].
+     *
+     * @param field The [Schema.Field] to create an [ImageCaptionExtractor] for.
+     * @param input The [Operator] that acts as input to the new [ImageCaptionExtractor].
+     * @param context The [IndexContext] to use with the [ImageCaptionExtractor].
+     * @return [ImageCaptionExtractor]
+     */
+    override fun newExtractor(field: Schema.Field<ImageContent, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext) = ImageCaptionExtractor(input, field, this, this.model, field.parameters)
 
     /**
      * Generates and returns a new [FulltextRetriever] instance for this [ExternalFesAnalyser].
@@ -69,27 +91,5 @@ class ImageCaption : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
         val text = content.filterIsInstance<TextContent>().firstOrNull() ?: throw IllegalArgumentException("No text content found in the provided content.")
         val limit = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
         return this.newRetrieverForQuery(field, SimpleFulltextQuery(value = Value.String(text.content), limit = limit), context)
-    }
-
-    /**
-     * Performs analysis on the provided [Retrievable] using the given [ApiWrapper].
-     *
-     * @param retrievables [Retrievable] to analyse.
-     * @param api [ApiWrapper] to use for analysis.
-     * @param field The [Schema.Field] to perform the analysis for.
-     * @param parameters Additional parameters for the analysis.
-     */
-    @Suppress("UNCHECKED_CAST")
-    override fun analyse(retrievables: Retrievable, api: ApiWrapper, field: Schema.Field<ImageContent, StringDescriptor>?, parameters: Map<String, String>): List<StringDescriptor> {
-        val prompt = parameters[PROMPT_PARAMETER_NAME]
-        val content = retrievables.findContent { it is ImageContent } as List<ImageContent>
-        if (content.isEmpty()) return emptyList()
-        if (prompt != null) {
-            val result = api.conditionalImageCaptioning(content.map { it.content }, List(content.size) { prompt })
-            return result.map { StringDescriptor(UUID.randomUUID(), retrievables.id, Value.String(it), field) }
-        } else {
-            val result = api.imageCaptioning(content.map { it.content })
-            return result.map { StringDescriptor(UUID.randomUUID(), retrievables.id, Value.String(it), field) }
-        }
     }
 }
