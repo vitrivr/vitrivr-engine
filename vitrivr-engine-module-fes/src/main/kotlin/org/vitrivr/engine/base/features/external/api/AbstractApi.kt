@@ -74,11 +74,10 @@ abstract class AbstractApi<I, O>(protected val host: String, protected val model
             /* Extract results. */
             val result = jobResult.result
             if (result == null) {
-                logger.error { "$model job on host $host with ID: ${jobStatus.id} returned no result." }
-                retriesLeft -= 1
-                continue@outer
+                logger.warn { "$model job on host $host with ID: ${jobStatus.id} returned no result." }
+            } else {
+                logger.info { "Job result: $result" }
             }
-            logger.info { "Job result: $result" }
 
             /* Return results. */
             return@runBlocking result
