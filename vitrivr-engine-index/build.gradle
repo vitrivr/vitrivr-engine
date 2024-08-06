@@ -13,6 +13,7 @@ dependencies {
 
     /** ScrImage (used for image resizing). */
     implementation group: 'com.sksamuel.scrimage', name: 'scrimage-core', version: version_scrimage
+
 }
 
 /* Publication of vitrivr engine index to Maven Central. */

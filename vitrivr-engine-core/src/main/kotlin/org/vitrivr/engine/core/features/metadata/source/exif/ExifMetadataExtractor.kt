@@ -57,6 +57,7 @@ private fun convertType(directory: Directory, tagType: Int, type: Type): Value<*
     Type.Short -> Value.Short(directory.getObject(tagType) as Short)
     Type.String -> Value.String(directory.getString(tagType))
     Type.Text -> Value.String(directory.getString(tagType))
+    Type.UUID -> Value.UUIDValue(UUID.fromString(directory.getString(tagType)))
     is Type.BooleanVector -> throw IllegalArgumentException("Unsupported type: $type")
     is Type.DoubleVector -> throw IllegalArgumentException("Unsupported type: $type")
     is Type.FloatVector -> throw IllegalArgumentException("Unsupported type: $type")

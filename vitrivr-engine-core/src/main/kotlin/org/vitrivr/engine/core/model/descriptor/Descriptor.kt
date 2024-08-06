@@ -1,14 +1,16 @@
 package org.vitrivr.engine.core.model.descriptor
 
+import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.Persistable
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.serializer.UUIDSerializer
 import org.vitrivr.engine.core.model.types.Value
 import java.util.*
 
 /** A typealias to identify the [UUID] identifying a [Descriptor]. */
-typealias DescriptorId = UUID
+typealias DescriptorId = @Serializable(UUIDSerializer::class) UUID
 
 /**
  * A [Persistable] [Descriptor] that can be used to describe a [Retrievable].
