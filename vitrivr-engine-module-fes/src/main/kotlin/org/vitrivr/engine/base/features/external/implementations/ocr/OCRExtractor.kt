@@ -21,11 +21,10 @@ class OCRExtractor(
     input: Operator<Retrievable>,
     field: Schema.Field<ImageContent, StringDescriptor>?,
     analyser: ExternalFesAnalyser<ImageContent, StringDescriptor>,
-    model: String,
     parameters: Map<String, String>
-) : FesExtractor<ImageContent, StringDescriptor>(input, field, analyser, model, parameters) {
+) : FesExtractor<ImageContent, StringDescriptor>(input, field, analyser, parameters) {
     /** The [OcrApi] used to perform extraction with. */
-    private val api = OcrApi(host, model, timeoutMs, pollingIntervalMs, retries)
+    private val api = OcrApi(this.host, this.model, this.timeoutMs, this.pollingIntervalMs, this.retries)
 
     /**
      * Internal method to perform extraction on [Retrievable].

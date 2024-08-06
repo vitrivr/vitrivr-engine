@@ -24,13 +24,12 @@ class ImageClassificationExtractor(
     input: Operator<Retrievable>,
     field: Schema.Field<ImageContent, LabelDescriptor>?,
     analyser: ExternalFesAnalyser<ImageContent, LabelDescriptor>,
-    model: String,
     parameters: Map<String, String>
-) : FesExtractor<ImageContent, LabelDescriptor>(input, field, analyser, model, parameters) {
+) : FesExtractor<ImageContent, LabelDescriptor>(input, field, analyser, parameters) {
 
 
     /** The [ZeroShotClassificationApi] used to perform extraction with. */
-    private val api by lazy { ZeroShotClassificationApi(host, model, timeoutMs, pollingIntervalMs, retries) }
+    private val api by lazy { ZeroShotClassificationApi(this.host, this.model, this.timeoutMs, this.pollingIntervalMs, this.retries) }
 
     /**
      * Internal method to perform extraction on [Retrievable].

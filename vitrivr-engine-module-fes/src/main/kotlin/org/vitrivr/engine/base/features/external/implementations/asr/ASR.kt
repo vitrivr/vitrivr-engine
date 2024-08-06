@@ -19,16 +19,13 @@ import java.util.*
 import org.vitrivr.engine.core.model.types.Value.String as StringValue
 
 /**
- * Implementation of the [ASR] [ExternalFesAnalyser] that uses an external FES API to analyse audio content.
+ * [ExternalFesAnalyser] for the Automated Speech Recognition (ASR).
  *
+ * @author Ralph Gasser
  * @author Fynn Faber
- * @version 1.0.0
+ * @version 1.1.0
  */
 class ASR : ExternalFesAnalyser<AudioContent, StringDescriptor>() {
-
-    /** */
-    override val model = "whisper"
-
     override val contentClasses = setOf(AudioContent::class)
     override val descriptorClass = StringDescriptor::class
 
@@ -50,7 +47,7 @@ class ASR : ExternalFesAnalyser<AudioContent, StringDescriptor>() {
      * @param context The [IndexContext] to use with the [ASRExtractor].
      * @return [ASRExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ASRExtractor(input, null, this, this.model, context.local[name] ?: emptyMap())
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ASRExtractor(input, null, this, context.local[name] ?: emptyMap())
 
     /**
      * Generates and returns a new [ASRExtractor] instance for this [ASR].
@@ -60,7 +57,7 @@ class ASR : ExternalFesAnalyser<AudioContent, StringDescriptor>() {
      * @param context The [IndexContext] to use with the [ASRExtractor].
      * @return [ASRExtractor]
      */
-    override fun newExtractor(field: Schema.Field<AudioContent, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext) = ASRExtractor(input, field, this, this.model, field.parameters)
+    override fun newExtractor(field: Schema.Field<AudioContent, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext) = ASRExtractor(input, field, this, field.parameters)
 
     /**
      * Generates and returns a new [FulltextRetriever] instance for this [ASR].

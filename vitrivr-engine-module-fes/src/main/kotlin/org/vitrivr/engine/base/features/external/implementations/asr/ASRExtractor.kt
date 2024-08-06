@@ -21,11 +21,10 @@ class ASRExtractor(
     input: Operator<Retrievable>,
     field: Schema.Field<AudioContent, StringDescriptor>?,
     analyser: ExternalFesAnalyser<AudioContent, StringDescriptor>,
-    model: String,
     parameters: Map<String, String>
-) : FesExtractor<AudioContent, StringDescriptor>(input, field, analyser, model, parameters) {
+) : FesExtractor<AudioContent, StringDescriptor>(input, field, analyser, parameters) {
     /** The [AsrApi] used to perform extraction with. */
-    private val api = AsrApi(host, model, timeoutMs, pollingIntervalMs, retries)
+    private val api = AsrApi(this.host, this.model, this.timeoutMs, this.pollingIntervalMs, this.retries)
 
     /**
      * Internal method to perform extraction on [Retrievable].
