@@ -35,8 +35,6 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
         const val LENGTH_PARAMETER_DEFAULT = 512
         const val LENGTH_PARAMETER_NAME = "length"
     }
-
-    override val model = "clip-vit-large-patch14"
     override val contentClasses = setOf(ImageContent::class, TextContent::class)
     override val descriptorClass = FloatVectorDescriptor::class
 
@@ -59,7 +57,7 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
      * @param context The [IndexContext] to use with the [FesExtractor].
      * @return [DenseEmbeddingExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = DenseEmbeddingExtractor(input, null, this, this.model, context.local[name] ?: emptyMap())
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = DenseEmbeddingExtractor(input, null, this, context.local[name] ?: emptyMap())
 
     /**
      * Generates and returns a new [ASRExtractor] instance for this [ASR].
@@ -69,7 +67,7 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
      * @param context The [IndexContext] to use with the [FesExtractor].
      * @return [DenseEmbeddingExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext) = DenseEmbeddingExtractor(input, field, this, this.model, field.parameters)
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext) = DenseEmbeddingExtractor(input, field, this, field.parameters)
 
     /**
      * Generates and returns a new [DenseRetriever] instance for this [DenseEmbedding].
@@ -101,13 +99,14 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
         val timeoutSeconds = field.parameters[TIMEOUT_MS_PARAMETER_NAME]?.toLongOrNull() ?: TIMEOUT_MS_PARAMETER_DEFAULT
         val pollingIntervalMs = field.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull() ?: POLLINGINTERVAL_MS_PARAMETER_DEFAULT
         val retries = field.parameters[RETRIES_PARAMETER_NAME]?.toIntOrNull() ?: RETRIES_PARAMETER_DEFAULT
+        val model =  field.parameters[MODEL_PARAMETER_NAME] ?: throw IllegalStateException("Model parameter not set.")
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
         val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
 
         /* Generate vector for content element. */
         val vector = when (val c = content.first { it is ImageContent || it is TextContent }) {
-            is ImageContent -> ImageEmbeddingApi(host, this.model, timeoutSeconds, pollingIntervalMs, retries).analyse(c)
-            is TextContent -> TextEmbeddingApi(host, this.model, timeoutSeconds, pollingIntervalMs, retries).analyse(c)
+            is ImageContent -> ImageEmbeddingApi(host, model, timeoutSeconds, pollingIntervalMs, retries).analyse(c)
+            is TextContent -> TextEmbeddingApi(host, model, timeoutSeconds, pollingIntervalMs, retries).analyse(c)
             else -> throw IllegalArgumentException("Unsupported content type ${c.javaClass.simpleName}.")
         }
         if (vector == null) {

@@ -21,7 +21,7 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
 /**
- * Analyser for the Optical Chracter Recognition (OCR).
+ * [ExternalFesAnalyser] for the Optical Chracter Recognition (OCR).
  *
  * @author Ralph Gasser
  * @author Fynn Faber
@@ -30,7 +30,6 @@ import java.util.*
 class OCR : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
     override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = StringDescriptor::class
-    override val model = "tesseract"
 
     /**
      * Generates a prototypical [StringDescriptor] for this [OCR].
@@ -48,7 +47,7 @@ class OCR : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
      * @param context The [IndexContext] to use with the [FesExtractor].
      * @return [ASRExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = OCRExtractor(input, null, this, this.model, context.local[name] ?: emptyMap())
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = OCRExtractor(input, null, this, context.local[name] ?: emptyMap())
 
     /**
      * Generates and returns a new [ASRExtractor] instance for this [ASR].
@@ -58,7 +57,7 @@ class OCR : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
      * @param context The [IndexContext] to use with the [FesExtractor].
      * @return [ASRExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext) = OCRExtractor(input, field, this, this.model, field.parameters)
+    override fun newExtractor(field: Schema.Field<ImageContent, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext) = OCRExtractor(input, field, this, field.parameters)
 
     /**
      * Generates and returns a new [FulltextRetriever] instance for this [OCR].

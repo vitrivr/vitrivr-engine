@@ -23,15 +23,14 @@ class ImageCaptionExtractor(
     input: Operator<Retrievable>,
     field: Schema.Field<ImageContent, StringDescriptor>?,
     analyser: ExternalFesAnalyser<ImageContent, StringDescriptor>,
-    model: String,
     parameters: Map<String, String>
-) : FesExtractor<ImageContent, StringDescriptor>(input, field, analyser, model, parameters) {
+) : FesExtractor<ImageContent, StringDescriptor>(input, field, analyser, parameters) {
 
     /** The [ImageCaptioningApi] used to perform extraction with. */
-    private val captioningApi by lazy { ImageCaptioningApi(host, model, timeoutMs, pollingIntervalMs, retries) }
+    private val captioningApi by lazy { ImageCaptioningApi(this.host, this.model, this.timeoutMs, this.pollingIntervalMs, this.retries) }
 
     /** The [ConditionalImageCaptioningApi] used to perform extraction with. */
-    private val conditionalCaptioningApi by lazy { ConditionalImageCaptioningApi(host, model, timeoutMs, pollingIntervalMs, retries) }
+    private val conditionalCaptioningApi by lazy { ConditionalImageCaptioningApi(this.host, this.model, this.timeoutMs, this.pollingIntervalMs, this.retries) }
 
     /**
      * Internal method to perform extraction on [Retrievable].

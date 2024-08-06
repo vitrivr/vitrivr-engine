@@ -28,9 +28,6 @@ class ImageCaption : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
     companion object {
         const val PROMPT_PARAMETER_NAME = "prompt"
     }
-
-    override val model = "blip2"
-
     override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = StringDescriptor::class
 
@@ -50,7 +47,7 @@ class ImageCaption : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
      * @param context The [IndexContext] to use with the [ImageCaptionExtractor].
      * @return [ImageCaptionExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ImageCaptionExtractor(input, null, this, this.model, context.local[name] ?: emptyMap())
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ImageCaptionExtractor(input, null, this, context.local[name] ?: emptyMap())
 
     /**
      * Generates and returns a new [ImageCaptionExtractor] instance for this [ImageCaption].
@@ -60,7 +57,7 @@ class ImageCaption : ExternalFesAnalyser<ImageContent, StringDescriptor>() {
      * @param context The [IndexContext] to use with the [ImageCaptionExtractor].
      * @return [ImageCaptionExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext) = ImageCaptionExtractor(input, field, this, this.model, field.parameters)
+    override fun newExtractor(field: Schema.Field<ImageContent, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext) = ImageCaptionExtractor(input, field, this, field.parameters)
 
     /**
      * Generates and returns a new [FulltextRetriever] instance for this [ExternalFesAnalyser].
