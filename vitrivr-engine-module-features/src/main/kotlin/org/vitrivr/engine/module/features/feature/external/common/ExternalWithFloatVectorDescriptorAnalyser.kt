@@ -5,13 +5,12 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
-import org.vitrivr.engine.module.features.feature.external.ExternalAnalyser
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.types.Value
-import org.vitrivr.engine.core.util.extension.toDataURL
+import org.vitrivr.engine.module.features.feature.external.ExternalAnalyser
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.URI
@@ -42,7 +41,7 @@ abstract class ExternalWithFloatVectorDescriptorAnalyser<C : ContentElement<*>> 
 
         val base64 = when (content) {
             is TextContent -> Base64.getEncoder().encodeToString(content.content.toByteArray(StandardCharsets.UTF_8))
-            is ImageContent -> content.content.toDataURL()
+            is ImageContent -> content.toDataUrl()
             else -> throw IllegalArgumentException("Unsupported content type")
         }
 

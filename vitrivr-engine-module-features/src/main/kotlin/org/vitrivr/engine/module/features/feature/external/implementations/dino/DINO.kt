@@ -16,7 +16,6 @@ import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
-import org.vitrivr.engine.core.util.extension.toDataUrl
 import org.vitrivr.engine.module.features.feature.external.ExternalAnalyser
 import java.util.*
 
@@ -84,7 +83,7 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
     }
 
     /**
-     * Generates and returns a new [DINORetriever] instance for this [DINO].
+     * Generates and returns a new [DenseRetriever] instance for this [DINO].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param query An array of [Query] elements to use with the [Retriever]
@@ -101,7 +100,7 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
     }
 
     /**
-     * Generates and returns a new [DINORetriever] instance for this [DINO].
+     * Generates and returns a new [DenseRetriever] instance for this [DINO].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
@@ -120,7 +119,7 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
     }
 
     /**
-     * Generates and returns a new [DINORetriever] instance for this [DINO].
+     * Generates and returns a new [DenseRetriever] instance for this [DINO].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param content An array of [Content] elements to use with the [Retriever]

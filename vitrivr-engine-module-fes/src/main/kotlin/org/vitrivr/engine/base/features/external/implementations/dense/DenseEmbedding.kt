@@ -1,7 +1,13 @@
-package org.vitrivr.engine.base.features.external.implementations
+package org.vitrivr.engine.base.features.external.implementations.dense
 
-import org.vitrivr.engine.base.features.external.common.ApiWrapper
+import org.vitrivr.engine.base.features.external.api.AbstractApi
+import org.vitrivr.engine.base.features.external.api.ImageEmbeddingApi
+import org.vitrivr.engine.base.features.external.api.TextEmbeddingApi
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
+import org.vitrivr.engine.base.features.external.common.FesExtractor
+import org.vitrivr.engine.base.features.external.implementations.asr.ASR
+import org.vitrivr.engine.base.features.external.implementations.asr.ASRExtractor
+import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -13,11 +19,12 @@ import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Value
+import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
 /**
- * Implementation of the [DenseEmbedding] [ExternalFesAnalyser] that uses the [ApiWrapper] to analyse image and text content.
+ * Implementation of the [DenseEmbedding] [ExternalFesAnalyser] that uses the [AbstractApi] to analyse image and text content.
  *
  * @author Fynn Faber
  * @version 1.1.0
@@ -40,10 +47,29 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
      * @return [FloatVectorDescriptor]
      */
     override fun prototype(field: Schema.Field<*, *>) : FloatVectorDescriptor {
-        //convert to integer
         val length = field.parameters[LENGTH_PARAMETER_NAME]?.toIntOrNull() ?: LENGTH_PARAMETER_DEFAULT
         return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(length))
     }
+
+    /**
+     * Generates and returns a new [ASRExtractor] instance for this [ASR].
+     *
+     * @param name The name of the extractor.
+     * @param input The [Operator] that acts as input to the new [FesExtractor].
+     * @param context The [IndexContext] to use with the [FesExtractor].
+     * @return [DenseEmbeddingExtractor]
+     */
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = DenseEmbeddingExtractor(input, null, this, this.model, context.local[name] ?: emptyMap())
+
+    /**
+     * Generates and returns a new [ASRExtractor] instance for this [ASR].
+     *
+     * @param field The [Schema.Field] to create an [FesExtractor] for.
+     * @param input The [Operator] that acts as input to the new [FesExtractor].
+     * @param context The [IndexContext] to use with the [FesExtractor].
+     * @return [DenseEmbeddingExtractor]
+     */
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext) = DenseEmbeddingExtractor(input, field, this, this.model, field.parameters)
 
     /**
      * Generates and returns a new [DenseRetriever] instance for this [DenseEmbedding].
@@ -72,51 +98,23 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, FloatVectorDescriptor> {
         /* Prepare query parameters. */
         val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
-        val timeoutSeconds = field.parameters[TIMEOUTSECONDS_PARAMETER_NAME]?.toLongOrNull() ?: TIMEOUTSECONDS_PARAMETER_DEFAULT
-        val pollingIntervalMs = field.parameters[POLLINGINTERVALMS_PARAMETER_NAME]?.toLongOrNull() ?: POLLINGINTERVALMS_PARAMETER_DEFAULT
+        val timeoutSeconds = field.parameters[TIMEOUT_MS_PARAMETER_NAME]?.toLongOrNull() ?: TIMEOUT_MS_PARAMETER_DEFAULT
+        val pollingIntervalMs = field.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull() ?: POLLINGINTERVAL_MS_PARAMETER_DEFAULT
         val retries = field.parameters[RETRIES_PARAMETER_NAME]?.toIntOrNull() ?: RETRIES_PARAMETER_DEFAULT
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
         val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
 
         /* Generate vector for content element. */
         val vector = when (val c = content.first { it is ImageContent || it is TextContent }) {
-            is ImageContent -> Value.FloatVector(ApiWrapper(host, this.model, timeoutSeconds, pollingIntervalMs, retries).imageEmbedding(c.content).toFloatArray())
-            is TextContent -> Value.FloatVector(ApiWrapper(host, this.model, timeoutSeconds, pollingIntervalMs, retries).textEmbedding(c.content).toFloatArray())
+            is ImageContent -> ImageEmbeddingApi(host, this.model, timeoutSeconds, pollingIntervalMs, retries).analyse(c)
+            is TextContent -> TextEmbeddingApi(host, this.model, timeoutSeconds, pollingIntervalMs, retries).analyse(c)
             else -> throw IllegalArgumentException("Unsupported content type ${c.javaClass.simpleName}.")
+        }
+        if (vector == null) {
+            throw IllegalStateException("Failed to embed provided content.")
         }
 
         /* Return retriever. */
         return this.newRetrieverForQuery(field, ProximityQuery(value = vector, k = k, fetchVector = fetchVector), context)
-    }
-
-    /**
-     * Performs analysis on the provided [Retrievable] using the given [ApiWrapper].
-     *
-     * @param retrievables [Retrievable] to analyse.
-     * @param api [ApiWrapper] to use for analysis.
-     * @param field The [Schema.Field] to perform the analysis for.
-     * @param parameters Additional parameters for the analysis.
-     */
-    @Suppress("UNCHECKED_CAST")
-    override fun analyse(retrievables: Retrievable, api: ApiWrapper, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>?, parameters: Map<String, String>): List<FloatVectorDescriptor> {
-        val imageContent = retrievables.findContent { it is ImageContent } as List<ImageContent>
-        val textContent = retrievables.findContent { it is TextContent } as List<TextContent>
-
-        /* Perform image analysis. */
-        val d1 = if (imageContent.isNotEmpty()) {
-            val imageResult = api.imageEmbedding(imageContent.map { it.content })
-            imageResult.map { FloatVectorDescriptor(UUID.randomUUID(), retrievables.id, Value.FloatVector(it.toFloatArray()), field) }
-        } else {
-            emptyList()
-        }
-
-        /* Perform text analysis. */
-        val d2 = if (textContent.isNotEmpty()) {
-            val textResults = api.textEmbedding(textContent.map { it.content })
-            textResults.map { FloatVectorDescriptor(UUID.randomUUID(), retrievables.id, Value.FloatVector(it.toFloatArray()), field) }
-        } else {
-            emptyList()
-        }
-        return d1 + d2
     }
 }
