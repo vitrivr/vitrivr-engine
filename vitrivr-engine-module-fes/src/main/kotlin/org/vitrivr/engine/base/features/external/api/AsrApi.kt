@@ -17,7 +17,7 @@ import org.vitrivr.engine.core.model.types.Value
 class AsrApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Long, retries: Int) : AbstractApi<AudioContent, Value.String>(host, model, timeoutMs, pollingIntervalMs, retries) {
 
     /** The API used for FES ASR. */
-    private val automatedSpeechRecognitionApi by lazy { AutomatedSpeechRecognitionApi(baseUrl = host, httpClient = client) }
+    private val automatedSpeechRecognitionApi by lazy { AutomatedSpeechRecognitionApi(baseUrl = this.host, httpClientConfig = this.httpClientConfig) }
 
     /**
      * This method is used to start an ASR job on the API.

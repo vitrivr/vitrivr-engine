@@ -30,16 +30,13 @@ abstract class AbstractApi<I, O>(protected val host: String, protected val model
     }
 
     /** The HTTP client configuration. */
-    private val httpClientConfig: HttpClientConfig<*>.() -> Unit = {
+    protected val httpClientConfig: HttpClientConfig<*>.() -> Unit = {
         install(HttpTimeout) {
             requestTimeoutMillis = timeoutMs
             connectTimeoutMillis = timeoutMs
             socketTimeoutMillis = timeoutMs
         }
     }
-
-    /** The common [HttpClient] used by the [AbstractApi] instance. */
-    protected val client: HttpClient = HttpClient(this.httpClientConfig)
 
     init {
         logger.info { "Initialized API wrapper with host: $host, model: $model, timeout: $timeoutMs seconds, polling interval: $pollingIntervalMs ms" }

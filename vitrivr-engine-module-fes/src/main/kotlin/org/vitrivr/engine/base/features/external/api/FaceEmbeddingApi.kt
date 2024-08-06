@@ -17,7 +17,7 @@ import org.vitrivr.engine.core.model.types.Value
 class FaceEmbeddingApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Long, retries: Int) : AbstractApi<ImageContent, Value.FloatVector>(host, model, timeoutMs, pollingIntervalMs, retries) {
 
     /** The API used for FES face embedding. */
-    private val faceEmbeddingApi by lazy { FaceEmbeddingApi(baseUrl = host, httpClient = this.client) }
+    private val faceEmbeddingApi by lazy { FaceEmbeddingApi(baseUrl = this.host, httpClientConfig = this.httpClientConfig) }
 
     /**
      * This method is used to start a face embedding job on the API.

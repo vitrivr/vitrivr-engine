@@ -17,7 +17,7 @@ import org.vitrivr.engine.core.model.types.Value
 class TextEmbeddingApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Long, retries: Int) : AbstractApi<TextContent, Value.FloatVector>(host, model, timeoutMs, pollingIntervalMs, retries) {
 
     /** The API used for FES text embedding. */
-    private val textEmbeddingApi by lazy { TextEmbeddingApi(baseUrl = host, httpClient = client) }
+    private val textEmbeddingApi by lazy { TextEmbeddingApi(baseUrl = this.host, httpClientConfig = this.httpClientConfig) }
 
     /**
      * This method is used to start an text embedding job on the API.

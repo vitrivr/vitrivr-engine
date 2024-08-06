@@ -16,7 +16,7 @@ import org.vitrivr.engine.core.model.types.Value
  */
 class ImageCaptioningApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Long, retries: Int) : AbstractApi<ImageContent, Value.String>(host, model, timeoutMs, pollingIntervalMs, retries) {
     /** The API used for FES image captioning. */
-    private val imageCaptioningApi by lazy { ImageCaptioningApi(baseUrl = host, httpClient = client) }
+    private val imageCaptioningApi by lazy { ImageCaptioningApi(baseUrl = this.host, httpClientConfig = this.httpClientConfig) }
 
     /**
      * This method is used to start an image captioning job on the API.

@@ -17,7 +17,7 @@ import org.vitrivr.engine.core.model.types.Value
  */
 class ConditionalImageCaptioningApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Long, retries: Int) : AbstractApi<Pair<ImageContent, TextContent>, Value.String>(host, model, timeoutMs, pollingIntervalMs, retries) {
     /** The API used for FES conditional image captioning. */
-    private val conditionalImageCaptioningApi by lazy { ConditionalImageCaptioningApi(baseUrl = host, httpClient = this.client) }
+    private val conditionalImageCaptioningApi by lazy { ConditionalImageCaptioningApi(baseUrl = this.host, httpClientConfig = this.httpClientConfig) }
 
     /**
      * This method is used to start a conditional image captioning job on the API.
