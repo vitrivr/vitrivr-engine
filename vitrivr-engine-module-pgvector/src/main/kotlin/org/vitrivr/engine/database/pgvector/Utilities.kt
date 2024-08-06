@@ -50,6 +50,7 @@ internal fun Type.toSql(): Int = when (this) {
     Type.Datetime -> JDBCType.DATE
     Type.String -> JDBCType.VARCHAR
     Type.Text -> JDBCType.CLOB
+    Type.UUID -> JDBCType.OTHER
     is Type.BooleanVector -> JDBCType.ARRAY
     is Type.DoubleVector -> JDBCType.ARRAY
     is Type.FloatVector -> JDBCType.ARRAY
