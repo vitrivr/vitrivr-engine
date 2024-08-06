@@ -44,7 +44,7 @@ class ConditionalImageCaptioningApi(host: String, model: String, timeoutMs: Long
      */
     override suspend fun pollJob(jobId: String): JobResult<Value.String> = try {
         this.conditionalImageCaptioningApi.getJobResultsApiTasksConditionalImageCaptioningJobsJobGet(jobId).body().let { result ->
-            JobResult(result.status, result.result?.caption?.let { Value.String(it) })
+            JobResult(result.status, result.result?.caption?.let { Value.String(it.trim()) })
         }
     } catch (e: Throwable) {
         logger.error(e) { "Failed to poll for status of conditional image captioning job." }

@@ -42,7 +42,7 @@ class AsrApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Lo
      * @return The [JobResult]
      */
     override suspend fun pollJob(jobId: String): JobResult<Value.String> = try {
-        this.automatedSpeechRecognitionApi.getJobResultsApiTasksAutomatedSpeechRecognitionJobsJobGet(jobId).body().let { r -> JobResult(r.status, r.result?.transcript?.let { Value.String(it) }) }
+        this.automatedSpeechRecognitionApi.getJobResultsApiTasksAutomatedSpeechRecognitionJobsJobGet(jobId).body().let { r -> JobResult(r.status, r.result?.transcript?.let { Value.String(it.trim()) }) }
     } catch (e: Throwable) {
         JobResult(JobState.failed, null)
     }

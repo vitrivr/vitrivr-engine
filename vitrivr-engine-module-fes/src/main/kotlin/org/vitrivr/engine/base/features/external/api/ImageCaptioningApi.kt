@@ -43,7 +43,7 @@ class ImageCaptioningApi(host: String, model: String, timeoutMs: Long, pollingIn
      */
     override suspend fun pollJob(jobId: String): JobResult<Value.String> = try {
         this.imageCaptioningApi.getJobResultsApiTasksImageCaptioningJobsJobGet(jobId).body().let { result ->
-            JobResult(result.status, result.result?.caption?.let { Value.String(it) })
+            JobResult(result.status, result.result?.caption?.let { Value.String(it.trim()) })
         }
     } catch (e: Throwable) {
         logger.error(e) { "Failed to poll for status of image captioning job." }

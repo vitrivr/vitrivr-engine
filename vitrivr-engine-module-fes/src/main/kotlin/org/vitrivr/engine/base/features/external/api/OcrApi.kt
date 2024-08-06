@@ -43,7 +43,7 @@ class OcrApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Lo
      */
     override suspend fun pollJob(jobId: String): JobResult<Value.String> = try {
         this.opticalCharacterRecognitionApi.getJobResultsApiTasksOpticalCharacterRecognitionJobsJobGet(jobId).body().let { result ->
-            JobResult(result.status, result.result?.text?.let { Value.String(it) })
+            JobResult(result.status, result.result?.text?.let { Value.String(it.trim()) })
         }
     } catch (e: Throwable) {
         logger.error(e) { "Failed to poll for status of OCR job." }

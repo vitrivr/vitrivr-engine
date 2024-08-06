@@ -44,7 +44,7 @@ class ObjectDetectionApi(host: String, model: String, timeoutMs: Long, pollingIn
      */
     override suspend fun pollJob(jobId: String): JobResult<List<Value.String>> = try {
         this.objectDetectionApi.getJobResultsApiTasksObjectDetectionJobsJobGet(jobId).body().let { result ->
-            JobResult(result.status, result.result?.labels?.map { Value.String(it) })
+            JobResult(result.status, result.result?.labels?.map { Value.String(it.trim()) })
         }
     } catch (e: Throwable) {
         logger.error(e) { "Failed to poll for status of object detection job." }
