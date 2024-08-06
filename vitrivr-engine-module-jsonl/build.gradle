@@ -1,0 +1,68 @@
+plugins {
+    id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
+    id 'maven-publish'
+    id 'signing'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api project(':vitrivr-engine-core')
+
+    /** vitrivr engine Core is required for running tests. */
+    testImplementation(testFixtures(project(':vitrivr-engine-core')))
+}
+
+/* Publication of vitrivr engine query to Maven Central. */
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'org.vitrivr'
+            artifactId = 'vitrivr-engine-module-jsonl'
+            version = System.getenv().getOrDefault("MAVEN_PUBLICATION_VERSION", version.toString())
+            from components.java
+            pom {
+                name = 'vitrivr Engine JSONL Connection Plugin'
+                description = 'A module that adds a file-based pseudo database using line-wise JSON.'
+                url = 'https://github.com/vitrivr/vitrivr-engine/'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'ppanopticon'
+                        name = 'Ralph Gasser'
+                        email = 'ralph.gasser@unibas.ch'
+                    }
+                    developer {
+                        id = 'lucaro'
+                        name = 'Luca Rossetto'
+                        email = 'rossetto@ifi.uzh.ch'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/vitrivr/vitrivr-engine.git'
+                    url = 'https://github.com/vitrivr/vitrivr-engine/'
+                }
+            }
+        }
+    }
+    repositories {
+        repositories {
+            maven {
+                def releasesRepoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+                def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
+                name = "OSSRH"
+                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+                credentials {
+                    username = System.getenv("MAVEN_USERNAME")
+                    password = System.getenv("MAVEN_PASSWORD")
+                }
+            }
+        }
+    }
+}

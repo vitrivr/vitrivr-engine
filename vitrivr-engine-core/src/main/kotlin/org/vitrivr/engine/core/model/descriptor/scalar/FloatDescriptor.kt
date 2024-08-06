@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.descriptor.scalar
 
+import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor.Companion.VALUE_ATTRIBUTE_NAME
@@ -14,7 +15,6 @@ import org.vitrivr.engine.core.model.types.Value
  * @author Ralph Gasser
  * @version 1.0.0
  */
-
 data class FloatDescriptor(
     override var id: DescriptorId,
     override var retrievableId: RetrievableId?,
