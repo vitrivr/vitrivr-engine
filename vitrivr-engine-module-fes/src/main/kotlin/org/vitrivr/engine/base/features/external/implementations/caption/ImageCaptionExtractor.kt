@@ -49,7 +49,7 @@ class ImageCaptionExtractor(
                     this.conditionalCaptioningApi.analyse(it to prompt)
                 }
                 if (result != null) {
-                    StringDescriptor(UUID.randomUUID(), retrievable.id, result)
+                    StringDescriptor(UUID.randomUUID(), retrievable.id, result, this.field)
                 } else {
                     null
                 }

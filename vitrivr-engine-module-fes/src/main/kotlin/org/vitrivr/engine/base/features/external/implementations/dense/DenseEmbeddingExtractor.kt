@@ -46,7 +46,7 @@ class DenseEmbeddingExtractor(
             else -> null
         }
         if (result != null) {
-            FloatVectorDescriptor(UUID.randomUUID(), retrievable.id, result)
+            FloatVectorDescriptor(UUID.randomUUID(), retrievable.id, result, this.field)
         } else {
             null
         }

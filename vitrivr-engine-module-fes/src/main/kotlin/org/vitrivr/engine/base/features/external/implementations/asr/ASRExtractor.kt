@@ -38,7 +38,7 @@ class ASRExtractor(
         return content.mapNotNull { audio ->
             val result = this.api.analyse(audio)
             if (result != null) {
-                StringDescriptor(UUID.randomUUID(), retrievable.id, result)
+                StringDescriptor(UUID.randomUUID(), retrievable.id, result, this.field)
             } else {
                 null
             }
