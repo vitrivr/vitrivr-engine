@@ -34,11 +34,11 @@ interface ImageContent: ContentElement<BufferedImage> {
      *
      * @return [ByteBuffer] containing the audio in the WAVE format.
      */
-    fun toBytes(mimeType: MimeType = MimeType.PNG): ByteBuffer {
+    fun toBytes(mimeType: MimeType = MimeType.PNG): ByteArray {
         require(mimeType.mediaType == MediaType.IMAGE) { "MimeType needs to be an image type" }
         val out = ByteArrayOutputStream()
         ImageIO.write(this.content, mimeType.fileExtension, out)
-        return ByteBuffer.wrap(out.toByteArray())
+        return out.toByteArray()
     }
 
     /**
@@ -47,8 +47,8 @@ interface ImageContent: ContentElement<BufferedImage> {
      * @return Data URL
      */
     fun toDataUrl(mimeType: MimeType = MimeType.PNG): String {
-        val buffer = this.toBytes(mimeType)
-        val base64 = Base64.getEncoder().encodeToString(buffer.array())
+        val array = this.toBytes(mimeType)
+        val base64 = Base64.getEncoder().encodeToString(array)
         return "data:${mimeType.mimeType};base64,$base64"
     }
 }
