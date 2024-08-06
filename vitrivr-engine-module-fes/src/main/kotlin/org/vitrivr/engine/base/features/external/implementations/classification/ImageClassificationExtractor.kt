@@ -46,7 +46,7 @@ class ImageClassificationExtractor(
             if (content is ImageContent) {
                 val result = this.api.analyse(content to classes)
                 result?.mapIndexed { index, score ->
-                    LabelDescriptor(UUID.randomUUID(), retrievable.id, mapOf("label" to Value.String(classes[index]), "confidence" to score), field)
+                    LabelDescriptor(UUID.randomUUID(), retrievable.id, mapOf("label" to Value.String(classes[index]), "confidence" to score), this.field)
                 }?.filter { it.confidence.value >= threshold }?.sortedByDescending { it.confidence.value }?.take(topK)
                     ?: emptyList()
             } else {
