@@ -17,7 +17,7 @@ import org.vitrivr.engine.core.model.types.Value
 class ZeroShotClassificationApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Long, retries: Int) : AbstractApi<Pair<ImageContent, List<String>>, List<Value.Double>>(host, model, timeoutMs, pollingIntervalMs, retries) {
 
     /** The API used for FES zero shot image classification. */
-    private val zeroShotImageClassificationApi by lazy { ZeroShotImageClassificationApi(baseUrl = host, httpClient = client) }
+    private val zeroShotImageClassificationApi by lazy { ZeroShotImageClassificationApi(baseUrl = this.host, httpClientConfig = this.httpClientConfig) }
 
     /**
      * This method is used to start an  zero shot image classification job on the API.

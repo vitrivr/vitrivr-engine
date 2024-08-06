@@ -16,7 +16,7 @@ import org.vitrivr.engine.core.model.types.Value
  */
 class OcrApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Long, retries: Int) : AbstractApi<ImageContent, Value.String>(host, model, timeoutMs, pollingIntervalMs, retries) {
     /** The API used for FES OCR. */
-    private val opticalCharacterRecognitionApi by lazy { OpticalCharacterRecognitionApi(baseUrl = host, httpClient = this.client) }
+    private val opticalCharacterRecognitionApi by lazy { OpticalCharacterRecognitionApi(baseUrl = this.host, httpClientConfig = this.httpClientConfig) }
 
     /**
      * This method is used to start an OCR job on the API.

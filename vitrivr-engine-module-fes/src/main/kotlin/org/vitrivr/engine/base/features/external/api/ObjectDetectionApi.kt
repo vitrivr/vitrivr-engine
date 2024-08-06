@@ -17,7 +17,7 @@ import org.vitrivr.engine.core.model.types.Value
 class ObjectDetectionApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Long, retries: Int) : AbstractApi<ImageContent, List<Value.String>>(host, model, timeoutMs, pollingIntervalMs, retries) {
 
     /** The API used for FES object detection. */
-    private val objectDetectionApi by lazy { ObjectDetectionApi(baseUrl = host, httpClient = this.client) }
+    private val objectDetectionApi by lazy { ObjectDetectionApi(baseUrl = this.host, httpClientConfig = this.httpClientConfig) }
 
     /**
      * This method is used to start an object detection job on the API.

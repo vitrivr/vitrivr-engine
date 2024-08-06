@@ -17,7 +17,7 @@ import org.vitrivr.engine.core.model.types.Value
 class ImageEmbeddingApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Long, retries: Int) : AbstractApi<ImageContent, Value.FloatVector>(host, model, timeoutMs, pollingIntervalMs, retries) {
 
     /** The API used for FES image embedding. */
-    private val imageEmbeddingApi by lazy { ImageEmbeddingApi(baseUrl = host, httpClient = client) }
+    private val imageEmbeddingApi by lazy { ImageEmbeddingApi(baseUrl = this.host, httpClientConfig = this.httpClientConfig) }
 
     /**
      * This method is used to start an image embedding job on the API.
