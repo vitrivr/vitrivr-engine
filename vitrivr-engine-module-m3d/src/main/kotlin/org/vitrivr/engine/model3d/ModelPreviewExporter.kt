@@ -66,12 +66,10 @@ class ModelPreviewExporter : ExporterFactory {
                             hideWindow = true
                         }
                     }
-                val renderOptions =
-                    object : RenderOptions() {
-                        init {
-                            showTextures = true
-                        }
-                    }
+                val renderOptions = RenderOptions(
+                    showTextures = true
+                )
+
 
                 // Set options for the entropy optimizer.
                 val opts = OptimizerOptions(
@@ -128,12 +126,9 @@ class ModelPreviewExporter : ExporterFactory {
                             hideWindow = true
                         }
                     }
-                val renderOptions =
-                    object : RenderOptions() {
-                        init {
-                            showTextures = true
-                        }
-                    }
+                val renderOptions = RenderOptions(
+                    showTextures = true
+                )
 
                 // Define camera positions depending on the number of views.
                 val camera = generateCameraPositions(views, distance)
