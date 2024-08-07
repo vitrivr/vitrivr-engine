@@ -2,6 +2,7 @@ package org.vitrivr.engine.base.features.external.common
 
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.HOST_PARAMETER_DEFAULT
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.HOST_PARAMETER_NAME
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.MODEL_PARAMETER_NAME
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.POLLINGINTERVAL_MS_PARAMETER_DEFAULT
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.POLLINGINTERVAL_MS_PARAMETER_NAME
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.RETRIES_PARAMETER_DEFAULT
@@ -24,13 +25,16 @@ abstract class FesExtractor<C : ContentElement<*>, D : Descriptor>(
     input: Operator<Retrievable>,
     field: Schema.Field<C, D>?,
     analyser: ExternalFesAnalyser<C, D>,
-    protected val model: String,
     protected val parameters: Map<String, String>,
 ) : AbstractExtractor<C, D>(input, analyser, field) {
 
-    /** */
+    /** Host of the FES API. */
     protected val host: String
         get() = this.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
+
+    /** Name of the model that should be used. */
+    protected val model: String
+        get() = this.parameters[MODEL_PARAMETER_NAME] ?: throw IllegalStateException("Model parameter not set.")
 
     /** */
     protected val timeoutMs: Long

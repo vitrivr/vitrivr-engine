@@ -16,6 +16,11 @@ abstract class ExternalFesAnalyser<C : ContentElement<*>, D : Descriptor> : Anal
     companion object {
         const val HOST_PARAMETER_DEFAULT = "http://localhost:8888/"
         const val HOST_PARAMETER_NAME = "host"
+
+        /** Name of the model paramter. */
+        const val MODEL_PARAMETER_NAME = "model"
+
+
         const val TIMEOUT_MS_PARAMETER_NAME = "timeoutMs"
         const val TIMEOUT_MS_PARAMETER_DEFAULT = 20000L
         const val POLLINGINTERVAL_MS_PARAMETER_NAME = "pollingIntervalMs"
@@ -23,7 +28,4 @@ abstract class ExternalFesAnalyser<C : ContentElement<*>, D : Descriptor> : Anal
         const val RETRIES_PARAMETER_NAME = "retries"
         const val RETRIES_PARAMETER_DEFAULT = 3
     }
-
-    /** The name of the model that should be used. */
-    abstract val model: String
 }

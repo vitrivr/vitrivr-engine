@@ -14,10 +14,10 @@ import org.vitrivr.engine.core.model.types.Value
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class AsrApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Long, retries: Int) : AbstractApi<AudioContent, Value.String>(host, model, timeoutMs, pollingIntervalMs, retries) {
+class AsrApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Long, retries: Int) : AbstractApi<AudioContent, Value.Text>(host, model, timeoutMs, pollingIntervalMs, retries) {
 
     /** The API used for FES ASR. */
-    private val automatedSpeechRecognitionApi by lazy { AutomatedSpeechRecognitionApi(baseUrl = host, httpClient = client) }
+    private val automatedSpeechRecognitionApi by lazy { AutomatedSpeechRecognitionApi(baseUrl = this.host, httpClientConfig = this.httpClientConfig) }
 
     /**
      * This method is used to start an ASR job on the API.
@@ -41,8 +41,15 @@ class AsrApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Lo
      * @param jobId The ID of the job to poll.
      * @return The [JobResult]
      */
-    override suspend fun pollJob(jobId: String): JobResult<Value.String> = try {
-        this.automatedSpeechRecognitionApi.getJobResultsApiTasksAutomatedSpeechRecognitionJobsJobGet(jobId).body().let { r -> JobResult(r.status, r.result?.transcript?.let { Value.String(it) }) }
+    override suspend fun pollJob(jobId: String): JobResult<Value.Text> = try {
+        this.automatedSpeechRecognitionApi.getJobResultsApiTasksAutomatedSpeechRecognitionJobsJobGet(jobId).body().let { result ->
+            val value = result.result?.transcript?.trim()
+            if (!value.isNullOrBlank()) {
+                JobResult(result.status, Value.Text(value))
+            } else {
+                JobResult(result.status, null)
+            }
+        }
     } catch (e: Throwable) {
         JobResult(JobState.failed, null)
     }

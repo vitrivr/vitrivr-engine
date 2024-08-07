@@ -30,16 +30,13 @@ abstract class AbstractApi<I, O>(protected val host: String, protected val model
     }
 
     /** The HTTP client configuration. */
-    private val httpClientConfig: HttpClientConfig<*>.() -> Unit = {
+    protected val httpClientConfig: HttpClientConfig<*>.() -> Unit = {
         install(HttpTimeout) {
             requestTimeoutMillis = timeoutMs
             connectTimeoutMillis = timeoutMs
             socketTimeoutMillis = timeoutMs
         }
     }
-
-    /** The common [HttpClient] used by the [AbstractApi] instance. */
-    protected val client: HttpClient = HttpClient(this.httpClientConfig)
 
     init {
         logger.info { "Initialized API wrapper with host: $host, model: $model, timeout: $timeoutMs seconds, polling interval: $pollingIntervalMs ms" }
@@ -77,11 +74,10 @@ abstract class AbstractApi<I, O>(protected val host: String, protected val model
             /* Extract results. */
             val result = jobResult.result
             if (result == null) {
-                logger.error { "$model job on host $host with ID: ${jobStatus.id} returned no result." }
-                retriesLeft -= 1
-                continue@outer
+                logger.warn { "$model job on host $host with ID: ${jobStatus.id} returned no result." }
+            } else {
+                logger.info { "Job result: $result" }
             }
-            logger.info { "Job result: $result" }
 
             /* Return results. */
             return@runBlocking result

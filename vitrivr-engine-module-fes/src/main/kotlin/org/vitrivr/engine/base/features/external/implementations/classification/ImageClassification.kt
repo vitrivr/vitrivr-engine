@@ -28,7 +28,6 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
         const val TOPK_PARAMETER_NAME = "top_k"
     }
 
-    override val model = "clip-vit-large-patch14"
     override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = LabelDescriptor::class
 
@@ -50,7 +49,7 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
      * @param context The [IndexContext] to use with the [ImageClassification].
      * @return [ImageClassification]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ImageClassificationExtractor(input, null, this, this.model, context.local[name] ?: emptyMap())
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ImageClassificationExtractor(input, null, this,context.local[name] ?: emptyMap())
 
     /**
      * Generates and returns a new [ImageClassification] instance for this [ImageClassification].
@@ -60,7 +59,7 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
      * @param context The [IndexContext] to use with the [ImageClassification].
      * @return [ImageClassification]
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, LabelDescriptor>, input: Operator<Retrievable>, context: IndexContext) = ImageClassificationExtractor(input, field, this, this.model, field.parameters)
+    override fun newExtractor(field: Schema.Field<ImageContent, LabelDescriptor>, input: Operator<Retrievable>, context: IndexContext) = ImageClassificationExtractor(input, field, this, field.parameters)
 
     override fun newRetrieverForContent(field: Schema.Field<ImageContent, LabelDescriptor>, content: Collection<ImageContent>, context: QueryContext): Retriever<ImageContent, LabelDescriptor> {
         TODO("Not yet implemented")

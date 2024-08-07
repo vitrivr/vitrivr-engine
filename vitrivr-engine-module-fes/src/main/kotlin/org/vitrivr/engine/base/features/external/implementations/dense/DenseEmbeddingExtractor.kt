@@ -24,9 +24,8 @@ class DenseEmbeddingExtractor(
     input: Operator<Retrievable>,
     field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>?,
     analyser: ExternalFesAnalyser<ContentElement<*>, FloatVectorDescriptor>,
-    model: String,
     parameters: Map<String, String>
-) : FesExtractor<ContentElement<*>, FloatVectorDescriptor>(input, field, analyser, model, parameters) {
+) : FesExtractor<ContentElement<*>, FloatVectorDescriptor>(input, field, analyser, parameters) {
     /** The [AsrApi] used to perform extraction with. */
     private val textApi by lazy { TextEmbeddingApi(this.host, model, this.timeoutMs, this.pollingIntervalMs, this.retries) }
 
@@ -46,7 +45,7 @@ class DenseEmbeddingExtractor(
             else -> null
         }
         if (result != null) {
-            FloatVectorDescriptor(UUID.randomUUID(), retrievable.id, result)
+            FloatVectorDescriptor(UUID.randomUUID(), retrievable.id, result, this.field)
         } else {
             null
         }
