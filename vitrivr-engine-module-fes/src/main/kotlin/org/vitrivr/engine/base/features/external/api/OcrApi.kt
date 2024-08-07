@@ -14,7 +14,7 @@ import org.vitrivr.engine.core.model.types.Value
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class OcrApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Long, retries: Int) : AbstractApi<ImageContent, Value.String>(host, model, timeoutMs, pollingIntervalMs, retries) {
+class OcrApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Long, retries: Int) : AbstractApi<ImageContent, Value.Text>(host, model, timeoutMs, pollingIntervalMs, retries) {
     /** The API used for FES OCR. */
     private val opticalCharacterRecognitionApi by lazy { OpticalCharacterRecognitionApi(baseUrl = this.host, httpClientConfig = this.httpClientConfig) }
 
@@ -41,11 +41,11 @@ class OcrApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Lo
      * @param jobId The ID of the job to poll.
      * @return The [JobResult]
      */
-    override suspend fun pollJob(jobId: String): JobResult<Value.String> = try {
+    override suspend fun pollJob(jobId: String): JobResult<Value.Text> = try {
         this.opticalCharacterRecognitionApi.getJobResultsApiTasksOpticalCharacterRecognitionJobsJobGet(jobId).body().let { result ->
             val value = result.result?.text?.trim()
             if (!value.isNullOrBlank()) {
-                JobResult(result.status, Value.String(value))
+                JobResult(result.status, Value.Text(value))
             } else {
                 JobResult(result.status, null)
             }
