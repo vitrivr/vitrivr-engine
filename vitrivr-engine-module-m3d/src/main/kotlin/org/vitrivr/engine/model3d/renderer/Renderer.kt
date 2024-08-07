@@ -1,9 +1,9 @@
 package org.vitrivr.engine.model3d.renderer
 
-import org.vitrivr.engine.model3d.data.render.lwjgl.renderer.RenderData
-import org.vitrivr.engine.model3d.data.render.lwjgl.renderer.RenderWorker
-import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.abstractworker.JobControlCommand
-import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.abstractworker.JobType
+import org.vitrivr.engine.model3d.lwjglrender.renderer.RenderData
+import org.vitrivr.engine.model3d.lwjglrender.renderer.RenderWorker
+import org.vitrivr.engine.model3d.lwjglrender.util.fsm.abstractworker.JobControlCommand
+import org.vitrivr.engine.model3d.lwjglrender.util.fsm.abstractworker.JobType
 import java.awt.image.BufferedImage
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
@@ -48,7 +48,7 @@ fun main() {
                         val result = job.results
                         when (result.type) {
                             JobType.RESPONSE -> {
-                                val result = result.data.get(BufferedImage::class.java, RenderData.IMAGE)
+                                val result = result.data!!.get(BufferedImage::class.java, RenderData.IMAGE)
                                 if (result is BufferedImage) {
                                     images.add(result)
                                 }

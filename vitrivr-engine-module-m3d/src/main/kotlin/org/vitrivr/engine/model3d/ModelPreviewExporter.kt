@@ -19,9 +19,9 @@ import org.vitrivr.engine.core.operators.general.Exporter
 import org.vitrivr.engine.core.operators.general.ExporterFactory
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.file.MimeType
-import org.vitrivr.engine.model3d.data.render.lwjgl.render.RenderOptions
-import org.vitrivr.engine.model3d.data.render.lwjgl.window.WindowOptions
-import org.vitrivr.engine.model3d.data.util.texturemodel.entropyoptimizer.ModelEntropyOptimizer
+import org.vitrivr.engine.model3d.lwjglrender.render.RenderOptions
+import org.vitrivr.engine.model3d.lwjglrender.window.WindowOptions
+import org.vitrivr.engine.model3d.lwjglrender.util.texturemodel.entroopyoptimizer.ModelEntropyOptimizer
 import org.vitrivr.engine.model3d.renderer.ExternalRenderer
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream

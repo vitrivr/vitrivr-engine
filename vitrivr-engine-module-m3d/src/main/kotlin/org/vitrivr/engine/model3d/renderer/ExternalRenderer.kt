@@ -2,8 +2,8 @@ package org.vitrivr.engine.model3d.renderer
 
 import org.joml.Vector3f
 import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
-import org.vitrivr.engine.model3d.data.render.lwjgl.render.RenderOptions
-import org.vitrivr.engine.model3d.data.render.lwjgl.window.WindowOptions
+import org.vitrivr.engine.model3d.lwjglrender.render.RenderOptions
+import org.vitrivr.engine.model3d.lwjglrender.window.WindowOptions
 import java.awt.image.BufferedImage
 import java.io.Closeable
 import java.io.IOException

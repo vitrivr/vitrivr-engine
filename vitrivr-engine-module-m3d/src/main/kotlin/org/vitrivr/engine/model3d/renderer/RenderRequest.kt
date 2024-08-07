@@ -2,13 +2,13 @@ package org.vitrivr.engine.model3d.renderer
 
 import org.joml.Vector3f
 import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
-import org.vitrivr.engine.model3d.data.render.lwjgl.render.RenderOptions
-import org.vitrivr.engine.model3d.data.render.lwjgl.renderer.RenderActions
-import org.vitrivr.engine.model3d.data.render.lwjgl.renderer.RenderData
-import org.vitrivr.engine.model3d.data.render.lwjgl.renderer.RenderJob
-import org.vitrivr.engine.model3d.data.render.lwjgl.util.datatype.Variant
-import org.vitrivr.engine.model3d.data.render.lwjgl.util.fsm.model.Action
-import org.vitrivr.engine.model3d.data.render.lwjgl.window.WindowOptions
+import org.vitrivr.engine.model3d.lwjglrender.render.RenderOptions
+import org.vitrivr.engine.model3d.lwjglrender.renderer.RenderActions
+import org.vitrivr.engine.model3d.lwjglrender.renderer.RenderData
+import org.vitrivr.engine.model3d.lwjglrender.renderer.RenderJob
+import org.vitrivr.engine.model3d.lwjglrender.util.datatype.Variant
+import org.vitrivr.engine.model3d.lwjglrender.util.fsm.model.Action
+import org.vitrivr.engine.model3d.lwjglrender.window.WindowOptions
 import java.io.Serializable
 import java.util.*
 import java.util.concurrent.LinkedBlockingDeque
