@@ -121,7 +121,7 @@ class SceneRender {
                 }
                 GL30.glActiveTexture(GL30.GL_TEXTURE0)
                 texture.bind()
-                for (mesh in material.getMeshes()) {
+                for (mesh in material.meshes) {
                     GL30.glBindVertexArray(mesh.vaoId)
                     for (entity in entities) {
                         uniformsMap!!.setUniform("modelMatrix", entity.modelMatrix)
