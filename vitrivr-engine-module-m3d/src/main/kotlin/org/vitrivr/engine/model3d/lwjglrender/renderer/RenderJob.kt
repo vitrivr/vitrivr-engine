@@ -113,18 +113,18 @@ class RenderJob : Job {
             // In standard jop, this is an image for each camera position
             val actions = LinkedBlockingDeque<Action>()
 
-            actions.add(Action(RenderActions.SETUP))
-            actions.add(Action(RenderActions.SETUP))
-            actions.add(Action(RenderActions.SETUP))
+            actions.add(Action(RenderActions.SETUP.name))
+            actions.add(Action(RenderActions.SETUP.name))
+            actions.add(Action(RenderActions.SETUP.name))
 
             val vectors = LinkedList<Vector3f>()
             for (position in cameraPositions) {
                 // Create a copy of the vector to avoid concurrent modification exceptions
                 vectors.add(Vector3f(position))
-                actions.add(Action(RenderActions.LOOKAT_FROM))
-                actions.add(Action(RenderActions.RENDER))
+                actions.add(Action(RenderActions.LOOKAT_FROM.name))
+                actions.add(Action(RenderActions.RENDER.name))
             }
-            actions.add(Action(RenderActions.SETUP))
+            actions.add(Action(RenderActions.SETUP.name))
             jobData.set(RenderData.VECTORS, vectors)
 
             // Add the job to the queue
