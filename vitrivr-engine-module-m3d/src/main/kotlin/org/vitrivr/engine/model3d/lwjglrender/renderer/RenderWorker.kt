@@ -83,22 +83,22 @@ class RenderWorker(jobs: BlockingDeque<RenderJob>) : Worker<RenderJob>(jobs) {
     return Graph(
       // Setup the graph for the RenderWorker
       hashMapOf(
-        Transition(State(RenderStates.IDLE), Action(RenderActions.SETUP)) to State(RenderStates.INIT_WINDOW),
-        Transition(State(RenderStates.INIT_WINDOW), Action(RenderActions.SETUP)) to State(RenderStates.LOAD_MODEL),
-        Transition(State(RenderStates.LOAD_MODEL), Action(RenderActions.SETUP)) to State(RenderStates.INIT_RENDERER),
-        Transition(State(RenderStates.LOAD_MODEL), Action(RenderActions.RENDER)) to State(RenderStates.RENDER),
-        Transition(State(RenderStates.LOAD_MODEL), Action(RenderActions.LOOKAT)) to State(RenderStates.LOOKAT),
-        Transition(State(RenderStates.LOAD_MODEL), Action(RenderActions.LOOKAT_FROM)) to State(RenderStates.LOOK_FROM_AT_O),
-        Transition(State(RenderStates.INIT_RENDERER), Action(RenderActions.RENDER)) to State(RenderStates.RENDER),
-        Transition(State(RenderStates.INIT_RENDERER), Action(RenderActions.LOOKAT)) to State(RenderStates.LOOKAT),
-        Transition(State(RenderStates.INIT_RENDERER), Action(RenderActions.LOOKAT_FROM)) to State(RenderStates.LOOK_FROM_AT_O),
-        Transition(State(RenderStates.RENDER), Action(RenderActions.ROTATE)) to State(RenderStates.ROTATE),
-        Transition(State(RenderStates.RENDER), Action(RenderActions.LOOKAT)) to State(RenderStates.LOOKAT),
-        Transition(State(RenderStates.RENDER), Action(RenderActions.LOOKAT_FROM)) to State(RenderStates.LOOK_FROM_AT_O),
-        Transition(State(RenderStates.RENDER), Action(RenderActions.SETUP)) to State(RenderStates.UNLOAD_MODEL),
-        Transition(State(RenderStates.ROTATE), Action(RenderActions.RENDER)) to State(RenderStates.RENDER),
-        Transition(State(RenderStates.LOOKAT), Action(RenderActions.RENDER)) to State(RenderStates.RENDER),
-        Transition(State(RenderStates.LOOK_FROM_AT_O), Action(RenderActions.RENDER)) to State(RenderStates.RENDER)
+        Transition(State(RenderStates.IDLE), Action(RenderActions.SETUP.name)) to State(RenderStates.INIT_WINDOW),
+        Transition(State(RenderStates.INIT_WINDOW), Action(RenderActions.SETUP.name)) to State(RenderStates.LOAD_MODEL),
+        Transition(State(RenderStates.LOAD_MODEL), Action(RenderActions.SETUP.name)) to State(RenderStates.INIT_RENDERER),
+        Transition(State(RenderStates.LOAD_MODEL), Action(RenderActions.RENDER.name)) to State(RenderStates.RENDER),
+        Transition(State(RenderStates.LOAD_MODEL), Action(RenderActions.LOOKAT.name)) to State(RenderStates.LOOKAT),
+        Transition(State(RenderStates.LOAD_MODEL), Action(RenderActions.LOOKAT_FROM.name)) to State(RenderStates.LOOK_FROM_AT_O),
+        Transition(State(RenderStates.INIT_RENDERER), Action(RenderActions.RENDER.name)) to State(RenderStates.RENDER),
+        Transition(State(RenderStates.INIT_RENDERER), Action(RenderActions.LOOKAT.name)) to State(RenderStates.LOOKAT),
+        Transition(State(RenderStates.INIT_RENDERER), Action(RenderActions.LOOKAT_FROM.name)) to State(RenderStates.LOOK_FROM_AT_O),
+        Transition(State(RenderStates.RENDER), Action(RenderActions.ROTATE.name)) to State(RenderStates.ROTATE),
+        Transition(State(RenderStates.RENDER), Action(RenderActions.LOOKAT.name)) to State(RenderStates.LOOKAT),
+        Transition(State(RenderStates.RENDER), Action(RenderActions.LOOKAT_FROM.name)) to State(RenderStates.LOOK_FROM_AT_O),
+        Transition(State(RenderStates.RENDER), Action(RenderActions.SETUP.name)) to State(RenderStates.UNLOAD_MODEL),
+        Transition(State(RenderStates.ROTATE), Action(RenderActions.RENDER.name)) to State(RenderStates.RENDER),
+        Transition(State(RenderStates.LOOKAT), Action(RenderActions.RENDER.name)) to State(RenderStates.RENDER),
+        Transition(State(RenderStates.LOOK_FROM_AT_O), Action(RenderActions.RENDER.name)) to State(RenderStates.RENDER)
       ),
       State(RenderStates.IDLE),
       hashSetOf(State(RenderStates.UNLOAD_MODEL))

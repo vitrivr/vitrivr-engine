@@ -1,13 +1,13 @@
 package org.vitrivr.engine.model3d.lwjglrender.renderer
 
 /**
- * Actions used of the Render Workflow
+ * Actions used in the Render Workflow.
  * [RenderWorker]
  */
-object RenderActions {
-    const val SETUP: String = "SETUP"
-    const val RENDER: String = "RENDER"
-    const val ROTATE: String = "ROTATE"
-    const val LOOKAT: String = "LOOKAT"
-    const val LOOKAT_FROM: String = "LOOKAT_FROM"
+enum class RenderActions(val action: String) {
+    SETUP("SETUP"),
+    RENDER("RENDER"),
+    ROTATE("ROTATE"),
+    LOOKAT("LOOKAT"),
+    LOOKAT_FROM("LOOKAT_FROM");
 }
