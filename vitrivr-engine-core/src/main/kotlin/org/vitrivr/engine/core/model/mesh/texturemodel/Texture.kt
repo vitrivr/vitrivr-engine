@@ -4,14 +4,16 @@ import java.awt.image.BufferedImage
 import java.io.*
 import javax.imageio.ImageIO
 
-
 /**
  * This class represents a texture.
- * In the context free 3D model, a texture is basically a path to a texture file.
+ * In the context of a free 3D model, a texture is basically a path to a texture file.
  */
-class Texture : Serializable {
-    companion object {
+data class Texture(
+    var texturePath: String? = null,
+    var textureImage: BufferedImage? = null
+) : Serializable {
 
+    companion object {
         /**
          * Default texture path.
          * Points to a png with one white pixel with 100% opacity.
@@ -19,51 +21,17 @@ class Texture : Serializable {
         const val DEFAULT_TEXTURE: String = "/renderer/lwjgl/models/default/default.png"
     }
 
-    /**
-     * @return Path to the texture file.
-     */
-    /**
-     * Path to the texture file.
-     */
-    var texturePath: String? = null
-        private set
-
-    /**
-     * @return BufferedImage texture.
-     */
-    /**
-     * BufferedImages texture.
-     */
-    var textureImage: BufferedImage? = null
-        private set
-
-    /**
-     * Constructor for the Texture class.
-     * Sets the texture path to the default texture path.
-     */
-    constructor() {
-        this.textureImage = this.javaClass.getResourceAsStream(DEFAULT_TEXTURE).use {
-            ImageIO.read(it)
+    init {
+        if (texturePath == null && textureImage == null) {
+            this.textureImage = this.javaClass.getResourceAsStream(DEFAULT_TEXTURE).use {
+                ImageIO.read(it)
+            }
         }
     }
 
-    /**
-     * Constructor for the Texture class.
-     * Sets the texture path to the given texture path.
-     *
-     * @param texturePath Path to the texture file.
-     */
-    constructor(texturePath: String?) {
-        this.texturePath = texturePath
-    }
+    constructor(texturePath: String) : this(texturePath, null)
 
-    /**
-     *
-     */
-    constructor(image: BufferedImage?) {
-        this.textureImage = image
-    }
-
+    constructor(textureImage: BufferedImage) : this(null, textureImage)
 
     @Throws(IOException::class)
     private fun writeObject(oos: ObjectOutputStream) {
@@ -80,7 +48,6 @@ class Texture : Serializable {
             oos.writeInt(bytes.size)
             oos.write(bytes)
         }
-
     }
 
     @Throws(IOException::class)
