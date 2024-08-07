@@ -5,7 +5,7 @@ import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.base.features.external.common.FesExtractor
 import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.model.descriptor.Descriptor
-import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
+import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
@@ -19,13 +19,12 @@ import java.util.*
  */
 class ASRExtractor(
     input: Operator<Retrievable>,
-    field: Schema.Field<AudioContent, StringDescriptor>?,
-    analyser: ExternalFesAnalyser<AudioContent, StringDescriptor>,
-    model: String,
+    field: Schema.Field<AudioContent, TextDescriptor>?,
+    analyser: ExternalFesAnalyser<AudioContent, TextDescriptor>,
     parameters: Map<String, String>
-) : FesExtractor<AudioContent, StringDescriptor>(input, field, analyser, model, parameters) {
+) : FesExtractor<AudioContent, TextDescriptor>(input, field, analyser, parameters) {
     /** The [AsrApi] used to perform extraction with. */
-    private val api = AsrApi(host, model, timeoutMs, pollingIntervalMs, retries)
+    private val api = AsrApi(this.host, this.model, this.timeoutMs, this.pollingIntervalMs, this.retries)
 
     /**
      * Internal method to perform extraction on [Retrievable].
@@ -33,12 +32,12 @@ class ASRExtractor(
      * @param retrievable The [Retrievable] to process.
      * @return List of resulting [Descriptor]s.
      */
-    override fun extract(retrievable: Retrievable): List<StringDescriptor> {
+    override fun extract(retrievable: Retrievable): List<TextDescriptor> {
         val content = retrievable.content.filterIsInstance<AudioContent>()
         return content.mapNotNull { audio ->
             val result = this.api.analyse(audio)
             if (result != null) {
-                StringDescriptor(UUID.randomUUID(), retrievable.id, result)
+                TextDescriptor(UUID.randomUUID(), retrievable.id, result, this.field)
             } else {
                 null
             }

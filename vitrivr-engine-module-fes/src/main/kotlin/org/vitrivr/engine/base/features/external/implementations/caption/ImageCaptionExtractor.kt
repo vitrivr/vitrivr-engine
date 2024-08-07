@@ -8,7 +8,7 @@ import org.vitrivr.engine.base.features.external.implementations.caption.ImageCa
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryTextContent
 import org.vitrivr.engine.core.model.descriptor.Descriptor
-import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
+import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
@@ -21,17 +21,16 @@ import java.util.*
  */
 class ImageCaptionExtractor(
     input: Operator<Retrievable>,
-    field: Schema.Field<ImageContent, StringDescriptor>?,
-    analyser: ExternalFesAnalyser<ImageContent, StringDescriptor>,
-    model: String,
+    field: Schema.Field<ImageContent, TextDescriptor>?,
+    analyser: ExternalFesAnalyser<ImageContent, TextDescriptor>,
     parameters: Map<String, String>
-) : FesExtractor<ImageContent, StringDescriptor>(input, field, analyser, model, parameters) {
+) : FesExtractor<ImageContent, TextDescriptor>(input, field, analyser, parameters) {
 
     /** The [ImageCaptioningApi] used to perform extraction with. */
-    private val captioningApi by lazy { ImageCaptioningApi(host, model, timeoutMs, pollingIntervalMs, retries) }
+    private val captioningApi by lazy { ImageCaptioningApi(this.host, this.model, this.timeoutMs, this.pollingIntervalMs, this.retries) }
 
     /** The [ConditionalImageCaptioningApi] used to perform extraction with. */
-    private val conditionalCaptioningApi by lazy { ConditionalImageCaptioningApi(host, model, timeoutMs, pollingIntervalMs, retries) }
+    private val conditionalCaptioningApi by lazy { ConditionalImageCaptioningApi(this.host, this.model, this.timeoutMs, this.pollingIntervalMs, this.retries) }
 
     /**
      * Internal method to perform extraction on [Retrievable].
@@ -39,7 +38,7 @@ class ImageCaptionExtractor(
      * @param retrievable The [Retrievable] to process.
      * @return List of resulting [Descriptor]s.
      */
-    override fun extract(retrievable: Retrievable): List<StringDescriptor> {
+    override fun extract(retrievable: Retrievable): List<TextDescriptor> {
         val prompt = this.field?.parameters?.get(PROMPT_PARAMETER_NAME)?.let { InMemoryTextContent(it) }
         return retrievable.content.mapNotNull {
             if (it is ImageContent) {
@@ -49,7 +48,7 @@ class ImageCaptionExtractor(
                     this.conditionalCaptioningApi.analyse(it to prompt)
                 }
                 if (result != null) {
-                    StringDescriptor(UUID.randomUUID(), retrievable.id, result)
+                    TextDescriptor(UUID.randomUUID(), retrievable.id, result, this.field)
                 } else {
                     null
                 }

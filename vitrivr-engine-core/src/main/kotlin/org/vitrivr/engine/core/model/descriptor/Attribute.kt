@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.descriptor
 
+import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.types.Type
 
 /** The name of an attribute. */
@@ -12,4 +13,5 @@ typealias AttributeName = String
  * @author Ralph Gasser
  * @version 1.0.0
  */
+@Serializable
 data class Attribute(val name: AttributeName, val type: Type, val nullable: Boolean = false)

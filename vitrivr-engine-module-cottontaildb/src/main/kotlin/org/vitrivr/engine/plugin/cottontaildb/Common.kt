@@ -61,6 +61,7 @@ internal fun Type.toCottontailType(): Types<*> = when (this) {
     Type.Float -> Types.Float
     Type.Double -> Types.Double
     Type.Datetime -> Types.Date
+    Type.UUID -> Types.Uuid
     is Type.BooleanVector -> Types.BooleanVector(this.dimensions)
     is Type.DoubleVector -> Types.DoubleVector(this.dimensions)
     is Type.FloatVector -> Types.FloatVector(this.dimensions)
@@ -127,6 +128,7 @@ internal fun Value<*>.toCottontailValue(): PublicValue = when (this) {
     is Value.String -> StringValue(this.value)
     is Value.Text -> StringValue(this.value)
     is Value.DateTime -> DateValue(this.value)
+    is Value.UUIDValue -> UuidValue(this.value)
     is Value.BooleanVector -> BooleanVectorValue(this.value)
     is Value.DoubleVector -> DoubleVectorValue(this.value)
     is Value.FloatVector -> FloatVectorValue(this.value)
@@ -153,6 +155,7 @@ internal fun ScalarDescriptor<*>.toType() = when (this) {
     is FloatDescriptor -> Types.Float
     is DoubleDescriptor -> Types.Double
     is StringDescriptor -> Types.String
+    is TextDescriptor -> Types.String
 }
 
 /**

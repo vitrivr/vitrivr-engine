@@ -15,9 +15,9 @@ import org.vitrivr.engine.core.model.types.Value
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class ConditionalImageCaptioningApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Long, retries: Int) : AbstractApi<Pair<ImageContent, TextContent>, Value.String>(host, model, timeoutMs, pollingIntervalMs, retries) {
+class ConditionalImageCaptioningApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Long, retries: Int) : AbstractApi<Pair<ImageContent, TextContent>, Value.Text>(host, model, timeoutMs, pollingIntervalMs, retries) {
     /** The API used for FES conditional image captioning. */
-    private val conditionalImageCaptioningApi by lazy { ConditionalImageCaptioningApi(baseUrl = host, httpClient = this.client) }
+    private val conditionalImageCaptioningApi by lazy { ConditionalImageCaptioningApi(baseUrl = this.host, httpClientConfig = this.httpClientConfig) }
 
     /**
      * This method is used to start a conditional image captioning job on the API.
@@ -42,9 +42,14 @@ class ConditionalImageCaptioningApi(host: String, model: String, timeoutMs: Long
      * @param jobId The ID of the job to poll.
      * @return The [JobResult]
      */
-    override suspend fun pollJob(jobId: String): JobResult<Value.String> = try {
+    override suspend fun pollJob(jobId: String): JobResult<Value.Text> = try {
         this.conditionalImageCaptioningApi.getJobResultsApiTasksConditionalImageCaptioningJobsJobGet(jobId).body().let { result ->
-            JobResult(result.status, result.result?.caption?.let { Value.String(it) })
+            val value = result.result?.caption?.trim()
+            if (!value.isNullOrBlank()) {
+                JobResult(result.status, Value.Text(value))
+            } else {
+                JobResult(result.status, null)
+            }
         }
     } catch (e: Throwable) {
         logger.error(e) { "Failed to poll for status of conditional image captioning job." }
