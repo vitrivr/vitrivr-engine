@@ -10,11 +10,11 @@ import org.vitrivr.engine.model3d.lwjglrender.engine.Engine
 import org.vitrivr.engine.model3d.lwjglrender.engine.EngineLogic
 import org.vitrivr.engine.model3d.lwjglrender.glmodel.GLScene
 import org.vitrivr.engine.model3d.lwjglrender.glmodel.IGLModel
-import org.vitrivr.engine.model3d.lwjglrender.scene.LightfieldCamera
 import org.vitrivr.engine.model3d.lwjglrender.window.Window
 import org.vitrivr.engine.model3d.lwjglrender.window.WindowOptions
 import org.vitrivr.engine.model3d.lwjglrender.render.Render
 import org.vitrivr.engine.model3d.lwjglrender.render.RenderOptions
+import org.vitrivr.engine.model3d.lwjglrender.scene.*
 import java.awt.image.BufferedImage
 import java.util.concurrent.LinkedTransferQueue
 import java.util.function.Consumer
