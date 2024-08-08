@@ -54,6 +54,7 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
                 Type.Float -> statement.append("\"${field.name}\" real, ")
                 Type.Double -> statement.append("\"${field.name}\" double precision, ")
                 Type.Datetime -> statement.append("\"${field.name}\" datetime, ")
+                Type.UUID -> statement.append("\"${field.name}\" uuid, ")
                 is Type.BooleanVector -> statement.append("\"${field.name}\" bit(${field.type.dimensions}), ")
                 is Type.DoubleVector -> statement.append("\"${field.name}\" vector(${field.type.dimensions}), ")
                 is Type.FloatVector -> statement.append("\"${field.name}\" vector(${field.type.dimensions}), ")
