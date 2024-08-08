@@ -2,6 +2,8 @@ package org.vitrivr.engine.core.config.schema
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.decodeFromJsonElement
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.general.Exporter
 import org.vitrivr.engine.core.resolver.Resolver
@@ -62,6 +64,11 @@ data class SchemaConfig(
             val path = Paths.get(uri)
             val jsonString = Files.readString(path)
             return json.decodeFromString<SchemaConfig>(jsonString)
+        }
+
+        fun fromJsonWithName(jsonElement: JsonElement, name: String): SchemaConfig {
+            val schemaConfig = Json.decodeFromJsonElement(SchemaConfig.serializer(), jsonElement)
+            return schemaConfig.copy(name = name)
         }
     }
 }
