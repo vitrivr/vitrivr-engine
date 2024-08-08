@@ -5,7 +5,9 @@ import org.vitrivr.engine.base.features.external.api.ImageCaptioningApi
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.base.features.external.common.FesExtractor
 import org.vitrivr.engine.base.features.external.implementations.caption.ImageCaption.Companion.PROMPT_PARAMETER_NAME
+import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
+import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryTextContent
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
@@ -21,10 +23,10 @@ import java.util.*
  */
 class ImageCaptionExtractor(
     input: Operator<Retrievable>,
-    field: Schema.Field<ImageContent, TextDescriptor>?,
-    analyser: ExternalFesAnalyser<ImageContent, TextDescriptor>,
+    field: Schema.Field<ContentElement<*>, TextDescriptor>?,
+    analyser: ExternalFesAnalyser<ContentElement<*>, TextDescriptor>,
     parameters: Map<String, String>
-) : FesExtractor<ImageContent, TextDescriptor>(input, field, analyser, parameters) {
+) : FesExtractor<ContentElement<*>, TextDescriptor>(input, field, analyser, parameters) {
 
     /** The [ImageCaptioningApi] used to perform extraction with. */
     private val captioningApi by lazy { ImageCaptioningApi(this.host, this.model, this.timeoutMs, this.pollingIntervalMs, this.retries) }
@@ -39,8 +41,16 @@ class ImageCaptionExtractor(
      * @return List of resulting [Descriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<TextDescriptor> {
-        val prompt = this.field?.parameters?.get(PROMPT_PARAMETER_NAME)?.let { InMemoryTextContent(it) }
-        return retrievable.content.mapNotNull {
+
+        val content = this.filterContent(retrievable)
+        val textContent = content.filterIsInstance<TextContent>()
+        if (textContent.size > 1) {
+            logger.warn { "Text content has more than one element. Only the first element will be used as an image captioning prompt." }
+        }
+
+        val prompt = (textContent.firstOrNull()?.content ?: this.field?.parameters?.get(PROMPT_PARAMETER_NAME) )?.let { InMemoryTextContent(it) }
+
+        return content.mapNotNull {
             if (it is ImageContent) {
                 val result = if (prompt == null) {
                     this.captioningApi.analyse(it)

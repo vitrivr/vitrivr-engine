@@ -41,7 +41,7 @@ class ImageClassificationExtractor(
         val classes = this.parameters[CLASSES_PARAMETER_NAME]?.split(",") ?: throw IllegalArgumentException("No classes provided.")
         val topK = this.parameters[TOPK_PARAMETER_NAME]?.toInt() ?: 1
         val threshold = this.parameters[THRESHOLD_PARAMETER_NAME]?.toFloat() ?: 0.0f
-        return retrievable.content.flatMap { content ->
+        return this.filterContent(retrievable).flatMap { content ->
             if (content is ImageContent) {
                 val result = this.api.analyse(content to classes)
                 result?.mapIndexed { index, score ->

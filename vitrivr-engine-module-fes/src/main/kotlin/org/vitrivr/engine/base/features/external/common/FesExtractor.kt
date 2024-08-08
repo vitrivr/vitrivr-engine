@@ -7,6 +7,7 @@ import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Comp
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.POLLINGINTERVAL_MS_PARAMETER_NAME
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.RETRIES_PARAMETER_DEFAULT
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.RETRIES_PARAMETER_NAME
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.TIMEOUT_MS_PARAMETER_DEFAULT
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -42,7 +43,7 @@ abstract class FesExtractor<C : ContentElement<*>, D : Descriptor>(
 
     /** */
     protected val timeoutMs: Long
-        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull() ?: POLLINGINTERVAL_MS_PARAMETER_DEFAULT
+        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull() ?: TIMEOUT_MS_PARAMETER_DEFAULT
 
     /** */
     protected val pollingIntervalMs: Long
