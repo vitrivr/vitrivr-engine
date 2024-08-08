@@ -1,6 +1,7 @@
 package org.vitrivr.engine.base.features.external.api
 
 import org.openapitools.client.apis.ZeroShotImageClassificationApi
+import org.openapitools.client.models.BatchedZeroShotImageClassificationInput
 import org.openapitools.client.models.JobState
 import org.openapitools.client.models.JobStatus
 import org.openapitools.client.models.ZeroShotImageClassificationInput
@@ -37,6 +38,30 @@ class ZeroShotClassificationApi(host: String, model: String, timeoutMs: Long, po
     }
 
     /**
+     * This method is used to start a batched  zero shot image classification job on the API.
+     *
+     * @param input The input for the job.
+     * @return The [JobStatus]
+     */
+    override suspend fun startBatchedJob(input: List<Pair<ImageContent, List<String>>>): JobStatus {
+        logger.debug { "Starting batched  zero shot image classification job for images." }
+        val classes = input.map { it.second }.toSet()
+        if (classes.size > 1) {
+            throw IllegalArgumentException("All classes must be the same for batched zero shot image classification.")
+        }
+        val wrapped = BatchedZeroShotImageClassificationInput(input.map { it.first.toDataUrl() }, classes.first())
+        return try {
+            this.zeroShotImageClassificationApi.newBatchedJobApiTasksZeroShotImageClassificationBatchedModelJobsPost(
+                this.model,
+                wrapped
+            ).body()
+        } catch (e: Throwable) {
+            logger.error(e) { "Failed to start batched  zero shot image classification job." }
+            JobStatus("unknown", JobState.failed)
+        }
+    }
+
+    /**
      * This method is used to poll for results of an object detection job on the API.
      *
      * @param jobId The ID of the job to poll.
@@ -48,6 +73,21 @@ class ZeroShotClassificationApi(host: String, model: String, timeoutMs: Long, po
         }
     } catch (e: Throwable) {
         logger.error(e) { "Failed to poll for status of object detection job." }
+        JobResult(JobState.failed, null)
+    }
+
+    /**
+     * This method is used to poll for results of a batched object detection job on the API.
+     *
+     * @param jobId The ID of the job to poll.
+     * @return The [JobResult]
+     */
+    override suspend fun pollBatchedJob(jobId: String): JobResult<List<List<Value.Double>>> = try {
+        this.zeroShotImageClassificationApi.getBatchedJobResultsApiTasksZeroShotImageClassificationBatchedJobsJobGet(jobId).body().let { result ->
+            JobResult(result.status, result.result?.map { it.probabilities.map { Value.Double(it) } })
+        }
+    } catch (e: Throwable) {
+        logger.error(e) { "Failed to poll for status of batched object detection job." }
         JobResult(JobState.failed, null)
     }
 }

@@ -1,6 +1,7 @@
 package org.vitrivr.engine.base.features.external.api
 
 import org.openapitools.client.apis.ConditionalImageCaptioningApi
+import org.openapitools.client.models.BatchedConditionalImageCaptioningInput
 import org.openapitools.client.models.ConditionalImageCaptioningInput
 import org.openapitools.client.models.JobState
 import org.openapitools.client.models.JobStatus
@@ -37,6 +38,23 @@ class ConditionalImageCaptioningApi(host: String, model: String, timeoutMs: Long
     }
 
     /**
+     * This method is used to start a batched conditional image captioning job on the API.
+     *
+     * @param input The input for the job.
+     * @return The [JobStatus]
+     */
+    override suspend fun startBatchedJob(input: List<Pair<ImageContent, TextContent>>): JobStatus {
+        logger.debug { "Starting batched conditional image captioning job for images." }
+        val wrapped = BatchedConditionalImageCaptioningInput(image = input.map{it.first.toDataUrl()}, text = input.map{it.second.content})
+        return try {
+            this.conditionalImageCaptioningApi.newBatchedJobApiTasksConditionalImageCaptioningBatchedModelJobsPost(this.model, wrapped).body()
+        } catch (e: Throwable) {
+            logger.error(e) { "Failed to start batched conditional image captioning job." }
+            JobStatus("unknown", JobState.failed)
+        }
+    }
+
+    /**
      * This method is used to poll for results of a conditional image captioning job on the API.
      *
      * @param jobId The ID of the job to poll.
@@ -54,5 +72,22 @@ class ConditionalImageCaptioningApi(host: String, model: String, timeoutMs: Long
     } catch (e: Throwable) {
         logger.error(e) { "Failed to poll for status of conditional image captioning job." }
         JobResult(JobState.failed, null)
+    }
+
+    /**
+     * This method is used to poll for results of a batched conditional image captioning job on the API.
+     *
+     * @param jobId The ID of the job to poll.
+     * @return The [JobResult]
+     */
+    override suspend fun pollBatchedJob(jobId: String): JobResult<List<Value.Text>> {
+        this.conditionalImageCaptioningApi.getBatchedJobResultsApiTasksConditionalImageCaptioningBatchedJobsJobGet(jobId).body().let { result ->
+            val value = result.result?.map { it.caption.trim() }
+            if (value != null) {
+                return JobResult(result.status, value.map { Value.Text(it) })
+            } else {
+                return JobResult(result.status, null)
+            }
+        }
     }
 }

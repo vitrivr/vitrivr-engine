@@ -32,22 +32,49 @@ class DenseEmbeddingExtractor(
     /** The [AsrApi] used to perform extraction with. */
     private val imageApi by lazy { ImageEmbeddingApi(this.host, model, this.timeoutMs, this.pollingIntervalMs, this.retries) }
 
+
     /**
      * Internal method to perform extraction on [Retrievable].
      **
-     * @param retrievable The [Retrievable] to process.
-     * @return List of resulting [Descriptor]s.
+     * @param retrievables The [Retrievable]s to process.
+     * @return List of resulting [Descriptor]s grouped by [Retrievable].
      */
-    override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> = this.filterContent(retrievable).mapNotNull {
-        val result = when (it) {
-            is ImageContent -> this.imageApi.analyse(it)
-            is TextContent -> this.textApi.analyse(it)
-            else -> null
-        }
-        if (result != null) {
-            FloatVectorDescriptor(UUID.randomUUID(), retrievable.id, result, this.field)
+    override fun extract(retrievables: List<Retrievable>): List<List<FloatVectorDescriptor>> {
+        val content = retrievables.flatMap { this.filterContent(it) }
+        val textContent = content.mapIndexed { index, contentElement -> if (contentElement is TextContent) index to contentElement else null }.filterNotNull().toMap()
+        val imageContent = content.mapIndexed { index, contentElement -> if (contentElement is ImageContent) index to contentElement else null }.filterNotNull().toMap()
+
+        val textResults: List<FloatVectorDescriptor> = if (textContent.isNotEmpty()) {
+            this.textApi.analyseBatched(textContent.map { it.value })
+                .map { FloatVectorDescriptor(UUID.randomUUID(), null, it, this.field) }
         } else {
-            null
+            emptyList()
+        }
+
+        val imageResults: List<FloatVectorDescriptor> = if (imageContent.isNotEmpty()) {
+            this.imageApi.analyseBatched(imageContent.map { it.value })
+                .map { FloatVectorDescriptor(UUID.randomUUID(), null, it, this.field) }
+        } else {
+            emptyList()
+        }
+
+
+        val textResultMap = textContent.keys.zip(textResults).toMap()
+        val imageResultMap = imageContent.keys.zip(imageResults).toMap()
+
+        return retrievables.indices.map { index ->
+            val descriptors = mutableListOf<FloatVectorDescriptor>()
+            textResultMap[index]?.let {
+                it.retrievableId = retrievables[index].id
+                descriptors.add(it)
+            }
+            imageResultMap[index]?.let {
+                it.retrievableId = retrievables[index].id
+                descriptors.add(it)
+            }
+            descriptors
         }
     }
+
+
 }

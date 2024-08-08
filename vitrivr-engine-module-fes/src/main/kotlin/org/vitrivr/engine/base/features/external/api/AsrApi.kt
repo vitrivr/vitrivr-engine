@@ -2,6 +2,7 @@ package org.vitrivr.engine.base.features.external.api
 
 import org.openapitools.client.apis.AutomatedSpeechRecognitionApi
 import org.openapitools.client.models.AutomatedSpeechRecognitionInput
+import org.openapitools.client.models.BatchedAutomatedSpeechRecognitionInput
 import org.openapitools.client.models.JobState
 import org.openapitools.client.models.JobStatus
 import org.vitrivr.engine.base.features.external.api.model.JobResult
@@ -36,6 +37,22 @@ class AsrApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Lo
     }
 
     /**
+     * This method is used to start a batched ASR job on the API.
+     *
+     * @param input The input for the job.
+     * @return The [JobStatus]
+     */
+    override suspend fun startBatchedJob(input: List<AudioContent>): JobStatus {
+        logger.debug { "Starting batched ASR job for audio." }
+        val wrapped = BatchedAutomatedSpeechRecognitionInput(input.map { it.toDataURL() })
+        return try {
+            this.automatedSpeechRecognitionApi.newBatchedJobApiTasksAutomatedSpeechRecognitionBatchedModelJobsPost(this.model, wrapped).body()
+        } catch (e: Throwable) {
+            JobStatus("unknown", JobState.failed)
+        }
+    }
+
+    /**
      * This method is used to poll for results of an ASR job on the API.
      *
      * @param jobId The ID of the job to poll.
@@ -46,6 +63,25 @@ class AsrApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Lo
             val value = result.result?.transcript?.trim()
             if (!value.isNullOrBlank()) {
                 JobResult(result.status, Value.Text(value))
+            } else {
+                JobResult(result.status, null)
+            }
+        }
+    } catch (e: Throwable) {
+        JobResult(JobState.failed, null)
+    }
+
+    /**
+     * This method is used to poll for results of a batched ASR job on the API.
+     *
+     * @param jobId The ID of the job to poll.
+     * @return The [JobResult]
+     */
+    override suspend fun pollBatchedJob(jobId: String): JobResult<List<Value.Text>> = try {
+        this.automatedSpeechRecognitionApi.getBatchedJobResultsApiTasksAutomatedSpeechRecognitionBatchedJobsJobGet(jobId).body().let { result ->
+            val values = result.result?.map { it.transcript.trim() }
+            if (!values.isNullOrEmpty()) {
+                JobResult(result.status, values.map { Value.Text(it) })
             } else {
                 JobResult(result.status, null)
             }

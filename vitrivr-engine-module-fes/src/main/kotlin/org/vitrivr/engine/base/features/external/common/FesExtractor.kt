@@ -8,6 +8,7 @@ import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Comp
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.RETRIES_PARAMETER_DEFAULT
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.RETRIES_PARAMETER_NAME
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.TIMEOUT_MS_PARAMETER_DEFAULT
+import org.vitrivr.engine.core.features.AbstractBatchedExtractor
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -28,7 +29,7 @@ abstract class FesExtractor<C : ContentElement<*>, D : Descriptor>(
     field: Schema.Field<C, D>?,
     analyser: ExternalFesAnalyser<C, D>,
     protected val parameters: Map<String, String>,
-) : AbstractExtractor<C, D>(input, analyser, field) {
+) : AbstractBatchedExtractor<C, D>(input, analyser, field, parameters["batchSize"]?.toIntOrNull() ?: 1) {
 
     private val contentSources = parameters["contentSources"]?.split(",")?.toSet()
 

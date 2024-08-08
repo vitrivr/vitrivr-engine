@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
@@ -19,9 +20,13 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(final override val input: Operator<Retrievable>, final override val field: Schema.Field<C, D>?, private val bufferSize: Int = 100) :
+abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(final override val input: Operator<Retrievable>, final override val analyser: Analyser<C, D>, final override val field: Schema.Field<C, D>? = null, private val bufferSize: Int = 100) :
     Extractor<C, D> {
     private val logger: KLogger = KotlinLogging.logger {}
+
+    init {
+        require(field == null || this.field.analyser == this.analyser) { "Field and analyser do not match! This is a programmer's error!" }
+    }
 
     /**
      * A default [Extractor] implementation for batched extraction. It executes the following steps:
@@ -86,10 +91,14 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(f
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
+     * By default, a [Retrievable] matches this [Extractor] if it contains at least one [ContentElement] that matches the [Analyser.contentClasses].
+     *
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,
      */
-    protected abstract fun matches(retrievable: Retrievable): Boolean
+    protected open fun matches(retrievable: Retrievable): Boolean = retrievable.content.any { content ->
+        this.analyser.contentClasses.any { it.isInstance(content) }
+    }
 
     /**
      * Internal method to perform extraction on batch of [Retrievable].
