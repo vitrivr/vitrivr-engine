@@ -17,7 +17,6 @@ import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
-import org.vitrivr.engine.core.util.extension.toDataUrl
 import org.vitrivr.engine.module.features.feature.external.ExternalAnalyser
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -78,7 +77,7 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
      */
     override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext): CLIPExtractor {
         val host: String = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
-        return CLIPExtractor(input, field, host)
+        return CLIPExtractor(input, this, field, host)
     }
 
     /**
@@ -93,7 +92,7 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
      */
     override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): CLIPExtractor {
         val host: String = context.getProperty(name, HOST_PARAMETER_NAME) ?: HOST_PARAMETER_DEFAULT
-        return CLIPExtractor(input, null, host)
+        return CLIPExtractor(input, this, null, host)
     }
 
     /**

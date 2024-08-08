@@ -66,7 +66,9 @@ class PersistingSink(override val input: Operator<Retrievable>, val context: Ind
             this.writer.connectAll(relationships)
             for ((f, d) in descriptors) {
                 val writer = f.let { field -> this.descriptorWriters.computeIfAbsent(field) { it.getWriter() } } as? DescriptorWriter<Descriptor>
-                writer?.addAll(d)
+                if (writer?.addAll(d) != true) {
+                    logger.error { "Failed to persist descriptors for field ${f.fieldName}." }
+                }
             }
         }
     }
