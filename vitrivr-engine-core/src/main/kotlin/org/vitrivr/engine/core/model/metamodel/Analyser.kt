@@ -34,8 +34,8 @@ interface Analyser<C : ContentElement<*>, D : Descriptor> : ExtractorFactory<C, 
         fun merge(field: Schema.Field<*, *>, context: IndexContext): Map<String, String> {
             val fieldParameters = field.parameters
             val contextParameters = context.local[field.fieldName] ?: emptyMap()
-            val merged = HashMap<String, String>(contextParameters)
-            merged.putAll(fieldParameters)
+            val merged = HashMap<String, String>(fieldParameters)
+            merged.putAll(contextParameters)
             return merged
         }
 
@@ -49,8 +49,8 @@ interface Analyser<C : ContentElement<*>, D : Descriptor> : ExtractorFactory<C, 
         fun merge(field: Schema.Field<*, *>, context: QueryContext): Map<String, String> {
             val fieldParameters = field.parameters
             val contextParameters = context.local[field.fieldName] ?: emptyMap()
-            val merged = HashMap<String, String>(contextParameters)
-            merged.putAll(fieldParameters)
+            val merged = HashMap<String, String>(fieldParameters)
+            merged.putAll(contextParameters)
             return merged
         }
     }
