@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onEach
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
@@ -16,11 +17,15 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * An abstract [Extractor] implementation that is suitable for most default [Extractor] implementations.
  *
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.2.0
  */
-abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final override val input: Operator<Retrievable>, final override val field: Schema.Field<C, D>? = null) : Extractor<C, D> {
+abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final override val input: Operator<Retrievable>, final override val analyser: Analyser<C, D>, final override val field: Schema.Field<C, D>? = null) : Extractor<C, D> {
 
     protected val logger: KLogger = KotlinLogging.logger {}
+
+    init {
+        require(field == null || this.field.analyser == this.analyser) { "Field and analyser do not match! This is a programmer's error!" }
+    }
 
     /**
      * A default [Extractor] implementation. It executes the following steps:
@@ -34,14 +39,16 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final ov
     final override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
         if (this.matches(retrievable)) {
             /* Perform extraction. */
-            logger.debug{"Extraction for retrievable: $retrievable" }
-            val descriptors = extract(retrievable)
-            descriptors.forEach { descriptor ->
-
+            val descriptors = try {
+                logger.debug { "Extraction for retrievable: $retrievable" }
+                extract(retrievable)
+            } catch (e: Throwable) {
+                logger.error(e) { "Error during extraction of $retrievable" }
+                emptyList()
             }
 
             /* Append descriptor. */
-            logger.trace{ "Extracted descriptors for retrievable ($retrievable): $descriptors" }
+            logger.trace { "Extracted descriptors for retrievable ($retrievable): $descriptors" }
             for (d in descriptors) {
                 retrievable.addDescriptor(d)
             }
@@ -51,10 +58,14 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final ov
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
+     * By default, a [Retrievable] matches this [Extractor] if it contains at least one [ContentElement] that matches the [Analyser.contentClasses].
+     *
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,
      */
-    protected abstract fun matches(retrievable: Retrievable): Boolean
+    protected open fun matches(retrievable: Retrievable): Boolean = retrievable.content.any { content ->
+        this.analyser.contentClasses.any { it.isInstance(content) }
+    }
 
     /**
      * Internal method to perform extraction on [Retrievable].

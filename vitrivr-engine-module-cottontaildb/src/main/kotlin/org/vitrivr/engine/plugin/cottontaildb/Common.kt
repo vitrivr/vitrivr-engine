@@ -155,6 +155,7 @@ internal fun ScalarDescriptor<*>.toType() = when (this) {
     is FloatDescriptor -> Types.Float
     is DoubleDescriptor -> Types.Double
     is StringDescriptor -> Types.String
+    is TextDescriptor -> Types.String
 }
 
 /**

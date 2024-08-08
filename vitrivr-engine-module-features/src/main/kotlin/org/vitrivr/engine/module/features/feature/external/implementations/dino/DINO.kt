@@ -16,7 +16,6 @@ import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
-import org.vitrivr.engine.core.util.extension.toDataUrl
 import org.vitrivr.engine.module.features.feature.external.ExternalAnalyser
 import java.util.*
 
@@ -24,7 +23,7 @@ import java.util.*
  * Implementation of the [DINO] [ExternalAnalyser], which derives the DINO feature from an [ImageContent] as [FloatVectorDescriptor].
  *
  * @author Rahel Arnold
- * @version 1.0.0
+ * @version 1.1.0
  */
 class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
 
@@ -63,13 +62,11 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
      * @param field The [Schema.Field] to create an [Extractor] for.
      * @param input The [Operator] that acts as input to the new [Extractor].
      * @param context The [IndexContext] to use with the [Extractor].
-     *
-     * @return A new [Extractor] instance for this [DINO]
-     * @throws [UnsupportedOperationException], if this [DINO] does not support the creation of an [Extractor] instance.
+     * @return [DINOExtractor]
      */
     override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext): DINOExtractor {
         val host: String = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
-        return DINOExtractor(input, field, host)
+        return DINOExtractor(input, this, field, host)
     }
 
     /**
@@ -78,17 +75,15 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
      * @param name The [Schema.Field] to create an [Extractor] for.
      * @param input The [Operator] that acts as input to the new [Extractor].
      * @param context The [IndexContext] to use with the [Extractor].
-     *
-     * @return A new [Extractor] instance for this [DINO]
-     * @throws [UnsupportedOperationException], if this [DINO] does not support the creation of an [Extractor] instance.
+     * @return [DINOExtractor]
      */
     override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): DINOExtractor {
         val host: String = context.getProperty(name, HOST_PARAMETER_NAME) ?: HOST_PARAMETER_DEFAULT
-        return DINOExtractor(input, null, host)
+        return DINOExtractor(input, this, null, host)
     }
 
     /**
-     * Generates and returns a new [DINORetriever] instance for this [DINO].
+     * Generates and returns a new [DenseRetriever] instance for this [DINO].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param query An array of [Query] elements to use with the [Retriever]
@@ -105,7 +100,7 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
     }
 
     /**
-     * Generates and returns a new [DINORetriever] instance for this [DINO].
+     * Generates and returns a new [DenseRetriever] instance for this [DINO].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
@@ -124,7 +119,7 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
     }
 
     /**
-     * Generates and returns a new [DINORetriever] instance for this [DINO].
+     * Generates and returns a new [DenseRetriever] instance for this [DINO].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param content An array of [Content] elements to use with the [Retriever]

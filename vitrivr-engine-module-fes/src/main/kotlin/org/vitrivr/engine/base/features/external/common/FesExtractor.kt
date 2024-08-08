@@ -1,83 +1,60 @@
 package org.vitrivr.engine.base.features.external.common
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
-import org.vitrivr.engine.core.features.AbstractBatchedExtractor
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.HOST_PARAMETER_DEFAULT
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.HOST_PARAMETER_NAME
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.MODEL_PARAMETER_NAME
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.POLLINGINTERVAL_MS_PARAMETER_DEFAULT
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.POLLINGINTERVAL_MS_PARAMETER_NAME
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.RETRIES_PARAMETER_DEFAULT
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.RETRIES_PARAMETER_NAME
+import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 
-private val logger: KLogger = KotlinLogging.logger {}
-
 /**
- * An abstract [Extractor] implementation that is suitable for [ExternalFesAnalyser]s.
+ * An abstract [Extractor] implementation that is suitable for analysers that use the external Feature Extraction Server (FES) API.
  *
- * @param D The type of the [Descriptor] to extract.
- * @param C The type of the [ContentElement] to extract from.
- * @param A The type of the [ExternalFesAnalyser] to use.
+ * @author Fynn Faber
+ * @version 1.1.0
  */
-abstract class FesExtractor<D:Descriptor,C:ContentElement<*>, A:ExternalFesAnalyser<C,D>>(
-        input: Operator<Retrievable>,
-        field: Schema.Field<C, D>?,
-        bufferSize: Int
-) : AbstractBatchedExtractor<C, D>(input, field, bufferSize) {
+abstract class FesExtractor<C : ContentElement<*>, D : Descriptor>(
+    input: Operator<Retrievable>,
+    field: Schema.Field<C, D>?,
+    analyser: ExternalFesAnalyser<C, D>,
+    protected val parameters: Map<String, String>,
+) : AbstractExtractor<C, D>(input, analyser, field) {
+
+    /** Host of the FES API. */
+    protected val host: String
+        get() = this.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
+
+    /** Name of the model that should be used. */
+    protected val model: String
+        get() = this.parameters[MODEL_PARAMETER_NAME] ?: throw IllegalStateException("Model parameter not set.")
+
+    /** */
+    protected val timeoutMs: Long
+        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull() ?: POLLINGINTERVAL_MS_PARAMETER_DEFAULT
+
+    /** */
+    protected val pollingIntervalMs: Long
+        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull() ?: POLLINGINTERVAL_MS_PARAMETER_DEFAULT
+
+    /** */
+    protected val retries: Int
+        get() = parameters[RETRIES_PARAMETER_NAME]?.toIntOrNull() ?: RETRIES_PARAMETER_DEFAULT
+
     /**
      * Checks if the [Retrievable] matches this [Extractor] and should thus be processed.
      *
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,
      */
-    @Suppress("UNCHECKED_CAST")
-    override fun matches(retrievable: Retrievable): Boolean {
-        val analyser = field!!.analyser as A
-        return retrievable.findContent { contentItem ->
-            analyser.contentClasses.any { contentClass ->
-                contentClass.isInstance(contentItem)
-            }
-        }.isNotEmpty()
-
+    override fun matches(retrievable: Retrievable): Boolean = retrievable.content.any { content ->
+        this.analyser.contentClasses.any { it.isInstance(content) }
     }
-
-    /**
-     * Extracts descriptors from the given [Retrievable]s.
-     *
-     * @param retrievables The [Retrievable]s to extract descriptors from.
-     * @return List of resulting [Descriptor]s.
-     */
-    @Suppress("UNCHECKED_CAST")
-    override fun extract(retrievables: List<Retrievable>): List<List<D>> {
-        val analyser = field!!.analyser as A
-
-        val allContent : List<List<C>> = retrievables.map { retrievable ->
-            retrievable.findContent { contentItem ->
-                analyser.contentClasses.any { contentClass ->
-                    contentClass.isInstance(contentItem)
-                }
-            }.map{ it as C }
-        }
-        logger.debug { "Extracting descriptors from ${retrievables.size} retrievables (${allContent.flatten().size} content elements total)." }
-
-        val allDescriptors: List<List<D>>
-        try {
-            allDescriptors = analyser.analyse(allContent, field!!.parameters)
-        } catch (e: Exception) {
-            logger.error(e) { "Error during extraction of descriptors in field ${field!!.fieldName}." }
-            throw e
-        }
-
-        logger.debug { "Extracted ${allDescriptors.flatten().size} descriptors from ${allContent.flatten().size} content elements total." }
-
-        return allDescriptors.mapIndexed { index, descriptors ->
-            val retrievableId = retrievables[index].id
-            descriptors.map { assignRetrievableId(it, retrievableId) }
-        }
-
-    }
-
-    abstract fun assignRetrievableId(descriptor: D, retrievableId: RetrievableId): D
-
 }

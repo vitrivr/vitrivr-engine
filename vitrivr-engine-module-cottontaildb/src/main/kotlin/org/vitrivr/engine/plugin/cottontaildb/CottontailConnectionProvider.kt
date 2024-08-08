@@ -56,6 +56,7 @@ class CottontailConnectionProvider: AbstractConnectionProvider() {
         this.register(FloatDescriptor::class, ScalarDescriptorProvider)
         this.register(DoubleDescriptor::class, ScalarDescriptorProvider)
         this.register(StringDescriptor::class, ScalarDescriptorProvider)
+        this.register(TextDescriptor::class, ScalarDescriptorProvider)
 
         /* Vector descriptors. */
         this.register(BooleanVectorDescriptor::class, VectorDescriptorProvider)
