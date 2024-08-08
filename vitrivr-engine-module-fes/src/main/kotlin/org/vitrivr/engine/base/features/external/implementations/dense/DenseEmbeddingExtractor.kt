@@ -38,7 +38,7 @@ class DenseEmbeddingExtractor(
      * @param retrievable The [Retrievable] to process.
      * @return List of resulting [Descriptor]s.
      */
-    override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> = retrievable.content.mapNotNull {
+    override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> = this.filterContent(retrievable).mapNotNull {
         val result = when (it) {
             is ImageContent -> this.imageApi.analyse(it)
             is TextContent -> this.textApi.analyse(it)

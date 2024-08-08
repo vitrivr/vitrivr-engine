@@ -10,6 +10,7 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.factory.ContentFactory
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
+import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
@@ -57,6 +58,7 @@ class DescriptorAsContentTransformer : TransformerFactory {
         private fun convertDescriptorToContent(descriptor: Descriptor): ContentElement<*> {
             return when (descriptor) {
                 is StringDescriptor -> contentFactory.newTextContent(descriptor.value.value)
+                is TextDescriptor -> contentFactory.newTextContent(descriptor.value.value)
                 is FileSourceMetadataDescriptor -> contentFactory.newTextContent(descriptor.path.value)
                 else -> throw IllegalArgumentException("Descriptor type not supported.")
             }

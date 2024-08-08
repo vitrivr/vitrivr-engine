@@ -33,7 +33,7 @@ class OCRExtractor(
      * @return List of resulting [Descriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<TextDescriptor> {
-        val content = retrievable.content.filterIsInstance<ImageContent>()
+        val content = this.filterContent(retrievable)
         return content.mapNotNull { audio ->
             val result = this.api.analyse(audio)
             if (result != null) {
