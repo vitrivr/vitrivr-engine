@@ -11,6 +11,7 @@ import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
+import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
@@ -57,7 +58,7 @@ class OCR : ExternalFesAnalyser<ImageContent, TextDescriptor>() {
      * @param context The [IndexContext] to use with the [FesExtractor].
      * @return [ASRExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, TextDescriptor>, input: Operator<Retrievable>, context: IndexContext) = OCRExtractor(input, field, this, field.parameters)
+    override fun newExtractor(field: Schema.Field<ImageContent, TextDescriptor>, input: Operator<Retrievable>, context: IndexContext) = OCRExtractor(input, field, this, merge(field, context))
 
     /**
      * Generates and returns a new [FulltextRetriever] instance for this [OCR].
