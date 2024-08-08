@@ -185,7 +185,7 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
 
         /* Prepare and execute query. */
         val query = SimpleFulltextQuery(
-            Value.String("var"),
+            Value.Text("var"),
             "path"
         )
 

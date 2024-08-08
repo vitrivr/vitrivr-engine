@@ -1,0 +1,42 @@
+{
+  "name": "vitrivr-test",
+  "connection": {
+    "database": "JsonlConnectionProvider",
+    "parameters": {
+      "root": "jsonl-test"
+    }
+  },
+  "fields": [
+    {
+      "name": "averagecolor",
+      "factory": "AverageColor"
+    },
+    {
+      "name": "file",
+      "factory": "FileSourceMetadata",
+      "indexes": [
+        {
+          "attributes": [
+            "path"
+          ],
+          "type": "FULLTEXT"
+        },
+        {
+          "attributes": [
+            "size"
+          ],
+          "type": "SCALAR"
+        }
+      ]
+    },
+    {
+      "name": "time",
+      "factory": "TemporalMetadata"
+    },
+    {
+      "name": "video",
+      "factory": "VideoSourceMetadata"
+    }
+  ],
+  "exporters": []
+}

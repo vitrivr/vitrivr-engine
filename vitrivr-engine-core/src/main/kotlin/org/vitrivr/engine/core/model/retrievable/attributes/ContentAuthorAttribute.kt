@@ -32,4 +32,8 @@ class ContentAuthorAttribute private constructor(
         return contentMap[author] ?: emptySet()
     }
 
+    fun getContentIds(authors: Set<String>): Set<UUID> {
+        return authors.flatMap { contentMap[it] ?: emptySet() }.toSet()
+    }
+
 }

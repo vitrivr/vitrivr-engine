@@ -21,7 +21,8 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.1.0
  */
-class VideoSourceMetadataExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>?) : AbstractExtractor<ContentElement<*>, VideoSourceMetadataDescriptor>(input, field) {
+class VideoSourceMetadataExtractor(input: Operator<Retrievable>, analyser: VideoSourceMetadata, field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>?) :
+    AbstractExtractor<ContentElement<*>, VideoSourceMetadataDescriptor>(input, analyser, field) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
@@ -30,8 +31,7 @@ class VideoSourceMetadataExtractor(input: Operator<Retrievable>, field: Schema.F
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,
      */
-    override fun matches(retrievable: Retrievable): Boolean =
-        retrievable.filteredAttribute(SourceAttribute::class.java)?.source?.type == MediaType.VIDEO
+    override fun matches(retrievable: Retrievable): Boolean = retrievable.filteredAttribute(SourceAttribute::class.java)?.source?.type == MediaType.VIDEO
 
     /**
      * Internal method to perform extraction on [Retrievable].

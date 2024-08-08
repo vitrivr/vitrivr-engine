@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.descriptor.scalar
 
+import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.descriptor.AttributeName
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.types.Value
@@ -10,6 +11,7 @@ import org.vitrivr.engine.core.model.types.Value
  * @author Ralph Gasser
  * @version 1.1.0
  */
+@Serializable
 sealed interface ScalarDescriptor<T : Value.ScalarValue<*>> : Descriptor {
 
     companion object {

@@ -1,15 +1,17 @@
 package org.vitrivr.engine.core.model.retrievable
 
+import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.Persistable
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
+import org.vitrivr.engine.core.model.serializer.UUIDSerializer
 import java.util.*
 import java.util.function.Predicate
 
 /** A typealias to identify the [UUID] identifying a [Retrievable]. */
-typealias RetrievableId = UUID
+typealias RetrievableId = @Serializable(UUIDSerializer::class) UUID
 
 /**
  * A [Persistable] and [Retrievable] unit of information stored by vitrivr.
