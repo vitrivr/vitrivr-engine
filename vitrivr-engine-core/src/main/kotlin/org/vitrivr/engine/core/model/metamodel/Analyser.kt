@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.metamodel
 
+import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -20,6 +21,40 @@ import kotlin.reflect.KClass
  * @version 1.4.0
  */
 interface Analyser<C : ContentElement<*>, D : Descriptor> : ExtractorFactory<C, D> {
+
+
+    companion object {
+        /**
+         * Merges the parameters of a [Schema.Field] with the parameters of the [IndexContext].
+         *
+         * @param field The [Schema.Field] to merge parameters for.
+         * @param context The [IndexContext] to merge parameters with.
+         * @return Merged parameter map.
+         */
+        fun merge(field: Schema.Field<*, *>, context: IndexContext): Map<String, String> {
+            val fieldParameters = field.parameters
+            val contextParameters = context.local[field.fieldName] ?: emptyMap()
+            val merged = HashMap<String, String>(contextParameters)
+            merged.putAll(fieldParameters)
+            return merged
+        }
+
+        /**
+         * Merges the parameters of a [Schema.Field] with the parameters of the [IndexContext].
+         *
+         * @param field The [Schema.Field] to merge parameters for.
+         * @param context The [QueryContext] to merge parameters with.
+         * @return Merged parameter map.
+         */
+        fun merge(field: Schema.Field<*, *>, context: QueryContext): Map<String, String> {
+            val fieldParameters = field.parameters
+            val contextParameters = context.local[field.fieldName] ?: emptyMap()
+            val merged = HashMap<String, String>(contextParameters)
+            merged.putAll(fieldParameters)
+            return merged
+        }
+    }
+
     /** The [KClass]es of the [ContentElement] accepted by this [Analyser].  */
     val contentClasses: Set<KClass<out ContentElement<*>>>
 
