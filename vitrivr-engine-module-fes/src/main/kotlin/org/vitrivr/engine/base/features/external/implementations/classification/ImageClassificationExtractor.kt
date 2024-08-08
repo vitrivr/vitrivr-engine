@@ -53,4 +53,6 @@ class ImageClassificationExtractor(
             }
         }
     }
+
+    override val name = ImageClassification::class.simpleName!!
 }

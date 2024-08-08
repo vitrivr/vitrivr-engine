@@ -57,4 +57,6 @@ class ImageCaptionExtractor(
             }
         }
     }
+
+    override val name = ImageCaption::class.simpleName!!
 }

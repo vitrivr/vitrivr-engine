@@ -59,4 +59,6 @@ class VideoSourceMetadataExtractor(input: Operator<Retrievable>, analyser: Video
             )
         )
     }
+
+    override val name = VideoSourceMetadata::class.simpleName!!
 }
