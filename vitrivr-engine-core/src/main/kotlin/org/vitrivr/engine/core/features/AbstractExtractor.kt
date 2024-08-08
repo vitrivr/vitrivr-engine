@@ -50,6 +50,9 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final ov
             /* Append descriptor. */
             logger.trace { "Extracted descriptors for retrievable ($retrievable): $descriptors" }
             for (d in descriptors) {
+                if (d.sourceName != this.name) {
+                    logger.error { "Source Name of descriptor was expected to be '$name' but was '${d.sourceName}'" }
+                }
                 retrievable.addDescriptor(d)
             }
         }

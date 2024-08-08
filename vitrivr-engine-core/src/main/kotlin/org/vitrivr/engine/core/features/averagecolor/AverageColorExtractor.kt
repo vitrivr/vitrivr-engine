@@ -41,4 +41,6 @@ class AverageColorExtractor(input: Operator<Retrievable>, analyser: AverageColor
         val content = retrievable.content.filterIsInstance<ImageContent>()
         return AverageColor.analyse(content, retrievable.id, this@AverageColorExtractor.field)
     }
+
+    override val name = AverageColor::class.simpleName!!
 }
