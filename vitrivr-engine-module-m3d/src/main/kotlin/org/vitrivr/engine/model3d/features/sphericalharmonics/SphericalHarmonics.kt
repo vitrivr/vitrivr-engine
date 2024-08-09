@@ -35,7 +35,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  *  A search engine for 3D models. ACM Trans. Graph., 22(1), 83–105. http://doi.org/10.1145/588272.588279
  *
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.2.0
  */
 class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
     companion object {
@@ -199,30 +199,36 @@ class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
     }
 
     /**
+     * Generates and returns a new [SphericalHarmonicsExtractor] instance for this [SphericalHarmonics].
      *
+     * @param field The [Schema.Field] to create an [Extractor] for.
+     * @param input The [Operator] that acts as input to the new [Extractor].
+     * @param context The [IndexContext] to use with the [Extractor].
+     * @return [SphericalHarmonicsExtractor]
      */
-    override fun newExtractor(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext): Extractor<Model3DContent, FloatVectorDescriptor> {
+    override fun newExtractor(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext): SphericalHarmonicsExtractor {
         val gridSize = field.parameters[GRID_SIZE_PARAMETER_NAME]?.toIntOrNull() ?: context.getProperty("", "")?.toIntOrNull() ?: GRID_SIZE_PARAMETER_DEFAULT
         val cap = field.parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: context.getProperty("", "")?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
         val minL = field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: context.getProperty("", "")?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
         val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: context.getProperty("", "")?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
-
         logger.debug { "Creating new SphericalHarmonicsExtract for field '${field.fieldName}' with parameters ($gridSize, $cap, $minL, $maxL)." }
-
-        return SphericalHarmonicsExtractor(input, field, gridSize, cap, minL, maxL)
+        return SphericalHarmonicsExtractor(input, this, field, gridSize, cap, minL, maxL)
     }
 
     /**
+     * Generates and returns a new [SphericalHarmonicsExtractor] instance for this [SphericalHarmonics].
      *
+     * @param name The name of the [SphericalHarmonicsExtractor].
+     * @param input The [Operator] that acts as input to the new [Extractor].
+     * @param context The [IndexContext] to use with the [Extractor].
+     * @return [SphericalHarmonicsExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<Model3DContent, FloatVectorDescriptor> {
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): SphericalHarmonicsExtractor {
         val gridSize = context.getProperty(name, GRID_SIZE_PARAMETER_NAME)?.toIntOrNull() ?: GRID_SIZE_PARAMETER_DEFAULT
         val cap = context.getProperty(name, CAP_PARAMETER_NAME)?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
         val minL = context.getProperty(name, MINL_PARAMETER_NAME)?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
         val maxL = context.getProperty(name, MAXL_PARAMETER_NAME)?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
-
         logger.debug { "Creating new SphericalHarmonicsExtract with parameters ($gridSize, $cap, $minL, $maxL)." }
-
-        return SphericalHarmonicsExtractor(input, null, gridSize, cap, minL, maxL)
+        return SphericalHarmonicsExtractor(input, this, null, gridSize, cap, minL, maxL)
     }
 }

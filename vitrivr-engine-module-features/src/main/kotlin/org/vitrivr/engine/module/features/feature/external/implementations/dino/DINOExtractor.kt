@@ -17,9 +17,9 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @param input Operator representing the input data source.
  *
  * @author Rahel Arnold
- * @version 1.1.1
+ * @version 1.2.0
  */
-class DINOExtractor(input: Operator<Retrievable>, field: Schema.Field<ImageContent, FloatVectorDescriptor>?, private val host: String) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, field) {
+class DINOExtractor(input: Operator<Retrievable>, analyser: DINO, field: Schema.Field<ImageContent, FloatVectorDescriptor>?, private val host: String) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, analyser, field) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *

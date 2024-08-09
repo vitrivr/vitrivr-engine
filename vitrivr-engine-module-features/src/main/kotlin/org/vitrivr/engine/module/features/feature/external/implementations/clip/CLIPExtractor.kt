@@ -18,9 +18,9 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @param input Operator representing the input data source.
  *
  * @author Rahel Arnold
- * @version 1.2.2
+ * @version 1.3.0
  */
-class CLIPExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>?, private val host: String) : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor>(input, field) {
+class CLIPExtractor(input: Operator<Retrievable>, analyser: CLIP, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>?, private val host: String) : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor>(input, analyser, field) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *

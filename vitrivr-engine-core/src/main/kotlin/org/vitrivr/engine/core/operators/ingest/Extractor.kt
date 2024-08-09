@@ -16,11 +16,14 @@ import org.vitrivr.engine.core.operators.Operator
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.2.0
  */
 interface Extractor<C : ContentElement<*>, D : Descriptor> : Operator.Unary<Retrievable, Retrievable> {
     /** The [Schema.Field] populated by this [Extractor]. */
     val field: Schema.Field<C, D>?
+
+    /** The [Analyser] instance this [Extractor] belongs to. */
+    val analyser: Analyser<C, D>
 
     /** Flag indicating, that this [Extractor] is persisting information. */
     val persisting: Boolean

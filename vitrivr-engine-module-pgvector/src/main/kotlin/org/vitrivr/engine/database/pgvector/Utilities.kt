@@ -28,6 +28,7 @@ internal fun PreparedStatement.setValue(index: Int, value: Value<*>) = when (val
     is Value.Long -> this.setLong(index, value.value)
     is Value.Short -> this.setShort(index, value.value)
     is Value.String -> this.setString(index, value.value)
+    is Value.Text -> this.setString(index, value.value)
     is Value.FloatVector -> this.setObject(index, PgVector(value.value))
     is Value.DoubleVector -> this.setObject(index, PgVector(value.value))
     is Value.IntVector -> this.setObject(index, PgVector(value.value))

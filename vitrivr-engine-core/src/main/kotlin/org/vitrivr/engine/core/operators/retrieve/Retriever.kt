@@ -12,9 +12,13 @@ import org.vitrivr.engine.core.operators.Operator
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 interface Retriever<C: ContentElement<*>, D: Descriptor> : Operator.Nullary<Retrieved> {
     /** The [Schema.Field] queried by this [Retriever]. */
     val field: Schema.Field<C, D>
+
+    /** The [Analyser] instance this [Retriever] belongs to. */
+    val analyser: Analyser<C, D>
+        get() = this.field.analyser
 }
