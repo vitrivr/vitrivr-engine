@@ -81,6 +81,11 @@ class SchemaManager {
         this.schemas[schema.name] = schema
     }
 
+    fun load(name: String, config: SchemaConfig) {
+        config.name = name
+        load(config)
+    }
+
     /**
      * Lists all [Schema] managed by this [SchemaManager].
      *
