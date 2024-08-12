@@ -5,7 +5,6 @@ import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.base.features.external.common.FesExtractor
 import org.vitrivr.engine.base.features.external.implementations.classification.ImageClassification.Companion.CLASSES_PARAMETER_NAME
 import org.vitrivr.engine.core.model.content.element.ImageContent
-import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
@@ -27,23 +26,36 @@ class ImageClassificationExtractor(
 
 
     /** The [ZeroShotClassificationApi] used to perform extraction with. */
-    private val api by lazy { ZeroShotClassificationApi(this.host, this.model, this.timeoutMs, this.pollingIntervalMs, this.retries) }
-
-
-
-    override fun extract(retrievables: List<Retrievable>): List<List<LabelDescriptor>> {
-        val classes = this.parameters[CLASSES_PARAMETER_NAME]?.split(",") ?: throw IllegalArgumentException("No classes provided.")
-        val flatResults = this.api.analyseBatched(retrievables.flatMap { this.filterContent(it).map{it to classes}}).map { result ->
-            LabelDescriptor(UUID.randomUUID(), null, result.mapIndexed { index, double ->  classes[index] to double}.toMap(), this.field)
-        }
-
-        var index = 0
-        return retrievables.map { retrievable ->
-            this.filterContent(retrievable).map {
-                flatResults[index++].also{it.retrievableId = retrievable.id}
-            }
-        }
+    private val api by lazy {
+        ZeroShotClassificationApi(
+            this.host,
+            this.model,
+            this.timeoutMs,
+            this.pollingIntervalMs,
+            this.retries
+        )
     }
 
 
+    override fun extract(retrievables: List<Retrievable>): List<List<LabelDescriptor>> {
+        val classes = this.parameters[CLASSES_PARAMETER_NAME]?.split(",")
+            ?: throw IllegalArgumentException("No classes provided.")
+
+        val flatResults = this.api.analyseBatched(
+            retrievables.flatMap {
+                this.filterContent(it).map { it to classes }
+            }).map { result ->
+            result.mapIndexed { index, confidence ->
+                LabelDescriptor(
+                    UUID.randomUUID(),
+                    null,
+                    mapOf(
+                        "label" to Value.String(classes[index]),
+                        "confidence" to Value.Float(confidence.value.toFloat())
+                    ),
+                )
+            }
+        }
+        return flatResults
+    }
 }
