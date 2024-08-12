@@ -31,8 +31,8 @@ fun main(args: Array<String>) {
 
     /* Setup schema manager. */
     val manager = SchemaManager()
-    for ((_, schemaConfig) in config.schemas) {
-        manager.load(schemaConfig)
+    for ((name, schemaConfig) in config.schemas) {
+        manager.load(name, schemaConfig)
     }
 
     /* Execution server singleton for this instance. */

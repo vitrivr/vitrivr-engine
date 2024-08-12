@@ -5,7 +5,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
-import kotlinx.serialization.json.jsonObject
 import org.vitrivr.engine.core.config.schema.SchemaConfig
 import java.nio.file.Files
 import java.nio.file.Path
@@ -33,20 +32,8 @@ data class ServerConfig(
          * @return [ServerConfig] or null, if an error occurred.
          */
         fun read(path: Path): ServerConfig? = try {
-            Files.newInputStream(path, StandardOpenOption.READ).use { inputStream ->
-                val rawJson = inputStream.bufferedReader().use { it.readText() }
-                val jsonObject = Json.parseToJsonElement(rawJson).jsonObject
-
-                val apiConfig = jsonObject["api"]?.let {
-                    Json.decodeFromJsonElement<ApiConfig>(ApiConfig.serializer(), it)
-                } ?: ApiConfig()
-
-                val schemasJsonObject = jsonObject["schemas"]?.jsonObject ?: return null
-                val schemas = schemasJsonObject.map { (name, jsonElement) ->
-                    name to SchemaConfig.fromJsonWithName(jsonElement, name)
-                }.toMap()
-
-                ServerConfig(api = apiConfig, schemas = schemas)
+            Files.newInputStream(path, StandardOpenOption.READ).use {
+                Json.decodeFromStream<ServerConfig>(it)
             }
         } catch (e: Throwable) {
             logger.error(e) { "Failed to read configuration from $path due to an exception." }
