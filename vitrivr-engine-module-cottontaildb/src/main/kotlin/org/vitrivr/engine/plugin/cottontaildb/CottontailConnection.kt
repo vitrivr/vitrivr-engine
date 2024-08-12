@@ -45,16 +45,8 @@ class CottontailConnection(provider: CottontailConnectionProvider, schemaName: S
      */
     @Synchronized
     override fun <T> withTransaction(action: (Unit) -> T): T {
-        val transactionId = this.client.begin()
-        try {
-            val ret = action.invoke(Unit)
-            this.client.commit(transactionId)
-            return ret
-        } catch (e: Throwable) {
-            this.client.rollback(transactionId)
-            LOGGER.error(e) { "Failed to execute action in transaction due to erro.." }
-            throw e
-        }
+        LOGGER.warn { "Transactions are not supported by Cottontail DB. Ignoring transaction." }
+        return action.invoke(Unit)
     }
 
     /**
