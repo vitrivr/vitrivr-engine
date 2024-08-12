@@ -81,6 +81,12 @@ class SchemaManager {
         this.schemas[schema.name] = schema
     }
 
+    /**
+     * Sets the name for a [SchemaConfig], then calls load.
+     *
+     * @param name The name of the schema.
+     * @param config The [SchemaConfig] to which to assign the name and load.
+     */
     fun load(name: String, config: SchemaConfig) {
         config.name = name
         load(config)
