@@ -59,8 +59,6 @@ class FixedDurationSegmenter : TransformerFactory {
         /** The look-ahead time. */
         private val lookAheadNanos = lookAheadTime.toNanos()
 
-        /** Cache of [SourcedContent.Temporal] elements. */
-        private val cache = LinkedList<ContentElement<*>>()
 
         /**
          *
@@ -80,7 +78,7 @@ class FixedDurationSegmenter : TransformerFactory {
 
                 /* Check if source has changed. */
                 if (lastSource != source) {
-                    while (this@Instance.cache.isNotEmpty()) {
+                    while (cache.isNotEmpty()) {
                         sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos)
                         lastSource = source
                         lastStartTime = 0L
