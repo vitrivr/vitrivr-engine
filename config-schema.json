@@ -1,7 +1,6 @@
 {
-  "schemas": [
-    {
-      "name": "vitrivr",
+  "schemas": {
+    "vitrivr": {
       "connection": {
         "database": "CottontailConnectionProvider",
         "parameters": {
@@ -9,24 +8,20 @@
           "port": "1865"
         }
       },
-      "fields": [
-        {
-          "name": "averagecolor",
+      "fields": {
+        "averagecolor": {
           "factory": "AverageColor"
         },
-        {
-          "name": "file",
+        "file": {
           "factory": "FileSourceMetadata"
         },
-        {
-          "name": "time",
+        "time": {
           "factory": "TemporalMetadata"
         },
-        {
-          "name": "video",
+        "video": {
           "factory": "VideoSourceMetadata"
         }
-      ],
+      },
       "resolvers": {
         "disk": {
           "factory": "DiskResolver",
@@ -35,9 +30,8 @@
           }
         }
       },
-      "exporters": [
-        {
-          "name": "thumbnail",
+      "exporters": {
+        "thumbnail": {
           "factory": "ThumbnailExporter",
           "resolverName": "disk",
           "parameters": {
@@ -45,8 +39,7 @@
             "mimeType": "JPG"
           }
         },
-        {
-          "name": "preview",
+        "preview": {
           "factory": "VideoPreviewExporter",
           "resolverName": "disk",
           "parameters": {
@@ -55,13 +48,12 @@
             "previewTimeSec": "5"
           }
         }
-      ],
-      "extractionPipelines": [
-        {
-          "name": "ingestion",
+      },
+      "extractionPipelines": {
+        "ingestion": {
           "path": "./config-ingestion.json"
         }
-      ]
+      }
     }
-  ]
+  }
 }

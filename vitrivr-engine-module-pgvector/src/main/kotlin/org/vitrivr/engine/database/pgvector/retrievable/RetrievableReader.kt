@@ -62,22 +62,19 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
      * @param ids A [Iterable] of [RetrievableId]s to return.
      * @return A [Sequence] of all [Retrievable].
      */
-    override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrievable> {
+    override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrievable> = sequence {
         try {
-            val statement = this.connection.jdbc.prepareStatement("SELECT * FROM $RETRIEVABLE_ENTITY_NAME WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY (?)")
             val values = ids.map { it }.toTypedArray()
-            statement.setArray(1, this.connection.jdbc.createArrayOf("uuid", values))
-            return sequence {
-                val result = statement.executeQuery()
-                while (result.next()) {
-                    yield(Retrieved(result.getObject(RETRIEVABLE_ID_COLUMN_NAME, UUID::class.java), result.getString(RETRIEVABLE_TYPE_COLUMN_NAME), false))
+            this@RetrievableReader.connection.jdbc.prepareStatement("SELECT * FROM $RETRIEVABLE_ENTITY_NAME WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY (?)").use { statement ->
+                statement.setArray(1,  this@RetrievableReader.connection.jdbc.createArrayOf("uuid", values))
+                statement.executeQuery().use { result ->
+                    while (result.next()) {
+                        yield(Retrieved(result.getObject(RETRIEVABLE_ID_COLUMN_NAME, UUID::class.java), result.getString(RETRIEVABLE_TYPE_COLUMN_NAME), false))
+                    }
                 }
-                result.close()
-                statement.close()
             }
         } catch (e: Exception) {
             LOGGER.error(e) { "Failed to check for retrievables due to SQL error." }
-            return emptySequence()
         }
     }
 
