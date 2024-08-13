@@ -57,6 +57,4 @@ class FileSourceMetadataExtractor(input: Operator<Retrievable>, analyser: FileSo
             )
         )
     }
-
-    override val name = FileSourceMetadata::class.simpleName!!
 }

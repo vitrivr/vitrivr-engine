@@ -41,6 +41,4 @@ class TemporalMetadataExtractor(input: Operator<Retrievable>, analyser: Temporal
         }
         return emptyList()
     }
-
-    override val name = TemporalMetadata::class.simpleName!!
 }

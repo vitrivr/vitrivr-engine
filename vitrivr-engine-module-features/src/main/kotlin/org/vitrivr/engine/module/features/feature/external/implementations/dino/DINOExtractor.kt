@@ -41,6 +41,4 @@ class DINOExtractor(input: Operator<Retrievable>, analyser: DINO, field: Schema.
             DINO.analyse(c, this.host).copy(retrievableId = retrievable.id, field = this@DINOExtractor.field, sourceName = DINOExtractor::class.java.simpleName)
         }
     }
-
-    override val name = DINO::class.simpleName!!
 }

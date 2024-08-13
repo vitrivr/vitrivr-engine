@@ -43,6 +43,4 @@ class OCRExtractor(
             }
         }
     }
-
-    override val name = OCR::class.simpleName!!
 }
