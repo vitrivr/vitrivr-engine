@@ -50,7 +50,7 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
      * @param context The [IndexContext] to use with the [ImageClassification].
      * @return [ImageClassification]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ImageClassificationExtractor(input, null, this,context.local[name] ?: emptyMap())
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ImageClassificationExtractor(input, name, this,context.local[name] ?: emptyMap())
 
     /**
      * Generates and returns a new [ImageClassification] instance for this [ImageClassification].

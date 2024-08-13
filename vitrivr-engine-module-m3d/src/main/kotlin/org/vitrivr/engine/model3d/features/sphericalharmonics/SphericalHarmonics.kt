@@ -229,6 +229,6 @@ class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
         val minL = context.getProperty(name, MINL_PARAMETER_NAME)?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
         val maxL = context.getProperty(name, MAXL_PARAMETER_NAME)?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
         logger.debug { "Creating new SphericalHarmonicsExtract with parameters ($gridSize, $cap, $minL, $maxL)." }
-        return SphericalHarmonicsExtractor(input, this, null, gridSize, cap, minL, maxL)
+        return SphericalHarmonicsExtractor(input, this, name, gridSize, cap, minL, maxL)
     }
 }

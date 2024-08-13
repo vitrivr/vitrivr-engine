@@ -20,8 +20,7 @@ data class LongVectorDescriptor(
     override var id: UUID = UUID.randomUUID(),
     override var retrievableId: RetrievableId? = null,
     override val vector: Value.LongVector,
-    override val field: Schema.Field<*, LongVectorDescriptor>? = null,
-    override val sourceName: String? = null
+    override val field: Schema.Field<*, LongVectorDescriptor>? = null
 ) : VectorDescriptor<Value.LongVector> {
     /**
      * Returns the [Attribute] [List ]of this [LongVectorDescriptor].

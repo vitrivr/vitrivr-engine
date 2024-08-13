@@ -20,8 +20,10 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.3.0
  */
-class TemporalMetadataExtractor(input: Operator<Retrievable>, analyser: TemporalMetadata, field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>?) :
-    AbstractExtractor<ContentElement<*>, TemporalMetadataDescriptor>(input, analyser, field) {
+class TemporalMetadataExtractor : AbstractExtractor<ContentElement<*>, TemporalMetadataDescriptor> {
+
+    constructor(input: Operator<Retrievable>, analyser: TemporalMetadata, field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>) : super(input, analyser, field)
+    constructor(input: Operator<Retrievable>, analyser: TemporalMetadata, name: String) : super(input, analyser, name)
 
     override fun matches(retrievable: Retrievable): Boolean = retrievable.hasAttribute(TimePointAttribute::class.java) || retrievable.hasAttribute(TimeRangeAttribute::class.java)
 
@@ -37,7 +39,7 @@ class TemporalMetadataExtractor(input: Operator<Retrievable>, analyser: Temporal
             return listOf(TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, mapOf("start" to Value.Long(timestamp.timepointNs), "end" to Value.Long(timestamp.timepointNs)), this@TemporalMetadataExtractor.field))
         } else if (retrievable.hasAttribute(TimeRangeAttribute::class.java)) {
             val span = retrievable.filteredAttribute(TimeRangeAttribute::class.java)!!
-            return listOf(TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, mapOf("start" to Value.Long(span.startNs), "end" to Value.Long(span.endNs)), this@TemporalMetadataExtractor.field, TemporalMetadataExtractor::class.java.simpleName))
+            return listOf(TemporalMetadataDescriptor(UUID.randomUUID(), retrievable.id, mapOf("start" to Value.Long(span.startNs), "end" to Value.Long(span.endNs)), this@TemporalMetadataExtractor.field))
         }
         return emptyList()
     }

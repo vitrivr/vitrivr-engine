@@ -39,7 +39,7 @@ class ExifMetadata : Analyser<ContentElement<*>, MapStructDescriptor> {
      *
      * @return A new [Extractor] instance for this [Analyser]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ExifMetadataExtractor(input, this, null)
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ExifMetadataExtractor(input, this, name)
 
     /**
      * Generates and returns a new [ExifMetadataExtractor] instance for this [ExifMetadata].

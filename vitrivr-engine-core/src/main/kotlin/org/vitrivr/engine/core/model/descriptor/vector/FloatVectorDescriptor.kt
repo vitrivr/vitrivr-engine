@@ -21,8 +21,7 @@ data class FloatVectorDescriptor(
     override var id: UUID = UUID.randomUUID(),
     override var retrievableId: RetrievableId? = null,
     override val vector: Value.FloatVector,
-    override val field: Schema.Field<*, FloatVectorDescriptor>? = null,
-    override val sourceName: String? = null
+    override val field: Schema.Field<*, FloatVectorDescriptor>? = null
 ) : VectorDescriptor<Value.FloatVector> {
     /**
      * Returns the [Attribute] [List ]of this [FloatVectorDescriptor].

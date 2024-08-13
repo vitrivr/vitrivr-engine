@@ -19,8 +19,7 @@ data class FloatDescriptor(
     override var id: DescriptorId,
     override var retrievableId: RetrievableId?,
     override val value: Value.Float,
-    override val field: Schema.Field<*, FloatDescriptor>? = null,
-    override val sourceName: String? = null
+    override val field: Schema.Field<*, FloatDescriptor>? = null
 ) : ScalarDescriptor<Value.Float> {
     companion object {
         private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.Float))

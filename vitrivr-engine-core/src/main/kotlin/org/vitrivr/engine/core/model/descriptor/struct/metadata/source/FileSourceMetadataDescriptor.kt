@@ -21,12 +21,11 @@ class FileSourceMetadataDescriptor(
     override var id: DescriptorId,
     override var retrievableId: RetrievableId?,
     values: Map<AttributeName, Value<*>?>,
-    override val field: Schema.Field<*, FileSourceMetadataDescriptor>? = null,
-    override val sourceName: String? = null
+    override val field: Schema.Field<*, FileSourceMetadataDescriptor>? = null
 ) : MapStructDescriptor(id, retrievableId, SCHEMA, values, field) {
 
-    constructor(id: DescriptorId, retrievableId: RetrievableId?, path: Value.String, size: Value.Long, field: Schema.Field<*, FileSourceMetadataDescriptor>, sourceName: String) :
-            this(id, retrievableId, mapOf("path" to path, "size" to size), field, sourceName)
+    constructor(id: DescriptorId, retrievableId: RetrievableId?, path: Value.String, size: Value.Long, field: Schema.Field<*, FileSourceMetadataDescriptor>) :
+            this(id, retrievableId, mapOf("path" to path, "size" to size), field)
 
     /** The path to the file. */
     val path: Value.String by this.values

@@ -48,7 +48,7 @@ class ImageCaption : ExternalFesAnalyser<ImageContent, TextDescriptor>() {
      * @param context The [IndexContext] to use with the [ImageCaptionExtractor].
      * @return [ImageCaptionExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ImageCaptionExtractor(input, null, this, context.local[name] ?: emptyMap())
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ImageCaptionExtractor(input, name, this, context.local[name] ?: emptyMap())
 
     /**
      * Generates and returns a new [ImageCaptionExtractor] instance for this [ImageCaption].
