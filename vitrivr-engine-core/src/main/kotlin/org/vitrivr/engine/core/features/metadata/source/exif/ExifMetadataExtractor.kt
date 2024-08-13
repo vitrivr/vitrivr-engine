@@ -131,8 +131,6 @@ class ExifMetadataExtractor(input: Operator<Retrievable>, analyser: ExifMetadata
         }
         logger.info { "Extracted fields: ${columnValues.entries.joinToString { (key, value) -> "$key = ${value.value}" }}" }
 
-        return listOf(MapStructDescriptor(UUID.randomUUID(), retrievable.id, attributes.values.toList(), columnValues.mapValues { it.value }, field = this.field, ExifMetadata::class.java.simpleName))
+        return listOf(MapStructDescriptor(UUID.randomUUID(), retrievable.id, attributes.values.toList(), columnValues.mapValues { it.value }, field = this.field, ExifMetadataExtractor::class.java.simpleName))
     }
-
-    override val name = ExifMetadata::class.simpleName!!
 }

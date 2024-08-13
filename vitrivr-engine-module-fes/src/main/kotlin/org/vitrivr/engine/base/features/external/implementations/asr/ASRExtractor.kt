@@ -43,6 +43,4 @@ class ASRExtractor(
             }
         }
     }
-
-    override val name = ASR::class.simpleName!!
 }

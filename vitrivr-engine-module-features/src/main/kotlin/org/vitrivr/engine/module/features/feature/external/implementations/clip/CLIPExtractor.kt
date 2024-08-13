@@ -41,6 +41,4 @@ class CLIPExtractor(input: Operator<Retrievable>, analyser: CLIP, field: Schema.
             CLIP.analyse(c, this.host).copy(retrievableId = retrievable.id, field = this@CLIPExtractor.field, sourceName = CLIPExtractor::class.java.simpleName)
         }
     }
-
-    override val name = CLIP::class.simpleName!!
 }

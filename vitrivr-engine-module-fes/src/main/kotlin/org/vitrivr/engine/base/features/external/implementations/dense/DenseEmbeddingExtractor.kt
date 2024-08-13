@@ -50,6 +50,4 @@ class DenseEmbeddingExtractor(
             null
         }
     }
-
-    override val name = DenseEmbedding::class.simpleName!!
 }
