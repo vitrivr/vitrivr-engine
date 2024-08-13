@@ -19,8 +19,7 @@ data class DoubleDescriptor(
     override var id: DescriptorId,
     override var retrievableId: RetrievableId?,
     override val value: Value.Double,
-    override val field: Schema.Field<*, DoubleDescriptor>? = null,
-    override val sourceName: String? = null
+    override val field: Schema.Field<*, DoubleDescriptor>? = null
 ) : ScalarDescriptor<Value.Double> {
     companion object {
         private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.Double))

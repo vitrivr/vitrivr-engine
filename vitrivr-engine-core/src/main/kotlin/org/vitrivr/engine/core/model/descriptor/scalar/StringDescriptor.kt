@@ -19,8 +19,7 @@ data class StringDescriptor(
     override var id: DescriptorId,
     override var retrievableId: RetrievableId?,
     override val value: Value.String,
-    override val field: Schema.Field<*, StringDescriptor>? = null,
-    override val sourceName: String? = null
+    override val field: Schema.Field<*, StringDescriptor>? = null
 ) : ScalarDescriptor<Value.String> {
     companion object {
         private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.String))

@@ -10,6 +10,7 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import java.util.*
@@ -21,7 +22,10 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(final override val input: Operator<Retrievable>, final override val field: Schema.Field<C, D>?, private val bufferSize: Int = 100) :
+abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(
+    final override val input: Operator<Retrievable>, final override val field: Schema.Field<C, D>?,
+    final override val name: String, val bufferSize: Int = 100
+) :
     Extractor<C, D> {
     private val logger: KLogger = KotlinLogging.logger {}
 
@@ -50,16 +54,21 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(f
                     // zip descriptors and batch
                     for (i in batch.indices) {
                         val r = batch[i]
-                        for (d in descriptors[i]) {
-                            r.addDescriptor(d)
+                        if (descriptors[i].isNotEmpty()) {
+                            val sourceAttribute = DescriptorAuthorAttribute()
+                            for (d in descriptors[i]) {
+                                r.addDescriptor(d)
+                                sourceAttribute.add(d, this.name)
+                            }
+                            r.addAttribute(sourceAttribute)
                         }
                     }
                     batch.clear()
                 }
             } catch (e: Exception) {
-               "Error during extraction: ${e.message}".let {
-                   logger.error { it }
-               }
+                "Error during extraction: ${e.message}".let {
+                    logger.error { it }
+                }
             }
         }.onCompletion {
             /* Persist buffer if necessary. */

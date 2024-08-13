@@ -21,12 +21,27 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Fynn Faber
  * @version 1.1.0
  */
-abstract class FesExtractor<C : ContentElement<*>, D : Descriptor>(
-    input: Operator<Retrievable>,
-    field: Schema.Field<C, D>?,
-    analyser: ExternalFesAnalyser<C, D>,
-    protected val parameters: Map<String, String>,
-) : AbstractExtractor<C, D>(input, analyser, field) {
+abstract class FesExtractor<C : ContentElement<*>, D : Descriptor> : AbstractExtractor<C, D> {
+
+    protected val parameters: Map<String, String>
+
+    constructor(
+        input: Operator<Retrievable>,
+        field: Schema.Field<C, D>,
+        analyser: ExternalFesAnalyser<C, D>,
+        parameters: Map<String, String>
+    ) : super(input, analyser, field) {
+        this.parameters = parameters
+    }
+
+    constructor(
+        input: Operator<Retrievable>,
+        name: String,
+        analyser: ExternalFesAnalyser<C, D>,
+        parameters: Map<String, String>
+    ) : super(input, analyser, name) {
+        this.parameters = parameters
+    }
 
     /** Host of the FES API. */
     protected val host: String
@@ -38,11 +53,13 @@ abstract class FesExtractor<C : ContentElement<*>, D : Descriptor>(
 
     /** */
     protected val timeoutMs: Long
-        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull() ?: POLLINGINTERVAL_MS_PARAMETER_DEFAULT
+        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull()
+            ?: POLLINGINTERVAL_MS_PARAMETER_DEFAULT
 
     /** */
     protected val pollingIntervalMs: Long
-        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull() ?: POLLINGINTERVAL_MS_PARAMETER_DEFAULT
+        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull()
+            ?: POLLINGINTERVAL_MS_PARAMETER_DEFAULT
 
     /** */
     protected val retries: Int

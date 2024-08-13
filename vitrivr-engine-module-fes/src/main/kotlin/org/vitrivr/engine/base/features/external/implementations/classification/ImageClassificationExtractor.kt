@@ -20,13 +20,21 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0
  */
-class ImageClassificationExtractor(
-    input: Operator<Retrievable>,
-    field: Schema.Field<ImageContent, LabelDescriptor>?,
-    analyser: ExternalFesAnalyser<ImageContent, LabelDescriptor>,
-    parameters: Map<String, String>
-) : FesExtractor<ImageContent, LabelDescriptor>(input, field, analyser, parameters) {
+class ImageClassificationExtractor : FesExtractor<ImageContent, LabelDescriptor> {
 
+    constructor(
+        input: Operator<Retrievable>,
+        field: Schema.Field<ImageContent, LabelDescriptor>,
+        analyser: ExternalFesAnalyser<ImageContent, LabelDescriptor>,
+        parameters: Map<String, String>
+    ) : super(input, field, analyser, parameters)
+
+    constructor(
+        input: Operator<Retrievable>,
+        name: String,
+        analyser: ExternalFesAnalyser<ImageContent, LabelDescriptor>,
+        parameters: Map<String, String>
+    ) : super(input, name, analyser, parameters)
 
     /** The [ZeroShotClassificationApi] used to perform extraction with. */
     private val api by lazy { ZeroShotClassificationApi(this.host, this.model, this.timeoutMs, this.pollingIntervalMs, this.retries) }

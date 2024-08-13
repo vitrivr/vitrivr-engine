@@ -25,6 +25,9 @@ interface Extractor<C : ContentElement<*>, D : Descriptor> : Operator.Unary<Retr
     /** The [Analyser] instance this [Extractor] belongs to. */
     val analyser: Analyser<C, D>
 
+    /** The name of this [Extractor]. In case a field is set, is equivalent to field.fieldName.*/
+    val name: String
+
     /** Flag indicating, that this [Extractor] is persisting information. */
     val persisting: Boolean
         get() = this.field != null

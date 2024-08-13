@@ -22,7 +22,6 @@ class VideoSourceMetadataDescriptor(
     override var retrievableId: RetrievableId?,
     values: Map<AttributeName, Value<*>?>,
     override val field: Schema.Field<*, VideoSourceMetadataDescriptor>? = null,
-    override val sourceName: String? = null
 ) : MapStructDescriptor(id, retrievableId, SCHEMA, values, field) {
 
     /** The width of the video source in pixels. */

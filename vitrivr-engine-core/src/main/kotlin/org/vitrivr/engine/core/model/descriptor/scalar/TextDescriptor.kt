@@ -23,6 +23,7 @@ data class TextDescriptor(
     override val value: Value.Text,
     override val field: Schema.Field<*, TextDescriptor>? = null
 ) : ScalarDescriptor<Value.Text> {
+
     companion object {
         private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.Text))
     }

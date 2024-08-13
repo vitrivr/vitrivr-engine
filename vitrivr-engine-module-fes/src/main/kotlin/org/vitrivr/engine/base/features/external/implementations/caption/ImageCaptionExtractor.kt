@@ -19,12 +19,21 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0
  */
-class ImageCaptionExtractor(
-    input: Operator<Retrievable>,
-    field: Schema.Field<ImageContent, TextDescriptor>?,
-    analyser: ExternalFesAnalyser<ImageContent, TextDescriptor>,
-    parameters: Map<String, String>
-) : FesExtractor<ImageContent, TextDescriptor>(input, field, analyser, parameters) {
+class ImageCaptionExtractor : FesExtractor<ImageContent, TextDescriptor> {
+
+    constructor(
+        input: Operator<Retrievable>,
+        field: Schema.Field<ImageContent, TextDescriptor>,
+        analyser: ExternalFesAnalyser<ImageContent, TextDescriptor>,
+        parameters: Map<String, String>
+    ) : super(input, field, analyser, parameters)
+
+    constructor(
+        input: Operator<Retrievable>,
+        name: String,
+        analyser: ExternalFesAnalyser<ImageContent, TextDescriptor>,
+        parameters: Map<String, String>
+    ) : super(input, name, analyser, parameters)
 
     /** The [ImageCaptioningApi] used to perform extraction with. */
     private val captioningApi by lazy { ImageCaptioningApi(this.host, this.model, this.timeoutMs, this.pollingIntervalMs, this.retries) }

@@ -87,8 +87,10 @@ private fun JsonObject.convertType(type: Type): Value<*>? {
     }
 }
 
-class ExifMetadataExtractor(input: Operator<Retrievable>, analyser: ExifMetadata, field: Schema.Field<ContentElement<*>, MapStructDescriptor>?) : AbstractExtractor<ContentElement<*>, MapStructDescriptor>(input, analyser, field) {
+class ExifMetadataExtractor : AbstractExtractor<ContentElement<*>, MapStructDescriptor> {
 
+    constructor(input: Operator<Retrievable>, analyser: ExifMetadata, field: Schema.Field<ContentElement<*>, MapStructDescriptor>) : super(input, analyser, field)
+    constructor(input: Operator<Retrievable>, analyser: ExifMetadata, name: String): super(input, analyser, name)
 
     override fun matches(retrievable: Retrievable): Boolean =
         retrievable.filteredAttribute(SourceAttribute::class.java)?.source is FileSource
@@ -131,6 +133,6 @@ class ExifMetadataExtractor(input: Operator<Retrievable>, analyser: ExifMetadata
         }
         logger.info { "Extracted fields: ${columnValues.entries.joinToString { (key, value) -> "$key = ${value.value}" }}" }
 
-        return listOf(MapStructDescriptor(UUID.randomUUID(), retrievable.id, attributes.values.toList(), columnValues.mapValues { it.value }, field = this.field, ExifMetadataExtractor::class.java.simpleName))
+        return listOf(MapStructDescriptor(UUID.randomUUID(), retrievable.id, attributes.values.toList(), columnValues.mapValues { it.value }, field = this.field))
     }
 }

@@ -49,7 +49,7 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
 
             /* Generate descriptor. */
             val averageColor = RGBFloatColorContainer(color.red / rgb.size, color.green / rgb.size, color.blue / rgb.size)
-            FloatVectorDescriptor(UUID.randomUUID(), retrievableId, averageColor.toVector(), field, AverageColor::class.java.simpleName)
+            FloatVectorDescriptor(UUID.randomUUID(), retrievableId, averageColor.toVector(), field)
         }
     }
 
@@ -83,7 +83,7 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, FloatVectorDescriptor> = AverageColorExtractor(input, this, null)
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, FloatVectorDescriptor> = AverageColorExtractor(input, this, name)
 
     /**
      * Generates and returns a new [AverageColorRetriever] instance for this [AverageColor].

@@ -10,6 +10,7 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 
@@ -19,7 +20,26 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Ralph Gasser
  * @version 1.2.0
  */
-abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final override val input: Operator<Retrievable>, final override val analyser: Analyser<C, D>, final override val field: Schema.Field<C, D>? = null) : Extractor<C, D> {
+abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor> private constructor(
+    final override val input: Operator<Retrievable>,
+    final override val analyser: Analyser<C, D>,
+    final override val field: Schema.Field<C, D>? = null,
+    final override val name: String
+) : Extractor<C, D> {
+
+    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, field: Schema.Field<C, D>) : this(
+        input,
+        analyser,
+        field,
+        field.fieldName
+    )
+
+    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, name: String) : this(
+        input,
+        analyser,
+        null,
+        name
+    )
 
     protected val logger: KLogger = KotlinLogging.logger {}
 
@@ -36,24 +56,31 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final ov
      *
      * @return [Flow] of [Retrievable]
      */
-    final override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
-        if (this.matches(retrievable)) {
-            /* Perform extraction. */
-            val descriptors = try {
-                logger.debug { "Extraction for retrievable: $retrievable" }
-                extract(retrievable)
-            } catch (e: Throwable) {
-                logger.error(e) { "Error during extraction of $retrievable" }
-                emptyList()
-            }
+    final override fun toFlow(scope: CoroutineScope): Flow<Retrievable> =
+        this.input.toFlow(scope).onEach { retrievable ->
+            if (this.matches(retrievable)) {
+                /* Perform extraction. */
+                val descriptors = try {
+                    logger.debug { "Extraction for retrievable: $retrievable" }
+                    extract(retrievable)
+                } catch (e: Throwable) {
+                    logger.error(e) { "Error during extraction of $retrievable" }
+                    emptyList()
+                }
 
-            /* Append descriptor. */
-            logger.trace { "Extracted descriptors for retrievable ($retrievable): $descriptors" }
-            for (d in descriptors) {
-                retrievable.addDescriptor(d)
+                if (descriptors.isNotEmpty()) {
+                    /* Append descriptor. */
+                    logger.trace { "Extracted descriptors for retrievable ($retrievable): $descriptors" }
+                    val authorAttribute = DescriptorAuthorAttribute()
+                    for (d in descriptors) {
+                        retrievable.addDescriptor(d)
+                        authorAttribute.add(d, this.name)
+                    }
+                    retrievable.addAttribute(authorAttribute)
+                }
+
             }
         }
-    }
 
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.

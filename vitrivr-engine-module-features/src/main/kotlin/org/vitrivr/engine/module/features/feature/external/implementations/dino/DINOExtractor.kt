@@ -19,7 +19,19 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Rahel Arnold
  * @version 1.2.0
  */
-class DINOExtractor(input: Operator<Retrievable>, analyser: DINO, field: Schema.Field<ImageContent, FloatVectorDescriptor>?, private val host: String) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, analyser, field) {
+class DINOExtractor : AbstractExtractor<ImageContent, FloatVectorDescriptor> {
+
+    private val host: String
+
+    constructor(input: Operator<Retrievable>, analyser: DINO, field: Schema.Field<ImageContent, FloatVectorDescriptor>, host: String) : super(input, analyser, field) {
+        this.host = host
+    }
+
+    constructor(input: Operator<Retrievable>, analyser: DINO, name: String, host: String) : super(input, analyser, name) {
+        this.host = host
+    }
+
+
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
@@ -38,7 +50,7 @@ class DINOExtractor(input: Operator<Retrievable>, analyser: DINO, field: Schema.
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
         val content = retrievable.content.filterIsInstance<ImageContent>()
         return content.map { c ->
-            DINO.analyse(c, this.host).copy(retrievableId = retrievable.id, field = this@DINOExtractor.field, sourceName = DINOExtractor::class.java.simpleName)
+            DINO.analyse(c, this.host).copy(retrievableId = retrievable.id, field = this@DINOExtractor.field)
         }
     }
 }
