@@ -151,24 +151,20 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      * @param retrievableIds A [Iterable] of [RetrievableId]s to return [Descriptor]s for
      * @return [Sequence] of [Descriptor] of type [D]
      */
-    override fun getAllForRetrievable(retrievableIds: Iterable<RetrievableId>): Sequence<D> {
+    override fun getAllForRetrievable(retrievableIds: Iterable<RetrievableId>): Sequence<D> = sequence {
         try {
-            this.connection.jdbc.prepareStatement("SELECT * FROM $tableName WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY (?)").use { stmt ->
+            this@AbstractDescriptorReader.connection.jdbc.prepareStatement("SELECT * FROM $tableName WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY (?)").use { stmt ->
                 val values = retrievableIds.map { it }.toTypedArray()
-                stmt.setArray(1, this.connection.jdbc.createArrayOf("uuid", values))
-                val result = stmt.executeQuery()
-                return sequence {
-                    result.use {
-                        while (result.next()) {
-                            yield(this@AbstractDescriptorReader.rowToDescriptor(result))
-                        }
+                stmt.setArray(1, this@AbstractDescriptorReader.connection.jdbc.createArrayOf("uuid", values))
+                stmt.executeQuery().use { result ->
+                    while (result.next()) {
+                        yield(this@AbstractDescriptorReader.rowToDescriptor(result))
                     }
                 }
             }
         } catch (e: Exception) {
             LOGGER.error(e) { "Failed to fetch descriptors from '$tableName' due to SQL error." }
-            return emptySequence()
-        }
+         }
     }
 
     /**
