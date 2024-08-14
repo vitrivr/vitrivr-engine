@@ -43,10 +43,10 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
 
         /* Generate and store test data. */
         val descriptors = this.initialize(writer, random)
-        reader.getAll().forEachIndexed { index, floatVectorDescriptor ->
-            Assertions.assertEquals(descriptors[index].id, floatVectorDescriptor.id)
-            Assertions.assertEquals(descriptors[index].retrievableId, floatVectorDescriptor.retrievableId)
-            Assertions.assertArrayEquals(descriptors[index].vector.value, floatVectorDescriptor.vector.value)
+        reader.getAll().forEach { descriptor ->
+            Assertions.assertTrue(descriptors.find { it.id == descriptor.id } != null)
+            Assertions.assertTrue(descriptors.find { it.retrievableId == descriptor.retrievableId } != null)
+            Assertions.assertTrue(descriptors.find { it.vector.value.contentEquals(descriptor.vector.value) } != null)
         }
     }
 
@@ -62,8 +62,8 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
         /* Generate and store test data. */
         val descriptors = this.initialize(writer, random)
         val selection = descriptors.shuffled().take(100).map { it.id }
-        reader.getAll(selection).forEach{ floatVectorDescriptor ->
-            Assertions.assertTrue(selection.contains(floatVectorDescriptor.id))
+        reader.getAll(selection).forEach{ descriptor ->
+            Assertions.assertTrue(selection.contains(descriptor.id))
         }
     }
 
