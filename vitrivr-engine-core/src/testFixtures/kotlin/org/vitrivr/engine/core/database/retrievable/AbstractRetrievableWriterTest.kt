@@ -19,7 +19,7 @@ abstract class AbstractRetrievableWriterTest(schemaPath: String) : AbstractDatab
      * Tests if the [RetrievableWriter.add] works as expected.
      */
     @Test
-    fun testAdd() {
+    open fun testAdd() {
         val writer = this.testConnection.getRetrievableWriter()
         val reader = this.testConnection.getRetrievableReader()
 
@@ -36,7 +36,7 @@ abstract class AbstractRetrievableWriterTest(schemaPath: String) : AbstractDatab
      * Tests if the [RetrievableWriter.add] works as expected.
      */
     @Test
-    fun testAddAll() {
+    open fun testAddAll() {
         val writer = this.testConnection.getRetrievableWriter()
         val reader = this.testConnection.getRetrievableReader()
         val size = Random().nextInt(500, 5000)
@@ -58,7 +58,7 @@ abstract class AbstractRetrievableWriterTest(schemaPath: String) : AbstractDatab
      * Tests if the [RetrievableWriter.add] works as expected.
      */
     @Test
-    fun testDelete() {
+    open fun testDelete() {
         val writer = this.testConnection.getRetrievableWriter()
         val reader = this.testConnection.getRetrievableReader()
         val size = Random().nextInt(500, 5000)
@@ -75,7 +75,7 @@ abstract class AbstractRetrievableWriterTest(schemaPath: String) : AbstractDatab
 
         /* Check if retrievable can be read. */
         Assertions.assertEquals(ids.size.toLong() - 1L, reader.count())
-        reader.getAll(ids).forEachIndexed() { i, it ->
+        reader.getAll(ids).forEachIndexed { i, it ->
             Assertions.assertNotEquals(delete.id, it.id)
             Assertions.assertEquals("INGESTED:TEST", it.type)
         }
@@ -85,7 +85,7 @@ abstract class AbstractRetrievableWriterTest(schemaPath: String) : AbstractDatab
      * Tests if the [RetrievableWriter.add] works as expected.
      */
     @Test
-    fun testDeleteAll() {
+    open fun testDeleteAll() {
         val writer = this.testConnection.getRetrievableWriter()
         val reader = this.testConnection.getRetrievableReader()
         val size = Random().nextInt(500, 5000)
@@ -99,7 +99,7 @@ abstract class AbstractRetrievableWriterTest(schemaPath: String) : AbstractDatab
 
         /* Check if retrievable can be read. */
         Assertions.assertEquals(ids.size.toLong(), reader.count())
-        reader.getAll(ids).forEachIndexed() { i, it ->
+        reader.getAll(ids).forEachIndexed { i, it ->
             Assertions.assertEquals("INGESTED:TEST", it.type)
         }
 
@@ -113,7 +113,7 @@ abstract class AbstractRetrievableWriterTest(schemaPath: String) : AbstractDatab
      * Tests if the [RetrievableWriter.add] works as expected.
      */
     @Test
-    fun testUpdate() {
+    open fun testUpdate() {
         val writer = this.testConnection.getRetrievableWriter()
         val reader = this.testConnection.getRetrievableReader()
         val size = Random().nextInt(500, 5000)
