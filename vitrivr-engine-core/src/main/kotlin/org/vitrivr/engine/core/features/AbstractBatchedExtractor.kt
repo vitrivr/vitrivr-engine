@@ -63,9 +63,6 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(f
                     }
                 } catch (e: Exception) {
                     logger.error(e) { "Error during extraction" }
-                    "Error during extraction: $e".let {
-                        logger.error { it }
-                    }
                 }
             }
 

@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.content.impl.cache
 
+import org.vitrivr.engine.core.model.content.element.ContentId
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import java.awt.image.BufferedImage
 import java.lang.ref.SoftReference
@@ -15,9 +16,7 @@ import javax.imageio.ImageIO
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class CachedImageContent(override val path: Path, image: BufferedImage) : ImageContent, CachedContent {
-
-    override val id: UUID = UUID.randomUUID()
+class CachedImageContent(override val path: Path, image: BufferedImage, override val id: ContentId = ContentId.randomUUID()) : ImageContent, CachedContent {
 
     /** The [SoftReference] of the [BufferedImage] used for caching. */
     private var reference: SoftReference<BufferedImage> = SoftReference(image)

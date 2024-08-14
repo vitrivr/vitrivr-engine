@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.content.impl.memory
 
+import org.vitrivr.engine.core.model.content.element.ContentId
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import java.awt.image.BufferedImage
 import java.util.*
@@ -12,6 +13,4 @@ import java.util.*
  * @author Luca Rossetto.
  * @version 1.0.0
  */
-data class InMemoryImageContent(override val content: BufferedImage) : ImageContent {
-    override val id: UUID = UUID.randomUUID()
-}
+data class InMemoryImageContent(override val content: BufferedImage, override val id: ContentId = ContentId.randomUUID()) : ImageContent

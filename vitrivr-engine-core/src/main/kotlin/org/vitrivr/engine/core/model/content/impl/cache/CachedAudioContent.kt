@@ -1,6 +1,7 @@
 package org.vitrivr.engine.core.model.content.impl.cache
 
 import org.vitrivr.engine.core.model.content.element.AudioContent
+import org.vitrivr.engine.core.model.content.element.ContentId
 import java.lang.ref.SoftReference
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -16,7 +17,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class CachedAudioContent(override val path: Path, override val channels: Short, override val samplingRate: Int, buffer: ShortBuffer) : AudioContent, CachedContent {
+class CachedAudioContent(override val path: Path, override val channels: Short, override val samplingRate: Int, buffer: ShortBuffer, override val id: ContentId = ContentId.randomUUID()) : AudioContent, CachedContent {
     /** The [SoftReference] of the [ByteBuffer] used for caching. */
     private var reference: SoftReference<ShortBuffer> = SoftReference(buffer)
 
@@ -36,7 +37,7 @@ class CachedAudioContent(override val path: Path, override val channels: Short, 
             }
             return buffer.asReadOnlyBuffer()
         }
-    override val id: UUID = UUID.randomUUID()
+
 
     init {
         val outBuffer = ByteBuffer.allocate(this.size).order(ByteOrder.LITTLE_ENDIAN)
