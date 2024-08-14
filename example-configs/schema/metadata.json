@@ -1,7 +1,7 @@
 {
   "schemas": [
     {
-      "name": "LSC-metadata",
+      "name": "metadata",
       "connection": {
         "database": "CottontailConnectionProvider",
         "parameters": {
