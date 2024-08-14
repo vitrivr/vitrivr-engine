@@ -16,6 +16,9 @@ import org.vitrivr.engine.core.operators.general.TransformerFactory
 
 private val logger = KotlinLogging.logger {}
 
+private val TEMPLATE_REGEX = "\\$\\{([^}]+)\\}".toRegex()
+private const val DEFAULT_VALUE = "No content available."
+
 /**
  * A [Transformer] that takes an input template with placeholders and inserts content from fields in their place.
  *
@@ -25,9 +28,8 @@ private val logger = KotlinLogging.logger {}
 class TemplateTextTransformer : TransformerFactory {
     override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
         val template = context[name, "template"] ?: throw IllegalArgumentException("The template text transformer requires a template.")
-        val regex = "\\$\\{([^}]+)\\}".toRegex()
-        val contentFields = regex.findAll(template).map { it.groupValues[1] }.toList()
-        val defaultValue = context[name, "defaultValue"] ?: ""
+        val contentFields = TEMPLATE_REGEX.findAll(template).map { it.groupValues[1] }.toList()
+        val defaultValue = context[name, "defaultValue"] ?: DEFAULT_VALUE
         return Instance(
             input = input,
             contentFactory = (context as IndexContext).contentFactory,
