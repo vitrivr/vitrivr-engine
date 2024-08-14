@@ -3,9 +3,7 @@ package org.vitrivr.engine.core.config.ingest
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.config.IndexContextFactory
-import org.vitrivr.engine.core.config.ingest.operation.BaseOperation
 import org.vitrivr.engine.core.config.ingest.operation.Operation
-import org.vitrivr.engine.core.config.ingest.operation.PassthroughOperation
 import org.vitrivr.engine.core.config.ingest.operator.OperatorConfig
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -60,6 +58,7 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
 
             val config = root.opConfig as? OperatorConfig.Enumerator ?: throw IllegalArgumentException("Root stage must always be an enumerator!")
             val built = HashMap<String, Operator<*>>()
+            root.opName ?: throw IllegalArgumentException("Root stage cannot be passthrough!")
             built[root.name] = buildEnumerator(root.opName, config, stream)
 
             for (output in root.output) {
@@ -85,11 +84,11 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
     /**
      * This is an internal function that can be called recursively to build the [Operator] DAG.
      *
-     * @param operation The [IOperation] to build.
+     * @param operation The [BaseOperation] to build.
      * @param memoizationTable The memoization table that holds the already built operators.
      * @return The built [Operator].
      */
-    private fun buildInternal(operation: BaseOperation, memoizationTable: MutableMap<String, Operator<*>>, breakAt: BaseOperation? = null) {
+    private fun buildInternal(operation: Operation, memoizationTable: MutableMap<String, Operator<*>>, breakAt: Operation? = null) {
         /* Find all required input operations and merge them (if necessary). */
         if (operation == breakAt) return
         val inputs = operation.input.map {
@@ -110,23 +109,21 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
         }
 
         /* Prepare and cache operator. */
-        when(operation) {
-            is Operation -> {
-                val operator = buildOperator(operation.opName, op, operation.opConfig)
-                if (operation.output.size > 1) {
-                    memoizationTable[operation.name] = BroadcastOperator(operator)
-                } else {
-                    memoizationTable[operation.name] = operator
-                }
+        if (operation.opName != null && operation.opConfig != null) {
+            val operator = buildOperator(operation.opName, op, operation.opConfig)
+            if (operation.output.size > 1) {
+                memoizationTable[operation.name] = BroadcastOperator(operator)
+            } else {
+                memoizationTable[operation.name] = operator
             }
-            is PassthroughOperation -> {
-                if (operation.output.size > 1) {
-                    memoizationTable[operation.name] = BroadcastOperator(op)
-                } else {
-                    memoizationTable[operation.name] = op
-                }
+        } else {
+            if (operation.output.size > 1) {
+                memoizationTable[operation.name] = BroadcastOperator(op)
+            } else {
+                memoizationTable[operation.name] = op
             }
         }
+
 
         /* Process output operators. */
         for (output in operation.output) {
@@ -148,28 +145,29 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
 
         /* Build trees with entry points as roots. */
         return entrypoints.map {
-            val stages = HashMap<String, BaseOperation>()
-            val root = Operation(it.key, it.value.operator as String, config.operators[it.value.operator] ?: throw IllegalArgumentException("Undefined operator '${it.value.operator}'"), it.value.merge)
+            val stages = HashMap<String, Operation>()
+            it.value.operator ?: throw IllegalArgumentException("Entrypoints must have an operator!")
+            val root = Operation(it.key, it.value.operator!!, config.operators[it.value.operator] ?: throw IllegalArgumentException("Undefined operator '${it.value.operator}'"), it.value.merge)
             stages[it.key] = root
             for (operation in this.config.operations) {
                 if (!stages.containsKey(operation.key)) {
                     when(operation.value.operator) {
                         is String ->
                             stages[operation.key] = Operation(
-                                operation.key,
-                                operation.value.operator as String,
-                                config.operators[operation.value.operator as String] ?: throw IllegalArgumentException("Undefined operator '${operation.value.operator}'"),
-                                operation.value.merge
+                                name = operation.key,
+                                opName = operation.value.operator!!,
+                                opConfig = config.operators[operation.value.operator!!] ?: throw IllegalArgumentException("Undefined operator '${operation.value.operator}'"),
+                                merge = operation.value.merge
                             )
 
                         null ->
-                            stages[operation.key] = PassthroughOperation(operation.key, operation.value.merge)
+                            stages[operation.key] = Operation(name = operation.key, opName = null, opConfig = null, merge = operation.value.merge)
                     }
                 }
                 for (inputKey in operation.value.inputs) {
                     if (!stages.containsKey(inputKey)) {
                         val op = this.config.operations[inputKey] ?: throw IllegalArgumentException("Undefined operation '${inputKey}'")
-                        stages[inputKey] = Operation(inputKey, op.operator as String, config.operators[op.operator] ?: throw IllegalArgumentException("Undefined operator '${op.operator}'"), op.merge)
+                        stages[inputKey] = Operation(inputKey, op.operator!!, config.operators[op.operator] ?: throw IllegalArgumentException("Undefined operator '${op.operator}'"), op.merge)
                     }
                     stages[operation.key]?.addInput(stages[inputKey]!!)
                 }

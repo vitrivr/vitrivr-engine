@@ -14,8 +14,6 @@ import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 
-private val logger = KotlinLogging.logger {}
-
 /**
  * A [Operator.Sink] that persists the [Ingested] it receives.
  *
