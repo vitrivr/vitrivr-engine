@@ -46,6 +46,8 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
         val retrievableId = result.getObject(RETRIEVABLE_ID_COLUMN_NAME, UUID::class.java)
         return when (this.prototype) {
             is BooleanDescriptor -> BooleanDescriptor(descriptorId, retrievableId, Value.Boolean(result.getBoolean(VALUE_ATTRIBUTE_NAME)))
+            is ByteDescriptor -> ByteDescriptor(descriptorId, retrievableId, Value.Byte(result.getByte(VALUE_ATTRIBUTE_NAME)))
+            is ShortDescriptor -> ShortDescriptor(descriptorId, retrievableId, Value.Short(result.getShort(VALUE_ATTRIBUTE_NAME)))
             is IntDescriptor -> IntDescriptor(descriptorId, retrievableId, Value.Int(result.getInt(VALUE_ATTRIBUTE_NAME)))
             is LongDescriptor -> LongDescriptor(descriptorId, retrievableId, Value.Long(result.getLong(VALUE_ATTRIBUTE_NAME)))
             is FloatDescriptor -> FloatDescriptor(descriptorId, retrievableId, Value.Float(result.getFloat(VALUE_ATTRIBUTE_NAME)))
