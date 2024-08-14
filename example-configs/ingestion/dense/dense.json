@@ -8,7 +8,7 @@
         "path": "../cache"
       },
       "enumerator": {
-        "path": "../objects_dense",
+        "path": "../objects_dense",,
         "depth": "5"
       },
       "selector":{
@@ -27,16 +27,13 @@
         "field": "file"
       },
       "ocrContent": {
-        "field": "ocrSparse",
-        "removeContent": "true"
+        "field": "ocrSparse"
       },
       "asrContent": {
-        "field": "asrSparse",
-        "removeContent": "true"
+        "field": "asrSparse"
       },
       "captionContent": {
-        "field": "captionSparse",
-        "removeContent": "true"
+        "field": "captionSparse"
       },
       "documentFilter": {
         "label": "text document",
@@ -248,7 +245,7 @@
     "video-filter-stage": {"operator": "videoSourceFilter", "inputs": ["video-final-stage"]},
     "image-filter-stage": {"operator": "imageSourceFilter", "inputs": ["document-final-stage", "photograph-final-stage"], "merge": "MERGE"}
   },
-  "output": [ 
+  "output": [
     "image-filter-stage"
   ],
   "mergeType": "MERGE"
