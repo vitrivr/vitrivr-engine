@@ -16,8 +16,8 @@ import org.vitrivr.engine.core.model.types.Value
  */
 
 data class IntDescriptor(
-    override var id: DescriptorId,
-    override var retrievableId: RetrievableId?,
+    override val id: DescriptorId,
+    override val retrievableId: RetrievableId?,
     override val value: Value.Int,
     override val field: Schema.Field<*, IntDescriptor>? = null
 ) : ScalarDescriptor<Value.Int> {
@@ -31,4 +31,13 @@ data class IntDescriptor(
      * @return [List] of [Attribute]
      */
     override fun layout(): List<Attribute> = SCHEMA
+
+    /**
+     * Returns a copy of this [IntDescriptor] with new [RetrievableId] and/or [DescriptorId]
+     *
+     * @param id [DescriptorId] of the new [IntDescriptor].
+     * @param retrievableId [RetrievableId] of the new [IntDescriptor].
+     * @return Copy of this [IntDescriptor].
+     */
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = IntDescriptor(id, retrievableId, this.value, this.field)
 }
