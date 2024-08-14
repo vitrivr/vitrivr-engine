@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.content.impl.memory
 
+import org.vitrivr.engine.core.model.content.element.ContentId
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.Model3DContent
 import org.vitrivr.engine.core.model.mesh.Model3D
@@ -13,6 +14,4 @@ import java.util.*
  * @author Luca Rossetto.
  * @version 1.0.0
  */
-data class InMemoryMeshContent(override val content: Model3D) : Model3DContent {
-    override val id: UUID = UUID.randomUUID()
-}
+data class InMemoryMeshContent(override val content: Model3D, override val id: ContentId = ContentId.randomUUID()) : Model3DContent

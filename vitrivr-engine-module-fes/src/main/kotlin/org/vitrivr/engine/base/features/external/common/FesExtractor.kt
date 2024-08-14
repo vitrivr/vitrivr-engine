@@ -14,6 +14,7 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
 import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -31,7 +32,7 @@ abstract class FesExtractor<C : ContentElement<*>, D : Descriptor>(
     protected val parameters: Map<String, String>,
 ) : AbstractBatchedExtractor<C, D>(input, analyser, field, parameters["batchSize"]?.toIntOrNull() ?: 1) {
 
-    private val contentSources = parameters["contentSources"]?.split(",")?.toSet()
+    private val contentSources = parameters[CONTENT_AUTHORS_KEY]?.split(",")?.toSet()
 
 
     /** Host of the FES API. */
