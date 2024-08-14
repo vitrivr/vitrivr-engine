@@ -1,18 +1,13 @@
 {
-  "name": "vitrivr-test",
-  "connection": {
+  "connection":  {
     "database": "JsonlConnectionProvider",
     "parameters": {
       "root": "jsonl-test"
     }
   },
-  "fields": [
-    {
-      "name": "averagecolor",
-      "factory": "AverageColor"
-    },
-    {
-      "name": "file",
+  "fields": {
+    "averagecolor": { "factory": "AverageColor" },
+    "file": {
       "factory": "FileSourceMetadata",
       "indexes": [
         {
@@ -29,14 +24,7 @@
         }
       ]
     },
-    {
-      "name": "time",
-      "factory": "TemporalMetadata"
-    },
-    {
-      "name": "video",
-      "factory": "VideoSourceMetadata"
-    }
-  ],
-  "exporters": []
+    "time": { "factory": "TemporalMetadata" },
+    "video": { "factory": "VideoSourceMetadata" }
+  }
 }
