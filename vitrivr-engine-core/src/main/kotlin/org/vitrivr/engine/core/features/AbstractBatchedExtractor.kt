@@ -53,10 +53,8 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(f
                     if (batch.size >= bufferSize) {
                         logger.debug { "Batch size reached for field ${field?.fieldName}, extracting descriptors" }
                         val descriptors = extract(batch)
-                        // zip descriptors and batch
-                        for (i in batch.indices) {
-                            val r = batch[i]
-                            for (d in descriptors[i]) {
+                        batch.forEachIndexed { i, r ->
+                            descriptors[i].forEach { d ->
                                 r.addDescriptor(d)
                             }
                         }
@@ -74,10 +72,8 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(f
             // Emit any remaining items in the batch
             if (batch.isNotEmpty()) {
                 val descriptors = extract(batch)
-                // zip descriptors and batch
-                for (i in batch.indices) {
-                    val r = batch[i]
-                    for (d in descriptors[i]) {
+                batch.forEachIndexed { i, r ->
+                    descriptors[i].forEach { d ->
                         r.addDescriptor(d)
                     }
                 }
