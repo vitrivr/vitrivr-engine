@@ -1,8 +1,8 @@
 package org.vitrivr.engine.core.model.descriptor.struct.metadata
 
-import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.AttributeName
+import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.struct.MapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -15,11 +15,11 @@ import java.util.*
  * A [StructDescriptor] used to store spatial metadata in a 2D raster graphic.
  *
  * @author Ralph Gasser
- * @version 2.0.0
+ * @version 2.1.0
  */
 class Rectangle2DMetadataDescriptor(
-    override var id: DescriptorId,
-    override var retrievableId: RetrievableId?,
+    override val id: DescriptorId,
+    override val retrievableId: RetrievableId?,
     values: Map<AttributeName, Value<*>?>,
     override val field: Schema.Field<*, Rectangle2DMetadataDescriptor>? = null
 ) : MapStructDescriptor(id, retrievableId, SCHEMA, values, field) {

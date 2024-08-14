@@ -18,8 +18,8 @@ import org.vitrivr.engine.core.model.types.Value
  * @version 1.0.0
  */
 data class TextDescriptor(
-    override var id: DescriptorId,
-    override var retrievableId: RetrievableId?,
+    override val id: DescriptorId,
+    override val retrievableId: RetrievableId?,
     override val value: Value.Text,
     override val field: Schema.Field<*, TextDescriptor>? = null
 ) : ScalarDescriptor<Value.Text> {
@@ -33,4 +33,13 @@ data class TextDescriptor(
      * @return [List] of [Attribute]
      */
     override fun layout(): List<Attribute> = SCHEMA
+
+    /**
+     * Returns a copy of this [TextDescriptor] with new [RetrievableId] and/or [DescriptorId]
+     *
+     * @param id [DescriptorId] of the new [TextDescriptor].
+     * @param retrievableId [RetrievableId] of the new [TextDescriptor].
+     * @return Copy of this [TextDescriptor].
+     */
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = TextDescriptor(id, retrievableId, this.value, this.field)
 }

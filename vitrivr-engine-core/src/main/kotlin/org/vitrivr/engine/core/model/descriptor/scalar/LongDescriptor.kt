@@ -13,11 +13,11 @@ import org.vitrivr.engine.core.model.types.Value
  * A [ScalarDescriptor] using a [Long] value.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 data class LongDescriptor(
-    override var id: DescriptorId,
-    override var retrievableId: RetrievableId?,
+    override val id: DescriptorId,
+    override val retrievableId: RetrievableId?,
     override val value: Value.Long,
     override val field: Schema.Field<*, LongDescriptor>? = null
 ) : ScalarDescriptor<Value.Long> {
@@ -31,4 +31,13 @@ data class LongDescriptor(
      * @return [List] of [Attribute]
      */
     override fun layout(): List<Attribute> = SCHEMA
+
+    /**
+     * Returns a copy of this [LongDescriptor] with new [RetrievableId] and/or [DescriptorId]
+     *
+     * @param id [DescriptorId] of the new [LongDescriptor].
+     * @param retrievableId [RetrievableId] of the new [LongDescriptor].
+     * @return Copy of this [LongDescriptor].
+     */
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = LongDescriptor(id, retrievableId, this.value, this.field)
 }

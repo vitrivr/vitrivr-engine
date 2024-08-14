@@ -12,12 +12,12 @@ import org.vitrivr.engine.core.model.types.Value
  * A [ScalarDescriptor] using a [Boolean] value.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 
 data class BooleanDescriptor(
-    override var id: DescriptorId,
-    override var retrievableId: RetrievableId?,
+    override val id: DescriptorId,
+    override val retrievableId: RetrievableId?,
     override val value: Value.Boolean,
     override val field: Schema.Field<*, BooleanDescriptor>? = null
 ) : ScalarDescriptor<Value.Boolean> {
@@ -31,4 +31,13 @@ data class BooleanDescriptor(
      * @return [List] of [Attribute]
      */
     override fun layout(): List<Attribute> = SCHEMA
+
+    /**
+     * Returns a copy of this [BooleanDescriptor] with new [RetrievableId] and/or [DescriptorId]
+     *
+     * @param id [DescriptorId] of the new [BooleanDescriptor].
+     * @param retrievableId [RetrievableId] of the new [BooleanDescriptor].
+     * @return Copy of this [BooleanDescriptor].
+     */
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = BooleanDescriptor(id, retrievableId, this.value, this.field)
 }

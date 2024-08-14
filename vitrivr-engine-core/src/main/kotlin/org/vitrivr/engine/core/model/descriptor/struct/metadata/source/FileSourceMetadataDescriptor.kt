@@ -15,11 +15,11 @@ import java.util.*
  * A [StructDescriptor] used to store metadata about a file.
  *
  * @author Ralph Gasser
- * @version 2.0.0
+ * @version 2.1.0
  */
 class FileSourceMetadataDescriptor(
-    override var id: DescriptorId,
-    override var retrievableId: RetrievableId?,
+    override val id: DescriptorId,
+    override val retrievableId: RetrievableId?,
     values: Map<AttributeName, Value<*>?>,
     override val field: Schema.Field<*, FileSourceMetadataDescriptor>? = null
 ) : MapStructDescriptor(id, retrievableId, SCHEMA, values, field) {
@@ -43,4 +43,13 @@ class FileSourceMetadataDescriptor(
         /** The prototype [FileSourceMetadataDescriptor]. */
         val PROTOTYPE = FileSourceMetadataDescriptor(UUID.randomUUID(), UUID.randomUUID(), mapOf("path" to Value.String(""), "size" to Value.Long(0L)))
     }
+
+    /**
+     * Returns a copy of this [FileSourceMetadataDescriptor] with new [RetrievableId] and/or [DescriptorId]
+     *
+     * @param id [DescriptorId] of the new [FileSourceMetadataDescriptor].
+     * @param retrievableId [RetrievableId] of the new [FileSourceMetadataDescriptor].
+     * @return Copy of this [FileSourceMetadataDescriptor].
+     */
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = FileSourceMetadataDescriptor(id, retrievableId, HashMap(this.values), this.field)
 }
