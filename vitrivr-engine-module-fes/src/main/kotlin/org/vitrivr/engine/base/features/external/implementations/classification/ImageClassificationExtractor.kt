@@ -4,6 +4,8 @@ import org.vitrivr.engine.base.features.external.api.ZeroShotClassificationApi
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.base.features.external.common.FesExtractor
 import org.vitrivr.engine.base.features.external.implementations.classification.ImageClassification.Companion.CLASSES_PARAMETER_NAME
+import org.vitrivr.engine.base.features.external.implementations.classification.ImageClassification.Companion.THRESHOLD_PARAMETER_NAME
+import org.vitrivr.engine.base.features.external.implementations.classification.ImageClassification.Companion.TOPK_PARAMETER_NAME
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -41,6 +43,9 @@ class ImageClassificationExtractor(
         val classes = this.parameters[CLASSES_PARAMETER_NAME]?.split(",")
             ?: throw IllegalArgumentException("No classes provided.")
 
+        val topK = this.parameters[TOPK_PARAMETER_NAME]?.toInt() ?: 1
+        val threshold = this.parameters[THRESHOLD_PARAMETER_NAME]?.toFloat() ?: 0.0f
+
         val flatResults = this.api.analyseBatched(
             retrievables.flatMap {
                 this.filterContent(it).map { it to classes }
@@ -54,7 +59,7 @@ class ImageClassificationExtractor(
                         "confidence" to Value.Float(confidence.value.toFloat())
                     ),
                 )
-            }
+            }.filter { it.confidence.value >= threshold }.sortedByDescending { it.confidence.value }.take(topK)
         }
         return flatResults
     }
