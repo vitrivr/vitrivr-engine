@@ -150,6 +150,8 @@ internal fun ScalarDescriptor<*>.toCottontailValue(): PublicValue = this.value.t
  */
 internal fun ScalarDescriptor<*>.toType() = when (this) {
     is BooleanDescriptor -> Types.Boolean
+    is ByteDescriptor -> Types.Byte
+    is ShortDescriptor -> Types.Short
     is IntDescriptor -> Types.Int
     is LongDescriptor -> Types.Long
     is FloatDescriptor -> Types.Float
