@@ -54,5 +54,5 @@ interface Descriptor : Persistable {
      * @param retrievableId [RetrievableId] of the new [Descriptor].
      * @return Copy of this [Descriptor].
      */
-    fun copy(id: DescriptorId = this.id, retrievableId: RetrievableId? = this.retrievableId,): Descriptor
+    fun copy(id: DescriptorId = this.id, retrievableId: RetrievableId? = this.retrievableId): Descriptor
 }
