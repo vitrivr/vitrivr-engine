@@ -3,11 +3,21 @@ package org.vitrivr.engine.core.model.retrievable.attributes
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 
-class DescriptorAuthorAttribute : MergingRetrievableAttribute {
+class DescriptorAuthorAttribute private constructor() : MergingRetrievableAttribute {
 
     private val idToAuthorMap = HashMap<DescriptorId, String>()
     private val authorToIdMap = HashMap<String, MutableSet<DescriptorId>>()
 
+    constructor(id: DescriptorId, author: String): this() {
+        add(id, author)
+    }
+
+    constructor(pairs: Collection<Pair<DescriptorId, String>>): this() {
+        require(pairs.isNotEmpty()) { "At least one pair must be defined" }
+        pairs.forEach {
+            add(it.first, it.second)
+        }
+    }
 
     @Synchronized
     fun add(id: DescriptorId, author: String): DescriptorAuthorAttribute {

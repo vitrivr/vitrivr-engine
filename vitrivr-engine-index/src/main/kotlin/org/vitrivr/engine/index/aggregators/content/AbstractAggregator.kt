@@ -1,4 +1,4 @@
-package org.vitrivr.engine.index.aggregators
+package org.vitrivr.engine.index.aggregators.content
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
