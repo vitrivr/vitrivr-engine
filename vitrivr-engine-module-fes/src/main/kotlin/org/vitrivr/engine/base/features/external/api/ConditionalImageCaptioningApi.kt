@@ -1,6 +1,7 @@
 package org.vitrivr.engine.base.features.external.api
 
 import org.openapitools.client.apis.ConditionalImageCaptioningApi
+import org.openapitools.client.infrastructure.map
 import org.openapitools.client.models.BatchedConditionalImageCaptioningInput
 import org.openapitools.client.models.ConditionalImageCaptioningInput
 import org.openapitools.client.models.JobState
@@ -16,9 +17,20 @@ import org.vitrivr.engine.core.model.types.Value
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class ConditionalImageCaptioningApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Long, retries: Int) : AbstractApi<Pair<ImageContent, TextContent>, Value.Text>(host, model, timeoutMs, pollingIntervalMs, retries) {
+class ConditionalImageCaptioningApi(
+    host: String,
+    model: String,
+    timeoutMs: Long,
+    pollingIntervalMs: Long,
+    retries: Int
+) : AbstractApi<Pair<ImageContent, TextContent>, Value.Text>(host, model, timeoutMs, pollingIntervalMs, retries) {
     /** The API used for FES conditional image captioning. */
-    private val conditionalImageCaptioningApi by lazy { ConditionalImageCaptioningApi(baseUrl = this.host, httpClientConfig = this.httpClientConfig) }
+    private val conditionalImageCaptioningApi by lazy {
+        ConditionalImageCaptioningApi(
+            baseUrl = this.host,
+            httpClientConfig = this.httpClientConfig
+        )
+    }
 
     /**
      * This method is used to start a conditional image captioning job on the API.
@@ -30,7 +42,10 @@ class ConditionalImageCaptioningApi(host: String, model: String, timeoutMs: Long
         logger.debug { "Starting conditional image captioning job for image." }
         val wrapped = ConditionalImageCaptioningInput(input.first.toDataUrl(), input.second.content)
         return try {
-            this.conditionalImageCaptioningApi.newJobApiTasksConditionalImageCaptioningModelJobsPost(this.model, wrapped).body()
+            this.conditionalImageCaptioningApi.newJobApiTasksConditionalImageCaptioningModelJobsPost(
+                this.model,
+                wrapped
+            ).body()
         } catch (e: Throwable) {
             logger.error(e) { "Failed to start conditional image captioning job." }
             JobStatus("unknown", JobState.failed)
@@ -45,11 +60,18 @@ class ConditionalImageCaptioningApi(host: String, model: String, timeoutMs: Long
      */
     override suspend fun startBatchedJob(input: List<Pair<ImageContent, TextContent>>): JobStatus {
         logger.debug { "Starting batched conditional image captioning job for images." }
-        val wrapped = BatchedConditionalImageCaptioningInput(image = input.map{it.first.toDataUrl()}, text = input.map{it.second.content})
+        val wrapped = BatchedConditionalImageCaptioningInput(image = input.map { it.first.toDataUrl() },
+            text = input.map { it.second.content })
         return try {
-            this.conditionalImageCaptioningApi.newBatchedJobApiTasksConditionalImageCaptioningBatchedModelJobsPost(this.model, wrapped).body()
-        } catch (e: Throwable) {
-            logger.error(e) { "Failed to start batched conditional image captioning job." }
+            val result =
+                this.conditionalImageCaptioningApi.newBatchedJobApiTasksConditionalImageCaptioningBatchedModelJobsPost(
+                    this.model,
+                    wrapped
+                )
+            return result.takeIf { it.success }?.body()
+                ?: throw IllegalStateException("Api Error. Status: ${result.response.status}")
+        } catch (ex: Throwable) {
+            logger.error(ex) { "Error in startBatchedJob" }
             JobStatus("unknown", JobState.failed)
         }
     }
@@ -61,14 +83,15 @@ class ConditionalImageCaptioningApi(host: String, model: String, timeoutMs: Long
      * @return The [JobResult]
      */
     override suspend fun pollJob(jobId: String): JobResult<Value.Text> = try {
-        this.conditionalImageCaptioningApi.getJobResultsApiTasksConditionalImageCaptioningJobsJobGet(jobId).body().let { result ->
-            val value = result.result?.caption?.trim()
-            if (!value.isNullOrBlank()) {
-                JobResult(result.status, Value.Text(value))
-            } else {
-                JobResult(result.status, null)
+        this.conditionalImageCaptioningApi.getJobResultsApiTasksConditionalImageCaptioningJobsJobGet(jobId).body()
+            .let { result ->
+                val value = result.result?.caption?.trim()
+                if (!value.isNullOrBlank()) {
+                    JobResult(result.status, Value.Text(value))
+                } else {
+                    JobResult(result.status, null)
+                }
             }
-        }
     } catch (e: Throwable) {
         logger.error(e) { "Failed to poll for status of conditional image captioning job." }
         JobResult(JobState.failed, null)
@@ -81,7 +104,9 @@ class ConditionalImageCaptioningApi(host: String, model: String, timeoutMs: Long
      * @return The [JobResult]
      */
     override suspend fun pollBatchedJob(jobId: String): JobResult<List<Value.Text>> {
-        this.conditionalImageCaptioningApi.getBatchedJobResultsApiTasksConditionalImageCaptioningBatchedJobsJobGet(jobId).body().let { result ->
+        this.conditionalImageCaptioningApi.getBatchedJobResultsApiTasksConditionalImageCaptioningBatchedJobsJobGet(
+            jobId
+        ).body().let { result ->
             val value = result.result?.map { it.caption.trim() }
             if (value != null) {
                 return JobResult(result.status, value.map { Value.Text(it) })
