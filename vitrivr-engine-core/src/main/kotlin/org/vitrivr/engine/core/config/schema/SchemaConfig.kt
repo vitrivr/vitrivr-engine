@@ -49,7 +49,6 @@ data class SchemaConfig(
 ) {
 
     companion object {
-
         /**
          * Tries to load a [SchemaConfig] from the resources.
          *
