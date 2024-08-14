@@ -11,12 +11,12 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        os: [ ubuntu-latest, windows-latest ]
+        os: [ ubuntu-latest ]
 
     # Setup Cottontail DB and PostgreSQL service container
     services:
       cottontail:
-        image: vitrivr/cottontaildb:0.16.7
+        image: vitrivr/cottontaildb:0.16.8
         ports:
           - 1865:1865
         options: -it
