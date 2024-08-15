@@ -153,7 +153,7 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
     protected fun prepareUpdateStatement(): PreparedStatement {
         val statement = StringBuilder("UPDATE $tableName SET $RETRIEVABLE_ID_COLUMN_NAME = ?")
         for (field in this.prototype.layout()) {
-            statement.append(", \"${field.name}\" = ?")
+            statement.append(", ${field.name} = ?")
         }
         statement.append("WHERE $DESCRIPTOR_ID_COLUMN_NAME = ?;")
         return this.connection.jdbc.prepareStatement(statement.toString())
@@ -165,9 +165,9 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
      * @return [PreparedStatement]
      */
     protected fun prepareInsertStatement(): PreparedStatement {
-        val statement = StringBuilder("INSERT INTO \"$tableName\" ($DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME")
+        val statement = StringBuilder("INSERT INTO $tableName ($DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME")
         for (field in this.prototype.layout()) {
-            statement.append(", \"${field.name}\"")
+            statement.append(", ${field.name}")
         }
         statement.append(") VALUES (?, ?")
         for (field in this.field.analyser.prototype(this.field).layout()) {

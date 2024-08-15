@@ -37,7 +37,7 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
 
         /* Create necessary schema. */
         try {
-            this.jdbc.prepareStatement("CREATE SCHEMA \"${schemaName}\";").use {
+            this.jdbc.prepareStatement("CREATE SCHEMA ${schemaName};").use {
                 it.execute()
             }
         } catch (e: SQLException) {
@@ -50,7 +50,7 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
         }
 
         try {
-            this.jdbc.prepareStatement("SET search_path TO \"$schemaName\", public;").use {
+            this.jdbc.prepareStatement("SET search_path TO $schemaName, public;").use {
                 it.execute()
             }
         } catch (e: SQLException) {

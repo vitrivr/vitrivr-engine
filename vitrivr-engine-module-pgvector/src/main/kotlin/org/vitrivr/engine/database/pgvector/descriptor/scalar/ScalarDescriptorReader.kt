@@ -62,7 +62,7 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
      * @return [Sequence] of [ScalarDescriptor]s.
      */
     private fun queryFulltext(query: SimpleFulltextQuery): Sequence<ScalarDescriptor<*>> {
-        val statement = "SELECT * FROM \"$tableName\" WHERE $VALUE_ATTRIBUTE_NAME @@ plainto_tsquery(?)"
+        val statement = "SELECT * FROM $tableName WHERE $VALUE_ATTRIBUTE_NAME @@ plainto_tsquery(?)"
         return sequence {
             this@ScalarDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
                 stmt.setString(1, query.value.value)
@@ -82,7 +82,7 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
      * @return [Sequence] of [ScalarDescriptor]s.
      */
     private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<ScalarDescriptor<*>> {
-        val statement = "SELECT * FROM \"$tableName\" WHERE $VALUE_ATTRIBUTE_NAME ${query.comparison.toSql()} ?"
+        val statement = "SELECT * FROM $tableName WHERE $VALUE_ATTRIBUTE_NAME ${query.comparison.toSql()} ?"
         return sequence {
             this@ScalarDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
                 stmt.setValue(1, query.value)
