@@ -61,7 +61,7 @@ class ImageCaptionExtractor(
             if (text[i] != null) {
                 results.add(TextDescriptor(UUID.randomUUID(),null,withTextResults[withTextIndex++],this.field))
             } else {
-                results.add(TextDescriptor(UUID.randomUUID(),null,withoutTextResults[withoutTextIndex++],this.field))
+                results.add(TextDescriptor(UUID.randomUUID(),null,withoutTextResults[withoutTextIndex++]))
             }
         }
         return results

@@ -20,7 +20,7 @@ internal class RetrievableWriter(override val connection: PgVectorConnection): R
      */
     override fun add(item: Retrievable): Boolean {
         try {
-            this.connection.jdbc.prepareStatement("INSERT INTO $RETRIEVABLE_ENTITY_NAME ($RETRIEVABLE_ID_COLUMN_NAME, $RETRIEVABLE_TYPE_COLUMN_NAME) VALUES (?, ?);").use { stmt ->
+            this.connection.jdbc.prepareStatement("INSERT INTO \"$RETRIEVABLE_ENTITY_NAME\" ($RETRIEVABLE_ID_COLUMN_NAME, $RETRIEVABLE_TYPE_COLUMN_NAME) VALUES (?, ?);").use { stmt ->
                 stmt.setObject(1, item.id)
                 stmt.setString(2, item.type)
                 return stmt.executeUpdate() == 1
@@ -38,7 +38,7 @@ internal class RetrievableWriter(override val connection: PgVectorConnection): R
      */
     override fun addAll(items: Iterable<Retrievable>): Boolean {
         try {
-            this.connection.jdbc.prepareStatement("INSERT INTO $RETRIEVABLE_ENTITY_NAME ($RETRIEVABLE_ID_COLUMN_NAME, $RETRIEVABLE_TYPE_COLUMN_NAME) VALUES (?, ?);").use { stmt ->
+            this.connection.jdbc.prepareStatement("INSERT INTO \"$RETRIEVABLE_ENTITY_NAME\" ($RETRIEVABLE_ID_COLUMN_NAME, $RETRIEVABLE_TYPE_COLUMN_NAME) VALUES (?, ?);").use { stmt ->
                 for (item in items) {
                     stmt.setObject(1, item.id)
                     stmt.setString(2, item.type)
@@ -116,7 +116,7 @@ internal class RetrievableWriter(override val connection: PgVectorConnection): R
      */
     override fun connect(relationship: Relationship): Boolean {
         try {
-            this.connection.jdbc.prepareStatement("INSERT INTO $RELATIONSHIP_ENTITY_NAME ($OBJECT_ID_COLUMN_NAME,$PREDICATE_COLUMN_NAME,$SUBJECT_ID_COLUMN_NAME) VALUES (?,?,?)").use { stmt ->
+            this.connection.jdbc.prepareStatement("INSERT INTO \"$RELATIONSHIP_ENTITY_NAME\" ($OBJECT_ID_COLUMN_NAME,$PREDICATE_COLUMN_NAME,$SUBJECT_ID_COLUMN_NAME) VALUES (?,?,?)").use { stmt ->
                 stmt.setObject(1, relationship.objectId)
                 stmt.setString(2, relationship.predicate)
                 stmt.setObject(3, relationship.subjectId)
@@ -136,7 +136,7 @@ internal class RetrievableWriter(override val connection: PgVectorConnection): R
      */
     override fun connectAll(relationships: Iterable<Relationship>): Boolean {
         try {
-            this.connection.jdbc.prepareStatement("INSERT INTO $RELATIONSHIP_ENTITY_NAME ($OBJECT_ID_COLUMN_NAME,$PREDICATE_COLUMN_NAME,$SUBJECT_ID_COLUMN_NAME) VALUES (?,?,?)").use { stmt ->
+            this.connection.jdbc.prepareStatement("INSERT INTO \"$RELATIONSHIP_ENTITY_NAME\" ($OBJECT_ID_COLUMN_NAME,$PREDICATE_COLUMN_NAME,$SUBJECT_ID_COLUMN_NAME) VALUES (?,?,?)").use { stmt ->
                 for (relationship in relationships) {
                     stmt.setObject(1, relationship.objectId)
                     stmt.setString(2, relationship.predicate)
