@@ -59,9 +59,9 @@ class ImageCaptionExtractor(
         var withoutTextIndex = 0
         for (i in text.indices) {
             if (text[i] != null) {
-                results.add(TextDescriptor(UUID.randomUUID(),null,withTextResults[withTextIndex++]))
+                results.add(TextDescriptor(UUID.randomUUID(),null,withTextResults[withTextIndex++],this.field))
             } else {
-                results.add(TextDescriptor(UUID.randomUUID(),null,withoutTextResults[withoutTextIndex++]))
+                results.add(TextDescriptor(UUID.randomUUID(),null,withoutTextResults[withoutTextIndex++],this.field))
             }
         }
         return results
