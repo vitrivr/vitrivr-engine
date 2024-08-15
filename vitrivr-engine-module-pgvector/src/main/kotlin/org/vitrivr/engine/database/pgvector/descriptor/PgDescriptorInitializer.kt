@@ -37,29 +37,29 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
      * Initializes the PostgreSQL table entity backing this [PgDescriptorInitializer].
      */
     override fun initialize() {
-        val statement = StringBuilder("CREATE TABLE IF NOT EXISTS \"${tableName}\" (")
+        val statement = StringBuilder("CREATE TABLE IF NOT EXISTS ${tableName} (")
         statement.append("$DESCRIPTOR_ID_COLUMN_NAME uuid NOT NULL, ")
         statement.append("$RETRIEVABLE_ID_COLUMN_NAME uuid NOT NULL, ")
 
         /* Add columns for each field in the struct. */
         for (field in this.prototype.layout()) {
             when (field.type) {
-                Type.String -> statement.append("\"${field.name}\" varchar(255), ")
-                Type.Text -> statement.append("\"${field.name}\" text, ")
-                Type.Boolean -> statement.append("\"${field.name}\" boolean, ")
-                Type.Byte -> statement.append("\"${field.name}\" smallint, ")
-                Type.Short -> statement.append("\"${field.name}\" smallint, ")
-                Type.Int -> statement.append("\"${field.name}\" integer, ")
-                Type.Long -> statement.append("\"${field.name}\" bigint, ")
-                Type.Float -> statement.append("\"${field.name}\" real, ")
-                Type.Double -> statement.append("\"${field.name}\" double precision, ")
-                Type.Datetime -> statement.append("\"${field.name}\" datetime, ")
-                Type.UUID -> statement.append("\"${field.name}\" uuid, ")
-                is Type.BooleanVector -> statement.append("\"${field.name}\" bit(${field.type.dimensions}), ")
-                is Type.DoubleVector -> statement.append("\"${field.name}\" vector(${field.type.dimensions}), ")
-                is Type.FloatVector -> statement.append("\"${field.name}\" vector(${field.type.dimensions}), ")
-                is Type.IntVector -> statement.append("\"${field.name}\" vector(${field.type.dimensions}), ")
-                is Type.LongVector -> statement.append("\"${field.name}\" vector(${field.type.dimensions}), ")
+                Type.String -> statement.append("${field.name} varchar(255), ")
+                Type.Text -> statement.append("${field.name} text, ")
+                Type.Boolean -> statement.append("${field.name} boolean, ")
+                Type.Byte -> statement.append("${field.name} smallint, ")
+                Type.Short -> statement.append("${field.name} smallint, ")
+                Type.Int -> statement.append("${field.name} integer, ")
+                Type.Long -> statement.append("${field.name} bigint, ")
+                Type.Float -> statement.append("${field.name} real, ")
+                Type.Double -> statement.append("${field.name} double precision, ")
+                Type.Datetime -> statement.append("${field.name} datetime, ")
+                Type.UUID -> statement.append("${field.name} uuid, ")
+                is Type.BooleanVector -> statement.append("${field.name} bit(${field.type.dimensions}), ")
+                is Type.DoubleVector -> statement.append("${field.name} vector(${field.type.dimensions}), ")
+                is Type.FloatVector -> statement.append("${field.name} vector(${field.type.dimensions}), ")
+                is Type.IntVector -> statement.append("${field.name} vector(${field.type.dimensions}), ")
+                is Type.LongVector -> statement.append("${field.name} vector(${field.type.dimensions}), ")
             }
         }
 
@@ -109,7 +109,7 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
     override fun deinitialize() {
         try {
             /* Create 'retrievable' entity and index. */
-            this.connection.jdbc.prepareStatement(/* sql = postgres */ "DROP TABLE IF EXISTS \"${tableName}\" CASCADE;").use {
+            this.connection.jdbc.prepareStatement(/* sql = postgres */ "DROP TABLE IF EXISTS ${tableName} CASCADE;").use {
                 it.execute()
             }
         } catch (e: SQLException) {
