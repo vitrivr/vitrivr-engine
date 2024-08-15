@@ -3,7 +3,7 @@ package org.vitrivr.engine.core.model.retrievable.attributes
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 
-class DescriptorAuthorAttribute private constructor() : MergingRetrievableAttribute {
+class DescriptorAuthorAttribute() : MergingRetrievableAttribute {
 
     private val idToAuthorMap = HashMap<DescriptorId, String>()
     private val authorToIdMap = HashMap<String, MutableSet<DescriptorId>>()

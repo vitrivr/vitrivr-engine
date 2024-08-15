@@ -20,7 +20,8 @@ class VectorDescriptorAggregator : TransformerFactory {
 
     enum class AggregationStrategy {
         FIRST {
-            override fun aggregate(collection: Collection<VectorDescriptor<*>>): VectorDescriptor<*> = collection.first()
+            override fun aggregate(collection: Collection<VectorDescriptor<*>>): VectorDescriptor<*> =
+                collection.first()
         },
         MEAN {
             override fun aggregate(collection: Collection<VectorDescriptor<*>>): VectorDescriptor<*> {
@@ -28,30 +29,34 @@ class VectorDescriptorAggregator : TransformerFactory {
                 val vec = FloatArray(collection.first().vector.size)
 
                 collection.forEach { descriptor ->
-                    when(descriptor) {
+                    when (descriptor) {
                         is FloatVectorDescriptor -> {
                             for (i in vec.indices) {
                                 vec[i] += descriptor.vector.value[i]
                             }
                         }
+
                         is DoubleVectorDescriptor -> {
                             for (i in vec.indices) {
                                 vec[i] += descriptor.vector.value[i].toFloat()
                             }
                         }
+
                         is IntVectorDescriptor -> {
                             for (i in vec.indices) {
                                 vec[i] += descriptor.vector.value[i].toFloat()
                             }
                         }
+
                         is LongVectorDescriptor -> {
                             for (i in vec.indices) {
                                 vec[i] += descriptor.vector.value[i].toFloat()
                             }
                         }
+
                         is BooleanVectorDescriptor -> {
                             for (i in vec.indices) {
-                                vec[i] += if(descriptor.vector.value[i]) 1f else 0f
+                                vec[i] += if (descriptor.vector.value[i]) 1f else 0f
                             }
                         }
                     }
@@ -69,19 +74,27 @@ class VectorDescriptorAggregator : TransformerFactory {
             }
         };
 
-        abstract fun aggregate(collection: Collection<VectorDescriptor<*>>) : VectorDescriptor<*>
+        abstract fun aggregate(collection: Collection<VectorDescriptor<*>>): VectorDescriptor<*>
 
     }
 
     override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
 
-        val authorName = context[name, "authorName"] ?: throw IllegalArgumentException("Property 'authorName' must be specified")
-        val strategy = AggregationStrategy.valueOf(context[name, "strategy"] ?: throw IllegalArgumentException("Property 'strategy' must be specified"))
+        val authorName =
+            context[name, "authorName"] ?: throw IllegalArgumentException("Property 'authorName' must be specified")
+        val strategy = AggregationStrategy.valueOf(
+            context[name, "strategy"] ?: throw IllegalArgumentException("Property 'strategy' must be specified")
+        )
 
         return Instance(input, name, authorName, strategy)
     }
 
-    private class Instance(override val input: Operator<out Retrievable>, private val name: String, private val authorName: String, private val strategy: AggregationStrategy) : Transformer {
+    private class Instance(
+        override val input: Operator<out Retrievable>,
+        private val name: String,
+        private val authorName: String,
+        private val strategy: AggregationStrategy
+    ) : Transformer {
 
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).map { ingested ->
@@ -96,7 +109,7 @@ class VectorDescriptorAggregator : TransformerFactory {
                 return@map ingested //nothing to do
             }
 
-            val aggregated = if(descriptors.size == 1) {
+            val aggregated = if (descriptors.size == 1) {
                 descriptors.first()
             } else {
                 strategy.aggregate(descriptors)
