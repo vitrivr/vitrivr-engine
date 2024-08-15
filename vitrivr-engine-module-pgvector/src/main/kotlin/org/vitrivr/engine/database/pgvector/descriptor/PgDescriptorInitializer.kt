@@ -44,22 +44,22 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
         /* Add columns for each field in the struct. */
         for (field in this.prototype.layout()) {
             when (field.type) {
-                Type.String -> statement.append("${field.name} varchar(255), ")
-                Type.Text -> statement.append("${field.name} text, ")
-                Type.Boolean -> statement.append("${field.name} boolean, ")
-                Type.Byte -> statement.append("${field.name} smallint, ")
-                Type.Short -> statement.append("${field.name} smallint, ")
-                Type.Int -> statement.append("${field.name} integer, ")
-                Type.Long -> statement.append("${field.name} bigint, ")
-                Type.Float -> statement.append("${field.name} real, ")
-                Type.Double -> statement.append("${field.name} double precision, ")
-                Type.Datetime -> statement.append("${field.name} datetime, ")
-                Type.UUID -> statement.append("${field.name} uuid, ")
-                is Type.BooleanVector -> statement.append("${field.name} bit(${field.type.dimensions}), ")
-                is Type.DoubleVector -> statement.append("${field.name} vector(${field.type.dimensions}), ")
-                is Type.FloatVector -> statement.append("${field.name} vector(${field.type.dimensions}), ")
-                is Type.IntVector -> statement.append("${field.name} vector(${field.type.dimensions}), ")
-                is Type.LongVector -> statement.append("${field.name} vector(${field.type.dimensions}), ")
+                Type.String -> statement.append("\"${field.name.lowercase()}\" varchar(255), ")
+                Type.Text -> statement.append("\"${field.name.lowercase()}\" text, ")
+                Type.Boolean -> statement.append("\"${field.name.lowercase()}\" boolean, ")
+                Type.Byte -> statement.append("\"${field.name.lowercase()}\" smallint, ")
+                Type.Short -> statement.append("\"${field.name.lowercase()}\" smallint, ")
+                Type.Int -> statement.append("\"${field.name.lowercase()}\" integer, ")
+                Type.Long -> statement.append("\"${field.name.lowercase()}\" bigint, ")
+                Type.Float -> statement.append("\"${field.name.lowercase()}\" real, ")
+                Type.Double -> statement.append("\"${field.name.lowercase()}\" double precision, ")
+                Type.Datetime -> statement.append("\"${field.name.lowercase()}\" datetime, ")
+                Type.UUID -> statement.append("\"${field.name.lowercase()}\" uuid, ")
+                is Type.BooleanVector -> statement.append("\"${field.name.lowercase()}\" bit(${field.type.dimensions}), ")
+                is Type.DoubleVector -> statement.append("\"${field.name.lowercase()}\" vector(${field.type.dimensions}), ")
+                is Type.FloatVector -> statement.append("\"${field.name.lowercase()}\" vector(${field.type.dimensions}), ")
+                is Type.IntVector -> statement.append("\"${field.name.lowercase()}\" vector(${field.type.dimensions}), ")
+                is Type.LongVector -> statement.append("\"${field.name.lowercase()}\" vector(${field.type.dimensions}), ")
             }
         }
 
