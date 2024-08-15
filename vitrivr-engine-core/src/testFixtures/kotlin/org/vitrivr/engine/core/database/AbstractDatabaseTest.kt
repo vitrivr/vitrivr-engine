@@ -21,6 +21,7 @@ abstract class AbstractDatabaseTest(schemaPath: String) {
     init {
         /* Loads schema. */
         val schema = SchemaConfig.loadFromResource(schemaPath)
+        schema.name = SCHEMA_NAME
         this.manager.load(schema)
     }
 

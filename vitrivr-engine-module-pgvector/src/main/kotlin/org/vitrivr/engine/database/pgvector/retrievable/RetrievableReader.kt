@@ -83,20 +83,17 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
      *
      * @return A [Sequence] of all [Retrievable]s in the database.
      */
-    override fun getAll(): Sequence<Retrievable> {
+    override fun getAll(): Sequence<Retrievable> = sequence {
         try {
-            this.connection.jdbc.prepareStatement("SELECT * FROM $RETRIEVABLE_ENTITY_NAME").use { stmt ->
-                val result = stmt.executeQuery()
-                return sequence {
+            this@RetrievableReader.connection.jdbc.prepareStatement("SELECT * FROM $RETRIEVABLE_ENTITY_NAME").use { stmt ->
+                stmt.executeQuery().use { result ->
                     while (result.next()) {
                         yield(Retrieved(result.getObject(RETRIEVABLE_ID_COLUMN_NAME, UUID::class.java), result.getString(RETRIEVABLE_TYPE_COLUMN_NAME), false))
                     }
-                    result.close()
                 }
             }
         } catch (e: Exception) {
             LOGGER.error(e) { "Failed to check for retrievables due to SQL error." }
-            return emptySequence()
         }
     }
 

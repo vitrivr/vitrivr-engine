@@ -33,6 +33,41 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
     private val field: Schema.Field<*, FloatVectorDescriptor> = this.testSchema["averagecolor"]!! as Schema.Field<*, FloatVectorDescriptor>
 
     /**
+     * Tests [VectorDescriptorReader.getAll] method.
+     */
+    @Test
+    fun testReadAll() {
+        val writer = this.testConnection.getDescriptorWriter(this.field)
+        val reader = this.testConnection.getDescriptorReader(this.field)
+        val random = SplittableRandom()
+
+        /* Generate and store test data. */
+        val descriptors = this.initialize(writer, random)
+        reader.getAll().forEach { descriptor ->
+            Assertions.assertTrue(descriptors.find { it.id == descriptor.id } != null)
+            Assertions.assertTrue(descriptors.find { it.retrievableId == descriptor.retrievableId } != null)
+            Assertions.assertTrue(descriptors.find { it.vector.value.contentEquals(descriptor.vector.value) } != null)
+        }
+    }
+
+    /**
+     * Tests [VectorDescriptorReader.getAll] (with parameters) method.
+     */
+    @Test
+    fun testGetAll() {
+        val writer = this.testConnection.getDescriptorWriter(this.field)
+        val reader = this.testConnection.getDescriptorReader(this.field)
+        val random = SplittableRandom()
+
+        /* Generate and store test data. */
+        val descriptors = this.initialize(writer, random)
+        val selection = descriptors.shuffled().take(100).map { it.id }
+        reader.getAll(selection).forEach{ descriptor ->
+            Assertions.assertTrue(selection.contains(descriptor.id))
+        }
+    }
+
+    /**
      * Tests [VectorDescriptorReader.queryAndJoin] method.
      */
     @ParameterizedTest
