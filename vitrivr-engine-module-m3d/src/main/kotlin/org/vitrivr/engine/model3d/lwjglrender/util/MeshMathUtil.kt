@@ -37,9 +37,9 @@ object MeshMathUtil {
      */
     fun farthestVertex(mesh: Mesh, point: Vector3fc): Mesh.Vertex {
         var max: Mesh.Vertex = mesh.getVertex(0)
-        var dsqMax = point.distanceSquared(max.position)
+        var dsqMax = point.distanceSquared(Vector3f(max.position.x, max.position.y, max.position.z))
         for (v in mesh.vertices()) {
-            val dsq = point.distanceSquared(v.position)
+            val dsq = point.distanceSquared(Vector3f(v.position.x, v.position.y, v.position.z))
             if (dsq > dsqMax) {
                 dsqMax = dsq
                 max = v
@@ -57,9 +57,9 @@ object MeshMathUtil {
      */
     fun closestVertex(mesh: Mesh, point: Vector3fc): Mesh.Vertex {
         var min: Mesh.Vertex = mesh.getVertex(0)
-        var dsqMin = point.distanceSquared(min.position)
+        var dsqMin = point.distanceSquared(Vector3f(min.position.x, min.position.y, min.position.z))
         for (v in mesh.vertices()) {
-            val dsq = point.distanceSquared(v.position)
+            val dsq = point.distanceSquared(Vector3f(v.position.x, v.position.y, v.position.z))
             if (dsq < dsqMin) {
                 dsqMin = dsq
                 min = v
@@ -80,7 +80,8 @@ object MeshMathUtil {
         for (face in mesh.faces()) {
             val area: Double = face.area
             if (area > 0.0) {
-                barycenter.add(face.centroid.mul(area.toFloat()))
+                val vec3f = face.centroid.mul(area.toFloat())
+                barycenter.add(Vector3f(vec3f.x, vec3f.y, vec3f.z))
                 total += area
             }
         }
@@ -103,7 +104,13 @@ object MeshMathUtil {
                 vertices.add(Vector3f(i.x, i.y, i.z))
             }
         }
-        return bounds(mesh.getNormals())
+        val list: MutableList<Vector3f> = ArrayList(mesh.getNormals().size)
+
+        for ((idx, i) in mesh.getNormals().withIndex()){
+            val vector3f = Vector3f(i.x, i.y, i.z)
+            list[idx] = vector3f
+        }
+        return bounds(list)
     }
 
     /**

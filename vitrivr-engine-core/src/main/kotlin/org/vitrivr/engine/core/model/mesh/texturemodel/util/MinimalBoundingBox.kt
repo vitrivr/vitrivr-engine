@@ -1,6 +1,6 @@
 package org.vitrivr.engine.core.model.mesh.texturemodel.util
 
-import org.joml.Vector3f
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Vec3f
 import java.io.Serializable
 
 /**
@@ -11,17 +11,17 @@ class MinimalBoundingBox : Serializable {
     /**
      * Initial value for the maximum vector. The maximum vector contains the highest (positive if normalized) values for x, y, and z of the bounding box.
      */
-    private val vMax = Vector3f(MIN, MIN, MIN)
+    private val vMax = Vec3f(MIN, MIN, MIN)
 
     /**
      * Initial value for the minimum vector. The minimum vector contains the lowest (negative if normalized) values for x, y, and z of the bounding box.
      */
-    private val vMin = Vector3f(MAX, MAX, MAX)
+    private val vMin = Vec3f(MAX, MAX, MAX)
 
     /**
      * Center of mass of the bounding box as x, y, z vector.
      */
-    private val com = Vector3f(0f, 0f, 0f)
+    private val com = Vec3f(0f, 0f, 0f)
 
     /**
      * Scaling factor to norm. The scaling factor is the factor to scale the bounding box to the norm. 1 for no scaling.
@@ -32,7 +32,7 @@ class MinimalBoundingBox : Serializable {
     /**
      * Translation to norm. The translation is the vector to translate com of the bounding box to the origin. (0, 0, 0) for no translation.
      */
-    val translationToNorm = Vector3f(0f, 0f, 0f)
+    val translationToNorm = Vec3f(0f, 0f, 0f)
 
     companion object {
         /**
@@ -65,7 +65,7 @@ class MinimalBoundingBox : Serializable {
      *
      * @param positions List of vertices.
      */
-    constructor(positions: List<Vector3f>) {
+    constructor(positions: List<Vec3f>) {
         update(positions)
     }
 
@@ -75,8 +75,8 @@ class MinimalBoundingBox : Serializable {
      *
      * @return List of vertices.
      */
-    fun toList(): List<Vector3f> {
-        val vec = mutableListOf<Vector3f>()
+    fun toList(): List<Vec3f> {
+        val vec = mutableListOf<Vec3f>()
         if (isValidBoundingBox()) {
             vec.add(vMax)
             vec.add(vMin)
@@ -111,9 +111,9 @@ class MinimalBoundingBox : Serializable {
      * Helper method to add data to the bounding box and recalculate the bounding boxes values.
      */
     private fun update(positions: FloatArray) {
-        val vectors = mutableListOf<Vector3f>()
+        val vectors = mutableListOf<Vec3f>()
         for (i in positions.indices step 3) {
-            vectors.add(Vector3f(positions[i], positions[i + 1], positions[i + 2]))
+            vectors.add(Vec3f(positions[i], positions[i + 1], positions[i + 2]))
         }
         update(vectors)
     }
@@ -126,7 +126,7 @@ class MinimalBoundingBox : Serializable {
      *
      * These steps had to be exact in this sequence.
      */
-    private fun update(vec: List<Vector3f>) {
+    private fun update(vec: List<Vec3f>) {
         if (updateBounds(vec)) {
             updateCom()
             updateScalingFactorToNorm()
@@ -152,9 +152,9 @@ class MinimalBoundingBox : Serializable {
      * Update the scaling factor to norm. The scaling factor is the factor to scale the longest vector in the bounding box to the norm. 1 for no scaling.
      */
     private fun updateScalingFactorToNorm() {
-        var farthest = Vector3f(0f, 0f, 0f)
+        var farthest = Vec3f(0f, 0f, 0f)
         for (vec in toList()) {
-            val vector = Vector3f(vec).sub(com)
+            val vector = Vec3f(vec).subtract(com)
             if (vector.length() > farthest.length()) {
                 farthest = vector
             }
@@ -167,7 +167,7 @@ class MinimalBoundingBox : Serializable {
      *
      * @return True if the bounding box has changed, false otherwise.
      */
-    private fun updateBounds(positions: List<Vector3f>): Boolean {
+    private fun updateBounds(positions: List<Vec3f>): Boolean {
         var changed = false
         for (vec in positions) {
             changed = changed or updateBounds(vec)
@@ -180,7 +180,7 @@ class MinimalBoundingBox : Serializable {
      *
      * @return True if the bounding box has changed, false otherwise.
      */
-    private fun updateBounds(vec: Vector3f): Boolean {
+    private fun updateBounds(vec: Vec3f): Boolean {
         var changed = false
         if (vec.x > vMax.x) {
             vMax.x = vec.x

@@ -2,7 +2,6 @@ package org.vitrivr.engine.model3d
 
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.joml.Vector4f
 import org.lwjgl.BufferUtils
 import org.lwjgl.assimp.*
 import org.lwjgl.assimp.Assimp.*
@@ -12,6 +11,7 @@ import org.vitrivr.engine.core.model.mesh.texturemodel.Material
 import org.vitrivr.engine.core.model.mesh.texturemodel.Mesh
 import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
 import org.vitrivr.engine.core.model.mesh.texturemodel.Texture
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Vec4f
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -320,7 +320,7 @@ class ModelLoader {
           aiGetMaterialColor(
               aiMaterial, AI_MATKEY_COLOR_DIFFUSE, aiTextureType_NONE, 0, color)
       if (result == aiReturn_SUCCESS) {
-        material.materialDiffuseColor = Vector4f(color.r(), color.g(), color.b(), color.a())
+        material.materialDiffuseColor = Vec4f(color.r(), color.g(), color.b(), color.a())
       }
 
       val aiTexturePath = AIString.calloc(stack)

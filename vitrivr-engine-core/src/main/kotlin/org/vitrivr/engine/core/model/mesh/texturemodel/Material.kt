@@ -2,8 +2,8 @@ package org.vitrivr.engine.core.model.mesh.texturemodel
 
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.joml.Vector4f
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.MinimalBoundingBox
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Vec4f
 import java.io.Serializable
 import java.util.*
 
@@ -26,7 +26,7 @@ class Material : Serializable {
     /**
      * diffuseColor is the color that is drawn on the meshes when no texture is present.
      */
-    var materialDiffuseColor: Vector4f = DEFAULT_COLOR
+    var materialDiffuseColor: Vec4f = DEFAULT_COLOR
 
     companion object {
         private val LOGGER: Logger = LogManager.getLogger()
@@ -34,7 +34,7 @@ class Material : Serializable {
         /**
          * DEFAULT_COLOR is black and 100% opaque.
          */
-        val DEFAULT_COLOR = Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
+        val DEFAULT_COLOR = Vec4f(0.0f, 0.0f, 0.0f, 1.0f)
 
         /**
          * Empty material that can be used as a placeholder.
@@ -75,7 +75,7 @@ class Material : Serializable {
     /**
      * @param diffuseColor sets the diffuse color of this material.
      */
-    fun setDiffuseColor(diffuseColor: Vector4f) {
+    fun setDiffuseColor(diffuseColor: Vec4f) {
         this.materialDiffuseColor = diffuseColor
     }
 

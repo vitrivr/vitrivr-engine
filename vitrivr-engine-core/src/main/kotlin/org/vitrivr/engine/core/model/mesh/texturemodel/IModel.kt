@@ -1,6 +1,6 @@
 package org.vitrivr.engine.core.model.mesh.texturemodel
 
-import org.joml.Vector3f
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Vec3f
 
 interface IModel {
 
@@ -30,7 +30,7 @@ interface IModel {
 
     /**
      * Returns a list of all vertices that are associated with this model.
-     * @return List of [Vector3f] objects.
+     * @return List of [Vec3f] objects.
      */
-    fun getAllNormals(): List<Vector3f>
+    fun getAllNormals(): List<Vec3f>
 }

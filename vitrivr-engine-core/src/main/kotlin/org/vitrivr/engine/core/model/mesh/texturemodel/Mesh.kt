@@ -1,8 +1,8 @@
 package org.vitrivr.engine.core.model.mesh.texturemodel
 
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Vec3f
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.joml.Vector3f
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.MinimalBoundingBox
 import java.io.Serializable
 import kotlin.math.sign
@@ -64,7 +64,7 @@ class Mesh(
      * The length of the normals describes the area of the face.
      * The direction of the normals describes the direction of the face and points outwards.
      */
-    private val facenormals: MutableList<Vector3f> = ArrayList(numVertices / 3)
+    private val facenormals: MutableList<Vec3f> = ArrayList(numVertices / 3)
 
     /**
      * MinimalBoundingBox that encloses the mesh.
@@ -76,33 +76,33 @@ class Mesh(
         for (ic in idx.indices step 3) {
             if (normals == null) {
                 // Add zero vector if there are no vertex normals
-                facenormals.add(Vector3f(0f, 0f, 0f))
+                facenormals.add(Vec3f(0f, 0f, 0f))
             } else {
                 // Get the three vertices of the face
-                val v1 = Vector3f(positions[idx[ic] * 3], positions[idx[ic] * 3 + 1], positions[idx[ic] * 3 + 2])
-                val v2 = Vector3f(positions[idx[ic + 1] * 3], positions[idx[ic + 1] * 3 + 1], positions[idx[ic + 1] * 3 + 2])
-                val v3 = Vector3f(positions[idx[ic + 2] * 3], positions[idx[ic + 2] * 3 + 1], positions[idx[ic + 2] * 3 + 2])
+                val v1 = Vec3f(positions[idx[ic] * 3], positions[idx[ic] * 3 + 1], positions[idx[ic] * 3 + 2])
+                val v2 = Vec3f(positions[idx[ic + 1] * 3], positions[idx[ic + 1] * 3 + 1], positions[idx[ic + 1] * 3 + 2])
+                val v3 = Vec3f(positions[idx[ic + 2] * 3], positions[idx[ic + 2] * 3 + 1], positions[idx[ic + 2] * 3 + 2])
 
                 // Get the three vertices normals of the face
-                val vn1 = Vector3f(normals[idx[ic] * 3], normals[idx[ic] * 3 + 1], normals[idx[ic] * 3 + 2])
-                val vn2 = Vector3f(normals[idx[ic + 1] * 3], normals[idx[ic + 1] * 3 + 1], normals[idx[ic + 1] * 3 + 2])
-                val vn3 = Vector3f(normals[idx[ic + 2] * 3], normals[idx[ic + 2] * 3 + 1], normals[idx[ic + 2] * 3 + 2])
+                val vn1 = Vec3f(normals[idx[ic] * 3], normals[idx[ic] * 3 + 1], normals[idx[ic] * 3 + 2])
+                val vn2 = Vec3f(normals[idx[ic + 1] * 3], normals[idx[ic + 1] * 3 + 1], normals[idx[ic + 1] * 3 + 2])
+                val vn3 = Vec3f(normals[idx[ic + 2] * 3], normals[idx[ic + 2] * 3 + 1], normals[idx[ic + 2] * 3 + 2])
 
                 // Instance the face normal
-                val fn = Vector3f(0f, 0f, 0f)
+                val fn = Vec3f(0f, 0f, 0f)
 
                 // Calculate the direction of the face normal by averaging the three vertex normals
                 fn.add(vn1).add(vn2).add(vn3).div(3f).normalize()
 
                 // Instance the face area
-                val fa = Vector3f(0f, 0f, 0f)
+                val fa = Vec3f(0f, 0f, 0f)
 
                 // Calculate the area of the face by calculating the cross product of the two edges and dividing by 2
-                v2.sub(v1).cross(v3.sub(v1), fa)
+                v2.subtract(v1).cross(v3.subtract(v1), fa)
                 fa.div(2f)
 
                 // Add the face normal to the list of face normals
-                facenormals.add(fn.mul(fa.length()))
+                facenormals.add(fn.scale(fa.length()))
             }
         }
         // Calculate the minimal bounding box
@@ -138,7 +138,7 @@ class Mesh(
     /**
      * @return list containing all face normals.
      */
-    fun getNormals(): List<Vector3f> = facenormals
+    fun getNormals(): List<Vec3f> = facenormals
 
     /**
      * @return the MinimalBoundingBox which contains the scaling factor to norm and the translation to origin (0,0,0).
@@ -184,10 +184,10 @@ class Mesh(
      */
     inner class Vertex(index: Int) {
         /** Position of the vertex in 3D space. */
-        val position: Vector3f = Vector3f((this@Mesh.positions.get(index)) *3,this@Mesh.positions[index]*3+1, this@Mesh.positions[index]*3+2)
+        val position: Vec3f = Vec3f((this@Mesh.positions.get(index)) *3,this@Mesh.positions[index]*3+1, this@Mesh.positions[index]*3+2)
 
         /** Position of the vertex in 3D space. */
-        val normals: Vector3f = Vector3f((this@Mesh.normals?.get(index)!!) *3,this@Mesh.normals[index]*3+1, this@Mesh.normals[index]*3+2)
+        val normals: Vec3f = Vec3f((this@Mesh.normals?.get(index)!!) *3,this@Mesh.normals[index]*3+1, this@Mesh.normals[index]*3+2)
     }
 
     /**
@@ -202,11 +202,11 @@ class Mesh(
         )
 
         /** The [Face] normal of this [Face]. */
-        val normal: Vector3f = this@Mesh.facenormals[index]
+        val normal: Vec3f = this@Mesh.facenormals[index]
 
         /** The centroid for this [Face]. */
-        val centroid: Vector3f by lazy {
-            val centroid = Vector3f(0f, 0f, 0f)
+        val centroid: Vec3f by lazy {
+            val centroid = Vec3f(0f, 0f, 0f)
             for (vertex in this.vertices) {
                 centroid.add(vertex.position)
             }
@@ -222,12 +222,12 @@ class Mesh(
             val v3 = this.vertices[2].position
 
             /* Generate the edges and sort them in ascending order. */
-            val edges: MutableList<Vector3f> = ArrayList()
-            edges.add(Vector3f(v1).sub(v2))
-            edges.add(Vector3f(v2).sub(v3))
-            edges.add(Vector3f(v3).sub(v1))
+            val edges: MutableList<Vec3f> = ArrayList()
+            edges.add(Vec3f(v1).subtract(v2))
+            edges.add(Vec3f(v2).subtract(v3))
+            edges.add(Vec3f(v3).subtract(v1))
 
-            edges.sortWith{ o1: Vector3f, o2: Vector3f ->
+            edges.sortWith{ o1: Vec3f, o2: Vec3f ->
                 val difference = o1.length() - o2.length()
                 difference.sign.toInt()
             }

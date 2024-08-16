@@ -39,7 +39,13 @@ object ModelEntropyOptimizer {
     fun getViewVectorWithMaximizedEntropy(model: IModel, options: OptimizerOptions): Vector3f {
         val normals = model.getAllNormals()
         val viewVector = options.initialViewVector
-        val maxEntropyViewVector = optimize(options, normals, viewVector)
+
+        val list: MutableList<Vector3f> = List(normals.size) { Vector3f() }.toMutableList()
+        for ((idx, i) in normals.withIndex()){
+            val vector3f = Vector3f(i.x, i.y, i.z)
+            list[idx] = vector3f
+        }
+        val maxEntropyViewVector = optimize(options, list, Vector3f(viewVector.x, viewVector.y, viewVector.z))
         return maxEntropyViewVector
     }
 

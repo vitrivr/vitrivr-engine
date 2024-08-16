@@ -1,10 +1,10 @@
 package org.vitrivr.engine.core.model.mesh.texturemodel
 
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Vec3f
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.joml.Matrix4f
-import org.joml.Quaternionf
-import org.joml.Vector3f
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Matrix4f
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Quaternionf
 
 /**
  * An Entity in the context of a [Model3d] describes a position and scale of a model in the scene.
@@ -26,7 +26,7 @@ class Entity(val id: String, val modelId: String) {
     /**
      * Position of entity.
      */
-    var entityPosition: Vector3f = Vector3f()
+    var entityPosition: Vec3f = Vec3f()
 
     /**
      * Rotation of entity.
@@ -46,7 +46,7 @@ class Entity(val id: String, val modelId: String) {
      * Translation values, contained in the ModelMatrix
      * @return Translativ position of entity in x, y, z.
      */
-    fun getPosition(): Vector3f {
+    fun getPosition(): Vec3f {
         return entityPosition
     }
 
@@ -82,7 +82,7 @@ class Entity(val id: String, val modelId: String) {
      * Sets translation vector from the origin.
      * @param position Position of entity.
      */
-    fun setPosition(position: Vector3f) {
+    fun setPosition(position: Vec3f) {
         this.entityPosition.set(position)
     }
 
@@ -102,7 +102,7 @@ class Entity(val id: String, val modelId: String) {
      * @param axis Axis of rotation.
      * @param angle Angle of rotation.
      */
-    fun setRotation(axis: Vector3f, angle: Float) {
+    fun setRotation(axis: Vec3f, angle: Float) {
         enttityRotation.fromAxisAngleRad(axis, angle)
     }
 
