@@ -43,7 +43,7 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
                 return stmt.executeUpdate() == 1
             }
         } catch (e: SQLException) {
-            LOGGER.error(e) { "Failed to INSERT descriptor ${item.id} into '$tableName' due to SQL error." }
+            LOGGER.error(e) { "Failed to INSERT descriptor ${item.id} into \"${tableName.lowercase()}\" due to SQL error." }
             return false
         }
     }
@@ -74,7 +74,7 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
                 return stmt.executeBatch().all { it == 1 }
             }
         } catch (e: SQLException) {
-            LOGGER.error(e) { "Failed to INSERT descriptors into '$tableName' due to SQL error." }
+            LOGGER.error(e) { "Failed to INSERT descriptors into \"${tableName.lowercase()}\" due to SQL error." }
             return false
         }
     }
@@ -102,7 +102,7 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
                 return stmt.execute()
             }
         } catch (e: SQLException) {
-            LOGGER.error(e) { "Failed to UPDATE descriptors in '$tableName' due to SQL error." }
+            LOGGER.error(e) { "Failed to UPDATE descriptors in \"${tableName.lowercase()}\" due to SQL error." }
             return false
         }
     }
@@ -115,7 +115,7 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
      */
     override fun delete(item: D): Boolean {
         try {
-            this.connection.jdbc.prepareStatement("DELETE FROM $tableName WHERE $DESCRIPTOR_ID_COLUMN_NAME = ?;").use { stmt ->
+            this.connection.jdbc.prepareStatement("DELETE FROM \"${tableName.lowercase()}\" WHERE $DESCRIPTOR_ID_COLUMN_NAME = ?;").use { stmt ->
                 stmt.setObject(1, item.id)
                 return stmt.executeUpdate() == 1
             }
@@ -133,7 +133,7 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
      */
     override fun deleteAll(items: Iterable<D>): Boolean {
         try {
-            this.connection.jdbc.prepareStatement("DELETE FROM $tableName WHERE $DESCRIPTOR_ID_COLUMN_NAME = ANY (?);").use { stmt ->
+            this.connection.jdbc.prepareStatement("DELETE FROM \"${tableName.lowercase()}\" WHERE $DESCRIPTOR_ID_COLUMN_NAME = ANY (?);").use { stmt ->
                 val values = items.map { it.id }.toTypedArray()
                 stmt.setArray(1, this.connection.jdbc.createArrayOf("uuid", values))
                 return stmt.executeUpdate() > 0
@@ -151,9 +151,9 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
      * @return [PreparedStatement]
      */
     protected fun prepareUpdateStatement(): PreparedStatement {
-        val statement = StringBuilder("UPDATE $tableName SET $RETRIEVABLE_ID_COLUMN_NAME = ?")
+        val statement = StringBuilder("UPDATE \"${tableName.lowercase()}\" SET $RETRIEVABLE_ID_COLUMN_NAME = ?")
         for (field in this.prototype.layout()) {
-            statement.append(", ${field.name} = ?")
+            statement.append(", \"${field.name.lowercase()}\" = ?")
         }
         statement.append("WHERE $DESCRIPTOR_ID_COLUMN_NAME = ?;")
         return this.connection.jdbc.prepareStatement(statement.toString())
@@ -165,9 +165,9 @@ open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.F
      * @return [PreparedStatement]
      */
     protected fun prepareInsertStatement(): PreparedStatement {
-        val statement = StringBuilder("INSERT INTO $tableName ($DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME")
+        val statement = StringBuilder("INSERT INTO \"${tableName.lowercase()}\" ($DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME")
         for (field in this.prototype.layout()) {
-            statement.append(", ${field.name}")
+            statement.append(", \"${field.name.lowercase()}\"")
         }
         statement.append(") VALUES (?, ?")
         for (field in this.field.analyser.prototype(this.field).layout()) {
