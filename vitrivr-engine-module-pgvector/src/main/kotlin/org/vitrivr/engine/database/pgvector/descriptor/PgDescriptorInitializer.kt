@@ -37,7 +37,7 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
      * Initializes the PostgreSQL table entity backing this [PgDescriptorInitializer].
      */
     override fun initialize() {
-        val statement = StringBuilder("CREATE TABLE IF NOT EXISTS ${tableName} (")
+        val statement = StringBuilder("CREATE TABLE IF NOT EXISTS \"${tableName.lowercase()}\" (")
         statement.append("$DESCRIPTOR_ID_COLUMN_NAME uuid NOT NULL, ")
         statement.append("$RETRIEVABLE_ID_COLUMN_NAME uuid NOT NULL, ")
 
@@ -97,7 +97,7 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
                 }
                 this.connection.jdbc.prepareStatement(/* sql = postgres */ indexStatement).use { it.execute() }
             } catch (e: SQLException) {
-                LOGGER.error(e) { "Failed to create index ${index.type} for entity '$tableName' due to exception." }
+                LOGGER.error(e) { "Failed to create index ${index.type} for entity \"${tableName.lowercase()}\" due to exception." }
                 throw e
             }
         }
@@ -109,7 +109,7 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
     override fun deinitialize() {
         try {
             /* Create 'retrievable' entity and index. */
-            this.connection.jdbc.prepareStatement(/* sql = postgres */ "DROP TABLE IF EXISTS ${tableName} CASCADE;").use {
+            this.connection.jdbc.prepareStatement(/* sql = postgres */ "DROP TABLE IF EXISTS \"${tableName.lowercase()}\" CASCADE;").use {
                 it.execute()
             }
         } catch (e: SQLException) {
@@ -124,7 +124,7 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
      */
     override fun isInitialized(): Boolean {
         try {
-            this.connection.jdbc.prepareStatement(/* sql = postgres */ "SELECT count(*) FROM $tableName").use {
+            this.connection.jdbc.prepareStatement(/* sql = postgres */ "SELECT count(*) FROM \"${tableName.lowercase()}\"").use {
                 it.execute()
             }
         } catch (e: SQLException) {
@@ -138,7 +138,7 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
      */
     override fun truncate() {
         try {
-            this.connection.jdbc.prepareStatement(/* sql = postgres */ "TRUNCATE $tableName").use {
+            this.connection.jdbc.prepareStatement(/* sql = postgres */ "TRUNCATE \"${tableName.lowercase()}\"").use {
                 it.execute()
             }
         } catch (e: SQLException) {
