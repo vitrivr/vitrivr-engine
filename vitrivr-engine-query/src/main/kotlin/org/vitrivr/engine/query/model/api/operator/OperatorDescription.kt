@@ -32,3 +32,11 @@ data class AggregatorDescription(
 ) : OperatorDescription() {
     override val type = OperatorType.AGGREGATOR
 }
+
+@Serializable
+data class InputTransformerDescription(
+    val transformerName: String,
+    val inputs: List<String>
+) : OperatorDescription() {
+    override val type = OperatorType.INPUT_TRANSFORMER
+}

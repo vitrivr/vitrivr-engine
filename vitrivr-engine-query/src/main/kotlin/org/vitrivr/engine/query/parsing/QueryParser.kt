@@ -16,8 +16,10 @@ import org.vitrivr.engine.core.util.extension.loadServiceForName
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
 import org.vitrivr.engine.query.model.api.input.*
 import org.vitrivr.engine.query.model.api.operator.AggregatorDescription
+import org.vitrivr.engine.query.model.api.operator.InputTransformerDescription
 import org.vitrivr.engine.query.model.api.operator.RetrieverDescription
 import org.vitrivr.engine.query.model.api.operator.TransformerDescription
+import org.vitrivr.engine.query.operators.input.InputDataTransformerFactory
 import org.vitrivr.engine.query.operators.retrieval.RetrievedLookup
 import java.util.*
 
@@ -40,20 +42,42 @@ class QueryParser(val schema: Schema) {
 
         description.context.schema = schema
 
+        val inputs = HashMap(description.inputs)
+
         val operators = mutableMapOf<String, Operator<out Retrievable>>()
         val contentCache = mutableMapOf<String, ContentElement<*>>()
 
         /* Parse individual operators and append the to the operators map. */
         description.operations.forEach { (operationName, operationDescription) ->
-            operators[operationName] = when (operationDescription) {
-                is RetrieverDescription -> parseRetrieverOperator(description, operationName, contentCache)
-                is TransformerDescription -> parseTransformationOperator(description, operationName, operators)
-                is AggregatorDescription -> parseAggregationOperator(description, operationName, operators)
+            if (operationDescription is InputTransformerDescription) {
+                if (inputs.containsKey(operationName)) {
+                    throw IllegalArgumentException("input '$operationName' multiply defined")
+                }
+                inputs[operationName] = parseInputTransformer(operationDescription, description, inputs, operationName)
+            } else {
+                operators[operationName] = when (operationDescription) {
+                    is RetrieverDescription -> parseRetrieverOperator(operationDescription, description, inputs, operationName, contentCache)
+                    is TransformerDescription -> parseTransformationOperator(operationDescription, description, operationName, operators)
+                    is AggregatorDescription -> parseAggregationOperator(operationDescription, description, operationName, operators)
+                    is InputTransformerDescription -> throw IllegalStateException("This case is handled separately, execution can never get here")
+                }
             }
         }
 
         /* Return the output operator. */
         return operators[description.output] ?: throw IllegalArgumentException("Output operation '${description.output}' is not defined.")
+    }
+
+    /**
+     * Parses an [InputTransformerDescription], generates corresponding [InputDataTransformer] and evaluates it to generate corresponding named [InputData]
+     */
+    private fun parseInputTransformer(operation: InputTransformerDescription, description: InformationNeedDescription, inputs: Map<String, InputData>, operatorName: String) : InputData {
+
+        val inputList = operation.inputs.map { inputs[it] ?: throw IllegalArgumentException("Input '$it' for operation '$operatorName' not found") }
+
+        val factory = loadServiceForName<InputDataTransformerFactory>(operation.transformerName + "Factory")
+            ?: throw IllegalArgumentException("No factory found for '${operation.transformerName}'")
+        return factory.newTransformer(operatorName, inputList, description.context).transform()
     }
 
     /**
@@ -65,10 +89,9 @@ class QueryParser(val schema: Schema) {
      *
      * @return [Operator] instance.
      */
-    private fun parseRetrieverOperator(description: InformationNeedDescription, operatorName: String, content: MutableMap<String, ContentElement<*>>): Operator<out Retrievable> {
+    private fun parseRetrieverOperator(operation: RetrieverDescription, description: InformationNeedDescription, inputs: Map<String, InputData>, operatorName: String, content: MutableMap<String, ContentElement<*>>): Operator<out Retrievable> {
         /* Extract necessary information. */
-        val operation = description.operations[operatorName] as? RetrieverDescription ?: throw IllegalArgumentException("Operation '$operatorName' not found in information need description.")
-        val input = description.inputs[operation.input] ?: throw IllegalArgumentException("Input '${operation.input}' for operation '$operatorName' not found")
+        val input = inputs[operation.input] ?: throw IllegalArgumentException("Input '${operation.input}' for operation '$operatorName' not found")
         /* Special case: handle pass-through. */
         if (operation.field == null) { //special case, handle pass-through
             require(input.type == InputType.ID) { "Only inputs of type ID are supported for direct retrievable lookup." }
@@ -147,8 +170,7 @@ class QueryParser(val schema: Schema) {
      *
      * @return [Operator] instance.
      */
-    private fun parseTransformationOperator(description: InformationNeedDescription, operatorName: String, operators: Map<String, Operator<out Retrievable>>): Operator<Retrievable> {
-        val operation = description.operations[operatorName] as? TransformerDescription ?: throw IllegalArgumentException("Operation '$operatorName' not found in information need description.")
+    private fun parseTransformationOperator(operation: TransformerDescription, description: InformationNeedDescription, operatorName: String, operators: Map<String, Operator<out Retrievable>>): Operator<Retrievable> {
         val input = operators[operation.input] ?: throw IllegalArgumentException("Input '${operation.input}' for operation '$operatorName' not found")
         val factory = loadServiceForName<TransformerFactory>(operation.transformerName + "Factory")
             ?: throw IllegalArgumentException("No factory found for '${operation.transformerName}'")
@@ -164,8 +186,7 @@ class QueryParser(val schema: Schema) {
      *
      * @return [Operator] instance.
      */
-    private fun parseAggregationOperator(description: InformationNeedDescription, operatorName: String, operators: Map<String, Operator<out Retrievable>>): Operator<Retrievable> {
-        val operation = description.operations[operatorName] as? AggregatorDescription ?: throw IllegalArgumentException("Operation '$operatorName' not found in information need description.")
+    private fun parseAggregationOperator(operation: AggregatorDescription, description: InformationNeedDescription, operatorName: String, operators: Map<String, Operator<out Retrievable>>): Operator<Retrievable> {
         require(operation.inputs.isNotEmpty()) { "Inputs of an aggregation operator cannot be empty." }
 
         /* Extract input operators from operators map. */

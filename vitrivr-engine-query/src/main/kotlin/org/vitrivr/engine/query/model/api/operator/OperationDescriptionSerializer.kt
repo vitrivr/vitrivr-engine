@@ -14,6 +14,7 @@ object OperationDescriptionSerializer: JsonContentPolymorphicSerializer<Operator
             OperatorType.RETRIEVER -> RetrieverDescription.serializer()
             OperatorType.TRANSFORMER -> TransformerDescription.serializer()
             OperatorType.AGGREGATOR -> AggregatorDescription.serializer()
+            OperatorType.INPUT_TRANSFORMER -> InputTransformerDescription.serializer()
         }
     }
 }
