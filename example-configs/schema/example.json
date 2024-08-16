@@ -1,7 +1,7 @@
 {
   "schemas": [
     {
-      "name": "ptt",
+      "name": "example",
       "connection": {
         "database": "CottontailConnectionProvider",
         "parameters": {
@@ -19,6 +19,40 @@
           "factory": "FileSourceMetadata"
         },
         {
+          "name": "clip",
+          "factory": "DenseEmbedding",
+          "parameters": {
+            "host": "http://127.0.0.1:8888",
+            "model": "open-clip-vit-b32",
+            "length":"512"
+          }
+        },
+        {
+          "name": "dino",
+          "factory": "DenseEmbedding",
+          "parameters": {
+            "host": "http://127.0.0.1:8888/",
+            "model": "dino-v2-vits14",
+            "length":"384"
+          }
+        },
+        {
+          "name": "whisper",
+          "factory": "ASR",
+          "parameters": {
+            "host": "http://127.0.0.1:8888/",
+            "model": "whisper"
+          }
+        },
+        {
+          "name": "ocr",
+          "factory": "OCR",
+          "parameters": {
+            "host": "http://127.0.0.1:8888/",
+            "model": "tesseract"
+          }
+        },
+        {
           "name": "time",
           "factory": "TemporalMetadata"
         },
@@ -26,31 +60,12 @@
           "name": "video",
           "factory": "VideoSourceMetadata"
         },
-        {
-          "name": "asr",
-          "factory": "ASR",
-          "parameters": {
-            "host": "http://10.34.58.83:8888/",
-            "model": "whisper"
-          }
-        },
-        {
-          "name": "clip",
-          "factory": "DenseEmbedding",
-          "parameters": {
-            "host": "http://10.34.58.83:8888/",
-            "model": "clip-vit-large-patch14",
-            "length": "768",
-            "pollingIntervalMs": "1500",
-            "timeoutMs": "120000"
-          }
-        }
       ],
       "resolvers": {
         "disk": {
           "factory": "DiskResolver",
           "parameters": {
-            "location": "D:/ptt-minimal/thumbnails"
+            "location": "./example/thumbs"
           }
         }
       },
@@ -60,31 +75,19 @@
           "factory": "ThumbnailExporter",
           "resolverName": "disk",
           "parameters": {
-            "maxSideResolution": "400",
+            "maxSideResolution": "300",
             "mimeType": "JPG"
           }
         }
       ],
       "extractionPipelines": [
         {
-          "name": "i",
-          "path": "./config/ptt/pipelines/image.json"
-        },
-        {
-          "name": "image2",
-          "path": "./config/ptt/pipelines/image2.json"
-        },
-        {
           "name": "video",
-          "path": "./config/ptt/pipelines/video.json"
+          "path": "./example/video.json"
         },
         {
-          "name": "v",
-          "path": "./config/ptt/pipelines/video-min.json"
-        },
-        {
-          "name": "vt",
-          "path": "./config/ptt/pipelines/video-test.json"
+          "name": "image",
+          "path": "./example/image.json"
         }
       ]
     }

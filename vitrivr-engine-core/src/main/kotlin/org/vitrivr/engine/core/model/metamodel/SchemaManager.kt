@@ -49,36 +49,47 @@ class SchemaManager {
         /* Create new connection using reflection. */
         val connection = connectionProvider.openConnection(config.name, config.connection.parameters)
         val schema = Schema(config.name, connection)
-        config.fields.map {
-            val analyser = loadServiceForName<Analyser<*,*>>(it.factory) ?: throw IllegalArgumentException("Failed to find a factory implementation for '${it.factory}'.")
-            if(it.name.contains(".")){
+        config.fields.forEach { (fieldName, fieldConfig) ->
+            val analyser = loadServiceForName<Analyser<*,*>>(fieldConfig.factory) ?: throw IllegalArgumentException("Failed to find a factory implementation for '${fieldConfig.factory}'.")
+            if(fieldName.contains(".")){
                 throw IllegalArgumentException("Field names must not have a dot (.) in their name.")
             }
             @Suppress("UNCHECKED_CAST")
-            schema.addField(it.name, analyser as Analyser<ContentElement<*>, Descriptor>, it.parameters, it.indexes)
+            schema.addField(fieldName, analyser as Analyser<ContentElement<*>, Descriptor>, fieldConfig.parameters, fieldConfig.indexes)
         }
-        config.resolvers.map {
-            schema.addResolver(it.key, (loadServiceForName<ResolverFactory>(it.value.factory) ?: throw IllegalArgumentException("Failed to find resolver factory implementation for '${it.value.factory}'.")).newResolver(schema, it.value.parameters))
+        config.resolvers.forEach { (resolverName, resolverConfig) ->
+            schema.addResolver(resolverName, (loadServiceForName<ResolverFactory>(resolverConfig.factory) ?: throw IllegalArgumentException("Failed to find resolver factory implementation for '${resolverConfig.factory}'.")).newResolver(schema, resolverConfig.parameters))
         }
-        config.exporters.map {
+        config.exporters.forEach { (exporterName, exporterConfig) ->
             schema.addExporter(
-                it.name,
-                loadServiceForName<ExporterFactory>(it.factory) ?: throw IllegalArgumentException("Failed to find exporter factory implementation for '${it.factory}'."),
-                it.parameters,
-                it.resolverName
+                exporterName,
+                loadServiceForName<ExporterFactory>(exporterConfig.factory) ?: throw IllegalArgumentException("Failed to find exporter factory implementation for '${exporterConfig.factory}'."),
+                exporterConfig.parameters,
+                exporterConfig.resolverName
             )
         }
-        config.extractionPipelines.map {
-            val ingestionConfig = IngestionConfig.read(Paths.get(it.path))
-                ?: throw IllegalArgumentException("Failed to read pipeline configuration from '${it.path}'.")
+        config.extractionPipelines.forEach { (extractionPipelineName, extractionPipelineConfig) ->
+            val ingestionConfig = IngestionConfig.read(Paths.get(extractionPipelineConfig.path))
+                ?: throw IllegalArgumentException("Failed to read pipeline configuration from '${extractionPipelineConfig.path}'.")
             if (ingestionConfig.schema != schema.name) {
                 throw IllegalArgumentException("Schema name in pipeline configuration '${ingestionConfig.schema}' does not match schema name '${schema.name}'.")
             }
-            schema.addIngestionPipeline(it.name, ingestionConfig)
+            schema.addIngestionPipeline(extractionPipelineName, ingestionConfig)
         }
 
         /* Cache and return connection. */
         this.schemas[schema.name] = schema
+    }
+
+    /**
+     * Sets the name for a [SchemaConfig], then calls load.
+     *
+     * @param name The name of the schema.
+     * @param config The [SchemaConfig] to which to assign the name and load.
+     */
+    fun load(name: String, config: SchemaConfig) {
+        config.name = name
+        load(config)
     }
 
     /**
