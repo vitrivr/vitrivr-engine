@@ -9,14 +9,14 @@ class MockConnectionProvider(override val databaseName: String, override val ver
         TODO("Not yet implemented")
     }
 
-    override fun <T : Descriptor> register(
+    override fun <T : Descriptor<*>> register(
         descriptorClass: KClass<T>,
         provider: DescriptorProvider<*>
     ) {
         TODO("Not yet implemented")
     }
 
-    override fun <T : Descriptor> obtain(descriptorClass: KClass<T>): DescriptorProvider<T>? {
+    override fun <T : Descriptor<*>> obtain(descriptorClass: KClass<T>): DescriptorProvider<T>? {
         TODO("Not yet implemented")
     }
 }
