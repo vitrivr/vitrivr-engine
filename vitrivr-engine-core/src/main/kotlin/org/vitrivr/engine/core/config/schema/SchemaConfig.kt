@@ -20,7 +20,7 @@ import java.nio.file.Paths
 @Serializable
 data class SchemaConfig(
     /** Name of the [Schema]. */
-    val name: String = "vitrivr",
+    var name: String = "vitrivr",
 
     /** The (database) [ConnectionConfig] for this [SchemaConfig]. */
     val connection: ConnectionConfig,
@@ -28,7 +28,7 @@ data class SchemaConfig(
     /**
      * List of [FieldConfig]s that are part of this [SchemaConfig].
      */
-    val fields: List<FieldConfig>,
+    val fields: Map<String, FieldConfig>,
 
     /**
      * The list of [ResolverConfig]s that are part of this [SchemaConfig].
@@ -40,16 +40,15 @@ data class SchemaConfig(
      * List of [ExporterConfig]s that are part of this [SchemaConfig].
      * @see Exporter
      */
-    val exporters: List<ExporterConfig> = emptyList(),
+    val exporters: Map<String, ExporterConfig> = emptyMap(),
 
     /**
      * List of [PipelineConfig]s that are part of this [SchemaConfig].
      */
-    val extractionPipelines: List<PipelineConfig> = emptyList()
+    val extractionPipelines: Map<String, PipelineConfig> = emptyMap()
 ) {
 
     companion object {
-
         /**
          * Tries to load a [SchemaConfig] from the resources.
          *

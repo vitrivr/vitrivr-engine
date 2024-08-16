@@ -1,0 +1,148 @@
+{
+  "schemas": [
+    {
+      "name": "dense",
+      "connection": {
+        "database": "PgVectorConnectionProvider",
+        "parameters": {
+          "Host": "127.0.0.1",
+          "port": "5432",
+          "username": "postgres",
+          "password": "admin"
+        }
+      },
+      "fields": [
+        {
+          "name": "averagecolor",
+          "factory": "AverageColor"
+        },
+        {
+          "name": "file",
+          "factory": "FileSourceMetadata"
+        },
+        {
+          "name": "time",
+          "factory": "TemporalMetadata"
+        },
+        {
+          "name": "video",
+          "factory": "VideoSourceMetadata"
+        },
+        {
+          "name": "asrSparse",
+          "factory": "ASR",
+          "parameters": {
+            "host": "http://10.34.64.84:8888/",
+            "model": "whisper",
+            "timeoutSeconds": "100",
+            "retries":"1000"
+          }
+        },
+        {
+          "name": "asrDense",
+          "factory": "DenseEmbedding",
+          "parameters": {
+            "host": "http://10.34.64.84:8888/",
+            "model": "e5mistral7b-instruct",
+            "length": "4096",
+            "timeoutSeconds": "100",
+            "retries":"1000"
+          }
+        },
+        {
+          "name": "clip",
+          "factory": "DenseEmbedding",
+          "parameters": {
+            "host": "http://10.34.64.84:8888/",
+            "model": "open-clip-vit-b32",
+            "length": "512",
+            "timeoutSeconds": "100",
+            "retries":"1000"
+          }
+        },
+
+        {
+          "name": "documentType",
+          "factory": "ImageClassification",
+          "parameters": {
+            "host": "http://10.34.64.84:8888/",
+            "model": "open-clip-vit-b32",
+            "timeoutSeconds": "100",
+            "retries":"1000",
+            "classes": "text document,photograph",
+            "threshold": "0.1",
+            "top_k": "1"
+          }
+        },
+        {
+          "name": "captionSparse",
+          "factory": "ImageCaption",
+          "parameters": {
+            "host": "http://10.34.64.84:8888/",
+            "timeoutSeconds": "100",
+            "retries":"1000",
+            "model": "gpt4o",
+            "prompt": "Describe the contents of this image to help document the image and to aid archivists in searching for the image. Use information from the internet to enhance the description. The image is part of the PTT Archive which preserves the history (1848-1997) of Swiss Post, Telegraphy and Telephony (PTT)."
+          }
+        },
+        {
+          "name": "captionDense",
+          "factory": "DenseEmbedding",
+          "parameters": {
+            "host": "http://10.34.64.84:8888/",
+            "model": "e5mistral7b-instruct",
+            "length": "4096",
+            "timeoutSeconds": "100",
+            "retries":"1000"
+          }
+        },
+        {
+          "name": "ocrSparse",
+          "factory": "OCR",
+          "parameters": {
+            "host": "http://10.34.64.84:8888/",
+            "model": "tesseract",
+            "timeoutSeconds": "100",
+            "retries":"1000"
+          }
+        },
+        {
+          "name": "ocrDense",
+          "factory": "DenseEmbedding",
+          "parameters": {
+            "host": "http://10.34.64.84:8888/",
+            "model": "e5mistral7b-instruct",
+            "length": "4096",
+            "timeoutSeconds": "100",
+            "retries":"1000"
+          }
+        }
+      ],
+      "resolvers": {
+        "disk": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "../thumbnails"
+          }
+        }
+      },
+      "exporters": [
+        {
+          "name": "thumbnail",
+          "factory": "ThumbnailExporter",
+          "resolverName": "disk",
+          "parameters": {
+            "maxSideResolution": "400",
+            "mimeType": "JPG"
+          }
+        }
+      ],
+      "extractionPipelines": [
+        {
+          "name": "wit1",
+          "path": "./pipelines/wit1.json"
+        }
+      ]
+    }
+  ]
+}

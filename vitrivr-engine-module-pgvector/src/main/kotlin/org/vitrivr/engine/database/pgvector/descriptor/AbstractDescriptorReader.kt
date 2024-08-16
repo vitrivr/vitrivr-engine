@@ -56,22 +56,18 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      * @param retrievableId The [RetrievableId] to search for.
      * @return [Sequence] of [Descriptor]  of type [D]
      */
-    override fun getForRetrievable(retrievableId: RetrievableId): Sequence<D> {
+    override fun getForRetrievable(retrievableId: RetrievableId): Sequence<D> = sequence {
         try {
-            this.connection.jdbc.prepareStatement("SELECT * FROM $tableName WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?").use { stmt ->
+            this@AbstractDescriptorReader.connection.jdbc.prepareStatement("SELECT * FROM $tableName WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?").use { stmt ->
                 stmt.setObject(1, retrievableId)
-                val result = stmt.executeQuery()
-                return sequence {
-                    result.use {
-                        while (result.next()) {
-                            yield(this@AbstractDescriptorReader.rowToDescriptor(result))
-                        }
+                val result = stmt.executeQuery().use { result ->
+                    while (result.next()) {
+                        yield(this@AbstractDescriptorReader.rowToDescriptor(result))
                     }
                 }
             }
         } catch (e: Exception) {
             LOGGER.error(e) { "Failed to fetch descriptor for retrievable $retrievableId from '$tableName' due to SQL error." }
-            return emptySequence()
         }
     }
 
@@ -101,21 +97,17 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      *
      * @return [Sequence] of all [Descriptor]s.
      */
-    override fun getAll(): Sequence<D> {
+    override fun getAll(): Sequence<D> = sequence {
         try {
-            this.connection.jdbc.prepareStatement("SELECT * FROM $tableName").use { stmt ->
-                val result = stmt.executeQuery()
-                return sequence {
-                    result.use {
-                        while (result.next()) {
-                            yield(this@AbstractDescriptorReader.rowToDescriptor(result))
-                        }
+            this@AbstractDescriptorReader.connection.jdbc.prepareStatement("SELECT * FROM $tableName").use { stmt ->
+                stmt.executeQuery().use { result ->
+                    while (result.next()) {
+                        yield(this@AbstractDescriptorReader.rowToDescriptor(result))
                     }
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to fetch descriptors from '$tableName' due to SQL error." }
-            return emptySequence()
         }
     }
 
@@ -125,23 +117,19 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      * @param descriptorIds A [Iterable] of [DescriptorId]s to return.
      * @return [Sequence] of [Descriptor] of type [D]
      */
-    override fun getAll(descriptorIds: Iterable<DescriptorId>): Sequence<D> {
+    override fun getAll(descriptorIds: Iterable<DescriptorId>): Sequence<D> = sequence {
         try {
-            this.connection.jdbc.prepareStatement("SELECT * FROM $tableName WHERE $DESCRIPTOR_ID_COLUMN_NAME = ANY (?)").use { stmt ->
+            this@AbstractDescriptorReader.connection.jdbc.prepareStatement("SELECT * FROM $tableName WHERE $DESCRIPTOR_ID_COLUMN_NAME = ANY (?)").use { stmt ->
                 val values = descriptorIds.map { it }.toTypedArray()
-                stmt.setArray(1, this.connection.jdbc.createArrayOf("uuid", values))
-                val result = stmt.executeQuery()
-                return sequence {
-                    result.use {
-                        while (result.next()) {
-                            yield(this@AbstractDescriptorReader.rowToDescriptor(result))
-                        }
+                stmt.setArray(1, this@AbstractDescriptorReader.connection.jdbc.createArrayOf("uuid", values))
+                stmt.executeQuery().use { result ->
+                    while (result.next()) {
+                        yield(this@AbstractDescriptorReader.rowToDescriptor(result))
                     }
                 }
             }
         } catch (e: Exception) {
             LOGGER.error(e) { "Failed to fetch descriptors from '$tableName' due to SQL error." }
-            return emptySequence()
         }
     }
 
@@ -151,24 +139,20 @@ abstract class AbstractDescriptorReader<D : Descriptor>(final override val field
      * @param retrievableIds A [Iterable] of [RetrievableId]s to return [Descriptor]s for
      * @return [Sequence] of [Descriptor] of type [D]
      */
-    override fun getAllForRetrievable(retrievableIds: Iterable<RetrievableId>): Sequence<D> {
+    override fun getAllForRetrievable(retrievableIds: Iterable<RetrievableId>): Sequence<D> = sequence {
         try {
-            this.connection.jdbc.prepareStatement("SELECT * FROM $tableName WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY (?)").use { stmt ->
+            this@AbstractDescriptorReader.connection.jdbc.prepareStatement("SELECT * FROM $tableName WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY (?)").use { stmt ->
                 val values = retrievableIds.map { it }.toTypedArray()
-                stmt.setArray(1, this.connection.jdbc.createArrayOf("uuid", values))
-                val result = stmt.executeQuery()
-                return sequence {
-                    result.use {
-                        while (result.next()) {
-                            yield(this@AbstractDescriptorReader.rowToDescriptor(result))
-                        }
+                stmt.setArray(1, this@AbstractDescriptorReader.connection.jdbc.createArrayOf("uuid", values))
+                stmt.executeQuery().use { result ->
+                    while (result.next()) {
+                        yield(this@AbstractDescriptorReader.rowToDescriptor(result))
                     }
                 }
             }
         } catch (e: Exception) {
             LOGGER.error(e) { "Failed to fetch descriptors from '$tableName' due to SQL error." }
-            return emptySequence()
-        }
+         }
     }
 
     /**
