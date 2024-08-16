@@ -6,6 +6,7 @@ import org.joml.Vector3f
 import org.joml.Vector3fc
 import org.joml.Vector3i
 import org.vitrivr.engine.core.model.mesh.texturemodel.Mesh
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Vec3f
 import org.vitrivr.engine.model3d.lwjglrender.util.MeshMathUtil
 import kotlin.math.abs
 import kotlin.math.ceil
@@ -49,7 +50,7 @@ class Voxelizer(private val resolution: Float) {
      * @param mesh Mesh that should be voxelized.
      * @return VoxelGrid representation of the mesh.
      */
-    fun voxelize(mesh: org.vitrivr.engine.core.model.mesh.texturemodel.Mesh): VoxelModel {
+    fun voxelize(mesh: Mesh): VoxelModel {
         /* Calculate bounding box of mesh. */
         val boundingBox: FloatArray = MeshMathUtil.bounds(mesh)
         val sizeX = (abs(ceil(((boundingBox[0] - boundingBox[1]) / this.resolution).toDouble())) + 1).toInt().toShort()
@@ -69,7 +70,7 @@ class Voxelizer(private val resolution: Float) {
      * @param sizeZ Number of Voxels in Z direction.
      * @return VoxelGrid representation of the mesh.
      */
-    fun voxelize(mesh: org.vitrivr.engine.core.model.mesh.texturemodel.Mesh, sizeX: Int, sizeY: Int, sizeZ: Int): VoxelModel {
+    fun voxelize(mesh: Mesh, sizeX: Int, sizeY: Int, sizeZ: Int): VoxelModel {
         /* Initializes a new voxel-grid. */
         val grid = VoxelModel(sizeX, sizeY, sizeZ, this.resolution)
 
@@ -84,11 +85,11 @@ class Voxelizer(private val resolution: Float) {
      * @param grid [VoxelModel] to use for voxelization.
      * @return [VoxelModel] representation of the mesh.
      */
-    fun voxelize(mesh: org.vitrivr.engine.core.model.mesh.texturemodel.Mesh, grid: VoxelModel): VoxelModel {
+    fun voxelize(mesh: Mesh, grid: VoxelModel): VoxelModel {
         /* Process the faces and perform all the relevant tests described in [1]. */
         val duration = measureTime {
             for (face in mesh.faces()) {
-                val vertices: List<org.vitrivr.engine.core.model.mesh.texturemodel.Mesh.Vertex> = face.vertices
+                val vertices: List<Mesh.Vertex> = face.vertices
                 val enclosings = this@Voxelizer.enclosingGrid(vertices, grid)
                 for (enclosing in enclosings) {
                     /* Perform vertex-tests. */
@@ -137,8 +138,8 @@ class Voxelizer(private val resolution: Float) {
      * @param voxel  Voxel to be tested.
      * @return true if the voxel's center is within the circle, false otherwise.
      */
-    private fun vertextTest(vertex: org.vitrivr.engine.core.model.mesh.texturemodel.Mesh.Vertex, voxel: Pair<Vector3i, Vector3f>): Boolean {
-        return vertex.position.distanceSquared(voxel.second) > this.rcsq
+    private fun vertextTest(vertex: Mesh.Vertex, voxel: Pair<Vector3i, Vector3f>): Boolean {
+        return vertex.position.distanceSquared(Vec3f(voxel.second.x, voxel.second.y, voxel.second.z)) > this.rcsq
     }
 
     /**
@@ -149,9 +150,9 @@ class Voxelizer(private val resolution: Float) {
      * @param voxel Voxel to be tested.
      * @return true if voxel's center is contained in cylinder, false otherwise.
      */
-    private fun edgeTest(a: org.vitrivr.engine.core.model.mesh.texturemodel.Mesh.Vertex, b: org.vitrivr.engine.core.model.mesh.texturemodel.Mesh.Vertex, voxel: Pair<Vector3i, Vector3f>): Boolean {
-        val line: Vector3f = Vector3f(b.position).sub(a.position)
-        val pd = voxel.second.sub(a.position)
+    private fun edgeTest(a: Mesh.Vertex, b: Mesh.Vertex, voxel: Pair<Vector3i, Vector3f>): Boolean {
+        val line: Vector3f = Vector3f(b.position.x,b.position.y,b.position.z).sub(Vector3f(a.position.x,a.position.y,a.position.z))
+        val pd = voxel.second.sub(Vector3f(a.position.x,a.position.y,a.position.z))
 
         /* Calculate distance between a and b (Edge). */
         val lsq: Float = a.position.distanceSquared(b.position)
@@ -177,14 +178,14 @@ class Voxelizer(private val resolution: Float) {
      * @param voxel Voxel to be tested.
      * @return true if voxel's center is contained in the area, false otherwise.
      */
-    private fun planeTest(a: org.vitrivr.engine.core.model.mesh.texturemodel.Mesh.Vertex, b: org.vitrivr.engine.core.model.mesh.texturemodel.Mesh.Vertex, c: org.vitrivr.engine.core.model.mesh.texturemodel.Mesh.Vertex, voxel: Pair<Vector3i, Vector3f>): Boolean {
+    private fun planeTest(a: Mesh.Vertex, b: Mesh.Vertex, c: Mesh.Vertex, voxel: Pair<Vector3i, Vector3f>): Boolean {
         /* Retrieve center and corner of voxel. */
         val vcenter = voxel.second
         val vcorner = Vector3f(this.rc, this.rc, this.rc).add(vcenter)
 
         /* Calculate the vectors spanning the plane of the facepolyon and its plane-normal. */
-        val ab: Vector3f = Vector3f(b.position).sub(a.position)
-        val ac: Vector3f = Vector3f(c.position).sub(a.position)
+        val ab: Vector3f = Vector3f(b.position.x,b.position.y,b.position.z).sub(Vector3f(a.position.x,a.position.y,a.position.z))
+        val ac: Vector3f = Vector3f(c.position.x,c.position.y,c.position.z).sub(Vector3f(a.position.x,a.position.y,a.position.z))
         val planenorm = Vector3f(ab).cross(ac)
 
         /* Calculate the distance t for enclosing planes. */
@@ -205,11 +206,11 @@ class Voxelizer(private val resolution: Float) {
      * @param grid     VoxelGrid to select voxels from.
      * @return List of voxels that confine the provided vertices.
      */
-    private fun enclosingGrid(vertices: List<org.vitrivr.engine.core.model.mesh.texturemodel.Mesh.Vertex>, grid: VoxelModel): List<Pair<Vector3i, Vector3f>> {
+    private fun enclosingGrid(vertices: List<Mesh.Vertex>, grid: VoxelModel): List<Pair<Vector3i, Vector3f>> {
         /* Calculate bounding box for provided vertices. */
         val positions = ArrayList<Vector3fc>(vertices.size)
         for (vertex in vertices) {
-            positions.add(vertex.position)
+            positions.add(Vector3f(vertex.position.x, vertex.position.y, vertex.position.z))
         }
 
         val bounds: FloatArray = MeshMathUtil.bounds(positions)

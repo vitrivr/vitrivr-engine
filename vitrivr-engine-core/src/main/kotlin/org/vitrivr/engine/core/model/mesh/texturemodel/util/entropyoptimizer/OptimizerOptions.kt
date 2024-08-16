@@ -1,6 +1,6 @@
 package org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer
 
-import org.joml.Vector3f
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Vec3f
 
 
 /**
@@ -33,7 +33,7 @@ data class OptimizerOptions(
     /**
      * The initial view vector.
      */
-    var initialViewVector: Vector3f = Vector3f(0f, 0f, 1f),
+    var initialViewVector: Vec3f = Vec3f(0f, 0f, 1f),
 
     /**
      * Weight for y normal vectors pointing up.

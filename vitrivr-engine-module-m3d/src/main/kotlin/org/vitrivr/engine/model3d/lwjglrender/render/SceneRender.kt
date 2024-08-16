@@ -1,5 +1,7 @@
 package org.vitrivr.engine.model3d.lwjglrender.render
 
+import org.joml.Vector4f
+import org.joml.Matrix4f
 import org.lwjgl.opengl.GL30
 import org.vitrivr.engine.model3d.lwjglrender.glmodel.GLScene
 import org.vitrivr.engine.model3d.lwjglrender.glmodel.GLTexture
@@ -113,10 +115,12 @@ class SceneRender {
                 var texture: GLTexture
                 // Either draw texture or use color function
                 if (opt.showTextures) {
-                    uniformsMap!!.setUniform("material.diffuse", material.diffuseColor)
+                    val v4f = Vector4f(material.diffuseColor.x, material.diffuseColor.y, material.diffuseColor.z, material.diffuseColor.w)
+                    uniformsMap!!.setUniform("material.diffuse", v4f)
                     texture = textures.getTexture(material.texture.texturePath)!!
                 } else {
-                    uniformsMap!!.setUniform("material.diffuse", opt.colorfunction.apply(1f))
+                    val v4f = Vector4f(opt.colorfunction.apply(1f).x, opt.colorfunction.apply(1f).y, opt.colorfunction.apply(1f).z, opt.colorfunction.apply(1f).w)
+                    uniformsMap!!.setUniform("material.diffuse", v4f)
                     texture = textures.getTexture("default")!!
                 }
                 GL30.glActiveTexture(GL30.GL_TEXTURE0)
@@ -124,7 +128,9 @@ class SceneRender {
                 for (mesh in material.meshes) {
                     GL30.glBindVertexArray(mesh.vaoId)
                     for (entity in entities) {
-                        uniformsMap!!.setUniform("modelMatrix", entity.modelMatrix)
+                        val floatBuffer = entity.modelMatrix.getFloatBuffer()
+                        val matrix4f = Matrix4f(floatBuffer)
+                        uniformsMap!!.setUniform("modelMatrix", matrix4f)
                         GL30.glDrawElements(GL30.GL_TRIANGLES, mesh.numVertices, GL30.GL_UNSIGNED_INT, 0)
                     }
                 }

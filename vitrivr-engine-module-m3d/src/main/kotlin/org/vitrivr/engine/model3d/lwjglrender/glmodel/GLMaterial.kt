@@ -1,11 +1,9 @@
 package org.vitrivr.engine.model3d.lwjglrender.glmodel
 
-import java.util.*
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.joml.Vector4f
 import org.vitrivr.engine.core.model.mesh.texturemodel.Material
-import org.vitrivr.engine.core.model.mesh.texturemodel.Mesh
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Vec4f
 
 /**
  * The GLMaterial class is a wrapper for the [Material] class.
@@ -37,7 +35,7 @@ data class GLMaterial(
    *
    * @return The color from wrapped generic material. (r,g,b,opacity)
    */
-  val diffuseColor: Vector4f
+  val diffuseColor: Vec4f
     get() = material.materialDiffuseColor
 
   companion object {

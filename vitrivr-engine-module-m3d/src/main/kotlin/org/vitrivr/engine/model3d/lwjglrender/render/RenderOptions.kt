@@ -1,6 +1,6 @@
 package org.vitrivr.engine.model3d.lwjglrender.render
 
-import org.joml.Vector4f
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Vec4f
 import java.io.Serializable
 import java.util.function.Function
 
@@ -29,5 +29,5 @@ data class RenderOptions(
      * @TODO: This cannot be serialized!
      */
     @Transient
-    var colorfunction: Function<Float, Vector4f> = Function { v: Float? -> Vector4f(v!!, v, v, 1f) }
+    var colorfunction: Function<Float, Vec4f> = Function { v: Float? -> Vec4f(v!!, v, v, 1f) }
 ) : Serializable

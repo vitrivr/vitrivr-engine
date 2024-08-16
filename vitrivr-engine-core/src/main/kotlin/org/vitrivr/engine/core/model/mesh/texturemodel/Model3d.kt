@@ -1,8 +1,8 @@
 package org.vitrivr.engine.core.model.mesh.texturemodel
 
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Vec3f
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.joml.Vector3f
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.MinimalBoundingBox
 import java.io.Serializable
 import java.util.*
@@ -64,8 +64,8 @@ data class Model3d(
   }
 
   /** {@inheritDoc} */
-  override fun getAllNormals(): List<Vector3f> {
-    val normals = ArrayList<Vector3f>()
+  override fun getAllNormals(): List<Vec3f> {
+    val normals = ArrayList<Vec3f>()
     modelMaterials.forEach(
         Consumer { m: Material ->
           m.materialMeshes.forEach(Consumer { mesh: Mesh -> normals.addAll(mesh.getNormals()) })

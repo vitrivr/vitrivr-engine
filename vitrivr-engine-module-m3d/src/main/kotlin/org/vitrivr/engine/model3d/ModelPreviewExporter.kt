@@ -14,6 +14,7 @@ import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.Ent
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.OptimizerOptions
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Vec3f
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Exporter
 import org.vitrivr.engine.core.operators.general.ExporterFactory
@@ -74,7 +75,7 @@ class ModelPreviewExporter : ExporterFactory {
                 // Set options for the entropy optimizer.
                 val opts = OptimizerOptions(
                     iterations = 100,
-                    initialViewVector = Vector3f(0f, 0f, 1f),
+                    initialViewVector = Vec3f(0f, 0f, 1f),
                     method = EntopyCalculationMethod.RELATIVE_TO_TOTAL_AREA_WEIGHTED,
                     optimizer = EntropyOptimizerStrategy.RANDOMIZED,
                     yNegWeight = 0.7f,
