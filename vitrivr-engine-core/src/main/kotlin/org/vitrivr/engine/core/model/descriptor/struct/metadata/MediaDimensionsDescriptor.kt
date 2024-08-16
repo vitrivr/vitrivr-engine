@@ -23,7 +23,7 @@ class MediaDimensionsDescriptor(
     override val retrievableId: RetrievableId?,
     values: Map<AttributeName, Value<*>?>,
     override val field: Schema.Field<*, MediaDimensionsDescriptor>? = null
-) : MapStructDescriptor(id, retrievableId, SCHEMA, values, field) {
+) : MapStructDescriptor<MediaDimensionsDescriptor>(id, retrievableId, SCHEMA, values, field) {
     companion object {
         /** The field schema associated with a [VideoSourceMetadataDescriptor]. */
         private val SCHEMA = listOf(
@@ -53,7 +53,8 @@ class MediaDimensionsDescriptor(
      *
      * @param id [DescriptorId] of the new [MediaDimensionsDescriptor].
      * @param retrievableId [RetrievableId] of the new [MediaDimensionsDescriptor].
+     * @param field [Schema.Field] the new [MediaDimensionsDescriptor] belongs to.
      * @return Copy of this [MediaDimensionsDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = MediaDimensionsDescriptor(id, retrievableId, HashMap(this.values), this.field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, MediaDimensionsDescriptor>?) = MediaDimensionsDescriptor(id, retrievableId, HashMap(this.values), field)
 }

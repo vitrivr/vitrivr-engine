@@ -19,7 +19,7 @@ data class FloatDescriptor(
     override val retrievableId: RetrievableId?,
     override val value: Value.Float,
     override val field: Schema.Field<*, FloatDescriptor>? = null
-) : ScalarDescriptor<Value.Float> {
+) : ScalarDescriptor<FloatDescriptor, Value.Float> {
     companion object {
         private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.Float))
     }
@@ -36,7 +36,8 @@ data class FloatDescriptor(
      *
      * @param id [DescriptorId] of the new [FloatDescriptor].
      * @param retrievableId [RetrievableId] of the new [FloatDescriptor].
+     * @param field [Schema.Field] the new [FloatDescriptor] belongs to.
      * @return Copy of this [FloatDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = FloatDescriptor(id, retrievableId, this.value, this.field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, FloatDescriptor>?) = FloatDescriptor(id, retrievableId, this.value, field)
 }

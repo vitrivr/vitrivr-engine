@@ -14,8 +14,8 @@ import org.vitrivr.engine.plugin.cottontaildb.descriptors.CottontailDescriptorWr
  * @author Ralph Gasser
  * @version 1.1.0
  */
-internal object ScalarDescriptorProvider : DescriptorProvider<ScalarDescriptor<*>> {
-    override fun newInitializer(connection: Connection, field: Schema.Field<*, ScalarDescriptor<*>>) = CottontailDescriptorInitializer(field, connection as CottontailConnection)
-    override fun newReader(connection: Connection, field: Schema.Field<*, ScalarDescriptor<*>>) = ScalarDescriptorReader(field, connection as CottontailConnection)
-    override fun newWriter(connection: Connection, field: Schema.Field<*, ScalarDescriptor<*>>) = CottontailDescriptorWriter(field, connection as CottontailConnection)
+internal object ScalarDescriptorProvider : DescriptorProvider<ScalarDescriptor<*, *>> {
+    override fun newInitializer(connection: Connection, field: Schema.Field<*, ScalarDescriptor<*, *>>) = CottontailDescriptorInitializer(field, connection as CottontailConnection)
+    override fun newReader(connection: Connection, field: Schema.Field<*, ScalarDescriptor<*, *>>) = ScalarDescriptorReader(field, connection as CottontailConnection)
+    override fun newWriter(connection: Connection, field: Schema.Field<*, ScalarDescriptor<*, *>>) = CottontailDescriptorWriter(field, connection as CottontailConnection)
 }

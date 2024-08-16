@@ -22,7 +22,7 @@ data class LongVectorDescriptor(
     override val retrievableId: RetrievableId? = null,
     override val vector: Value.LongVector,
     override val field: Schema.Field<*, LongVectorDescriptor>? = null
-) : VectorDescriptor<Value.LongVector> {
+) : VectorDescriptor<LongVectorDescriptor, Value.LongVector> {
     /**
      * Returns the [Attribute] [List ]of this [LongVectorDescriptor].
      *
@@ -35,7 +35,8 @@ data class LongVectorDescriptor(
      *
      * @param id [DescriptorId] of the new [LongVectorDescriptor].
      * @param retrievableId [RetrievableId] of the new [LongVectorDescriptor].
+     * @param field [Schema.Field] the new [LongVectorDescriptor] belongs to.
      * @return Copy of this [LongVectorDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = LongVectorDescriptor(id, retrievableId, Value.LongVector(this.vector.value.copyOf()), this.field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, LongVectorDescriptor>?) = LongVectorDescriptor(id, retrievableId, Value.LongVector(this.vector.value.copyOf()), field)
 }

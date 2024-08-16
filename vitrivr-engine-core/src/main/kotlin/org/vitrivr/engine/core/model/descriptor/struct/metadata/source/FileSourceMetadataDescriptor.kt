@@ -22,7 +22,7 @@ class FileSourceMetadataDescriptor(
     override val retrievableId: RetrievableId?,
     values: Map<AttributeName, Value<*>?>,
     override val field: Schema.Field<*, FileSourceMetadataDescriptor>? = null
-) : MapStructDescriptor(id, retrievableId, SCHEMA, values, field) {
+) : MapStructDescriptor<FileSourceMetadataDescriptor>(id, retrievableId, SCHEMA, values, field) {
 
     constructor(id: DescriptorId, retrievableId: RetrievableId?, path: Value.String, size: Value.Long, field: Schema.Field<*, FileSourceMetadataDescriptor>) :
             this(id, retrievableId, mapOf("path" to path, "size" to size), field)
@@ -49,7 +49,8 @@ class FileSourceMetadataDescriptor(
      *
      * @param id [DescriptorId] of the new [FileSourceMetadataDescriptor].
      * @param retrievableId [RetrievableId] of the new [FileSourceMetadataDescriptor].
+     * @param field [Schema.Field] the new [FileSourceMetadataDescriptor] belongs to.
      * @return Copy of this [FileSourceMetadataDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = FileSourceMetadataDescriptor(id, retrievableId, HashMap(this.values), this.field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, FileSourceMetadataDescriptor>?) = FileSourceMetadataDescriptor(id, retrievableId, HashMap(this.values), field)
 }

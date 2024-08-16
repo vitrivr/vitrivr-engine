@@ -12,7 +12,7 @@ import org.vitrivr.engine.core.model.metamodel.Analyser
  * @param C The type of the [ContentElement] to analyse.
  * @param D The type of the [Descriptor] to generate.
  */
-abstract class ExternalFesAnalyser<C : ContentElement<*>, D : Descriptor> : Analyser<C, D> {
+abstract class ExternalFesAnalyser<C : ContentElement<*>, D : Descriptor<*>> : Analyser<C, D> {
     companion object {
         const val HOST_PARAMETER_DEFAULT = "http://localhost:8888/"
         const val HOST_PARAMETER_NAME = "host"

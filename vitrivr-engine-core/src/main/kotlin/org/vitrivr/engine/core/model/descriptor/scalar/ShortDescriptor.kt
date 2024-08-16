@@ -18,8 +18,8 @@ data class ShortDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId?,
     override val value: Value.Short,
-    override val field: Schema.Field<*, IntDescriptor>? = null
-) : ScalarDescriptor<Value.Short> {
+    override val field: Schema.Field<*, ShortDescriptor>? = null
+) : ScalarDescriptor<ShortDescriptor, Value.Short> {
     companion object {
         private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.Short))
     }
@@ -36,7 +36,8 @@ data class ShortDescriptor(
      *
      * @param id [DescriptorId] of the new [ShortDescriptor].
      * @param retrievableId [RetrievableId] of the new [ShortDescriptor].
+     * @param field [Schema.Field] the new [ShortDescriptor] belongs to.
      * @return Copy of this [ShortDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = ShortDescriptor(id, retrievableId, this.value, this.field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, ShortDescriptor>?) = ShortDescriptor(id, retrievableId, this.value, field)
 }

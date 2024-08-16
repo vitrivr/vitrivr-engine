@@ -19,7 +19,7 @@ data class DoubleDescriptor(
     override val retrievableId: RetrievableId?,
     override val value: Value.Double,
     override val field: Schema.Field<*, DoubleDescriptor>? = null
-) : ScalarDescriptor<Value.Double> {
+) : ScalarDescriptor<DoubleDescriptor, Value.Double> {
     companion object {
         private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.Double))
     }
@@ -36,7 +36,8 @@ data class DoubleDescriptor(
      *
      * @param id [DescriptorId] of the new [DoubleDescriptor].
      * @param retrievableId [RetrievableId] of the new [DoubleDescriptor].
+     * @param field [Schema.Field] the new [DoubleDescriptor] belongs to.
      * @return Copy of this [DoubleDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = DoubleDescriptor(id, retrievableId, this.value, this.field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, DoubleDescriptor>?) = DoubleDescriptor(id, retrievableId, this.value, field)
 }

@@ -22,7 +22,7 @@ data class DoubleVectorDescriptor(
     override val retrievableId: RetrievableId? = null,
     override val vector: Value.DoubleVector,
     override val field: Schema.Field<*, DoubleVectorDescriptor>? = null
-) : VectorDescriptor<Value.DoubleVector> {
+) : VectorDescriptor<DoubleVectorDescriptor, Value.DoubleVector> {
     /**
      * Returns the [Attribute] [List ]of this [DoubleVectorDescriptor].
      *
@@ -35,7 +35,8 @@ data class DoubleVectorDescriptor(
      *
      * @param id [DescriptorId] of the new [DoubleVectorDescriptor].
      * @param retrievableId [RetrievableId] of the new [DoubleVectorDescriptor].
+     * @param field [Schema.Field] the new [DoubleVectorDescriptor] belongs to.
      * @return Copy of this [DoubleVectorDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = DoubleVectorDescriptor(id, retrievableId, Value.DoubleVector(this.vector.value.copyOf()), this.field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, DoubleVectorDescriptor>?) = DoubleVectorDescriptor(id, retrievableId, Value.DoubleVector(this.vector.value.copyOf()), field)
 }

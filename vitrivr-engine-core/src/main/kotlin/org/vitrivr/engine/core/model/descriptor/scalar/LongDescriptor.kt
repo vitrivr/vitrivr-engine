@@ -20,7 +20,7 @@ data class LongDescriptor(
     override val retrievableId: RetrievableId?,
     override val value: Value.Long,
     override val field: Schema.Field<*, LongDescriptor>? = null
-) : ScalarDescriptor<Value.Long> {
+) : ScalarDescriptor<LongDescriptor, Value.Long> {
     companion object {
         private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.Long))
     }
@@ -37,7 +37,8 @@ data class LongDescriptor(
      *
      * @param id [DescriptorId] of the new [LongDescriptor].
      * @param retrievableId [RetrievableId] of the new [LongDescriptor].
+     * @param field [Schema.Field] the new [LongDescriptor] belongs to.
      * @return Copy of this [LongDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = LongDescriptor(id, retrievableId, this.value, this.field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, LongDescriptor>?) = LongDescriptor(id, retrievableId, this.value, field)
 }

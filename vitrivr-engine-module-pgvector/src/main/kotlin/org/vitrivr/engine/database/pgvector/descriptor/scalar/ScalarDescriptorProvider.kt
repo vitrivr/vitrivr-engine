@@ -15,8 +15,8 @@ import org.vitrivr.engine.database.pgvector.descriptor.PgDescriptorWriter
  * @author Ralph Gasser
  * @version 1.0.0
  */
-object ScalarDescriptorProvider: DescriptorProvider<ScalarDescriptor<*>> {
-    override fun newInitializer(connection: Connection, field: Schema.Field<*, ScalarDescriptor<*>>) = PgDescriptorInitializer(field, connection as PgVectorConnection)
-    override fun newReader(connection: Connection, field: Schema.Field<*, ScalarDescriptor<*>>) = ScalarDescriptorReader(field, connection as PgVectorConnection)
-    override fun newWriter(connection: Connection, field: Schema.Field<*, ScalarDescriptor<*>>) = PgDescriptorWriter(field, connection as PgVectorConnection)
+object ScalarDescriptorProvider : DescriptorProvider<ScalarDescriptor<*, *>> {
+    override fun newInitializer(connection: Connection, field: Schema.Field<*, ScalarDescriptor<*, *>>) = PgDescriptorInitializer(field, connection as PgVectorConnection)
+    override fun newReader(connection: Connection, field: Schema.Field<*, ScalarDescriptor<*, *>>) = ScalarDescriptorReader(field, connection as PgVectorConnection)
+    override fun newWriter(connection: Connection, field: Schema.Field<*, ScalarDescriptor<*, *>>) = PgDescriptorWriter(field, connection as PgVectorConnection)
 }

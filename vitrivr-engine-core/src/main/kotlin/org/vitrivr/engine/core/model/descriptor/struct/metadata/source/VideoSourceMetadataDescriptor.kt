@@ -22,7 +22,7 @@ class VideoSourceMetadataDescriptor(
     override val retrievableId: RetrievableId?,
     values: Map<AttributeName, Value<*>?>,
     override val field: Schema.Field<*, VideoSourceMetadataDescriptor>? = null
-) : MapStructDescriptor(id, retrievableId, SCHEMA, values, field) {
+) : MapStructDescriptor<VideoSourceMetadataDescriptor>(id, retrievableId, SCHEMA, values, field) {
 
     /** The width of the video source in pixels. */
     val width: Value.Int by this.values
@@ -73,7 +73,8 @@ class VideoSourceMetadataDescriptor(
      *
      * @param id [DescriptorId] of the new [VideoSourceMetadataDescriptor].
      * @param retrievableId [RetrievableId] of the new [VideoSourceMetadataDescriptor].
+     * @param field [Schema.Field] the new [VideoSourceMetadataDescriptor] belongs to.
      * @return Copy of this [VideoSourceMetadataDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = VideoSourceMetadataDescriptor(id, retrievableId, HashMap(this.values), this.field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, VideoSourceMetadataDescriptor>?) = VideoSourceMetadataDescriptor(id, retrievableId, HashMap(this.values), this.field)
 }

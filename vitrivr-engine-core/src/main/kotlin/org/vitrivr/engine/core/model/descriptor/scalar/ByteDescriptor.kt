@@ -18,8 +18,8 @@ data class ByteDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId?,
     override val value: Value.Byte,
-    override val field: Schema.Field<*, IntDescriptor>? = null
-) : ScalarDescriptor<Value.Byte> {
+    override val field: Schema.Field<*, ByteDescriptor>? = null
+) : ScalarDescriptor<ByteDescriptor, Value.Byte> {
     companion object {
         private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.Byte))
     }
@@ -36,7 +36,8 @@ data class ByteDescriptor(
      *
      * @param id [DescriptorId] of the new [ByteDescriptor].
      * @param retrievableId [RetrievableId] of the new [ByteDescriptor].
+     * @param field [Schema.Field] the new [ByteDescriptor] belongs to.
      * @return Copy of this [ByteDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = ByteDescriptor(id, retrievableId, this.value, this.field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, ByteDescriptor>?) = ByteDescriptor(id, retrievableId, this.value, field)
 }

@@ -8,6 +8,6 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface TensorDescriptor : Descriptor {
+interface TensorDescriptor<T : TensorDescriptor<T>> : Descriptor<T> {
 
 }
