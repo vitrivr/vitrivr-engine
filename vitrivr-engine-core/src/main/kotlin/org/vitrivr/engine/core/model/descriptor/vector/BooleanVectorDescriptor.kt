@@ -22,7 +22,7 @@ data class BooleanVectorDescriptor(
     override val retrievableId: RetrievableId? = null,
     override val vector: Value.BooleanVector,
     override val field: Schema.Field<*, BooleanVectorDescriptor>? = null
-) : VectorDescriptor<Value.BooleanVector> {
+) : VectorDescriptor<BooleanVectorDescriptor, Value.BooleanVector> {
     /**
      * Returns the [Attribute] [List ]of this [BooleanVectorDescriptor].
      *
@@ -35,7 +35,8 @@ data class BooleanVectorDescriptor(
      *
      * @param id [DescriptorId] of the new [BooleanVectorDescriptor].
      * @param retrievableId [RetrievableId] of the new [BooleanVectorDescriptor].
+     * @param field [Schema.Field] the new [BooleanVectorDescriptor] belongs to.
      * @return Copy of this [BooleanVectorDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = BooleanVectorDescriptor(id, retrievableId, Value.BooleanVector(this.vector.value.copyOf()), this.field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, BooleanVectorDescriptor>?) = BooleanVectorDescriptor(id, retrievableId, Value.BooleanVector(this.vector.value.copyOf()), field)
 }

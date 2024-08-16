@@ -9,5 +9,5 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  */
 interface StructRetrieverFactory {
 
-    fun <C:ContentElement<*>>newRetriever(schema: Schema, properties: Map<String,String>): Retriever<C,StructDescriptor>
+    fun <C : ContentElement<*>> newRetriever(schema: Schema, properties: Map<String, String>): Retriever<C, StructDescriptor<*>>
 }

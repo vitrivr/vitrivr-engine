@@ -22,7 +22,7 @@ class Rectangle2DMetadataDescriptor(
     override val retrievableId: RetrievableId?,
     values: Map<AttributeName, Value<*>?>,
     override val field: Schema.Field<*, Rectangle2DMetadataDescriptor>? = null
-) : MapStructDescriptor(id, retrievableId, SCHEMA, values, field) {
+) : MapStructDescriptor<Rectangle2DMetadataDescriptor>(id, retrievableId, SCHEMA, values, field) {
 
     companion object {
         /** The field schema associated with a [Rectangle2DMetadataDescriptor]. */
@@ -57,4 +57,15 @@ class Rectangle2DMetadataDescriptor(
 
     /** The height of the rectangle. */
     val height: Value.Int by this.values
+
+    /**
+     * Returns a copy of this [Rectangle2DMetadataDescriptor] with new [RetrievableId] and/or [DescriptorId]
+     *
+     * @param id [DescriptorId] of the new [Rectangle2DMetadataDescriptor].
+     * @param retrievableId [RetrievableId] of the new [Rectangle2DMetadataDescriptor].
+     * @param field [Schema.Field] the new [Rectangle2DMetadataDescriptor] belongs to.
+     * @return Copy of this [Rectangle2DMetadataDescriptor].
+     */
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, Rectangle2DMetadataDescriptor>?) = Rectangle2DMetadataDescriptor(id, retrievableId, HashMap(this.values), field)
+
 }

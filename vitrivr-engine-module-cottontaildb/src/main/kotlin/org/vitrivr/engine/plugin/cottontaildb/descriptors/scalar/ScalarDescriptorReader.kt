@@ -23,7 +23,7 @@ import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorRead
  * @author Ralph Gasser
  * @version 1.1.0
  */
-class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connection: CottontailConnection) : AbstractDescriptorReader<ScalarDescriptor<*>>(field, connection) {
+class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, connection: CottontailConnection) : AbstractDescriptorReader<ScalarDescriptor<*, *>>(field, connection) {
 
     /** Prototype [ScalarDescriptor] used to create new instances. */
     private val prototype = this.field.analyser.prototype(this.field)
@@ -33,7 +33,7 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
      *
      * @param query The [Query] to execute.
      */
-    override fun query(query: Query): Sequence<ScalarDescriptor<*>> = when (query) {
+    override fun query(query: Query): Sequence<ScalarDescriptor<*, *>> = when (query) {
         is SimpleFulltextQuery -> this.queryFulltext(query)
         is SimpleBooleanQuery<*> -> this.queryBoolean(query)
         else -> throw UnsupportedOperationException("The provided query type ${query::class.simpleName} is not supported by this reader.")
@@ -45,7 +45,7 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
      * @param tuple The [Tuple] to convert.
      * @return The resulting [ScalarDescriptor].
      */
-    override fun tupleToDescriptor(tuple: Tuple): ScalarDescriptor<*> {
+    override fun tupleToDescriptor(tuple: Tuple): ScalarDescriptor<*, *> {
         val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'.")
         val descriptorId = tuple.asUuidValue(DESCRIPTOR_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${DESCRIPTOR_ID_COLUMN_NAME}'.")
         return when (this.prototype) {
@@ -67,7 +67,7 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
      * @param query The [SimpleFulltextQuery] to execute.
      * @return [Sequence] of [ScalarDescriptor]s.
      */
-    private fun queryFulltext(query: SimpleFulltextQuery): Sequence<ScalarDescriptor<*>> {
+    private fun queryFulltext(query: SimpleFulltextQuery): Sequence<ScalarDescriptor<*, *>> {
         val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
             .select("*")
             .fulltext(VALUE_ATTRIBUTE_NAME, query.value.value, "score")
@@ -88,7 +88,7 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
      * @param query The [SimpleBooleanQuery] to execute.
      * @return [Sequence] of [ScalarDescriptor]s.
      */
-    private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<ScalarDescriptor<*>> {
+    private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<ScalarDescriptor<*, *>> {
         /* Prepare query. */
         val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
             .select(RETRIEVABLE_ID_COLUMN_NAME)

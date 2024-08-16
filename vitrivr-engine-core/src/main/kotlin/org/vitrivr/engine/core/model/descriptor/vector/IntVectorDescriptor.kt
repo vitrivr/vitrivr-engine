@@ -21,7 +21,7 @@ data class IntVectorDescriptor(
     override val retrievableId: RetrievableId? = null,
     override val vector: Value.IntVector,
     override val field: Schema.Field<*, IntVectorDescriptor>? = null
-) : VectorDescriptor<Value.IntVector> {
+) : VectorDescriptor<IntVectorDescriptor, Value.IntVector> {
     /**
      * Returns the [Attribute] [List ]of this [IntVectorDescriptor].
      *
@@ -34,7 +34,8 @@ data class IntVectorDescriptor(
      *
      * @param id [DescriptorId] of the new [IntVectorDescriptor].
      * @param retrievableId [RetrievableId] of the new [IntVectorDescriptor].
+     * @param field [Schema.Field] the new [IntVectorDescriptor] belongs to.
      * @return Copy of this [IntVectorDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = IntVectorDescriptor(id, retrievableId, Value.IntVector(this.vector.value.copyOf()), this.field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, IntVectorDescriptor>?) = IntVectorDescriptor(id, retrievableId, Value.IntVector(this.vector.value.copyOf()), field)
 }

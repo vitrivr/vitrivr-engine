@@ -20,7 +20,7 @@ data class StringDescriptor(
     override val retrievableId: RetrievableId?,
     override val value: Value.String,
     override val field: Schema.Field<*, StringDescriptor>? = null
-) : ScalarDescriptor<Value.String> {
+) : ScalarDescriptor<StringDescriptor, Value.String> {
     companion object {
         private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.String))
     }
@@ -37,7 +37,8 @@ data class StringDescriptor(
      *
      * @param id [DescriptorId] of the new [StringDescriptor].
      * @param retrievableId [RetrievableId] of the new [StringDescriptor].
+     * @param field [Schema.Field] the new [StringDescriptor] belongs to.
      * @return Copy of this [StringDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = StringDescriptor(id, retrievableId, this.value, this.field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, StringDescriptor>?) = StringDescriptor(id, retrievableId, this.value, field)
 }

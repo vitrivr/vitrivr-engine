@@ -21,13 +21,13 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>>, connection: PgVectorConnection) : AbstractDescriptorReader<VectorDescriptor<*>>(field, connection) {
+class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, connection: PgVectorConnection) : AbstractDescriptorReader<VectorDescriptor<*, *>>(field, connection) {
     /**
      * Executes the provided [Query] and returns a [Sequence] of [Retrieved]s that match it.
      *
      * @param query The [Query] to execute.
      */
-    override fun query(query: Query): Sequence<VectorDescriptor<*>> = when (query) {
+    override fun query(query: Query): Sequence<VectorDescriptor<*, *>> = when (query) {
         is ProximityQuery<*> -> queryProximity(query)
         else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by VectorDescriptorReader.")
     }
@@ -51,7 +51,7 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>>, connec
      * @param result [ResultSet] to convert.
      * @return [VectorDescriptor]
      */
-    override fun rowToDescriptor(result: ResultSet): VectorDescriptor<*> {
+    override fun rowToDescriptor(result: ResultSet): VectorDescriptor<*, *> {
         val descriptorId = result.getObject(DESCRIPTOR_ID_COLUMN_NAME, UUID::class.java)
         val retrievableId = result.getObject(RETRIEVABLE_ID_COLUMN_NAME, UUID::class.java)
         return when (this.prototype) {
@@ -95,7 +95,7 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>>, connec
      * @param query The [ProximityQuery] to execute.
      * @return [Sequence] of [VectorDescriptor]s.
      */
-    private fun queryProximity(query: ProximityQuery<*>): Sequence<VectorDescriptor<*>> = sequence {
+    private fun queryProximity(query: ProximityQuery<*>): Sequence<VectorDescriptor<*, *>> = sequence {
         val statement =
             "SELECT $DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $VECTOR_ATTRIBUTE_NAME, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME FROM \"${tableName}\" ORDER BY $DISTANCE_COLUMN_NAME ${query.order} LIMIT ${query.k}"
         this@VectorDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
@@ -115,7 +115,7 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>>, connec
      * @return [Sequence] of [VectorDescriptor]s.
      */
     private fun queryAndJoinProximity(query: ProximityQuery<*>): Sequence<Retrieved> {
-        val descriptors = mutableListOf<Pair<VectorDescriptor<*>, Float>>()
+        val descriptors = mutableListOf<Pair<VectorDescriptor<*, *>, Float>>()
         val statement =
             "SELECT $DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $VECTOR_ATTRIBUTE_NAME, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME FROM \"${tableName}\" ORDER BY $DISTANCE_COLUMN_NAME ${query.order} LIMIT ${query.k}"
         this@VectorDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->

@@ -9,7 +9,6 @@ import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 import java.util.*
 
-
 /**
  * A [VectorDescriptor] that uses a [FloatArray].
  *
@@ -22,7 +21,7 @@ data class FloatVectorDescriptor(
     override val retrievableId: RetrievableId? = null,
     override val vector: Value.FloatVector,
     override val field: Schema.Field<*, FloatVectorDescriptor>? = null
-) : VectorDescriptor<Value.FloatVector> {
+) : VectorDescriptor<FloatVectorDescriptor, Value.FloatVector> {
     /**
      * Returns the [Attribute] [List ]of this [FloatVectorDescriptor].
      *
@@ -35,7 +34,8 @@ data class FloatVectorDescriptor(
      *
      * @param id [DescriptorId] of the new [FloatVectorDescriptor].
      * @param retrievableId [RetrievableId] of the new [FloatVectorDescriptor].
+     * @param field [Schema.Field] the new [DoubleVectorDescriptor] belongs to.
      * @return Copy of this [FloatVectorDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = FloatVectorDescriptor(id, retrievableId, Value.FloatVector(this.vector.value.copyOf()), this.field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, FloatVectorDescriptor>?) = FloatVectorDescriptor(id, retrievableId, Value.FloatVector(this.vector.value.copyOf()), field)
 }

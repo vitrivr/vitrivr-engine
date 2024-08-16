@@ -22,7 +22,7 @@ class TemporalMetadataDescriptor(
     override val retrievableId: RetrievableId?, //retrievable Id must come first, due to reflection
     values: Map<AttributeName, Value<*>?>,
     override val field: Schema.Field<*, TemporalMetadataDescriptor>? = null
-) : MapStructDescriptor(id, retrievableId, SCHEMA, values, field) {
+) : MapStructDescriptor<TemporalMetadataDescriptor>(id, retrievableId, SCHEMA, values, field) {
 
     companion object {
         /** The field schema associated with a [TemporalMetadataDescriptor]. */
@@ -46,7 +46,8 @@ class TemporalMetadataDescriptor(
      *
      * @param id [DescriptorId] of the new [TemporalMetadataDescriptor].
      * @param retrievableId [RetrievableId] of the new [TemporalMetadataDescriptor].
+     * @param field [Schema.Field] the new [TemporalMetadataDescriptor] belongs to.
      * @return Copy of this [TemporalMetadataDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = TemporalMetadataDescriptor(id, retrievableId, HashMap(this.values), this.field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, TemporalMetadataDescriptor>?) = TemporalMetadataDescriptor(id, retrievableId, HashMap(this.values), field)
 }

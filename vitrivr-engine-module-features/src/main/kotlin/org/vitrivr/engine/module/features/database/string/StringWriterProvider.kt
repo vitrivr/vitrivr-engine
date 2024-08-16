@@ -1,6 +1,5 @@
 package org.vitrivr.engine.module.features.database.string
 
-import org.vitrivr.engine.module.features.database.string.writer.StringDescriptorWriter
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
 import org.vitrivr.engine.core.database.descriptor.DescriptorReader
@@ -8,8 +7,9 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.database.descriptor.NoDescriptorInitializer
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.module.features.database.string.writer.StringDescriptorWriter
 
-class StringWriterProvider<D: Descriptor> : DescriptorProvider<D> {
+class StringWriterProvider<D : Descriptor<*>> : DescriptorProvider<D> {
 
     override fun newInitializer(connection: Connection, field: Schema.Field<*,D>): NoDescriptorInitializer<D> = NoDescriptorInitializer(field)
 

@@ -22,7 +22,7 @@ data class TextDescriptor(
     override val retrievableId: RetrievableId?,
     override val value: Value.Text,
     override val field: Schema.Field<*, TextDescriptor>? = null
-) : ScalarDescriptor<Value.Text> {
+) : ScalarDescriptor<TextDescriptor, Value.Text> {
     companion object {
         private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.Text))
     }
@@ -39,7 +39,8 @@ data class TextDescriptor(
      *
      * @param id [DescriptorId] of the new [TextDescriptor].
      * @param retrievableId [RetrievableId] of the new [TextDescriptor].
+     * @param field [Schema.Field] the new [TextDescriptor] belongs to.
      * @return Copy of this [TextDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = TextDescriptor(id, retrievableId, this.value, this.field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, TextDescriptor>?) = TextDescriptor(id, retrievableId, this.value, field)
 }

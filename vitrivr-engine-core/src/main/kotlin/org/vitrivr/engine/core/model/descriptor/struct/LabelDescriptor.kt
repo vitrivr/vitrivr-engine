@@ -19,7 +19,7 @@ class LabelDescriptor(
     override val retrievableId: RetrievableId?,
     values: Map<AttributeName, Value<*>?>,
     override val field: Schema.Field<*, LabelDescriptor>? = null
-) : MapStructDescriptor(id, retrievableId, SCHEMA, values, field) {
+) : MapStructDescriptor<LabelDescriptor>(id, retrievableId, SCHEMA, values, field) {
     companion object {
         private val SCHEMA = listOf(
             Attribute("label", Type.String),
@@ -38,7 +38,8 @@ class LabelDescriptor(
      *
      * @param id [DescriptorId] of the new [LabelDescriptor].
      * @param retrievableId [RetrievableId] of the new [LabelDescriptor].
+     * @param field [Schema.Field] the new [LabelDescriptor] belongs to.
      * @return Copy of this [LabelDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?) = LabelDescriptor(id, retrievableId, HashMap(this.values), this.field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, LabelDescriptor>?) = LabelDescriptor(id, retrievableId, HashMap(this.values), this.field)
 }

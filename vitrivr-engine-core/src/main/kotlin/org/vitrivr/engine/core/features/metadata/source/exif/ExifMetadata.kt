@@ -4,7 +4,7 @@ import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Attribute
-import org.vitrivr.engine.core.model.descriptor.struct.MapStructDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.AnyMapStructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
@@ -16,13 +16,13 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
-class ExifMetadata : Analyser<ContentElement<*>, MapStructDescriptor> {
+class ExifMetadata : Analyser<ContentElement<*>, AnyMapStructDescriptor> {
 
     override val contentClasses = setOf(ContentElement::class)
-    override val descriptorClass = MapStructDescriptor::class
-    override fun prototype(field: Schema.Field<*, *>): MapStructDescriptor {
+    override val descriptorClass = AnyMapStructDescriptor::class
+    override fun prototype(field: Schema.Field<*, *>): AnyMapStructDescriptor {
         val parameters = field.parameters.map { (k, v) -> Attribute(k, Type.valueOf(v)) }
-        return MapStructDescriptor(
+        return AnyMapStructDescriptor(
             UUID.randomUUID(),
             UUID.randomUUID(),
             parameters,
@@ -50,12 +50,12 @@ class ExifMetadata : Analyser<ContentElement<*>, MapStructDescriptor> {
      *
      * @return A new [Extractor] instance for this [Analyser]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, MapStructDescriptor>, input: Operator<Retrievable>, context: IndexContext) = ExifMetadataExtractor(input, this, field)
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, input: Operator<Retrievable>, context: IndexContext) = ExifMetadataExtractor(input, this, field)
 
     /**
      *
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, MapStructDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, MapStructDescriptor> {
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, AnyMapStructDescriptor> {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         require(query is SimpleBooleanQuery<*>) { "Query is not a Query." }
         return ExifMetadataRetriever(field, query, context)
@@ -64,7 +64,7 @@ class ExifMetadata : Analyser<ContentElement<*>, MapStructDescriptor> {
     /**
      *
      */
-    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, MapStructDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): ExifMetadataRetriever {
+    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): ExifMetadataRetriever {
         throw UnsupportedOperationException("ExifMetadata does not support the creation of a Retriever instance from content.")
     }
 }

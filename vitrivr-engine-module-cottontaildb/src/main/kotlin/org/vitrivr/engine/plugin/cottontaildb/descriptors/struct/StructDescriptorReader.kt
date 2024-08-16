@@ -24,7 +24,7 @@ import kotlin.reflect.full.primaryConstructor
  * @author Ralph Gasser
  * @version 1.1.0
  */
-class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connection: CottontailConnection) : AbstractDescriptorReader<StructDescriptor>(field, connection) {
+class StructDescriptorReader(field: Schema.Field<*, StructDescriptor<*>>, connection: CottontailConnection) : AbstractDescriptorReader<StructDescriptor<*>>(field, connection) {
 
     /** An internal [Map] that maps field name to Cottontail DB [Types]. */
     private val fieldMap = mutableListOf<Pair<String, Types<*>>>()
@@ -41,7 +41,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
      * @param query The [Query] to execute.
      * @return [Sequence] of [StructDescriptor]s that match the query.
      */
-    override fun query(query: Query): Sequence<StructDescriptor> = when (query) {
+    override fun query(query: Query): Sequence<StructDescriptor<*>> = when (query) {
         is SimpleFulltextQuery -> this.queryFulltext(query)
         is SimpleBooleanQuery<*> -> this.queryBoolean(query)
         else -> throw UnsupportedOperationException("The provided query type ${query::class.simpleName} is not supported by this reader.")
@@ -53,7 +53,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
      * @param tuple The [Tuple] to convert.
      * @return The resulting [StructDescriptor].
      */
-    override fun tupleToDescriptor(tuple: Tuple): StructDescriptor {
+    override fun tupleToDescriptor(tuple: Tuple): StructDescriptor<*> {
         val constructor = this.field.analyser.descriptorClass.primaryConstructor ?: throw IllegalStateException("Provided type ${this.field.analyser.descriptorClass} does not have a primary constructor.")
         val valueMap = mutableMapOf<AttributeName, Value<*>>()
         val parameters: MutableList<Any?> = mutableListOf(
@@ -96,7 +96,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
      * @param query The [SimpleFulltextQuery] to execute.
      * @return [Sequence] of [StructDescriptor]s.
      */
-    private fun queryFulltext(query: SimpleFulltextQuery): Sequence<StructDescriptor> {
+    private fun queryFulltext(query: SimpleFulltextQuery): Sequence<StructDescriptor<*>> {
         require(query.attributeName != null) { "Fulltext query on a struct field requires specification of a field's attribute name." }
         val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName).select(RETRIEVABLE_ID_COLUMN_NAME).select(DESCRIPTOR_ID_COLUMN_NAME)
         for ((name, _) in this.fieldMap) {
@@ -119,7 +119,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
      * @param query The [SimpleBooleanQuery] to execute.
      * @return [Sequence] of [StructDescriptor]s.
      */
-    private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<StructDescriptor> {
+    private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<StructDescriptor<*>> {
         require(query.attributeName != null) { "Boolean query on a struct field requires specification of a field's attribute name." }
         val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName).select(RETRIEVABLE_ID_COLUMN_NAME).select(DESCRIPTOR_ID_COLUMN_NAME)
         for ((name, _) in this.fieldMap) {
