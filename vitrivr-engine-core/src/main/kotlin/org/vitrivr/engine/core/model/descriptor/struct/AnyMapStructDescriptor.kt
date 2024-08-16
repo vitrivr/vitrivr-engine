@@ -8,7 +8,7 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Value
 
 /**
- * An abstract [MapStructDescriptor] implementation that can be configured to store any type of [Value] in its fields.
+ * A [MapStructDescriptor] implementation that can be configured to store any type of [Value] in its fields.
  *
  * @author Ralph Gasser
  * @version 1.2.0
