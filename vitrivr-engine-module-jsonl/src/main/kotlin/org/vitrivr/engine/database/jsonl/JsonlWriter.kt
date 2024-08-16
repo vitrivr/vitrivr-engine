@@ -17,7 +17,7 @@ import java.nio.file.StandardOpenOption
 import kotlin.io.path.writer
 
 
-class JsonlWriter<D : Descriptor>(override val field: Schema.Field<*, D>, override val connection: JsonlConnection) :
+class JsonlWriter<D : Descriptor<*>>(override val field: Schema.Field<*, D>, override val connection: JsonlConnection) :
     DescriptorWriter<D>, AutoCloseable {
 
     private val writer = connection.getPath(field).writer(Charsets.UTF_8, StandardOpenOption.APPEND)
