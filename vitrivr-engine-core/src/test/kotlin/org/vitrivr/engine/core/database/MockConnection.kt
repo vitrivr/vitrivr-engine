@@ -13,9 +13,6 @@ class MockConnection(schemaName: String, provider: ConnectionProvider = MockConn
     override val provider: ConnectionProvider
         get() = TODO("Not yet implemented")
 
-    override fun <T> withTransaction(action: (Unit) -> T): T {
-        TODO("Not yet implemented")
-    }
 
     override val schemaName: String
         get() = TODO("Not yet implemented")
@@ -25,6 +22,10 @@ class MockConnection(schemaName: String, provider: ConnectionProvider = MockConn
     }
 
     override fun truncate() {
+        TODO("Not yet implemented")
+    }
+
+    override fun <T> withTransaction(action: (Unit) -> T): T {
         TODO("Not yet implemented")
     }
 
@@ -40,15 +41,15 @@ class MockConnection(schemaName: String, provider: ConnectionProvider = MockConn
         TODO("Not yet implemented")
     }
 
-    override fun <D : Descriptor> getDescriptorInitializer(field: Schema.Field<*, D>): DescriptorInitializer<D> {
+    override fun <D : Descriptor<*>> getDescriptorInitializer(field: Schema.Field<*, D>): DescriptorInitializer<D> {
         TODO("Not yet implemented")
     }
 
-    override fun <D : Descriptor> getDescriptorWriter(field: Schema.Field<*, D>): DescriptorWriter<D> {
+    override fun <D : Descriptor<*>> getDescriptorWriter(field: Schema.Field<*, D>): DescriptorWriter<D> {
         TODO("Not yet implemented")
     }
 
-    override fun <D : Descriptor> getDescriptorReader(field: Schema.Field<*, D>): DescriptorReader<D> {
+    override fun <D : Descriptor<*>> getDescriptorReader(field: Schema.Field<*, D>): DescriptorReader<D> {
         TODO("Not yet implemented")
     }
 
