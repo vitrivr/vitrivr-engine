@@ -19,7 +19,7 @@ import org.vitrivr.engine.query.model.api.operator.AggregatorDescription
 import org.vitrivr.engine.query.model.api.operator.InputTransformerDescription
 import org.vitrivr.engine.query.model.api.operator.RetrieverDescription
 import org.vitrivr.engine.query.model.api.operator.TransformerDescription
-import org.vitrivr.engine.query.operators.input.InputDataTransformerFactory
+import org.vitrivr.engine.query.model.input.InputDataTransformerFactory
 import org.vitrivr.engine.query.operators.retrieval.RetrievedLookup
 import java.util.*
 
@@ -77,7 +77,7 @@ class QueryParser(val schema: Schema) {
 
         val factory = loadServiceForName<InputDataTransformerFactory>(operation.transformerName + "Factory")
             ?: throw IllegalArgumentException("No factory found for '${operation.transformerName}'")
-        return factory.newTransformer(operatorName, inputList, description.context).transform()
+        return factory.newTransformer(operatorName, inputList, this.schema, description.context).transform()
     }
 
     /**

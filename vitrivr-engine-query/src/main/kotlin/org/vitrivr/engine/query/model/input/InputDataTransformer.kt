@@ -1,4 +1,4 @@
-package org.vitrivr.engine.query.operators.input
+package org.vitrivr.engine.query.model.input
 
 import org.vitrivr.engine.query.model.api.input.InputData
 
