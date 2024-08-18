@@ -6,6 +6,9 @@ plugins {
 
 dependencies {
     api project(':vitrivr-engine-core')
+
+    /* LibSVM */
+    implementation group: 'tw.edu.ntu.csie', name: 'libsvm', version: '3.31'
 }
 
 /* Publication of vitrivr engine query to Maven Central. */
