@@ -8,7 +8,7 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Value
 
 /**
- * A [MapStructDescriptor] implementation that can be configured to store any type of [Value] in its fields.
+ * A [StructDescriptor] implementation that can be configured to store any type of [Value] in its fields.
  *
  * @author Ralph Gasser
  * @version 1.2.0
@@ -19,10 +19,10 @@ class AnyMapStructDescriptor(
     layout: List<Attribute>,
     values: Map<AttributeName, Value<*>?>,
     override val field: Schema.Field<*, AnyMapStructDescriptor>? = null
-) : MapStructDescriptor<AnyMapStructDescriptor>(id, retrievableId, layout, values, field) {
+) : StructDescriptor<AnyMapStructDescriptor>(id, retrievableId, layout, values, field) {
 
     /**
-     * Returns a copy of this [MapStructDescriptor] with new [RetrievableId] and/or [DescriptorId]
+     * Returns a copy of this [StructDescriptor] with new [RetrievableId] and/or [DescriptorId]
      *
      * @param id [DescriptorId] of the new [AnyMapStructDescriptor].
      * @param retrievableId [RetrievableId] of the new [AnyMapStructDescriptor].

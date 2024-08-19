@@ -3,7 +3,6 @@ package org.vitrivr.engine.core.model.descriptor.struct.metadata.source
 import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.AttributeName
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
-import org.vitrivr.engine.core.model.descriptor.struct.MapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
@@ -22,7 +21,7 @@ class VideoSourceMetadataDescriptor(
     override val retrievableId: RetrievableId?,
     values: Map<AttributeName, Value<*>?>,
     override val field: Schema.Field<*, VideoSourceMetadataDescriptor>? = null
-) : MapStructDescriptor<VideoSourceMetadataDescriptor>(id, retrievableId, SCHEMA, values, field) {
+) : StructDescriptor<VideoSourceMetadataDescriptor>(id, retrievableId, SCHEMA, values, field) {
 
     /** The width of the video source in pixels. */
     val width: Value.Int by this.values
