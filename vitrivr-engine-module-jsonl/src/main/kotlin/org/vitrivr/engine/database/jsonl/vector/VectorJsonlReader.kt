@@ -10,17 +10,17 @@ import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.util.knn.FixedSizePriorityQueue
 import org.vitrivr.engine.database.jsonl.AbstractJsonlReader
-import org.vitrivr.engine.database.jsonl.model.AttributeContainerList
 import org.vitrivr.engine.database.jsonl.JsonlConnection
 import org.vitrivr.engine.database.jsonl.JsonlConnection.Companion.DESCRIPTOR_ID_COLUMN_NAME
 import org.vitrivr.engine.database.jsonl.JsonlConnection.Companion.RETRIEVABLE_ID_COLUMN_NAME
+import org.vitrivr.engine.database.jsonl.model.AttributeContainerList
 
 class VectorJsonlReader(
-    field: Schema.Field<*, VectorDescriptor<*>>,
+    field: Schema.Field<*, VectorDescriptor<*, *>>,
     connection: JsonlConnection
-) : AbstractJsonlReader<VectorDescriptor<*>>(field, connection) {
+) : AbstractJsonlReader<VectorDescriptor<*, *>>(field, connection) {
 
-    override fun toDescriptor(list: AttributeContainerList): VectorDescriptor<*> {
+    override fun toDescriptor(list: AttributeContainerList): VectorDescriptor<*, *> {
 
         val map = list.list.associateBy { it.attribute.name }
         val retrievableId = (map[RETRIEVABLE_ID_COLUMN_NAME]?.value!!.toValue() as Value.UUIDValue).value
@@ -60,7 +60,7 @@ class VectorJsonlReader(
         }
     }
 
-    override fun query(query: Query): Sequence<VectorDescriptor<*>> = when (query) {
+    override fun query(query: Query): Sequence<VectorDescriptor<*, *>> = when (query) {
         is ProximityQuery<*> -> queryProximity(query)
         else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by this reader.")
     }
@@ -87,15 +87,15 @@ class VectorJsonlReader(
 
     }
 
-    private fun queryProximity(query: ProximityQuery<*>): Sequence<VectorDescriptor<*>> =
+    private fun queryProximity(query: ProximityQuery<*>): Sequence<VectorDescriptor<*, *>> =
         knn(query).asSequence().map { it.first }
 
 
-    private fun knn(query: ProximityQuery<*>): FixedSizePriorityQueue<Pair<VectorDescriptor<*>, Float>> {
+    private fun knn(query: ProximityQuery<*>): FixedSizePriorityQueue<Pair<VectorDescriptor<*, *>, Float>> {
 
         val queue = FixedSizePriorityQueue(query.k.toInt(),
             when (query.order) {
-                SortOrder.ASC -> Comparator<Pair<VectorDescriptor<*>, Float>> { p0, p1 ->
+                SortOrder.ASC -> Comparator<Pair<VectorDescriptor<*, *>, Float>> { p0, p1 ->
                     p0.second.compareTo(p1.second)
                 }
 

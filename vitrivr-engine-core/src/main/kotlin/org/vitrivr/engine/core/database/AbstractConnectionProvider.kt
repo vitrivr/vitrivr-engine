@@ -32,7 +32,7 @@ abstract class AbstractConnectionProvider: ConnectionProvider {
      * @param descriptorClass The [KClass] of the [Descriptor] to register [DescriptorProvider] for.
      * @param provider The [DescriptorProvider] to register.
      */
-    override fun <T : Descriptor> register(descriptorClass: KClass<T>, provider: DescriptorProvider<*>) {
+    override fun <T : Descriptor<*>> register(descriptorClass: KClass<T>, provider: DescriptorProvider<*>) {
         this.registered[descriptorClass] = provider
     }
 
@@ -43,7 +43,7 @@ abstract class AbstractConnectionProvider: ConnectionProvider {
      * @return The registered [DescriptorProvider] .
      */
     @Suppress("UNCHECKED_CAST")
-    override fun <T : Descriptor> obtain(descriptorClass: KClass<T>): DescriptorProvider<T> {
+    override fun <T : Descriptor<*>> obtain(descriptorClass: KClass<T>): DescriptorProvider<T> {
         val provider = this.registered[descriptorClass] ?: throw IllegalStateException("No DescriptorProvider registered for $descriptorClass.")
         return provider as DescriptorProvider<T>
     }

@@ -17,7 +17,7 @@ import java.sql.SQLException
  * @author Ralph Gasser
  * @version 1.0.0
  */
-open class PgDescriptorInitializer<D : Descriptor>(final override val field: Schema.Field<*, D>, protected val connection: PgVectorConnection): DescriptorInitializer<D> {
+open class PgDescriptorInitializer<D : Descriptor<*>>(final override val field: Schema.Field<*, D>, protected val connection: PgVectorConnection) : DescriptorInitializer<D> {
 
     companion object {
         /** Set of scalar index structures supported by PostgreSQL. */

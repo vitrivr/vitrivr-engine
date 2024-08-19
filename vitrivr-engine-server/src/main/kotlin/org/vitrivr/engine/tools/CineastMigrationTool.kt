@@ -4,14 +4,10 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonDecoder
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.contextual
 import org.vitrivr.engine.core.config.schema.SchemaConfig
 import org.vitrivr.engine.core.database.Initializer
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -32,7 +28,6 @@ import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.module.features.feature.averagecolorraster.RasterDescriptor
 import org.vitrivr.engine.module.features.feature.skeleton.SkeletonDescriptor
 import java.io.File
-import java.io.FileReader
 import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.reflect.KClass
@@ -74,7 +69,7 @@ data class CineastSegmentMetadata(
 
 interface CineastFeature {
     val id: String
-    fun toDescriptor(idmap: Map<String, String>): Descriptor?
+    fun toDescriptor(idmap: Map<String, String>): Descriptor<*>?
 }
 
 @Serializable
@@ -494,7 +489,7 @@ class CineastMigrationTool(val migrationconfigpath: String, val schemaconfigpath
             var firstEntry = true
 
             featureStream.chunked(1000).forEach { batch ->
-                val descriptors: Iterable<Descriptor> = batch.mapNotNull { feature ->
+                val descriptors: Iterable<Descriptor<*>> = batch.mapNotNull { feature ->
                     if (!featureClass.isInstance(feature)) {
                         throw IllegalArgumentException("Feature is not an instance of expected feature class $featureClass")
                     }

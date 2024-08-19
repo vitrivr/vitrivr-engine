@@ -13,7 +13,7 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.1.0
  */
-interface ExtractorFactory<C : ContentElement<*>, D : Descriptor> {
+interface ExtractorFactory<C : ContentElement<*>, D : Descriptor<*>> {
     /**
      * Creates a new [Extractor] instance from this [ExtractorFactory].
      *

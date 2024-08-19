@@ -19,7 +19,7 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
  * @author Ralph Gasser
  * @version 2.0.1
  */
-interface DescriptorReader<D : Descriptor> : Reader<D> {
+interface DescriptorReader<D : Descriptor<*>> : Reader<D> {
 
     /** The [Analyser] this [DescriptorReader] belongs to. */
     val field: Schema.Field<*,D>

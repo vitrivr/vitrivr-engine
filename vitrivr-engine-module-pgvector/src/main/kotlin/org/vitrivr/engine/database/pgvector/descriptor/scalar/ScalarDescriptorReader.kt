@@ -21,7 +21,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connection: PgVectorConnection) : AbstractDescriptorReader<ScalarDescriptor<*>>(field, connection) {
+class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, connection: PgVectorConnection) : AbstractDescriptorReader<ScalarDescriptor<*, *>>(field, connection) {
 
     /**
      * Executes the provided [Query] and returns a [Sequence] of [Retrieved]s that match it.
@@ -29,7 +29,7 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
      * @param query The [Query] to execute.
      * @return [Sequence] of [StructDescriptor]s that match the query.
      */
-    override fun query(query: Query): Sequence<ScalarDescriptor<*>> = when (query) {
+    override fun query(query: Query): Sequence<ScalarDescriptor<*, *>> = when (query) {
         is SimpleFulltextQuery -> queryFulltext(query)
         is SimpleBooleanQuery<*> -> queryBoolean(query)
         else -> throw IllegalArgumentException("Query of type ${query::class} is not supported by ScalarDescriptorReader.")
@@ -41,11 +41,13 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
      * @param result The [ResultSet] to convert.
      * @return The resulting [VectorDescriptor].
      */
-    override fun rowToDescriptor(result: ResultSet): ScalarDescriptor<*> {
+    override fun rowToDescriptor(result: ResultSet): ScalarDescriptor<*, *> {
         val descriptorId = result.getObject(DESCRIPTOR_ID_COLUMN_NAME, UUID::class.java)
         val retrievableId = result.getObject(RETRIEVABLE_ID_COLUMN_NAME, UUID::class.java)
         return when (this.prototype) {
             is BooleanDescriptor -> BooleanDescriptor(descriptorId, retrievableId, Value.Boolean(result.getBoolean(VALUE_ATTRIBUTE_NAME)))
+            is ByteDescriptor -> ByteDescriptor(descriptorId, retrievableId, Value.Byte(result.getByte(VALUE_ATTRIBUTE_NAME)))
+            is ShortDescriptor -> ShortDescriptor(descriptorId, retrievableId, Value.Short(result.getShort(VALUE_ATTRIBUTE_NAME)))
             is IntDescriptor -> IntDescriptor(descriptorId, retrievableId, Value.Int(result.getInt(VALUE_ATTRIBUTE_NAME)))
             is LongDescriptor -> LongDescriptor(descriptorId, retrievableId, Value.Long(result.getLong(VALUE_ATTRIBUTE_NAME)))
             is FloatDescriptor -> FloatDescriptor(descriptorId, retrievableId, Value.Float(result.getFloat(VALUE_ATTRIBUTE_NAME)))
@@ -61,8 +63,8 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
      * @param query The [SimpleFulltextQuery] to execute.
      * @return [Sequence] of [ScalarDescriptor]s.
      */
-    private fun queryFulltext(query: SimpleFulltextQuery): Sequence<ScalarDescriptor<*>> {
-        val statement = "SELECT * FROM \"${tableName.lowercase()}\" WHERE $VALUE_ATTRIBUTE_NAME @@ plainto_tsquery(?)"
+    private fun queryFulltext(query: SimpleFulltextQuery): Sequence<ScalarDescriptor<*, *>> {
+        val statement = "SELECT * FROM \"$tableName\" WHERE $VALUE_ATTRIBUTE_NAME @@ plainto_tsquery(?)"
         return sequence {
             this@ScalarDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
                 stmt.setString(1, query.value.value)
@@ -81,8 +83,8 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*>>, connec
      * @param query The [SimpleBooleanQuery] to execute.
      * @return [Sequence] of [ScalarDescriptor]s.
      */
-    private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<ScalarDescriptor<*>> {
-        val statement = "SELECT * FROM \"${tableName.lowercase()}\" WHERE $VALUE_ATTRIBUTE_NAME ${query.comparison.toSql()} ?"
+    private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<ScalarDescriptor<*, *>> {
+        val statement = "SELECT * FROM \"$tableName\" WHERE $VALUE_ATTRIBUTE_NAME ${query.comparison.toSql()} ?"
         return sequence {
             this@ScalarDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
                 stmt.setValue(1, query.value)

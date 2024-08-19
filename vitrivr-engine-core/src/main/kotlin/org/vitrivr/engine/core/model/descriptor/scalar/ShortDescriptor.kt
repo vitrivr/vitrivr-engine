@@ -9,20 +9,19 @@ import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 
 /**
- * A [ScalarDescriptor] using an [Int] value.
+ * A [ScalarDescriptor] using an [Value.Short].
  *
  * @author Ralph Gasser
  * @version 1.0.0
  */
-
-data class IntDescriptor(
+data class ShortDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId?,
-    override val value: Value.Int,
-    override val field: Schema.Field<*, IntDescriptor>? = null
-) : ScalarDescriptor<IntDescriptor, Value.Int> {
+    override val value: Value.Short,
+    override val field: Schema.Field<*, ShortDescriptor>? = null
+) : ScalarDescriptor<ShortDescriptor, Value.Short> {
     companion object {
-        private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.Int))
+        private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.Short))
     }
 
     /**
@@ -33,12 +32,12 @@ data class IntDescriptor(
     override fun layout(): List<Attribute> = SCHEMA
 
     /**
-     * Returns a copy of this [IntDescriptor] with new [RetrievableId] and/or [DescriptorId]
+     * Returns a copy of this [ShortDescriptor] with new [RetrievableId] and/or [DescriptorId]
      *
-     * @param id [DescriptorId] of the new [IntDescriptor].
-     * @param retrievableId [RetrievableId] of the new [IntDescriptor].
-     * @param field [Schema.Field] the new [FloatDescriptor] belongs to.
-     * @return Copy of this [IntDescriptor].
+     * @param id [DescriptorId] of the new [ShortDescriptor].
+     * @param retrievableId [RetrievableId] of the new [ShortDescriptor].
+     * @param field [Schema.Field] the new [ShortDescriptor] belongs to.
+     * @return Copy of this [ShortDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, IntDescriptor>?) = IntDescriptor(id, retrievableId, this.value, field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, ShortDescriptor>?) = ShortDescriptor(id, retrievableId, this.value, field)
 }

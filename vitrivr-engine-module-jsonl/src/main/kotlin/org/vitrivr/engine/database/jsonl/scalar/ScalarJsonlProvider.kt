@@ -7,6 +7,6 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.database.jsonl.AbstractJsonlProvider
 import org.vitrivr.engine.database.jsonl.JsonlConnection
 
-object ScalarJsonlProvider: AbstractJsonlProvider<ScalarDescriptor<*>>() {
-    override fun newReader(connection: Connection, field: Schema.Field<*, ScalarDescriptor<*>>): DescriptorReader<ScalarDescriptor<*>> = ScalarJsonlReader(field, connection as JsonlConnection)
+object ScalarJsonlProvider : AbstractJsonlProvider<ScalarDescriptor<*, *>>() {
+    override fun newReader(connection: Connection, field: Schema.Field<*, ScalarDescriptor<*, *>>): DescriptorReader<ScalarDescriptor<*, *>> = ScalarJsonlReader(field, connection as JsonlConnection)
 }
