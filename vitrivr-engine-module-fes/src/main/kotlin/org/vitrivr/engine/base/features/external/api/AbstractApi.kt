@@ -85,6 +85,47 @@ abstract class AbstractApi<I, O>(protected val host: String, protected val model
         null
     }
 
+    fun analyseBatched(input: List<I>): List<O> = runBlocking {
+        var retriesLeft = retries
+        outer@ while (retriesLeft > 0) {
+            /* Start job. */
+            val jobStatus = this@AbstractApi.startBatchedJob(input)
+            if (jobStatus.status == JobState.failed) {
+                retriesLeft -= 1
+                continue
+            }
+
+            /* Poll for result. */
+            var jobResult = this@AbstractApi.pollBatchedJob(jobStatus.id)
+            inner@ while (jobResult.status != JobState.complete) {
+                if (jobResult.status == JobState.failed) {
+                    logger.error { "$model job on host $host with ID: ${jobStatus.id} failed." }
+                    retriesLeft -= 1
+                    continue@outer
+                }
+
+                logger.debug { "Waiting for $model job completion on host $host with ID ${jobStatus.id}. Current status: ${jobResult.status}" }
+                delay(this@AbstractApi.pollingIntervalMs)
+                jobResult = this@AbstractApi.pollBatchedJob(jobStatus.id)
+            }
+
+            /* Extract results. */
+            val result = jobResult.result
+            if (result == null) {
+                logger.error { "$model job on host $host with ID: ${jobStatus.id} returned no result." }
+                retriesLeft -= 1
+                continue@outer
+            } else {
+                logger.info { "Job result: $result" }
+            }
+
+            /* Return results. */
+            return@runBlocking result
+        }
+        throw IllegalStateException("Failed to analyse batched input.")
+
+        }
+
     /**
      * This method is used to start a job on the API.
      *
@@ -94,10 +135,26 @@ abstract class AbstractApi<I, O>(protected val host: String, protected val model
     protected abstract suspend fun startJob(input: I): JobStatus
 
     /**
+     * This method is used to start a batched job on the API.
+     *
+     * @param input The input for the job.
+     * @return The [JobStatus]
+     */
+    protected abstract suspend fun startBatchedJob(input: List<I>): JobStatus
+
+    /**
      * This method is used to poll for results of a job on the API.
      *
      * @param jobId The ID of the job to poll.
      * @return The [JobResult]
      */
     protected abstract suspend fun pollJob(jobId: String): JobResult<O>
+
+    /**
+     * This method is used to poll for results of a batched job on the API.
+     *
+     * @param jobId The ID of the job to poll.
+     * @return The [JobResult]
+     */
+    protected abstract suspend fun pollBatchedJob(jobId: String): JobResult<List<O>>
 }

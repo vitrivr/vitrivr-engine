@@ -1,6 +1,7 @@
 package org.vitrivr.engine.base.features.external.api
 
 import org.openapitools.client.apis.ImageEmbeddingApi
+import org.openapitools.client.models.BatchedImageEmbeddingInput
 import org.openapitools.client.models.ImageEmbeddingInput
 import org.openapitools.client.models.JobState
 import org.openapitools.client.models.JobStatus
@@ -36,6 +37,16 @@ class ImageEmbeddingApi(host: String, model: String, timeoutMs: Long, pollingInt
         }
     }
 
+    override suspend fun startBatchedJob(input: List<ImageContent>): JobStatus {
+        val wrapped = BatchedImageEmbeddingInput(input.map { it.toDataUrl() })
+        return try {
+            logger.debug { "Starting batched image embedding for images." }
+            this.imageEmbeddingApi.newBatchedJobApiTasksImageEmbeddingBatchedModelJobsPost(this.model, wrapped).body()
+        } catch (e: Throwable) {
+            logger.error(e) { "Failed to start batched image embedding job." }
+            JobStatus("unknown", JobState.failed)
+        }
+    }
     /**
      * This method is used to poll for results of an image embedding job on the API.
      *
@@ -48,6 +59,21 @@ class ImageEmbeddingApi(host: String, model: String, timeoutMs: Long, pollingInt
         }
     } catch (e: Throwable) {
         logger.error(e) { "Failed to poll for status of image embedding job." }
+        JobResult(JobState.failed, null)
+    }
+
+    /**
+     * This method is used to poll for results of a batched image embedding job on the API.
+     *
+     * @param jobId The ID of the job to poll.
+     * @return The [JobResult]
+     */
+    override suspend fun pollBatchedJob(jobId: String): JobResult<List<Value.FloatVector>> = try {
+        this.imageEmbeddingApi.getBatchedJobResultsApiTasksImageEmbeddingBatchedJobsJobGet(jobId).body().let { result ->
+            JobResult(result.status, result.result?.map { r -> Value.FloatVector(FloatArray(r.embedding.size) { i -> r.embedding[i].toFloat() }) })
+        }
+    } catch (e: Throwable) {
+        logger.error(e) { "Failed to poll for status of batched image embedding job." }
         JobResult(JobState.failed, null)
     }
 }

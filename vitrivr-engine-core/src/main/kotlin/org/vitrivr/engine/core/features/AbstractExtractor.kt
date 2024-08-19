@@ -40,7 +40,7 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>>(final
         if (this.matches(retrievable)) {
             /* Perform extraction. */
             val descriptors = try {
-                logger.debug { "Extraction for retrievable: $retrievable" }
+                logger.debug{"Extraction on field ${field?.fieldName} for retrievable: $retrievable" }
                 extract(retrievable)
             } catch (e: Throwable) {
                 logger.error(e) { "Error during extraction of $retrievable" }
