@@ -71,6 +71,8 @@ class PersistingSink(override val input: Operator<Retrievable>, val context: Ind
                 }
             }
         }
+
+        logger.debug { "Persisted ${retrievables.size} retrievables, ${relationships.size} relationships and ${descriptors.values.sumBy { it.size }} descriptors." }
     }
 
     /**
