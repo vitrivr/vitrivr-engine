@@ -13,7 +13,7 @@ import java.sql.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-open class PgDescriptorWriter<D : Descriptor>(final override val field: Schema.Field<*, D>, override val connection: PgVectorConnection): DescriptorWriter<D> {
+open class PgDescriptorWriter<D : Descriptor<*>>(final override val field: Schema.Field<*, D>, override val connection: PgVectorConnection) : DescriptorWriter<D> {
     /** The name of the table backing this [PgDescriptorInitializer]. */
     protected val tableName: String = "${DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName}"
 

@@ -55,7 +55,7 @@ class DescriptorAsContentTransformer : TransformerFactory {
             }
         }
 
-        private fun convertDescriptorToContent(descriptor: Descriptor): ContentElement<*> {
+        private fun convertDescriptorToContent(descriptor: Descriptor<*>): ContentElement<*> {
             return when (descriptor) {
                 is StringDescriptor -> contentFactory.newTextContent(descriptor.value.value)
                 is TextDescriptor -> contentFactory.newTextContent(descriptor.value.value)

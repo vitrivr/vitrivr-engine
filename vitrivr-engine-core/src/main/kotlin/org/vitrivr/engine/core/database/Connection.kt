@@ -78,7 +78,7 @@ sealed interface Connection: Closeable {
      * re-used or re-created every time the method is being called.
      */
     @OpenApiIgnore
-    fun <D: Descriptor> getDescriptorInitializer(field: Schema.Field<*,D>): DescriptorInitializer<D>
+    fun <D : Descriptor<*>> getDescriptorInitializer(field: Schema.Field<*, D>): DescriptorInitializer<D>
 
     /**
      * Returns a [DescriptorWriter].
@@ -89,7 +89,7 @@ sealed interface Connection: Closeable {
      * re-used or re-created every time the method is being called.
      */
     @OpenApiIgnore
-    fun <D: Descriptor> getDescriptorWriter(field: Schema.Field<*,D>): DescriptorWriter<D>
+    fun <D : Descriptor<*>> getDescriptorWriter(field: Schema.Field<*, D>): DescriptorWriter<D>
 
     /**
      * Returns a [DescriptorReader].
@@ -100,7 +100,7 @@ sealed interface Connection: Closeable {
      * re-used or re-created every time the method is being called.
      */
     @OpenApiIgnore
-    fun <D: Descriptor> getDescriptorReader(field: Schema.Field<*,D>): DescriptorReader<D>
+    fun <D : Descriptor<*>> getDescriptorReader(field: Schema.Field<*, D>): DescriptorReader<D>
 
     /**
      * Returns a human-readable descriptor of this [Connection].

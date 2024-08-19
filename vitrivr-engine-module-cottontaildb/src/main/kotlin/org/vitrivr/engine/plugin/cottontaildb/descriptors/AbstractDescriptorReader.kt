@@ -23,7 +23,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.1
  */
-abstract class AbstractDescriptorReader<D : Descriptor>(final override val field: Schema.Field<*, D>, override val connection: CottontailConnection) : DescriptorReader<D> {
+abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val field: Schema.Field<*, D>, override val connection: CottontailConnection) : DescriptorReader<D> {
 
     /** The [Name.EntityName] used by this [Descriptor]. */
     protected val entityName: Name.EntityName = Name.EntityName.create(this.field.schema.name, "${DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
