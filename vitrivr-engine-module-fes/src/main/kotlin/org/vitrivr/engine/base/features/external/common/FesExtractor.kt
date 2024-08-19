@@ -27,8 +27,8 @@ abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>>(
     analyser: ExternalFesAnalyser<C, D>,
     protected val parameters: Map<String, String>,
 ) : AbstractExtractor<C, D>(input, analyser, field) {
-
     /** Host of the FES API. */
+
     protected val host: String
         get() = this.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
 

@@ -20,7 +20,7 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @version 1.2.0
  */
 abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>>(final override val input: Operator<Retrievable>, final override val analyser: Analyser<C, D>, final override val field: Schema.Field<C, D>? = null) : Extractor<C, D> {
-
+    
     protected val logger: KLogger = KotlinLogging.logger {}
 
     init {
