@@ -141,15 +141,17 @@ internal fun Value<*>.toCottontailValue(): PublicValue = when (this) {
  *
  * @return [PublicValue] for this [ScalarDescriptor]
  */
-internal fun ScalarDescriptor<*>.toCottontailValue(): PublicValue = this.value.toCottontailValue()
+internal fun ScalarDescriptor<*, *>.toCottontailValue(): PublicValue = this.value.toCottontailValue()
 
 /**
  * Converts this [ScalarDescriptor] to a [Types].
  *
  * @return [Types] for this [ScalarDescriptor]
  */
-internal fun ScalarDescriptor<*>.toType() = when (this) {
+internal fun ScalarDescriptor<*, *>.toType() = when (this) {
     is BooleanDescriptor -> Types.Boolean
+    is ByteDescriptor -> Types.Byte
+    is ShortDescriptor -> Types.Short
     is IntDescriptor -> Types.Int
     is LongDescriptor -> Types.Long
     is FloatDescriptor -> Types.Float
@@ -180,14 +182,14 @@ internal fun List<Value<*>>.toCottontailValue(): PublicValue {
  *
  * @return [PublicValue] for this [VectorDescriptor]
  */
-internal fun VectorDescriptor<*>.toCottontailValue(): PublicValue = this.vector.toCottontailValue()
+internal fun VectorDescriptor<*, *>.toCottontailValue(): PublicValue = this.vector.toCottontailValue()
 
 /**
  * Converts this [VectorDescriptor] to a [Types].
  *
  * @return [Types] for this [VectorDescriptor]
  */
-internal fun VectorDescriptor<*>.toType() = when (this) {
+internal fun VectorDescriptor<*, *>.toType() = when (this) {
     is BooleanVectorDescriptor -> Types.BooleanVector(this.dimensionality)
     is IntVectorDescriptor -> Types.IntVector(this.dimensionality)
     is LongVectorDescriptor -> Types.LongVector(this.dimensionality)

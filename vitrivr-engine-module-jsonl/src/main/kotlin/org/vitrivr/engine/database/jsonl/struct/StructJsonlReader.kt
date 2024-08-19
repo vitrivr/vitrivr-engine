@@ -6,22 +6,20 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
-import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.database.jsonl.AbstractJsonlReader
 import org.vitrivr.engine.database.jsonl.JsonlConnection
 import org.vitrivr.engine.database.jsonl.JsonlConnection.Companion.DESCRIPTOR_ID_COLUMN_NAME
 import org.vitrivr.engine.database.jsonl.JsonlConnection.Companion.RETRIEVABLE_ID_COLUMN_NAME
 import org.vitrivr.engine.database.jsonl.model.AttributeContainerList
-import org.vitrivr.engine.database.jsonl.retrievable.JsonlRetrievableReader
 import kotlin.reflect.full.primaryConstructor
 
 class StructJsonlReader(
-    field: Schema.Field<*, StructDescriptor>,
+    field: Schema.Field<*, StructDescriptor<*>>,
     connection: JsonlConnection
-) : AbstractJsonlReader<StructDescriptor>(field, connection) {
+) : AbstractJsonlReader<StructDescriptor<*>>(field, connection) {
 
-    override fun toDescriptor(list: AttributeContainerList): StructDescriptor {
+    override fun toDescriptor(list: AttributeContainerList): StructDescriptor<*> {
 
         val map = list.list.associateBy { it.attribute.name }
         val constructor = this.field.analyser.descriptorClass.primaryConstructor
@@ -45,14 +43,14 @@ class StructJsonlReader(
         return constructor.call(*parameters.toTypedArray())
     }
 
-    override fun query(query: Query): Sequence<StructDescriptor> = when (query) {
+    override fun query(query: Query): Sequence<StructDescriptor<*>> = when (query) {
         is SimpleFulltextQuery -> this.queryFulltext(query)
         is SimpleBooleanQuery<*> -> this.queryBoolean(query)
         else -> throw UnsupportedOperationException("The provided query type ${query::class.simpleName} is not supported by this reader.")
     }
 
 
-    private fun queryFulltext(fulltextQuery: SimpleFulltextQuery): Sequence<StructDescriptor> {
+    private fun queryFulltext(fulltextQuery: SimpleFulltextQuery): Sequence<StructDescriptor<*>> {
 
         val queryString = fulltextQuery.value.value
         val attributeName = fulltextQuery.attributeName ?: return emptySequence()
@@ -63,7 +61,7 @@ class StructJsonlReader(
 
     }
 
-    private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<StructDescriptor> = getAll().filter { descriptor ->
+    private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<StructDescriptor<*>> = getAll().filter { descriptor ->
         query.comparison.compare(descriptor.values()[query.attributeName!!]!!, query.value)
     }
 

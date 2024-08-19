@@ -20,7 +20,7 @@ abstract class AbstractRetrievable(override val id: UUID, override val type: Str
     private val contentList = mutableListOf<ContentElement<*>>()
 
     /** A set of [Descriptor]s held by this [AbstractRetrievable]. */
-    private val descriptorSet = mutableSetOf<Descriptor>()
+    private val descriptorSet = mutableSetOf<Descriptor<*>>()
 
     /** A set of [RetrievableAttribute]s held by this [AbstractRetrievable]. */
     private val attributeSet = mutableSetOf<RetrievableAttribute>()
@@ -33,7 +33,7 @@ abstract class AbstractRetrievable(override val id: UUID, override val type: Str
         get() = Collections.unmodifiableList(this.contentList)
 
     /** [Collection] of [Descriptor]s held by this [AbstractRetrievable]. */
-    override val descriptors: Collection<Descriptor>
+    override val descriptors: Collection<Descriptor<*>>
         get() = Collections.unmodifiableSet(this.descriptorSet)
 
     /** [Collection] of [RetrievableAttribute]s held by this [AbstractRetrievable]. */
@@ -139,7 +139,7 @@ abstract class AbstractRetrievable(override val id: UUID, override val type: Str
      * @return True on success, false otherwise.
      */
     @Synchronized
-    override fun addDescriptor(descriptor: Descriptor): Boolean = this.descriptorSet.add(descriptor)
+    override fun addDescriptor(descriptor: Descriptor<*>): Boolean = this.descriptorSet.add(descriptor)
 
     /**
      * Removes a [Descriptor] from this [AbstractRetrievable].
@@ -148,7 +148,7 @@ abstract class AbstractRetrievable(override val id: UUID, override val type: Str
      * @return True on success, false otherwise.
      */
     @Synchronized
-    override fun removeDescriptor(descriptor: Descriptor): Boolean = this.descriptorSet.remove(descriptor)
+    override fun removeDescriptor(descriptor: Descriptor<*>): Boolean = this.descriptorSet.remove(descriptor)
 
     /**
      * Adds a [Relationship] to this [AbstractRetrievable].

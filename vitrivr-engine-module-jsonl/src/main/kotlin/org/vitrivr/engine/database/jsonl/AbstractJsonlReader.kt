@@ -10,13 +10,11 @@ import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.database.jsonl.model.AttributeContainerList
-import org.vitrivr.engine.database.jsonl.retrievable.JsonlRetrievableReader
 import java.io.BufferedReader
-import java.io.FileReader
 import java.io.InputStreamReader
 import kotlin.io.path.inputStream
 
-abstract class AbstractJsonlReader<D : Descriptor>(
+abstract class AbstractJsonlReader<D : Descriptor<*>>(
     final override val field: Schema.Field<*, D>,
     final override val connection: JsonlConnection
 ) :

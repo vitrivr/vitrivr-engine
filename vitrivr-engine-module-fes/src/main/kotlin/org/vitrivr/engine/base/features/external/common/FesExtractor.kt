@@ -21,7 +21,7 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Fynn Faber
  * @version 1.1.0
  */
-abstract class FesExtractor<C : ContentElement<*>, D : Descriptor>(
+abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>>(
     input: Operator<Retrievable>,
     field: Schema.Field<C, D>?,
     analyser: ExternalFesAnalyser<C, D>,

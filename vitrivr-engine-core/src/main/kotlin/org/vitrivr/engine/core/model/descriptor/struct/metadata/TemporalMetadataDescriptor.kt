@@ -1,9 +1,8 @@
 package org.vitrivr.engine.core.model.descriptor.struct.metadata
 
-import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.AttributeName
-import org.vitrivr.engine.core.model.descriptor.struct.MapStructDescriptor
+import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
@@ -18,11 +17,11 @@ import java.util.*
  * @version 2.0.0
  */
 class TemporalMetadataDescriptor(
-    override var id: DescriptorId,
-    override var retrievableId: RetrievableId?, //retrievable Id must come first, due to reflection
+    override val id: DescriptorId,
+    override val retrievableId: RetrievableId?, //retrievable Id must come first, due to reflection
     values: Map<AttributeName, Value<*>?>,
     override val field: Schema.Field<*, TemporalMetadataDescriptor>? = null
-) : MapStructDescriptor(id, retrievableId, SCHEMA, values, field) {
+) : StructDescriptor<TemporalMetadataDescriptor>(id, retrievableId, SCHEMA, values, field) {
 
     companion object {
         /** The field schema associated with a [TemporalMetadataDescriptor]. */
@@ -40,4 +39,14 @@ class TemporalMetadataDescriptor(
 
     /** The end timestamp in nanoseconds. */
     val end: Value.Long by this.values
+
+    /**
+     * Returns a copy of this [TemporalMetadataDescriptor] with new [RetrievableId] and/or [DescriptorId]
+     *
+     * @param id [DescriptorId] of the new [TemporalMetadataDescriptor].
+     * @param retrievableId [RetrievableId] of the new [TemporalMetadataDescriptor].
+     * @param field [Schema.Field] the new [TemporalMetadataDescriptor] belongs to.
+     * @return Copy of this [TemporalMetadataDescriptor].
+     */
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, TemporalMetadataDescriptor>?) = TemporalMetadataDescriptor(id, retrievableId, HashMap(this.values), field)
 }

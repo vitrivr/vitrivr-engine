@@ -20,17 +20,17 @@ import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorRead
  * @author Ralph Gasser
  * @version 1.3.1
  */
-internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>>, connection: CottontailConnection) : AbstractDescriptorReader<VectorDescriptor<*>>(field, connection) {
+internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, connection: CottontailConnection) : AbstractDescriptorReader<VectorDescriptor<*, *>>(field, connection) {
 
     /** The [VectorDescriptor] prototype handled by this [VectorDescriptorReader]. */
-    private val prototype: VectorDescriptor<*> = this.field.analyser.prototype(this.field)
+    private val prototype: VectorDescriptor<*, *> = this.field.analyser.prototype(this.field)
 
     /**
      * Executes the provided [Query] and returns a [Sequence] of [Retrieved]s that match it.
      *
      * @param query The [Query] to execute.
      */
-    override fun query(query: Query): Sequence<VectorDescriptor<*>> = when (query) {
+    override fun query(query: Query): Sequence<VectorDescriptor<*, *>> = when (query) {
         is ProximityQuery<*> -> queryProximity(query)
         else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by FloatVectorDescriptorReader.")
     }
@@ -54,7 +54,7 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
      * @param tuple The [Tuple] to convert.
      * @return The resulting [VectorDescriptor].
      */
-    override fun tupleToDescriptor(tuple: Tuple): VectorDescriptor<*> {
+    override fun tupleToDescriptor(tuple: Tuple): VectorDescriptor<*, *> {
         val descriptorId = tuple.asUuidValue(DESCRIPTOR_ID_COLUMN_NAME)?.value
             ?: throw IllegalArgumentException("The provided tuple is missing the required field '${DESCRIPTOR_ID_COLUMN_NAME}'.")
         val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value
@@ -141,7 +141,7 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*>
      * @param query The [ProximityQuery] to execute.
      * @return [Sequence] of [VectorDescriptor]s.
      */
-    private fun queryProximity(query: ProximityQuery<*>): Sequence<VectorDescriptor<*>> {
+    private fun queryProximity(query: ProximityQuery<*>): Sequence<VectorDescriptor<*, *>> {
         val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
             .select(RETRIEVABLE_ID_COLUMN_NAME)
             .distance(

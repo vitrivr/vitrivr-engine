@@ -3,23 +3,21 @@ package org.vitrivr.engine.database.jsonl.scalar
 import org.vitrivr.engine.core.model.descriptor.scalar.*
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
-import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.database.jsonl.AbstractJsonlReader
-import org.vitrivr.engine.database.jsonl.model.AttributeContainerList
 import org.vitrivr.engine.database.jsonl.JsonlConnection
 import org.vitrivr.engine.database.jsonl.JsonlConnection.Companion.DESCRIPTOR_ID_COLUMN_NAME
 import org.vitrivr.engine.database.jsonl.JsonlConnection.Companion.RETRIEVABLE_ID_COLUMN_NAME
+import org.vitrivr.engine.database.jsonl.model.AttributeContainerList
 
 class ScalarJsonlReader(
-    field: Schema.Field<*, ScalarDescriptor<*>>,
+    field: Schema.Field<*, ScalarDescriptor<*, *>>,
     connection: JsonlConnection
-) : AbstractJsonlReader<ScalarDescriptor<*>>(field, connection) {
+) : AbstractJsonlReader<ScalarDescriptor<*, *>>(field, connection) {
 
-    override fun toDescriptor(list: AttributeContainerList): ScalarDescriptor<*> {
+    override fun toDescriptor(list: AttributeContainerList): ScalarDescriptor<*, *> {
 
         val map = list.list.associateBy { it.attribute.name }
         val retrievableId = (map[DESCRIPTOR_ID_COLUMN_NAME]?.value!!.toValue() as Value.UUIDValue).value
@@ -40,14 +38,14 @@ class ScalarJsonlReader(
 
     }
 
-    override fun query(query: Query): Sequence<ScalarDescriptor<*>> = when (query) {
+    override fun query(query: Query): Sequence<ScalarDescriptor<*, *>> = when (query) {
         is SimpleFulltextQuery -> this.queryFulltext(query)
         is SimpleBooleanQuery<*> -> this.queryBoolean(query)
         else -> throw UnsupportedOperationException("The provided query type ${query::class.simpleName} is not supported by this reader.")
     }
 
 
-    private fun queryFulltext(fulltextQuery: SimpleFulltextQuery): Sequence<ScalarDescriptor<*>> {
+    private fun queryFulltext(fulltextQuery: SimpleFulltextQuery): Sequence<ScalarDescriptor<*, *>> {
 
         val queryString = fulltextQuery.value.value
         val attributeName = fulltextQuery.attributeName ?: return emptySequence()
@@ -58,7 +56,7 @@ class ScalarJsonlReader(
 
     }
 
-    private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<ScalarDescriptor<*>> =
+    private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<ScalarDescriptor<*, *>> =
         getAll().filter { descriptor ->
             query.comparison.compare(descriptor.value, query.value)
         }
