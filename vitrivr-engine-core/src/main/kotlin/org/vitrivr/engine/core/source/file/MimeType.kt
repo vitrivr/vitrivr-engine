@@ -3,7 +3,6 @@ package org.vitrivr.engine.core.source.file
 import org.vitrivr.engine.core.source.MediaType
 import java.io.File
 import java.nio.file.Path
-import kotlin.enums.EnumEntries
 
 /**
  * A range of known [MimeType]s used for internal conversion.
