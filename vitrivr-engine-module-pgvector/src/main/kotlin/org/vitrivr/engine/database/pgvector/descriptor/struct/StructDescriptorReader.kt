@@ -107,7 +107,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
      */
     private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<StructDescriptor> {
         require(query.attributeName != null) { "Query attribute must not be null for a fulltext query on a struct descriptor." }
-        val statement = "SELECT * FROM field.name.lowercase() WHERE ${query.attributeName} ${query.comparison.toSql()} ?"
+        val statement = "SELECT * FROM \"${tableName.lowercase()}\"  WHERE ${query.attributeName} ${query.comparison.toSql()} ?"
         return sequence {
             this@StructDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
                 stmt.setValue(1, query.value)
