@@ -31,7 +31,7 @@ class PersistingSink(override val input: Operator<Retrievable>, val context: Ind
     }
 
     /** A [HashMap] of cached [DescriptorWriter] instances. */
-    private val descriptorWriters = HashMap<Schema.Field<*,*>,DescriptorWriter<out Descriptor>>()
+    private val descriptorWriters = HashMap<Schema.Field<*, *>, DescriptorWriter<out Descriptor<*>>>()
 
     /**
      * Converts this [PersistingSink] to a [Flow]
@@ -57,7 +57,7 @@ class PersistingSink(override val input: Operator<Retrievable>, val context: Ind
         /* Collection all entites that should be persisted. */
         val retrievables = mutableSetOf<Retrievable>()
         val relationships = mutableSetOf<Relationship>()
-        val descriptors = mutableMapOf<Schema.Field<*, *>, MutableSet<Descriptor>>()
+        val descriptors = mutableMapOf<Schema.Field<*, *>, MutableSet<Descriptor<*>>>()
         collect(retrievable, Triple(retrievables, relationships, descriptors))
 
         /* Write entities to database. */
@@ -65,7 +65,7 @@ class PersistingSink(override val input: Operator<Retrievable>, val context: Ind
             this.writer.addAll(retrievables)
             this.writer.connectAll(relationships)
             for ((f, d) in descriptors) {
-                val writer = f.let { field -> this.descriptorWriters.computeIfAbsent(field) { it.getWriter() } } as? DescriptorWriter<Descriptor>
+                val writer = f.let { field -> this.descriptorWriters.computeIfAbsent(field) { it.getWriter() } } as? DescriptorWriter<Descriptor<*>>
                 if (writer?.addAll(d) != true) {
                     logger.error { "Failed to persist descriptors for field ${f.fieldName}." }
                 }
@@ -76,7 +76,7 @@ class PersistingSink(override val input: Operator<Retrievable>, val context: Ind
     /**
      * Collects all [Retrievable]s, [Relationship]s and [Descriptor]s that are reachable from the given [Retrievable] and should be persisted.s
      */
-    private fun collect(retrievable: Retrievable, into: Triple<MutableSet<Retrievable>, MutableSet<Relationship>, MutableMap<Schema.Field<*, *>, MutableSet<Descriptor>>>) {
+    private fun collect(retrievable: Retrievable, into: Triple<MutableSet<Retrievable>, MutableSet<Relationship>, MutableMap<Schema.Field<*, *>, MutableSet<Descriptor<*>>>>) {
         if (retrievable.transient) return
 
         /* Add retrievable. */

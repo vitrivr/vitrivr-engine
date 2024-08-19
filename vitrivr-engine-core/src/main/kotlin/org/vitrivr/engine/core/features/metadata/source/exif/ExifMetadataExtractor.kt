@@ -10,7 +10,7 @@ import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.AttributeName
-import org.vitrivr.engine.core.model.descriptor.struct.MapStructDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.AnyMapStructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
@@ -87,13 +87,13 @@ private fun JsonObject.convertType(type: Type): Value<*>? {
     }
 }
 
-class ExifMetadataExtractor(input: Operator<Retrievable>, analyser: ExifMetadata, field: Schema.Field<ContentElement<*>, MapStructDescriptor>?) : AbstractExtractor<ContentElement<*>, MapStructDescriptor>(input, analyser, field) {
+class ExifMetadataExtractor(input: Operator<Retrievable>, analyser: ExifMetadata, field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>?) : AbstractExtractor<ContentElement<*>, AnyMapStructDescriptor>(input, analyser, field) {
 
 
     override fun matches(retrievable: Retrievable): Boolean =
         retrievable.filteredAttribute(SourceAttribute::class.java)?.source is FileSource
 
-    override fun extract(retrievable: Retrievable): List<MapStructDescriptor> {
+    override fun extract(retrievable: Retrievable): List<AnyMapStructDescriptor> {
         val metadata = ImageMetadataReader.readMetadata((retrievable.filteredAttribute(SourceAttribute::class.java)?.source as FileSource).path.toFile())
         val columnValues = mutableMapOf<AttributeName, Value<*>>()
 
@@ -131,6 +131,6 @@ class ExifMetadataExtractor(input: Operator<Retrievable>, analyser: ExifMetadata
         }
         logger.info { "Extracted fields: ${columnValues.entries.joinToString { (key, value) -> "$key = ${value.value}" }}" }
 
-        return listOf(MapStructDescriptor(UUID.randomUUID(), retrievable.id, attributes.values.toList(), columnValues.mapValues { it.value }, field = this.field))
+        return listOf(AnyMapStructDescriptor(UUID.randomUUID(), retrievable.id, attributes.values.toList(), columnValues.mapValues { it.value }, field = this.field))
     }
 }

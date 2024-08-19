@@ -23,14 +23,14 @@ import kotlin.reflect.full.primaryConstructor
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connection: PgVectorConnection) : AbstractDescriptorReader<StructDescriptor>(field, connection) {
+class StructDescriptorReader(field: Schema.Field<*, StructDescriptor<*>>, connection: PgVectorConnection) : AbstractDescriptorReader<StructDescriptor<*>>(field, connection) {
     /**
      * Executes the provided [Query] and returns a [Sequence] of [Retrieved]s that match it.
      *
      * @param query The [Query] to execute.
      * @return [Sequence] of [StructDescriptor]s that match the query.
      */
-    override fun query(query: Query): Sequence<StructDescriptor> = when (query) {
+    override fun query(query: Query): Sequence<StructDescriptor<*>> = when (query) {
         is SimpleFulltextQuery -> queryFulltext(query)
         is SimpleBooleanQuery<*> -> queryBoolean(query)
         else -> throw IllegalArgumentException("Query of typ ${query::class} is not supported by StructDescriptorReader.")
@@ -42,7 +42,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
      * @param result The [ResultSet] to convert.
      * @return The resulting [StructDescriptor].
      */
-    override fun rowToDescriptor(result: ResultSet): StructDescriptor {
+    override fun rowToDescriptor(result: ResultSet): StructDescriptor<*> {
         val constructor = this.field.analyser.descriptorClass.primaryConstructor ?: throw IllegalStateException("Provided type ${this.field.analyser.descriptorClass} does not have a primary constructor.")
         val values = TreeMap<AttributeName,Value<*>?>()
         val parameters: MutableList<Any?> = mutableListOf(
@@ -84,7 +84,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
      * @param query The [SimpleFulltextQuery] to execute.
      * @return [Sequence] of [StructDescriptor]s.
      */
-    private fun queryFulltext(query: SimpleFulltextQuery): Sequence<StructDescriptor> {
+    private fun queryFulltext(query: SimpleFulltextQuery): Sequence<StructDescriptor<*>> {
         require(query.attributeName != null) { "Query attribute must not be null for a fulltext query on a struct descriptor." }
         val statement = "SELECT * FROM \"$tableName\" WHERE ${query.attributeName} @@ plainto_tsquery(?)"
         return sequence {
@@ -105,7 +105,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
      * @param query The [SimpleBooleanQuery] to execute.
      * @return [Sequence] of [StructDescriptor]s.
      */
-    private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<StructDescriptor> {
+    private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<StructDescriptor<*>> {
         require(query.attributeName != null) { "Query attribute must not be null for a fulltext query on a struct descriptor." }
         val statement = "SELECT * FROM \"$tableName\" WHERE ${query.attributeName} ${query.comparison.toSql()} ?"
         return sequence {

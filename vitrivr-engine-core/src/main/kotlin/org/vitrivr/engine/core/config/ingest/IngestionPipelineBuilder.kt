@@ -267,7 +267,7 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
                 logger.info { "Built extractor by name field name: ${config.fieldName}" }
             }
         } else if (!config.factory.isNullOrBlank()) {
-            val factory = loadFactory<Analyser<ContentElement<*>, Descriptor>>(config.factory)
+            val factory = loadFactory<Analyser<ContentElement<*>, Descriptor<*>>>(config.factory)
             return factory.newExtractor(name, parent, this.context).apply {
                 logger.info { "Built extractor by factory: ${config.factory}" }
             }

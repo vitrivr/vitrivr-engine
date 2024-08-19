@@ -9,20 +9,19 @@ import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 
 /**
- * A [ScalarDescriptor] using an [Int] value.
+ * A [ScalarDescriptor] using an [Value.Byte].
  *
  * @author Ralph Gasser
  * @version 1.0.0
  */
-
-data class IntDescriptor(
+data class ByteDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId?,
-    override val value: Value.Int,
-    override val field: Schema.Field<*, IntDescriptor>? = null
-) : ScalarDescriptor<IntDescriptor, Value.Int> {
+    override val value: Value.Byte,
+    override val field: Schema.Field<*, ByteDescriptor>? = null
+) : ScalarDescriptor<ByteDescriptor, Value.Byte> {
     companion object {
-        private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.Int))
+        private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.Byte))
     }
 
     /**
@@ -33,12 +32,12 @@ data class IntDescriptor(
     override fun layout(): List<Attribute> = SCHEMA
 
     /**
-     * Returns a copy of this [IntDescriptor] with new [RetrievableId] and/or [DescriptorId]
+     * Returns a copy of this [ByteDescriptor] with new [RetrievableId] and/or [DescriptorId]
      *
-     * @param id [DescriptorId] of the new [IntDescriptor].
-     * @param retrievableId [RetrievableId] of the new [IntDescriptor].
-     * @param field [Schema.Field] the new [FloatDescriptor] belongs to.
-     * @return Copy of this [IntDescriptor].
+     * @param id [DescriptorId] of the new [ByteDescriptor].
+     * @param retrievableId [RetrievableId] of the new [ByteDescriptor].
+     * @param field [Schema.Field] the new [ByteDescriptor] belongs to.
+     * @return Copy of this [ByteDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, IntDescriptor>?) = IntDescriptor(id, retrievableId, this.value, field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, ByteDescriptor>?) = ByteDescriptor(id, retrievableId, this.value, field)
 }
