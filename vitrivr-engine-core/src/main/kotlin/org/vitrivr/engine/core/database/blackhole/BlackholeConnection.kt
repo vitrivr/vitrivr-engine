@@ -27,7 +27,7 @@ internal val LOGGER: KLogger = logger("org.vitrivr.engine.database.blackhole.Bla
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class BlackholeConnection(schemaName: String, provider: ConnectionProvider = BlackholeConnectionProvider(schemaName), private val log: Boolean = false) : AbstractConnection(schemaName, provider) {
+class BlackholeConnection(schemaName: String, provider: ConnectionProvider, private val log: Boolean = false) : AbstractConnection(schemaName, provider) {
 
     init {
         LOGGER.warn { "You are using the blackhole connection with schema $schemaName. No data will be stored!" }
