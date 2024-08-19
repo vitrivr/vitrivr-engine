@@ -3,7 +3,6 @@ package org.vitrivr.engine.core.model.descriptor.struct.metadata
 import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.AttributeName
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
-import org.vitrivr.engine.core.model.descriptor.struct.MapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -23,7 +22,7 @@ class MediaDimensionsDescriptor(
     override val retrievableId: RetrievableId?,
     values: Map<AttributeName, Value<*>?>,
     override val field: Schema.Field<*, MediaDimensionsDescriptor>? = null
-) : MapStructDescriptor<MediaDimensionsDescriptor>(id, retrievableId, SCHEMA, values, field) {
+) : StructDescriptor<MediaDimensionsDescriptor>(id, retrievableId, SCHEMA, values, field) {
     companion object {
         /** The field schema associated with a [VideoSourceMetadataDescriptor]. */
         private val SCHEMA = listOf(

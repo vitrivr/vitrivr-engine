@@ -3,7 +3,6 @@ package org.vitrivr.engine.core.model.descriptor.struct.metadata
 import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.AttributeName
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
-import org.vitrivr.engine.core.model.descriptor.struct.MapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
@@ -22,7 +21,7 @@ class Rectangle2DMetadataDescriptor(
     override val retrievableId: RetrievableId?,
     values: Map<AttributeName, Value<*>?>,
     override val field: Schema.Field<*, Rectangle2DMetadataDescriptor>? = null
-) : MapStructDescriptor<Rectangle2DMetadataDescriptor>(id, retrievableId, SCHEMA, values, field) {
+) : StructDescriptor<Rectangle2DMetadataDescriptor>(id, retrievableId, SCHEMA, values, field) {
 
     companion object {
         /** The field schema associated with a [Rectangle2DMetadataDescriptor]. */

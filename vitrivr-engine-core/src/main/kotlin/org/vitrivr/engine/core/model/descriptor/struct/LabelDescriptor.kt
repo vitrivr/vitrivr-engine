@@ -19,7 +19,7 @@ class LabelDescriptor(
     override val retrievableId: RetrievableId?,
     values: Map<AttributeName, Value<*>?>,
     override val field: Schema.Field<*, LabelDescriptor>? = null
-) : MapStructDescriptor<LabelDescriptor>(id, retrievableId, SCHEMA, values, field) {
+) : StructDescriptor<LabelDescriptor>(id, retrievableId, SCHEMA, values, field) {
     companion object {
         private val SCHEMA = listOf(
             Attribute("label", Type.String),
