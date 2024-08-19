@@ -12,7 +12,9 @@ import kotlin.reflect.KClass
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class BlackholeConnectionProvider(override val databaseName: String, override val version: String = "1.0.0") : ConnectionProvider {
+class BlackholeConnectionProvider : ConnectionProvider {
+    override val databaseName: String = "blackhole"
+    override val version: String = "1.0.0"
     override fun openConnection(schemaName: String, parameters: Map<String, String>) = BlackholeConnection(schemaName, this, parameters["log"]?.toBoolean() == true)
     override fun <T : Descriptor<*>> register(descriptorClass: KClass<T>, provider: DescriptorProvider<*>) { /* No op. */ }
     override fun <T : Descriptor<*>> obtain(descriptorClass: KClass<T>) = BlackholeDescriptionProvider<T>()
