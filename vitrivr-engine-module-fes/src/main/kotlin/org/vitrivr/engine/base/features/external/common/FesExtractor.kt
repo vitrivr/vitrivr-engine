@@ -33,6 +33,8 @@ abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>>(
 ) : AbstractExtractor<C, D>(input, analyser, field) {
     /** Host of the FES API. */
 
+    private val contentSources = parameters[CONTENT_AUTHORS_KEY]?.split(",")?.toSet()
+
     protected val host: String
         get() = this.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
 
