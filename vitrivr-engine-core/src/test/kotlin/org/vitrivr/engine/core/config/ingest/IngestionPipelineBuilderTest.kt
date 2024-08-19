@@ -7,6 +7,7 @@ import org.vitrivr.engine.core.config.ingest.operation.OperationConfig
 import org.vitrivr.engine.core.config.ingest.operator.OperatorConfig
 import org.vitrivr.engine.core.context.IngestionContextConfig
 import org.vitrivr.engine.core.database.blackhole.BlackholeConnection
+import org.vitrivr.engine.core.database.blackhole.BlackholeConnectionProvider
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.resolver.impl.DiskResolver
 
@@ -45,7 +46,8 @@ class IngestionPipelineBuilderTest {
                 output = listOf("file")
             )
 
-            val mockSchema = Schema("test-schema", BlackholeConnection("test-schema"))
+            val provider = BlackholeConnectionProvider()
+            val mockSchema = Schema("test-schema", BlackholeConnection("test-schema", provider, true))
             mockSchema.addResolver("disk", DiskResolver().newResolver(mockSchema, mapOf("location" to "./thumbnails/testing")))
             config.context.schema = mockSchema
             val testSubject = IngestionPipelineBuilder(config)
