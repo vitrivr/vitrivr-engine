@@ -40,7 +40,7 @@ class ASRExtractor(
 
         return retrievables.map { retrievable ->
             this.filterContent(retrievable).map {
-                flatResults[index++].also { it.retrievableId = retrievable.id }
+                flatResults[index++].also { TextDescriptor(it.id, retrievable.id, it.value, it.field) }
             }
         }
     }

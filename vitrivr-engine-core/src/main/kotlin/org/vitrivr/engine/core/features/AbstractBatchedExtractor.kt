@@ -19,9 +19,10 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor<*>>(final override val input: Operator<Retrievable>, final override val field: Schema.Field<C, D>?, private val bufferSize: Int = 100) : Extractor<C, D> {
+abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor<*>>(final override val input: Operator<Retrievable>, final override val analyser: Analyser<C, D>, final override val field: Schema.Field<C, D>?, private val bufferSize: Int = 100) : Extractor<C, D> {
 
     private val logger: KLogger = KotlinLogging.logger {}
+
 
     init {
         require(field == null || this.field.analyser == this.analyser) { "Field and analyser do not match! This is a programmer's error!" }

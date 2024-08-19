@@ -30,8 +30,7 @@ abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>>(
     field: Schema.Field<C, D>?,
     analyser: ExternalFesAnalyser<C, D>,
     protected val parameters: Map<String, String>,
-) : AbstractExtractor<C, D>(input, analyser, field) {
-    /** Host of the FES API. */
+) : AbstractBatchedExtractor<C, D>(input, analyser, field, parameters["batchSize"]?.toIntOrNull() ?: 1) {
 
     private val contentSources = parameters[CONTENT_AUTHORS_KEY]?.split(",")?.toSet()
 
