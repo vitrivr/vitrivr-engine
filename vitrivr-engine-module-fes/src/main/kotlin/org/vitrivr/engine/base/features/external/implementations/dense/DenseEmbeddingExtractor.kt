@@ -9,6 +9,7 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
@@ -65,12 +66,11 @@ class DenseEmbeddingExtractor(
         return retrievables.indices.map { index ->
             val descriptors = mutableListOf<FloatVectorDescriptor>()
             textResultMap[index]?.let {
-                it.retrievableId = retrievables[index].id
-                descriptors.add(it)
+
+                descriptors.add(FloatVectorDescriptor(it.id, retrievables[index].id, it.vector, it.field))
             }
             imageResultMap[index]?.let {
-                it.retrievableId = retrievables[index].id
-                descriptors.add(it)
+                descriptors.add(FloatVectorDescriptor(it.id, retrievables[index].id, it.vector, it.field))
             }
             descriptors
         }
