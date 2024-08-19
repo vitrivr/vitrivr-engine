@@ -142,7 +142,6 @@ class CachedContentFactory : ContentFactoriesFactory {
             }
         }
 
-
         /**
          * Closes this [CachedContentFactory] and purges all remaining items. A closed [CachedContentFactory] cannot be used anymore.
          */
