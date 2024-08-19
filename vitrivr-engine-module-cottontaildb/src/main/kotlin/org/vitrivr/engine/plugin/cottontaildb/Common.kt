@@ -16,7 +16,7 @@ import java.util.*
 const val RETRIEVABLE_ENTITY_NAME = "retrievable"
 
 /** The column name of a retrievable ID. */
-const val RETRIEVABLE_ID_COLUMN_NAME = "retrievableid"
+const val RETRIEVABLE_ID_COLUMN_NAME = "retrievableId"
 
 /** The column name of a retrievable ID. */
 const val RETRIEVABLE_TYPE_COLUMN_NAME = "type"
@@ -25,10 +25,10 @@ const val RETRIEVABLE_TYPE_COLUMN_NAME = "type"
 const val RELATIONSHIP_ENTITY_NAME = "relationships"
 
 /** The column name of a retrievable ID. */
-const val SUBJECT_ID_COLUMN_NAME = "subjectid"
+const val SUBJECT_ID_COLUMN_NAME = "subjectId"
 
 /** The column name of a retrievable ID. */
-const val OBJECT_ID_COLUMN_NAME = "objectid"
+const val OBJECT_ID_COLUMN_NAME = "objectId"
 
 /** The column name of a retrievable ID. */
 const val PREDICATE_COLUMN_NAME = "predicate"
@@ -37,7 +37,7 @@ const val PREDICATE_COLUMN_NAME = "predicate"
 const val DESCRIPTOR_ENTITY_PREFIX = "descriptor"
 
 /** The column name of a descriptor ID. */
-const val DESCRIPTOR_ID_COLUMN_NAME = "descriptorid"
+const val DESCRIPTOR_ID_COLUMN_NAME = "descriptorId"
 
 /** The column name used to describe a distance.*/
 const val DISTANCE_COLUMN_NAME = "distance"
