@@ -5,13 +5,14 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.database.pgvector.*
+import java.sql.SQLException
 import java.util.*
 
 /**
  * A [RetrievableReader] implementation for PostgreSQL with pgVector.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.0.1
  */
 class RetrievableReader(override val connection: PgVectorConnection): RetrievableReader {
     /**
@@ -97,12 +98,53 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
         }
     }
 
-    override fun getConnections(
-        subjectIds: Collection<RetrievableId>,
-        predicates: Collection<String>,
-        objectIds: Collection<RetrievableId>
-    ): Sequence<Triple<RetrievableId, String, RetrievableId>> {
-        TODO("Not yet implemented")
+    /**
+     * Returns all relationships thar are stored by the database and that match the given query.
+     *
+     * @return A [Sequence] of all [Retrievable]s in the database.
+     */
+    override fun getConnections(subjectIds: Collection<RetrievableId>, predicates: Collection<String>, objectIds: Collection<RetrievableId>): Sequence<Triple<RetrievableId, String, RetrievableId>> {
+        val query = StringBuilder("SELECT * FROM \"$RELATIONSHIP_ENTITY_NAME\" WHERE ")
+        if (subjectIds.isNotEmpty()) {
+            query.append("$SUBJECT_ID_COLUMN_NAME = ANY (?)")
+        }
+        if (predicates.isNotEmpty()) {
+            if (subjectIds.isNotEmpty()) {
+                query.append(" AND ")
+            }
+            query.append("$PREDICATE_COLUMN_NAME = ANY (?)")
+        }
+        if (objectIds.isNotEmpty()) {
+            if (subjectIds.isNotEmpty() || predicates.isNotEmpty()) {
+                query.append(" AND ")
+            }
+            query.append("$OBJECT_ID_COLUMN_NAME = ANY (?)")
+        }
+
+        return sequence {
+            try {
+                this@RetrievableReader.connection.jdbc.prepareStatement(query.toString()).use { stmt ->
+                    var index = 1
+                    if (subjectIds.isNotEmpty()) {
+                        stmt.setArray(index++, this@RetrievableReader.connection.jdbc.createArrayOf("uuid", subjectIds.toTypedArray()))
+                    }
+                    if (predicates.isNotEmpty()) {
+                        stmt.setArray(index++, this@RetrievableReader.connection.jdbc.createArrayOf("varchar", predicates.toTypedArray()))
+                    }
+                    if (objectIds.isNotEmpty()) {
+                        stmt.setArray(index, this@RetrievableReader.connection.jdbc.createArrayOf("uuid", objectIds.toTypedArray()))
+                    }
+                    stmt.executeQuery().use { result ->
+                        while (result.next()) {
+                            yield(Triple(result.getObject(OBJECT_ID_COLUMN_NAME, UUID::class.java), result.getString(PREDICATE_COLUMN_NAME), result.getObject(SUBJECT_ID_COLUMN_NAME, UUID::class.java)))
+                        }
+                    }
+                }
+            } catch (e: SQLException) {
+                LOGGER.error(e) { "Failed to fetch relationships due to SQL error." }
+            }
+        }
+
     }
 
     /**
@@ -118,7 +160,7 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
                     return result.getLong(1)
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: SQLException) {
             LOGGER.error(e) { "Failed to count retrievable due to SQL error." }
             return 0L
         }
