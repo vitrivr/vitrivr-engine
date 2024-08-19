@@ -29,6 +29,9 @@ class VideoSourceMetadataDescriptor(
     /** The width of the video source in pixels. */
     val height: Value.Int by this.values
 
+    /** The duration of the video source in pixels. */
+    val duration: Value.Double by this.values
+
     /** The number of visual frames per seconds. */
     val fps: Value.Double by this.values
 
@@ -46,6 +49,7 @@ class VideoSourceMetadataDescriptor(
         private val SCHEMA = listOf(
             Attribute("width", Type.Int),
             Attribute("height", Type.Int),
+            Attribute("duration", Type.Long),
             Attribute("fps", Type.Double),
             Attribute("channels", Type.Int),
             Attribute("sampleRate", Type.Int),
@@ -59,6 +63,7 @@ class VideoSourceMetadataDescriptor(
             mapOf(
                 "width" to Value.Int(0),
                 "height" to Value.Int(0),
+                "duration" to Value.Long(0L),
                 "fps" to Value.Double(0.0),
                 "channels" to Value.Int(0),
                 "sampleRate" to Value.Int(0),
