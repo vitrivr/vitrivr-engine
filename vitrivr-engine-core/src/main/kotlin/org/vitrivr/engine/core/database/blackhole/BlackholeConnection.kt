@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.database.blackhole
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging.logger
+import io.github.oshai.kotlinlogging.Marker
 import org.vitrivr.engine.core.database.AbstractConnection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.database.blackhole.descriptors.BlackholeDescriptorInitializer
@@ -19,7 +20,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 
 
 /** Defines [KLogger] of the class. */
-internal val LOGGER: KLogger = logger("org.vitrivr.engine.database.blackhole.BlackholeConnection")
+internal val LOGGER: KLogger = logger {}
 
 /**
  * An [AbstractConnection] that swallows all data and does not store anything. However, it can be used to log operations.
@@ -29,8 +30,15 @@ internal val LOGGER: KLogger = logger("org.vitrivr.engine.database.blackhole.Bla
  */
 class BlackholeConnection(schemaName: String, provider: ConnectionProvider, private val log: Boolean = false) : AbstractConnection(schemaName, provider) {
 
+
+
     init {
         LOGGER.warn { "You are using the blackhole connection with schema $schemaName. No data will be stored!" }
+    }
+
+    /** [Marker] used for logging. */
+    private val marker: Marker = object : Marker {
+        override fun getName(): String = this@BlackholeConnection.description()
     }
 
     override fun initialize() = this.logIf("Initializing schema '$schemaName'.")
@@ -55,8 +63,6 @@ class BlackholeConnection(schemaName: String, provider: ConnectionProvider, priv
      * @param message The message to log.
      */
     internal fun logIf(message: String) {
-        if (this.log) {
-            LOGGER.info { "[${this.description()}] $message" }
-        }
+        if (this.log) LOGGER.info(throwable = null, marker = this.marker) { message }
     }
 }
