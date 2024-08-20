@@ -1,7 +1,6 @@
 {
-  "schemas": [
-    {
-      "name": "metadata",
+  "schemas": {
+    "metadata": {
       "connection": {
         "database": "CottontailConnectionProvider",
         "parameters": {
@@ -9,17 +8,14 @@
           "port": "1865"
         }
       },
-      "fields": [
-        {
-          "name": "file",
+      "fields": {
+        "file": {
           "factory": "FileSourceMetadata"
         },
-        {
-          "name": "time",
+        "time": {
           "factory": "TemporalMetadata"
         },
-        {
-          "name": "exif",
+        "exif": {
           "factory": "ExifMetadata",
           "parameters": {
             "ExifSubIFD_FocalLength": "INT",
@@ -29,15 +25,15 @@
             "time_zone": "STRING"
           }
         }
-      ],
-        "resolvers": {
-            "disk": {
-            "factory": "DiskResolver",
-            "parameters": {
-                "location": "./thumbnails/vitrivr"
-            }
-            }
+      },
+      "resolvers": {
+        "disk": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "./thumbnails/vitrivr"
+          }
         }
+      }
     }
-  ]
+  }
 }
