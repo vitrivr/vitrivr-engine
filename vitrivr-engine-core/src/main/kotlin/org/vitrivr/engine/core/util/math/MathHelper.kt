@@ -8,9 +8,15 @@ import kotlin.math.sqrt
  * A collection of helper functions for common, mathematical operations.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.0.1
  */
 object MathHelper {
+
+    /** Square root of 2. */
+    val SQRT2: Double = sqrt(2.0)
+
+    /** Square root of 2 as a [Float]. */
+    val SQRT2_f: Float = SQRT2.toFloat()
 
     /**
      * Normalizes a [Array] of [Value.Float] with respect to the L2 (euclidian) norm.
