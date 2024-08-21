@@ -1,6 +1,7 @@
 package org.vitrivr.engine.base.features.external.api
 
 import org.openapitools.client.apis.TextEmbeddingApi
+import org.openapitools.client.models.BatchedTextEmbeddingInput
 import org.openapitools.client.models.JobState
 import org.openapitools.client.models.JobStatus
 import org.openapitools.client.models.TextEmbeddingInput
@@ -37,6 +38,23 @@ class TextEmbeddingApi(host: String, model: String, timeoutMs: Long, pollingInte
     }
 
     /**
+     * This method is used to start a batched text embedding job on the API.
+     *
+     * @param input The input for the job.
+     * @return The [JobStatus]
+     */
+    override suspend fun startBatchedJob(input: List<TextContent>): JobStatus {
+        val wrapped = BatchedTextEmbeddingInput(input.map { it.content })
+        return try {
+            logger.debug { "Starting batched text embedding for texts." }
+            this.textEmbeddingApi.newBatchedJobApiTasksTextEmbeddingBatchedModelJobsPost(this.model, wrapped).body()
+        } catch (e: Throwable) {
+            logger.error(e) { "Failed to start batched text embedding job." }
+            JobStatus("unknown", JobState.failed)
+        }
+    }
+
+    /**
      * This method is used to poll for results of an text embedding job on the API.
      *
      * @param jobId The ID of the job to poll.
@@ -48,6 +66,21 @@ class TextEmbeddingApi(host: String, model: String, timeoutMs: Long, pollingInte
         }
     } catch (e: Throwable) {
         logger.error(e) { "Failed to poll for status of text embedding job." }
+        JobResult(JobState.failed, null)
+    }
+
+    /**
+     * This method is used to poll for results of a batched text embedding job on the API.
+     *
+     * @param jobId The ID of the job to poll.
+     * @return The [JobResult]
+     */
+    override suspend fun pollBatchedJob(jobId: String): JobResult<List<Value.FloatVector>> = try {
+        this.textEmbeddingApi.getBatchedJobResultsApiTasksTextEmbeddingBatchedJobsJobGet(jobId).body().let { result ->
+            JobResult(result.status, result.result?.map { r -> Value.FloatVector(FloatArray(r.embedding.size) { i -> r.embedding[i].toFloat() }) })
+        }
+    } catch (e: Throwable) {
+        logger.error(e) { "Failed to poll for status of batched text embedding job." }
         JobResult(JobState.failed, null)
     }
 }

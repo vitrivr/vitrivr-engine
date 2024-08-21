@@ -55,7 +55,7 @@ class SchemaManager {
                 throw IllegalArgumentException("Field names must not have a dot (.) in their name.")
             }
             @Suppress("UNCHECKED_CAST")
-            schema.addField(fieldName, analyser as Analyser<ContentElement<*>, Descriptor>, fieldConfig.parameters, fieldConfig.indexes)
+            schema.addField(fieldName, analyser as Analyser<ContentElement<*>, Descriptor<*>>, fieldConfig.parameters, fieldConfig.indexes)
         }
         config.resolvers.forEach { (resolverName, resolverConfig) ->
             schema.addResolver(resolverName, (loadServiceForName<ResolverFactory>(resolverConfig.factory) ?: throw IllegalArgumentException("Failed to find resolver factory implementation for '${resolverConfig.factory}'.")).newResolver(schema, resolverConfig.parameters))

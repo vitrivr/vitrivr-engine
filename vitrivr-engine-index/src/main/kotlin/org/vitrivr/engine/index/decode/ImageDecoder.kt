@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.operators.ingest.DecoderFactory
@@ -35,12 +36,12 @@ class ImageDecoder : DecoderFactory {
      * @param input The input [Enumerator].
      * @param context The [IndexContext] to use.
      */
-    override fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder = Instance(input, context)
+    override fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder = Instance(input, context, name)
 
     /**
      * The [Decoder] returned by this [ImageDecoder].
      */
-    private class Instance(override val input: Enumerator, private val context: IndexContext) : Decoder {
+    private class Instance(override val input: Enumerator, private val context: IndexContext, private val name: String) : Decoder {
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).mapNotNull { sourceRetrievable ->
             val source = sourceRetrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@mapNotNull null
             if (source.type != MediaType.IMAGE) {
@@ -53,6 +54,7 @@ class ImageDecoder : DecoderFactory {
                     this.context.contentFactory.newImageContent(ImageIO.read(it))
                 }
                 sourceRetrievable.addContent(content)
+                sourceRetrievable.addAttribute(ContentAuthorAttribute(content.id, this.name))
                 logger.info { "Finished decoding image from source '${source.name}' (${source.sourceId})." }
 
                 /* Return ingested. */

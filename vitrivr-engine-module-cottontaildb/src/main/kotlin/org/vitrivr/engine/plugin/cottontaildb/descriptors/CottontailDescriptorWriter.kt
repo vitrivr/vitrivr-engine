@@ -22,7 +22,7 @@ import org.vitrivr.engine.plugin.cottontaildb.*
  * @author Ralph Gasser
  * @version 1.1.0
  */
-open class CottontailDescriptorWriter<D : Descriptor>(final override val field: Schema.Field<*, D>, override val connection: CottontailConnection) : DescriptorWriter<D> {
+open class CottontailDescriptorWriter<D : Descriptor<*>>(final override val field: Schema.Field<*, D>, override val connection: CottontailConnection) : DescriptorWriter<D> {
     /** The [Name.EntityName] used by this [Descriptor]. */
     protected val entityName: Name.EntityName = Name.EntityName.create(this.field.schema.name, "${DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName.lowercase()}")
 

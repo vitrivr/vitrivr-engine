@@ -17,7 +17,7 @@ import java.sql.SQLException
 internal val LOGGER: KLogger = logger("org.vitrivr.engine.database.pgvector.PgVectorConnection")
 
 /**
- * A [AbstractConnection] to connect to a PostgreSQL instance with the pgVector extension.
+ * An [AbstractConnection] to connect to a PostgreSQL instance with the pgVector extension.
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -37,7 +37,7 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
 
         /* Create necessary schema. */
         try {
-            this.jdbc.prepareStatement("CREATE SCHEMA \"${schemaName}\";").use {
+            this.jdbc.prepareStatement("CREATE SCHEMA \"${schemaName.lowercase()}\";").use {
                 it.execute()
             }
         } catch (e: SQLException) {
@@ -50,7 +50,7 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
         }
 
         try {
-            this.jdbc.prepareStatement("SET search_path TO \"$schemaName\", public;").use {
+            this.jdbc.prepareStatement("SET search_path TO \"${schemaName.lowercase()}\", public;").use {
                 it.execute()
             }
         } catch (e: SQLException) {

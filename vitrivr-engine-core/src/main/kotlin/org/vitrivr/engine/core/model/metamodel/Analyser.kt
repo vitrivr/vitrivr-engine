@@ -20,7 +20,7 @@ import kotlin.reflect.KClass
  * @author Ralph Gasser
  * @version 1.4.0
  */
-interface Analyser<C : ContentElement<*>, D : Descriptor> : ExtractorFactory<C, D> {
+interface Analyser<C : ContentElement<*>, D : Descriptor<*>> : ExtractorFactory<C, D> {
 
 
     companion object {

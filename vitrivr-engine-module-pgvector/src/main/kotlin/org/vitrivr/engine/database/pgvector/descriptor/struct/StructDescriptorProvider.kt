@@ -15,8 +15,8 @@ import org.vitrivr.engine.database.pgvector.descriptor.PgDescriptorWriter
  * @author Ralph Gasser
  * @version 1.0.0
  */
-object StructDescriptorProvider : DescriptorProvider<StructDescriptor> {
-    override fun newInitializer(connection: Connection, field: Schema.Field<*, StructDescriptor>) = PgDescriptorInitializer(field, connection as PgVectorConnection)
-    override fun newReader(connection: Connection, field: Schema.Field<*, StructDescriptor>) = StructDescriptorReader(field, connection as PgVectorConnection)
-    override fun newWriter(connection: Connection, field: Schema.Field<*, StructDescriptor>) = PgDescriptorWriter(field, connection as PgVectorConnection)
+object StructDescriptorProvider : DescriptorProvider<StructDescriptor<*>> {
+    override fun newInitializer(connection: Connection, field: Schema.Field<*, StructDescriptor<*>>) = PgDescriptorInitializer(field, connection as PgVectorConnection)
+    override fun newReader(connection: Connection, field: Schema.Field<*, StructDescriptor<*>>) = StructDescriptorReader(field, connection as PgVectorConnection)
+    override fun newWriter(connection: Connection, field: Schema.Field<*, StructDescriptor<*>>) = PgDescriptorWriter(field, connection as PgVectorConnection)
 }

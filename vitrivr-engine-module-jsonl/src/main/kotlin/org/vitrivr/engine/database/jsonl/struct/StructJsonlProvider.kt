@@ -7,6 +7,6 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.database.jsonl.AbstractJsonlProvider
 import org.vitrivr.engine.database.jsonl.JsonlConnection
 
-object StructJsonlProvider: AbstractJsonlProvider<StructDescriptor>() {
-    override fun newReader(connection: Connection, field: Schema.Field<*, StructDescriptor>): DescriptorReader<StructDescriptor> = StructJsonlReader(field, connection as JsonlConnection)
+object StructJsonlProvider : AbstractJsonlProvider<StructDescriptor<*>>() {
+    override fun newReader(connection: Connection, field: Schema.Field<*, StructDescriptor<*>>): DescriptorReader<StructDescriptor<*>> = StructJsonlReader(field, connection as JsonlConnection)
 }
