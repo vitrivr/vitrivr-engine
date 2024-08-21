@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.model.color
+package org.vitrivr.engine.core.model.color.rgb
 
 import org.vitrivr.engine.core.model.types.Value
 import kotlin.math.max
