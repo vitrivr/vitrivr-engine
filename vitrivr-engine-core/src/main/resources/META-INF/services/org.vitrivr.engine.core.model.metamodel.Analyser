@@ -1,4 +1,3 @@
-org.vitrivr.engine.core.features.averagecolor.AverageColor
 org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadata
 org.vitrivr.engine.core.features.metadata.source.exif.ExifMetadata
 org.vitrivr.engine.core.features.metadata.source.video.VideoSourceMetadata

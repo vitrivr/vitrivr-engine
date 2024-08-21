@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.features.averagecolor
+package org.vitrivr.engine.module.features.feature.averagecolor
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flow
