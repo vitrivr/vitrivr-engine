@@ -2,6 +2,8 @@ package org.vitrivr.engine.module.features.feature.huehistogram
 
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.features.dense.DenseRetriever
+import org.vitrivr.engine.core.math.correspondence.LinearCorrespondence
 import org.vitrivr.engine.core.model.color.ColorConverter
 import org.vitrivr.engine.core.model.color.hsv.HSVColorContainer
 import org.vitrivr.engine.core.model.color.rgb.RGBByteColorContainer
@@ -71,23 +73,23 @@ class HueHistogram : Analyser<ImageContent, FloatVectorDescriptor> {
     override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext) = HueHistogramExtractor(input, this, field)
 
     /**
-     * Generates and returns a new [HueHistogramRetriever] instance for this [HueHistogram].
+     * Generates and returns a new [DenseRetriever] instance for this [HueHistogram].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param query The [Query] to use with the [Retriever].
      * @param context The [QueryContext] to use with the [Retriever].
      *
-     * @return A new [HueHistogramRetriever] instance for this [HueHistogram]
+     * @return A new [DenseRetriever] instance for this [HueHistogram]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, context: QueryContext): HueHistogramRetriever {
+    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, context: QueryContext): DenseRetriever<ImageContent> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
         @Suppress("UNCHECKED_CAST")
-        return HueHistogramRetriever(field, query as ProximityQuery<Value.FloatVector>, context)
+        return DenseRetriever(field, query as ProximityQuery<Value.FloatVector>, context, LinearCorrespondence(16f))
     }
 
     /**
-     * Generates and returns a new [HueHistogramRetriever] instance for this [HueHistogram].
+     * Generates and returns a new [DenseRetriever] instance for this [HueHistogram].
      *
      * Invoking this method involves converting the provided [FloatVectorDescriptor] into a [ProximityQuery] that can be used to retrieve similar [ImageContent] elements.
      *
@@ -95,7 +97,7 @@ class HueHistogram : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): HueHistogramRetriever {
+    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): DenseRetriever<ImageContent> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
 
         /* Prepare query parameters. */
@@ -107,7 +109,7 @@ class HueHistogram : Analyser<ImageContent, FloatVectorDescriptor> {
     }
 
     /**
-     * Generates and returns a new [HueHistogramRetriever] instance for this [HueHistogram].
+     * Generates and returns a new [DenseRetriever] instance for this [HueHistogram].
      *
      * Invoking this method involves converting the provided [ImageContent] and the [QueryContext] into a [FloatVectorDescriptor]
      * that can be used to retrieve similar [ImageContent] elements.
