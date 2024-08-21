@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.model.color
+package org.vitrivr.engine.core.model.color.rgb
 
 /**
  * A container for RGB colors.
@@ -31,7 +31,9 @@ value class RGBByteColorContainer(private val rgb: Int) {
         get() = (this.rgb and 0xFF).toUByte()
 
     /**
+     * Converts this [RGBByteColorContainer] to an [RGBFloatColorContainer].
      *
+     * @return [RGBFloatColorContainer] representation of this [RGBByteColorContainer].
      */
     fun toFloatContainer(): RGBFloatColorContainer =
         RGBFloatColorContainer(this.red.toFloat() / 255f, this.green.toFloat() / 255f, this.blue.toFloat() / 255f)
