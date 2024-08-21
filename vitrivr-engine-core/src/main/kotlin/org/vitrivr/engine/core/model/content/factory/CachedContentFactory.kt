@@ -8,6 +8,7 @@ import org.vitrivr.engine.core.model.content.impl.cache.CachedAudioContent
 import org.vitrivr.engine.core.model.content.impl.cache.CachedContent
 import org.vitrivr.engine.core.model.content.impl.cache.CachedImageContent
 import org.vitrivr.engine.core.model.content.impl.cache.CachedTextContent
+import org.vitrivr.engine.core.model.content.impl.memory.InMemoryMeshContent
 import org.vitrivr.engine.core.model.mesh.Model3D
 import org.vitrivr.engine.core.model.metamodel.Schema
 import java.awt.image.BufferedImage
@@ -119,7 +120,9 @@ class CachedContentFactory : ContentFactoriesFactory {
 
         override fun newMeshContent(model3D: Model3D): Model3DContent {
             check(!this.closed) { "CachedContentFactory has been closed." }
-            TODO()
+            val content = InMemoryMeshContent(model3D) /* TODO: Caching. */
+            logger.warn { "Caching of MeshContent is not yet implemented. Using in-memory content instead." }
+            return content
         }
 
 
@@ -141,7 +144,6 @@ class CachedContentFactory : ContentFactoriesFactory {
                 logger.debug { "Purged cached item $path." }
             }
         }
-
 
         /**
          * Closes this [CachedContentFactory] and purges all remaining items. A closed [CachedContentFactory] cannot be used anymore.
