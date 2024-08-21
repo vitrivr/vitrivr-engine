@@ -2,6 +2,8 @@ package org.vitrivr.engine.module.features.feature.averagecolor
 
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.features.dense.DenseRetriever
+import org.vitrivr.engine.core.math.correspondence.LinearCorrespondence
 import org.vitrivr.engine.core.model.color.rgb.MutableRGBFloatColorContainer
 import org.vitrivr.engine.core.model.color.rgb.RGBByteColorContainer
 import org.vitrivr.engine.core.model.color.rgb.RGBFloatColorContainer
@@ -66,7 +68,7 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
     override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, FloatVectorDescriptor> = AverageColorExtractor(input, this, null)
 
     /**
-     * Generates and returns a new [AverageColorRetriever] instance for this [AverageColor].
+     * Generates and returns a new [DenseRetriever] instance for this [AverageColor].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param query The [Query] to use with the [Retriever].
@@ -74,15 +76,14 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      *
      * @return A new [Retriever] instance for this [Analyser]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, context: QueryContext): AverageColorRetriever {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
+    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, context: QueryContext): DenseRetriever<ImageContent> {
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
         @Suppress("UNCHECKED_CAST")
-        return AverageColorRetriever(field, query as ProximityQuery<Value.FloatVector>, context)
+        return DenseRetriever(field, query as ProximityQuery<Value.FloatVector>, context, LinearCorrespondence(3f))
     }
 
     /**
-     * Generates and returns a new [AverageColorRetriever] instance for this [AverageColor].
+     * Generates and returns a new [DenseRetriever] instance for this [AverageColor].
      *
      * Invoking this method involves converting the provided [FloatVectorDescriptor] into a [ProximityQuery] that can be used to retrieve similar [ImageContent] elements.
      *
@@ -90,9 +91,7 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): AverageColorRetriever {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-
+    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): DenseRetriever<ImageContent> {
         /* Prepare query parameters. */
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
         val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
@@ -102,7 +101,7 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
     }
 
     /**
-     * Generates and returns a new [AverageColorRetriever] instance for this [AverageColor].
+     * Generates and returns a new [DenseRetriever] instance for this [AverageColor].
      *
      * Invoking this method involves converting the provided [ImageContent] and the [QueryContext] into a [FloatVectorDescriptor]
      * that can be used to retrieve similar [ImageContent] elements.
@@ -111,7 +110,7 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param content An array of [Content] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext): AverageColorRetriever =
+    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext): DenseRetriever<ImageContent> =
         this.newRetrieverForDescriptors(field, this.analyse(content), context)
 
     /**
