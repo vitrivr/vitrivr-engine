@@ -63,7 +63,6 @@ open class MinimalBoundingBox {
      *
      * @param positions List of vertices.
      */
-    @Suppress("unused")
     constructor(positions: List<Vector3f>) {
         update(positions)
     }

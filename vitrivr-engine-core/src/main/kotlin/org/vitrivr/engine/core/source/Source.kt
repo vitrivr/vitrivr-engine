@@ -53,6 +53,14 @@ interface Source {
     fun height(): Int? = this.metadata[Metadata.METADATA_KEY_IMAGE_HEIGHT] as? Int
 
     /**
+     * Duration of the [Source] in milliseconds (if applicable and available).
+     *
+     * Only applicable for [MediaType.VIDEO] and [MediaType.AUDIO].
+     * @return [Long]
+     */
+    fun duration(): Long? = this.metadata[Metadata.METADATA_KEY_AV_DURATION] as? Long
+
+    /**
      * Frames per second (FPS) of the [Source] in pixels (if applicable and available).
      *
      * Only applicable for [MediaType.VIDEO].
