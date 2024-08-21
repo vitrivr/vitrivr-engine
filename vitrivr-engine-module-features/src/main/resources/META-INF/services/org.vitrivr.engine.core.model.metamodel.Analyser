@@ -1,4 +1,5 @@
 org.vitrivr.engine.module.features.feature.averagecolor.AverageColor
+org.vitrivr.engine.module.features.feature.cld.CLD
 org.vitrivr.engine.module.features.feature.dominantcolor.DominantColor
 org.vitrivr.engine.module.features.feature.ehd.EHD
 org.vitrivr.engine.module.features.feature.huehistogram.HueHistogram

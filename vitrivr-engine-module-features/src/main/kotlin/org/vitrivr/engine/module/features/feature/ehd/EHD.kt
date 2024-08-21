@@ -24,7 +24,7 @@ import java.util.*
 import kotlin.reflect.KClass
 
 /**
- * A MPEG 7 Edge Histogram Descriptor (EHD) [Analyser] for [ImageContent] objects.
+ * An MPEG 7 Edge Histogram Descriptor (EHD) [Analyser] for [ImageContent] objects.
  *
  * Migrated from Cineast.
  *
@@ -113,7 +113,6 @@ class EHD : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return A new [DenseRetriever] instance for this [EHD]
      */
     override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, context: QueryContext): DenseRetriever<ImageContent> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
         @Suppress("UNCHECKED_CAST")
         return DenseRetriever(field, query as ProximityQuery<Value.FloatVector>, context, LinearCorrespondence(4f))
@@ -129,8 +128,6 @@ class EHD : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param context The [QueryContext] to use with the [Retriever]
      */
     override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): DenseRetriever<ImageContent> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-
         /* Prepare query parameters. */
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
         val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
