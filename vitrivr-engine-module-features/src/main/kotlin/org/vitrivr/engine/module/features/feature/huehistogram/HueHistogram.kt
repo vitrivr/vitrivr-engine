@@ -4,9 +4,8 @@ import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.LinearCorrespondence
-import org.vitrivr.engine.core.model.color.ColorConverter
-import org.vitrivr.engine.core.model.color.hsv.HSVColorContainer
-import org.vitrivr.engine.core.model.color.rgb.RGBByteColorContainer
+import org.vitrivr.engine.core.model.color.HSVColorContainer
+import org.vitrivr.engine.core.model.color.RGBColorContainer
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -131,7 +130,7 @@ class HueHistogram : Analyser<ImageContent, FloatVectorDescriptor> {
         val hist = FloatArray(VECTOR_SIZE)
         val colors = content.content.getRGB(0, 0, content.content.width, content.content.height, null, 0, content.content.width)
         for (color in colors) {
-            val container: HSVColorContainer = ColorConverter.rgbToHsv(RGBByteColorContainer(color))
+            val container: HSVColorContainer = RGBColorContainer(color).toHSV()
             if (container.saturation > 0.2f && container.value > 0.3f) {
                 val h: Float = container.hue * hist.size
                 val idx = h.toInt()

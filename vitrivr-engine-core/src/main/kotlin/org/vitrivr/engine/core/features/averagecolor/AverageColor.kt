@@ -4,9 +4,7 @@ import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.LinearCorrespondence
-import org.vitrivr.engine.core.model.color.rgb.MutableRGBFloatColorContainer
-import org.vitrivr.engine.core.model.color.rgb.RGBByteColorContainer
-import org.vitrivr.engine.core.model.color.rgb.RGBFloatColorContainer
+import org.vitrivr.engine.core.model.color.RGBColorContainer
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
@@ -120,12 +118,17 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return [List] of [FloatVectorDescriptor]s.
      */
     fun analyse(content: Collection<ImageContent>): List<FloatVectorDescriptor> = content.map {
-        val color = MutableRGBFloatColorContainer()
+        val color = floatArrayOf(0f, 0f, 0f)
         val rgb = it.content.getRGBArray()
-        rgb.forEach { c -> color += RGBByteColorContainer(c) }
+        for (c in rgb) {
+            val container = RGBColorContainer(c)
+            color[0] += container.red
+            color[1] += container.green
+            color[2] += container.blue
+        }
 
         /* Generate descriptor. */
-        val averageColor = RGBFloatColorContainer(color.red / rgb.size, color.green / rgb.size, color.blue / rgb.size)
+        val averageColor = RGBColorContainer(color[0] / rgb.size, color[1] / rgb.size, color[2] / rgb.size)
         FloatVectorDescriptor(UUID.randomUUID(), null, averageColor.toVector())
     }
 }
