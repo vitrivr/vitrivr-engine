@@ -123,6 +123,7 @@ class VideoDecoder : DecoderFactory {
 
                 /* Extract and enrich source metadata. */
                 source.metadata[Metadata.METADATA_KEY_VIDEO_FPS] = grabber.videoFrameRate
+                source.metadata[Metadata.METADATA_KEY_AV_DURATION] = TimeUnit.MICROSECONDS.toMillis(grabber.lengthInTime)
                 source.metadata[Metadata.METADATA_KEY_IMAGE_WIDTH] = grabber.imageWidth
                 source.metadata[Metadata.METADATA_KEY_IMAGE_HEIGHT] = grabber.imageHeight
                 source.metadata[Metadata.METADATA_KEY_AUDIO_CHANNELS] = grabber.audioChannels

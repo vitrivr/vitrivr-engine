@@ -3,7 +3,6 @@ package org.vitrivr.engine.core.util.math
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
-import kotlin.math.sqrt
 
 /**
  * A collection of [ScoringFunctions] that can be used to score [Retrieved] object that come with a [DistanceAttribute].
