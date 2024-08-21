@@ -156,7 +156,7 @@ class CLD : Analyser<ImageContent, FloatVectorDescriptor> {
         }
 
         /* Obtain YCbCr values and calculate DCT. */
-        val ycbcrs = Array(3) { IntArray(64) }
+        val ycbcrs = Array(3) { FloatArray(64) }
         for (i in 0..63) {
             val c = RGBColorContainer(rgbs[i]).toYCbCr()
             ycbcrs[0][i] = c.y
@@ -186,11 +186,11 @@ class CLD : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param block Block for which to calculate the DCT.
      * @return The DCT of the block.
      */
-    private fun dct(block: IntArray): IntArray {
+    private fun dct(block: FloatArray): FloatArray {
         var sum: Double
         var cu: Double
         var cv: Double
-        val temp = IntArray(64)
+        val temp = FloatArray(64)
 
         for (u in 0..7) {
             for (v in 0..7) {
@@ -202,7 +202,7 @@ class CLD : Analyser<ImageContent, FloatVectorDescriptor> {
                         sum += (block[x * 8 + y] * cos((2 * x + 1) * u * Math.PI / 16.0) * cos((2 * y + 1) * v * Math.PI / 16.0))
                     }
                 }
-                temp[SCAN[8 * u + v]] = floor((0.25 * cu * cv * sum) + 0.5).toInt()
+                temp[SCAN[8 * u + v]] = floor((0.25 * cu * cv * sum) + 0.5).toFloat()
             }
         }
         return temp

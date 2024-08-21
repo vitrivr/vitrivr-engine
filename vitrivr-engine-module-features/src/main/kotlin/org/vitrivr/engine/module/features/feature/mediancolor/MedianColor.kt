@@ -136,8 +136,8 @@ class MedianColor : Analyser<ImageContent, FloatVectorDescriptor> {
             b[(rgb.blue * 255).toInt()]++
         }
 
-        /* Generate vector from per-color histgrams. */
-        val lab = RGBColorContainer(medianFromHistogram(r), medianFromHistogram(g), medianFromHistogram(b)).toXYZ().toLab()
+        /* Generate vector from per-color histograms. */
+        val lab = RGBColorContainer(medianFromHistogram(r), medianFromHistogram(g), medianFromHistogram(b)).toLab()
         return FloatVectorDescriptor(vector = lab.toVector())
     }
 }
