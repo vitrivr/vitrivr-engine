@@ -53,6 +53,7 @@ class VideoSourceMetadataExtractor :
                 mapOf(
                     "width" to Value.Int(source.width() ?: 0),
                     "height" to Value.Int(source.height() ?: 0),
+                    "duration" to Value.Long(source.duration() ?: 0L),
                     "fps" to Value.Double(source.fps() ?: 0.0),
                     "channels" to Value.Int(source.channels() ?: 0),
                     "sampleRate" to Value.Int(source.sampleRate() ?: 0),

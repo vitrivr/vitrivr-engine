@@ -17,7 +17,7 @@ import java.sql.SQLException
  * @author Ralph Gasser
  * @version 1.0.0
  */
-open class PgDescriptorInitializer<D : Descriptor>(final override val field: Schema.Field<*, D>, protected val connection: PgVectorConnection): DescriptorInitializer<D> {
+open class PgDescriptorInitializer<D : Descriptor<*>>(final override val field: Schema.Field<*, D>, protected val connection: PgVectorConnection) : DescriptorInitializer<D> {
 
     companion object {
         /** Set of scalar index structures supported by PostgreSQL. */
@@ -37,29 +37,29 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
      * Initializes the PostgreSQL table entity backing this [PgDescriptorInitializer].
      */
     override fun initialize() {
-        val statement = StringBuilder("CREATE TABLE IF NOT EXISTS \"${tableName}\" (")
+        val statement = StringBuilder("CREATE TABLE IF NOT EXISTS \"${tableName.lowercase()}\" (")
         statement.append("$DESCRIPTOR_ID_COLUMN_NAME uuid NOT NULL, ")
         statement.append("$RETRIEVABLE_ID_COLUMN_NAME uuid NOT NULL, ")
 
         /* Add columns for each field in the struct. */
         for (field in this.prototype.layout()) {
             when (field.type) {
-                Type.String -> statement.append("\"${field.name}\" varchar(255), ")
-                Type.Text -> statement.append("\"${field.name}\" text, ")
-                Type.Boolean -> statement.append("\"${field.name}\" boolean, ")
-                Type.Byte -> statement.append("\"${field.name}\" smallint, ")
-                Type.Short -> statement.append("\"${field.name}\" smallint, ")
-                Type.Int -> statement.append("\"${field.name}\" integer, ")
-                Type.Long -> statement.append("\"${field.name}\" bigint, ")
-                Type.Float -> statement.append("\"${field.name}\" real, ")
-                Type.Double -> statement.append("\"${field.name}\" double precision, ")
-                Type.Datetime -> statement.append("\"${field.name}\" datetime, ")
-                Type.UUID -> statement.append("\"${field.name}\" uuid, ")
-                is Type.BooleanVector -> statement.append("\"${field.name}\" bit(${field.type.dimensions}), ")
-                is Type.DoubleVector -> statement.append("\"${field.name}\" vector(${field.type.dimensions}), ")
-                is Type.FloatVector -> statement.append("\"${field.name}\" vector(${field.type.dimensions}), ")
-                is Type.IntVector -> statement.append("\"${field.name}\" vector(${field.type.dimensions}), ")
-                is Type.LongVector -> statement.append("\"${field.name}\" vector(${field.type.dimensions}), ")
+                Type.String -> statement.append("\"${field.name.lowercase()}\" varchar(255), ")
+                Type.Text -> statement.append("\"${field.name.lowercase()}\" text, ")
+                Type.Boolean -> statement.append("\"${field.name.lowercase()}\" boolean, ")
+                Type.Byte -> statement.append("\"${field.name.lowercase()}\" smallint, ")
+                Type.Short -> statement.append("\"${field.name.lowercase()}\" smallint, ")
+                Type.Int -> statement.append("\"${field.name.lowercase()}\" integer, ")
+                Type.Long -> statement.append("\"${field.name.lowercase()}\" bigint, ")
+                Type.Float -> statement.append("\"${field.name.lowercase()}\" real, ")
+                Type.Double -> statement.append("\"${field.name.lowercase()}\" double precision, ")
+                Type.Datetime -> statement.append("\"${field.name.lowercase()}\" datetime, ")
+                Type.UUID -> statement.append("\"${field.name.lowercase()}\" uuid, ")
+                is Type.BooleanVector -> statement.append("\"${field.name.lowercase()}\" bit(${field.type.dimensions}), ")
+                is Type.DoubleVector -> statement.append("\"${field.name.lowercase()}\" vector(${field.type.dimensions}), ")
+                is Type.FloatVector -> statement.append("\"${field.name.lowercase()}\" vector(${field.type.dimensions}), ")
+                is Type.IntVector -> statement.append("\"${field.name.lowercase()}\" vector(${field.type.dimensions}), ")
+                is Type.LongVector -> statement.append("\"${field.name.lowercase()}\" vector(${field.type.dimensions}), ")
             }
         }
 
@@ -97,7 +97,7 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
                 }
                 this.connection.jdbc.prepareStatement(/* sql = postgres */ indexStatement).use { it.execute() }
             } catch (e: SQLException) {
-                LOGGER.error(e) { "Failed to create index ${index.type} for entity '$tableName' due to exception." }
+                LOGGER.error(e) { "Failed to create index ${index.type} for entity \"${tableName.lowercase()}\" due to exception." }
                 throw e
             }
         }
@@ -109,7 +109,7 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
     override fun deinitialize() {
         try {
             /* Create 'retrievable' entity and index. */
-            this.connection.jdbc.prepareStatement(/* sql = postgres */ "DROP TABLE IF EXISTS \"${tableName}\" CASCADE;").use {
+            this.connection.jdbc.prepareStatement(/* sql = postgres */ "DROP TABLE IF EXISTS \"${tableName.lowercase()}\" CASCADE;").use {
                 it.execute()
             }
         } catch (e: SQLException) {
@@ -124,7 +124,7 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
      */
     override fun isInitialized(): Boolean {
         try {
-            this.connection.jdbc.prepareStatement(/* sql = postgres */ "SELECT count(*) FROM $tableName").use {
+            this.connection.jdbc.prepareStatement(/* sql = postgres */ "SELECT count(*) FROM \"${tableName.lowercase()}\"").use {
                 it.execute()
             }
         } catch (e: SQLException) {
@@ -138,7 +138,7 @@ open class PgDescriptorInitializer<D : Descriptor>(final override val field: Sch
      */
     override fun truncate() {
         try {
-            this.connection.jdbc.prepareStatement(/* sql = postgres */ "TRUNCATE $tableName").use {
+            this.connection.jdbc.prepareStatement(/* sql = postgres */ "TRUNCATE \"${tableName.lowercase()}\"").use {
                 it.execute()
             }
         } catch (e: SQLException) {

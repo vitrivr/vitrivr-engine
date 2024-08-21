@@ -23,14 +23,14 @@ import kotlin.reflect.full.primaryConstructor
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connection: PgVectorConnection) : AbstractDescriptorReader<StructDescriptor>(field, connection) {
+class StructDescriptorReader(field: Schema.Field<*, StructDescriptor<*>>, connection: PgVectorConnection) : AbstractDescriptorReader<StructDescriptor<*>>(field, connection) {
     /**
      * Executes the provided [Query] and returns a [Sequence] of [Retrieved]s that match it.
      *
      * @param query The [Query] to execute.
      * @return [Sequence] of [StructDescriptor]s that match the query.
      */
-    override fun query(query: Query): Sequence<StructDescriptor> = when (query) {
+    override fun query(query: Query): Sequence<StructDescriptor<*>> = when (query) {
         is SimpleFulltextQuery -> queryFulltext(query)
         is SimpleBooleanQuery<*> -> queryBoolean(query)
         else -> throw IllegalArgumentException("Query of typ ${query::class} is not supported by StructDescriptorReader.")
@@ -42,7 +42,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
      * @param result The [ResultSet] to convert.
      * @return The resulting [StructDescriptor].
      */
-    override fun rowToDescriptor(result: ResultSet): StructDescriptor {
+    override fun rowToDescriptor(result: ResultSet): StructDescriptor<*> {
         val constructor = this.field.analyser.descriptorClass.primaryConstructor ?: throw IllegalStateException("Provided type ${this.field.analyser.descriptorClass} does not have a primary constructor.")
         val values = TreeMap<AttributeName,Value<*>?>()
         val parameters: MutableList<Any?> = mutableListOf(
@@ -55,22 +55,22 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
         /* Append dynamic parameters of struct. */
         for (field in this.prototype.layout()) {
             values[field.name] = when(field.type) {
-                Type.String -> result.getString(field.name)?.let { Value.String(it) }
-                Type.Text -> result.getString(field.name)?.let { Value.Text(it) }
-                Type.Boolean -> result.getBoolean(field.name).let { Value.Boolean(it) }
-                Type.Byte -> result.getByte(field.name).let { Value.Byte(it) }
-                Type.Short -> result.getShort(field.name).let { Value.Short(it) }
-                Type.Int -> result.getInt(field.name).let { Value.Int(it) }
-                Type.Long -> result.getLong(field.name).let { Value.Long(it) }
-                Type.Float -> result.getFloat(field.name).let { Value.Float(it) }
-                Type.Double -> result.getDouble(field.name).let { Value.Double(it) }
-                Type.Datetime -> result.getDate(field.name).toInstant().let { Value.DateTime(Date(it.toEpochMilli())) }
-                Type.UUID -> result.getObject(field.name, UUID::class.java).let { Value.UUIDValue(it) }
-                is Type.BooleanVector -> result.getObject(field.name, PgBitVector::class.java).toBooleanVector()
-                is Type.IntVector -> result.getObject(field.name, PgVector::class.java)?.toIntVector()
-                is Type.LongVector -> result.getObject(field.name, PgVector::class.java)?.toLongVector()
-                is Type.FloatVector -> result.getObject(field.name, PgVector::class.java)?.toFloatVector()
-                is Type.DoubleVector -> result.getObject(field.name, PgVector::class.java)?.toDoubleVector()
+                Type.String -> result.getString(field.name.lowercase())?.let { Value.String(it) }
+                Type.Text -> result.getString(field.name.lowercase())?.let { Value.Text(it) }
+                Type.Boolean -> result.getBoolean(field.name.lowercase()).let { Value.Boolean(it) }
+                Type.Byte -> result.getByte(field.name.lowercase()).let { Value.Byte(it) }
+                Type.Short -> result.getShort(field.name.lowercase()).let { Value.Short(it) }
+                Type.Int -> result.getInt(field.name.lowercase()).let { Value.Int(it) }
+                Type.Long -> result.getLong(field.name.lowercase()).let { Value.Long(it) }
+                Type.Float -> result.getFloat(field.name.lowercase()).let { Value.Float(it) }
+                Type.Double -> result.getDouble(field.name.lowercase()).let { Value.Double(it) }
+                Type.Datetime -> result.getDate(field.name.lowercase()).toInstant().let { Value.DateTime(Date(it.toEpochMilli())) }
+                Type.UUID -> result.getObject(field.name.lowercase(), UUID::class.java).let { Value.UUIDValue(it) }
+                is Type.BooleanVector -> result.getObject(field.name.lowercase(), PgBitVector::class.java).toBooleanVector()
+                is Type.IntVector -> result.getObject(field.name.lowercase(), PgVector::class.java)?.toIntVector()
+                is Type.LongVector -> result.getObject(field.name.lowercase(), PgVector::class.java)?.toLongVector()
+                is Type.FloatVector -> result.getObject(field.name.lowercase(), PgVector::class.java)?.toFloatVector()
+                is Type.DoubleVector -> result.getObject(field.name.lowercase(), PgVector::class.java)?.toDoubleVector()
             } as Value<*>?
         }
 
@@ -84,9 +84,9 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
      * @param query The [SimpleFulltextQuery] to execute.
      * @return [Sequence] of [StructDescriptor]s.
      */
-    private fun queryFulltext(query: SimpleFulltextQuery): Sequence<StructDescriptor> {
+    private fun queryFulltext(query: SimpleFulltextQuery): Sequence<StructDescriptor<*>> {
         require(query.attributeName != null) { "Query attribute must not be null for a fulltext query on a struct descriptor." }
-        val statement = "SELECT * FROM \"$tableName\" WHERE ${query.attributeName} @@ plainto_tsquery(?)"
+        val statement = "SELECT * FROM \"${tableName.lowercase()}\" WHERE ${query.attributeName} @@ plainto_tsquery(?)"
         return sequence {
             this@StructDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
                 stmt.setString(1, query.value.value)
@@ -105,9 +105,9 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor>, connectio
      * @param query The [SimpleBooleanQuery] to execute.
      * @return [Sequence] of [StructDescriptor]s.
      */
-    private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<StructDescriptor> {
+    private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<StructDescriptor<*>> {
         require(query.attributeName != null) { "Query attribute must not be null for a fulltext query on a struct descriptor." }
-        val statement = "SELECT * FROM \"$tableName\" WHERE ${query.attributeName} ${query.comparison.toSql()} ?"
+        val statement = "SELECT * FROM \"${tableName.lowercase()}\"  WHERE ${query.attributeName} ${query.comparison.toSql()} ?"
         return sequence {
             this@StructDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
                 stmt.setValue(1, query.value)

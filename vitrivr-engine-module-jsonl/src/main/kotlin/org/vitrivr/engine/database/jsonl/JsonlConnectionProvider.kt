@@ -3,8 +3,8 @@ package org.vitrivr.engine.database.jsonl
 import org.vitrivr.engine.core.database.AbstractConnectionProvider
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.model.descriptor.scalar.*
+import org.vitrivr.engine.core.model.descriptor.struct.AnyMapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
-import org.vitrivr.engine.core.model.descriptor.struct.MapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.MediaDimensionsDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.Rectangle2DMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadataDescriptor
@@ -17,7 +17,7 @@ import org.vitrivr.engine.database.jsonl.vector.VectorJsonlProvider
 import java.nio.file.Path
 
 
-class JsonlConnectionProvider() : AbstractConnectionProvider() {
+class JsonlConnectionProvider : AbstractConnectionProvider() {
 
     override val databaseName = "JSONL File Connection"
     override val version = "1.0.0"
@@ -53,7 +53,7 @@ class JsonlConnectionProvider() : AbstractConnectionProvider() {
         this.register(TemporalMetadataDescriptor::class, StructJsonlProvider)
         this.register(Rectangle2DMetadataDescriptor::class, StructJsonlProvider)
         this.register(MediaDimensionsDescriptor::class, StructJsonlProvider)
-        this.register(MapStructDescriptor::class, StructJsonlProvider)
+        this.register(AnyMapStructDescriptor::class, StructJsonlProvider)
     }
 
 }
