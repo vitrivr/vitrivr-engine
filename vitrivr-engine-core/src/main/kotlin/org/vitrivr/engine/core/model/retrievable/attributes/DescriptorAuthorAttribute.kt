@@ -26,7 +26,7 @@ class DescriptorAuthorAttribute() : MergingRetrievableAttribute {
         return this
     }
 
-    fun add(descriptor: Descriptor, author: String) = add(descriptor.id, author)
+    fun add(descriptor: Descriptor<*>, author: String) = add(descriptor.id, author)
 
     @Synchronized
     fun getAuthor(id: DescriptorId): String? = idToAuthorMap[id]

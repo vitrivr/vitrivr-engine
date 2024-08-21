@@ -20,11 +20,11 @@ class VectorDescriptorAggregator : TransformerFactory {
 
     enum class AggregationStrategy {
         FIRST {
-            override fun aggregate(collection: Collection<VectorDescriptor<*>>): VectorDescriptor<*> =
+            override fun aggregate(collection: Collection<VectorDescriptor<*, *>>): VectorDescriptor<*, *> =
                 collection.first()
         },
         MEAN {
-            override fun aggregate(collection: Collection<VectorDescriptor<*>>): VectorDescriptor<*> {
+            override fun aggregate(collection: Collection<VectorDescriptor<*, *>>): VectorDescriptor<*, *> {
 
                 val vec = FloatArray(collection.first().vector.size)
 
@@ -74,7 +74,7 @@ class VectorDescriptorAggregator : TransformerFactory {
             }
         };
 
-        abstract fun aggregate(collection: Collection<VectorDescriptor<*>>): VectorDescriptor<*>
+        abstract fun aggregate(collection: Collection<VectorDescriptor<*, *>>): VectorDescriptor<*, *>
 
     }
 
@@ -103,7 +103,7 @@ class VectorDescriptorAggregator : TransformerFactory {
                 ingested.filteredAttribute(DescriptorAuthorAttribute::class.java)?.getDescriptorIds(authorName)
                     ?: emptySet()
             val descriptors =
-                ingested.descriptors.filter { it.id in descriptorIds }.filterIsInstance<VectorDescriptor<*>>()
+                ingested.descriptors.filter { it.id in descriptorIds }.filterIsInstance<VectorDescriptor<*, *>>()
 
             if (descriptors.isEmpty()) {
                 return@map ingested //nothing to do

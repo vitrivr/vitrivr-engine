@@ -40,6 +40,7 @@ class ImageCaptionExtractor : FesExtractor<ImageContent, TextDescriptor> {
         parameters: Map<String, String>
     ) : super(input, name, analyser, parameters)
 
+
     /** The [ImageCaptioningApi] used to perform extraction with. */
     private val captioningApi by lazy { ImageCaptioningApi(this.host, this.model, this.timeoutMs, this.pollingIntervalMs, this.retries) }
 
