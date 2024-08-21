@@ -1,4 +1,4 @@
-package org.vitrivr.engine.module.features.feature.averagecolor
+package org.vitrivr.engine.core.features.averagecolor
 
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
