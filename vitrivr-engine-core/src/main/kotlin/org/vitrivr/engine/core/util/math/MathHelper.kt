@@ -18,6 +18,12 @@ object MathHelper {
     /** Square root of 2 as a [Float]. */
     val SQRT2_f: Float = SQRT2.toFloat()
 
+    /** Square root of 1/2. */
+    val SQRT1_2: Double = sqrt(0.5)
+
+    /** Square root of 1/2 as a [Float]. */
+    val SQRT1_2f: Float = SQRT1_2.toFloat()
+
     /**
      * Normalizes a [Array] of [Value.Float] with respect to the L2 (euclidian) norm.
      * The method will return a new array and leave the original array unchanged.

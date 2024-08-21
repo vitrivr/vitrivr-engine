@@ -16,17 +16,19 @@ import kotlin.math.sqrt
 value class RGBColorContainer constructor(private val rgb: FloatArray) {
 
     init {
-        require(this.rgb.size == 3) { "RGBFloatColorContainer must have exactly 3 elements." }
+        require(this.rgb.size == 4) { "RGBFloatColorContainer must have exactly 3 elements." }
         require(this.rgb[0] in 0.0f..1.0f) { "RGBFloatColorContainer components must be between 0.0 and 1.0." }
         require(this.rgb[1] in 0.0f..1.0f) { "RGBFloatColorContainer components must be between 0.0 and 1.0." }
         require(this.rgb[2] in 0.0f..1.0f) { "RGBFloatColorContainer components must be between 0.0 and 1.0." }
+        require(this.rgb[3] in 0.0f..1.0f) { "RGBFloatColorContainer components must be between 0.0 and 1.0." }
+
     }
 
     constructor(rgb: Int) : this((rgb shr 16 and 0xFF).toByte(), (rgb shr 8 and 0xFF).toByte(), (rgb and 0xFF).toByte())
-    constructor(red: Byte, green: Byte, blue: Byte) : this(red.toFloat() / 255f, green.toFloat() / 255f, blue.toFloat() / 255f)
-    constructor(red: Int, green: Int, blue: Int) : this(red.toFloat() / 255f, green.toFloat() / 255f, blue.toFloat() / 255f)
-    constructor(r: Double, g: Double, b: Double) : this(r.toFloat(), g.toFloat(), b.toFloat())
-    constructor(red: Float, green: Float, blue: Float) : this(floatArrayOf(red, green, blue))
+    constructor(red: Byte, green: Byte, blue: Byte, alpha: Byte = Byte.MAX_VALUE) : this(red.toFloat() / 255f, green.toFloat() / 255f, blue.toFloat() / 255f, alpha.toFloat() / 255f)
+    constructor(red: Int, green: Int, blue: Int, alpha: Int = 255) : this(red.toFloat() / 255f, green.toFloat() / 255f, blue.toFloat() / 255f, alpha.toFloat() / 255f)
+    constructor(r: Double, g: Double, b: Double, alpha: Double = 1.0) : this(r.toFloat(), g.toFloat(), b.toFloat(), alpha.toFloat())
+    constructor(red: Float, green: Float, blue: Float, alpha: Float = 1.0f) : this(floatArrayOf(red, green, blue, alpha))
 
     /** Accessor for the red component of the [RGBColorContainer]. */
     val red: Float
@@ -39,6 +41,10 @@ value class RGBColorContainer constructor(private val rgb: FloatArray) {
     /** Accessor for the blue component of the [RGBColorContainer]. */
     val blue: Float
         get() = this.rgb[2]
+
+    /** Accessor for the alpha component of the [RGBColorContainer]. */
+    val alpha: Float
+        get() = this.rgb[3]
 
     /**
      * Adds this [RGBColorContainer] to another [RGBColorContainer].
@@ -140,6 +146,13 @@ value class RGBColorContainer constructor(private val rgb: FloatArray) {
             r * 0.2126 + g * 0.7152 + b * 0.0722,
             r * 0.0193 + g * 0.1192 + b * 0.9505
         )
+    }
+
+    fun toYCbCr(): YCbCrColorContainer {
+        val y = Math.round((this.red * 255.0f * 65.738f + this.green * 255.0f * 129.057f + this.blue * 255.0f * 25.064f) / 256f + 16)
+        val cb = Math.round((this.red * 255.0f * -37.945f + this.green * 255.0f * -74.494f + this.blue * 255.0f * 112.439f) / 256f + 128)
+        val cr = Math.round((this.red * 255.0f * 112.439f + this.green * 255.0f * -94.154f + this.blue * 255.0f * -18.285f) / 256f + 128)
+        return YCbCrColorContainer(y, cb, cr)
     }
 
     /**
