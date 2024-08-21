@@ -1,16 +1,15 @@
 package org.vitrivr.engine.core.features.averagecolor
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flow
+import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.features.AbstractRetriever
+import org.vitrivr.engine.core.math.correspondence.LinearCorrespondence
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
-import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
-import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 
@@ -20,28 +19,23 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
  * @see [AverageColor]
  *
  * @author Luca Rossetto
- * @version 1.1.0
+ * @version 1.2.0
  */
-class AverageColorRetriever(
-    override val field: Schema.Field<ImageContent, FloatVectorDescriptor>,
-    private val query: ProximityQuery<Value.FloatVector>
-) : Retriever<ImageContent, FloatVectorDescriptor> {
-
-    private val logger: KLogger = KotlinLogging.logger {}
+class AverageColorRetriever(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: ProximityQuery<Value.FloatVector>, context: QueryContext) : AbstractRetriever<ImageContent, FloatVectorDescriptor>(field, query, context) {
 
     companion object {
-        private const val MAXIMUM_DISTANCE = 3f
-        fun scoringFunction(retrieved: Retrieved): Float {
-            val distance = retrieved.filteredAttribute<DistanceAttribute>()?.distance ?: return 0.0f
-            return 1.0f - (distance / MAXIMUM_DISTANCE)
-        }
+        /** [LinearCorrespondence] for [AverageColorRetriever]. */
+        private val CORRESPONDENCE = LinearCorrespondence(3f)
     }
 
     override fun toFlow(scope: CoroutineScope) = flow {
-        val reader = this@AverageColorRetriever.field.getReader()
-        logger.debug { "Flow init with query $query" }
-        reader.queryAndJoin(this@AverageColorRetriever.query).forEach {
-            it.addAttribute(ScoreAttribute.Similarity(scoringFunction(it)))
+        this@AverageColorRetriever.reader.queryAndJoin(this@AverageColorRetriever.query).forEach {
+            val distance = it.filteredAttribute<DistanceAttribute>()
+            if (distance != null) {
+                it.addAttribute(CORRESPONDENCE(distance))
+            } else {
+                this@AverageColorRetriever.logger.warn { "No distance attribute found for descriptor ${it.id}." }
+            }
             emit(it)
         }
     }
