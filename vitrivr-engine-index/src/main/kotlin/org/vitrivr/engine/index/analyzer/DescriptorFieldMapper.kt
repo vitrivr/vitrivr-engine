@@ -26,10 +26,10 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 import kotlin.reflect.KClass
 
-class DescriptorFieldMapper : Analyser<ContentElement<*>, Descriptor> {
+class DescriptorFieldMapper : Analyser<ContentElement<*>, Descriptor<*>> {
 
     override val contentClasses: Set<KClass<out ContentElement<*>>> = emptySet() //no content is processed
-    override val descriptorClass: KClass<Descriptor> = Descriptor::class
+    override val descriptorClass: KClass<Descriptor<*>> = Descriptor::class
 
     companion object {
         const val TYPE_PARAMETER_NAME = "type"
@@ -52,7 +52,7 @@ class DescriptorFieldMapper : Analyser<ContentElement<*>, Descriptor> {
 //        }
 //    }
 
-    override fun prototype(field: Schema.Field<*, *>): Descriptor {
+    override fun prototype(field: Schema.Field<*, *>): Descriptor<*> {
         val descriptorType = DescriptorType.valueOf(
             field.parameters[TYPE_PARAMETER_NAME]
                 ?: throw IllegalArgumentException("'$TYPE_PARAMETER_NAME' is not defined")
@@ -91,10 +91,10 @@ class DescriptorFieldMapper : Analyser<ContentElement<*>, Descriptor> {
     }
 
     override fun newExtractor(
-        field: Schema.Field<ContentElement<*>, Descriptor>,
+        field: Schema.Field<ContentElement<*>, Descriptor<*>>,
         input: Operator<Retrievable>,
         context: IndexContext
-    ): Extractor<ContentElement<*>, Descriptor> {
+    ): Extractor<ContentElement<*>, Descriptor<*>> {
         val authorName = field.parameters[AUTHORNAME_PARAMETER_NAME]
             ?: throw IllegalArgumentException("'$AUTHORNAME_PARAMETER_NAME' is not defined")
         return Mapper(input, field, authorName)
@@ -102,9 +102,9 @@ class DescriptorFieldMapper : Analyser<ContentElement<*>, Descriptor> {
 
     inner class Mapper(
         override val input: Operator<out Retrievable>,
-        override val field: Schema.Field<ContentElement<*>, Descriptor>,
+        override val field: Schema.Field<ContentElement<*>, Descriptor<*>>,
         private val authorName: String
-    ) : Extractor<ContentElement<*>, Descriptor> {
+    ) : Extractor<ContentElement<*>, Descriptor<*>> {
         override val analyser = this@DescriptorFieldMapper
         override val name = field.fieldName
         override val persisting = true
@@ -149,7 +149,7 @@ class DescriptorFieldMapper : Analyser<ContentElement<*>, Descriptor> {
 
         }
 
-        private fun toFloatDescriptor(descriptor: Descriptor): FloatDescriptor {
+        private fun toFloatDescriptor(descriptor: Descriptor<*>): FloatDescriptor {
             field as Schema.Field<*, FloatDescriptor>
             return when(descriptor) {
                 is FloatDescriptor -> descriptor.copy(field = field)
@@ -160,7 +160,7 @@ class DescriptorFieldMapper : Analyser<ContentElement<*>, Descriptor> {
             }
         }
 
-        private fun toDoubleDescriptor(descriptor: Descriptor): DoubleDescriptor {
+        private fun toDoubleDescriptor(descriptor: Descriptor<*>): DoubleDescriptor {
             field as Schema.Field<*, DoubleDescriptor>
             return when(descriptor) {
                 is FloatDescriptor -> DoubleDescriptor(descriptor.id, descriptor.retrievableId, Value.Double(descriptor.value.value.toDouble()), field)
@@ -171,7 +171,7 @@ class DescriptorFieldMapper : Analyser<ContentElement<*>, Descriptor> {
             }
         }
 
-        private fun toIntDescriptor(descriptor: Descriptor): IntDescriptor {
+        private fun toIntDescriptor(descriptor: Descriptor<*>): IntDescriptor {
             field as Schema.Field<*, IntDescriptor>
             return when(descriptor) {
                 is FloatDescriptor -> IntDescriptor(descriptor.id, descriptor.retrievableId, Value.Int(descriptor.value.value.toInt()), field)
@@ -182,7 +182,7 @@ class DescriptorFieldMapper : Analyser<ContentElement<*>, Descriptor> {
             }
         }
 
-        private fun toFloatVectorDescriptor(descriptor: Descriptor): FloatVectorDescriptor {
+        private fun toFloatVectorDescriptor(descriptor: Descriptor<*>): FloatVectorDescriptor {
             field as Schema.Field<*, FloatVectorDescriptor>
             return when(descriptor) {
                 is FloatVectorDescriptor -> descriptor.copy(field = field)
@@ -193,7 +193,7 @@ class DescriptorFieldMapper : Analyser<ContentElement<*>, Descriptor> {
             }
         }
 
-        private fun toDoubleVectorDescriptor(descriptor: Descriptor): DoubleVectorDescriptor {
+        private fun toDoubleVectorDescriptor(descriptor: Descriptor<*>): DoubleVectorDescriptor {
             field as Schema.Field<*, DoubleVectorDescriptor>
             return when(descriptor) {
                 is FloatVectorDescriptor -> DoubleVectorDescriptor(descriptor.id, descriptor.retrievableId, Value.DoubleVector(DoubleArray(descriptor.vector.size){descriptor.vector.value[it].toDouble()}), field)
@@ -204,7 +204,7 @@ class DescriptorFieldMapper : Analyser<ContentElement<*>, Descriptor> {
             }
         }
 
-        private fun toIntVectorDescriptor(descriptor: Descriptor): IntVectorDescriptor {
+        private fun toIntVectorDescriptor(descriptor: Descriptor<*>): IntVectorDescriptor {
             field as Schema.Field<*, IntVectorDescriptor>
             return when(descriptor) {
                 is FloatVectorDescriptor -> IntVectorDescriptor(descriptor.id, descriptor.retrievableId, Value.IntVector(IntArray(descriptor.vector.size){descriptor.vector.value[it].toInt()}), field)
@@ -222,31 +222,31 @@ class DescriptorFieldMapper : Analyser<ContentElement<*>, Descriptor> {
         name: String,
         input: Operator<Retrievable>,
         context: IndexContext
-    ): Extractor<ContentElement<*>, Descriptor> {
+    ): Extractor<ContentElement<*>, Descriptor<*>> {
         throw UnsupportedOperationException("DescriptorPersister required backing field")
     }
 
     override fun newRetrieverForQuery(
-        field: Schema.Field<ContentElement<*>, Descriptor>,
+        field: Schema.Field<ContentElement<*>, Descriptor<*>>,
         query: Query,
         context: QueryContext
-    ): Retriever<ContentElement<*>, Descriptor> {
+    ): Retriever<ContentElement<*>, Descriptor<*>> {
         throw UnsupportedOperationException("DescriptorPersister does not support retrieval")
     }
 
     override fun newRetrieverForContent(
-        field: Schema.Field<ContentElement<*>, Descriptor>,
+        field: Schema.Field<ContentElement<*>, Descriptor<*>>,
         content: Collection<ContentElement<*>>,
         context: QueryContext
-    ): Retriever<ContentElement<*>, Descriptor> {
+    ): Retriever<ContentElement<*>, Descriptor<*>> {
         throw UnsupportedOperationException("DescriptorPersister does not support retrieval")
     }
 
     override fun newRetrieverForDescriptors(
-        field: Schema.Field<ContentElement<*>, Descriptor>,
-        descriptors: Collection<Descriptor>,
+        field: Schema.Field<ContentElement<*>, Descriptor<*>>,
+        descriptors: Collection<Descriptor<*>>,
         context: QueryContext
-    ): Retriever<ContentElement<*>, Descriptor> {
+    ): Retriever<ContentElement<*>, Descriptor<*>> {
         throw UnsupportedOperationException("DescriptorPersister does not support retrieval")
     }
 }

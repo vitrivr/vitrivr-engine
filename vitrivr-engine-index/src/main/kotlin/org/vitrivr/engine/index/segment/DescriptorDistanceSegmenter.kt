@@ -45,7 +45,7 @@ class DescriptorDistanceSegmenter : TransformerFactory {
         private val atMost: Float
     ) : Transformer {
 
-        private fun compare(comparisonAnchor: Value.Vector<*>, descriptor: VectorDescriptor<*>): Boolean {
+        private fun compare(comparisonAnchor: Value.Vector<*>, descriptor: VectorDescriptor<*, *>): Boolean {
             val dist = when (comparisonAnchor) {
                 is Value.FloatVector -> {
                     distance(comparisonAnchor, (descriptor as FloatVectorDescriptor).vector)
@@ -73,7 +73,7 @@ class DescriptorDistanceSegmenter : TransformerFactory {
                     ingested.filteredAttribute(DescriptorAuthorAttribute::class.java)?.getDescriptorIds(authorName)
                         ?: emptySet()
                 val descriptors =
-                    ingested.descriptors.filter { it.id in descriptorIds }.filterIsInstance<VectorDescriptor<*>>()
+                    ingested.descriptors.filter { it.id in descriptorIds }.filterIsInstance<VectorDescriptor<*, *>>()
                 if (descriptors.isEmpty()) {
                     return@collect
                 }

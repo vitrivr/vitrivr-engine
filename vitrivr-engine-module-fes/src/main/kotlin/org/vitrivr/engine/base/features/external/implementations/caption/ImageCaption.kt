@@ -9,6 +9,7 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
+import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
@@ -16,6 +17,7 @@ import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
@@ -49,7 +51,7 @@ class ImageCaption : ExternalFesAnalyser<ContentElement<*>, TextDescriptor>() {
      * @param context The [IndexContext] to use with the [ImageCaptionExtractor].
      * @return [ImageCaptionExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ImageCaptionExtractor(input, name, this, context.local[name] ?: emptyMap())
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = TODO("type mismatch") // = ImageCaptionExtractor(input, name, this, emptyMap())
 
     /**
      * Generates and returns a new [ImageCaptionExtractor] instance for this [ImageCaption].
@@ -59,7 +61,7 @@ class ImageCaption : ExternalFesAnalyser<ContentElement<*>, TextDescriptor>() {
      * @param context The [IndexContext] to use with the [ImageCaptionExtractor].
      * @return [ImageCaptionExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, TextDescriptor>, input: Operator<Retrievable>, context: IndexContext) = ImageCaptionExtractor(input, field, this, merge(field, context))
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, TextDescriptor>, input: Operator<Retrievable>, context: IndexContext) = TODO("type mismatch") //ImageCaptionExtractor(input, field, this, merge(field, context) )
 
     /**
      * Generates and returns a new [FulltextRetriever] instance for this [ExternalFesAnalyser].
