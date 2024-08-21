@@ -46,6 +46,34 @@ value class RGBColorContainer constructor(private val rgb: FloatArray) {
         get() = this.rgb[3]
 
     /**
+     * Converts the [red] component of this [RGBColorContainer] to an [Int] representation.
+     *
+     * @return [Int] representation of [blue] color
+     */
+    fun redAsInt(): Int = (this.red * 255).toInt()
+
+    /**
+     * Converts the [green] component of this [RGBColorContainer] to an [Int] representation.
+     *
+     * @return [Int] representation of [blue] color
+     */
+    fun greenAsInt(): Int = (this.green * 255).toInt()
+
+    /**
+     * Converts the [blue] component of this [RGBColorContainer] to an [Int] representation.
+     *
+     * @return [Int] representation of [blue] color
+     */
+    fun blueAsInt(): Int = (this.blue * 255).toInt()
+
+    /**
+     * Converts the [alpha] component of this [RGBColorContainer] to an [Int] representation.
+     *
+     * @return [Int] representation of [alpha] color
+     */
+    fun alphaAsInt(): Int = (this.alpha * 255).toInt()
+
+    /**
      * Adds this [RGBColorContainer] to another [RGBColorContainer].
      *
      * @param other [RGBColorContainer] to add.
@@ -88,7 +116,7 @@ value class RGBColorContainer constructor(private val rgb: FloatArray) {
      *
      * @return [Int] representation of RGB color
      */
-    fun toRGBInt(): Int = (this.blue * 255).toInt() and 0XFF or ((this.green * 255).toInt() and 0xFF shl 8) or (((this.red * 255).toInt() and 0xFF) shl 16)
+    fun toRGBInt(): Int = this.blueAsInt() and 0XFF or ((this.greenAsInt() and 0xFF) shl 8) or ((this.redAsInt() and 0xFF) shl 16)
 
     /**
      * Converts this [RGBColorContainer] to a [HSVColorContainer].

@@ -19,6 +19,7 @@ import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
+import org.vitrivr.engine.core.util.extension.getRGBArray
 import java.util.*
 import kotlin.reflect.KClass
 
@@ -128,7 +129,7 @@ class HueHistogram : Analyser<ImageContent, FloatVectorDescriptor> {
     fun analyse(content: ImageContent): FloatVectorDescriptor {
         /* Generate histogram. */
         val hist = FloatArray(VECTOR_SIZE)
-        val colors = content.content.getRGB(0, 0, content.content.width, content.content.height, null, 0, content.content.width)
+        val colors = content.content.getRGBArray()
         for (color in colors) {
             val container: HSVColorContainer = RGBColorContainer(color).toHSV()
             if (container.saturation > 0.2f && container.value > 0.3f) {
