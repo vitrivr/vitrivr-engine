@@ -30,27 +30,8 @@ import java.util.*
  * @version 1.0.0
  */
 class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
-
     override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = FloatVectorDescriptor::class
-
-    companion object {
-        /**
-         * Performs the [AverageColor] analysis on the provided [List] of [ImageContent] elements.
-         *
-         * @param content The [List] of [ImageContent] elements.
-         * @return [List] of [FloatVectorDescriptor]s.
-         */
-        fun analyse(content: Collection<ImageContent>): List<FloatVectorDescriptor> = content.map {
-            val color = MutableRGBFloatColorContainer()
-            val rgb = it.content.getRGBArray()
-            rgb.forEach { c -> color += RGBByteColorContainer(c) }
-
-            /* Generate descriptor. */
-            val averageColor = RGBFloatColorContainer(color.red / rgb.size, color.green / rgb.size, color.blue / rgb.size)
-            FloatVectorDescriptor(UUID.randomUUID(), null, averageColor.toVector())
-        }
-    }
 
     /**
      * Generates a prototypical [FloatVectorDescriptor] for this [AverageColor].
@@ -97,7 +78,7 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
         @Suppress("UNCHECKED_CAST")
-        return AverageColorRetriever(field, query as ProximityQuery<Value.FloatVector>)
+        return AverageColorRetriever(field, query as ProximityQuery<Value.FloatVector>, context)
     }
 
     /**
@@ -131,5 +112,21 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param context The [QueryContext] to use with the [Retriever]
      */
     override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext): AverageColorRetriever =
-        this.newRetrieverForDescriptors(field, analyse(content), context)
+        this.newRetrieverForDescriptors(field, this.analyse(content), context)
+
+    /**
+     * Performs the [AverageColor] analysis on the provided [List] of [ImageContent] elements.
+     *
+     * @param content The [List] of [ImageContent] elements.
+     * @return [List] of [FloatVectorDescriptor]s.
+     */
+    fun analyse(content: Collection<ImageContent>): List<FloatVectorDescriptor> = content.map {
+        val color = MutableRGBFloatColorContainer()
+        val rgb = it.content.getRGBArray()
+        rgb.forEach { c -> color += RGBByteColorContainer(c) }
+
+        /* Generate descriptor. */
+        val averageColor = RGBFloatColorContainer(color.red / rgb.size, color.green / rgb.size, color.blue / rgb.size)
+        FloatVectorDescriptor(UUID.randomUUID(), null, averageColor.toVector())
+    }
 }
