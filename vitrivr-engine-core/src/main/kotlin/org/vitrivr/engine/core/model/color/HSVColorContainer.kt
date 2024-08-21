@@ -1,7 +1,7 @@
 package org.vitrivr.engine.core.model.color
 
 import org.vitrivr.engine.core.model.types.Value
-import kotlin.math.floor
+import java.awt.color.ColorSpace
 
 /**
  * A container for HSV colors.
@@ -10,29 +10,36 @@ import kotlin.math.floor
  * @version 1.0.0
  */
 @JvmInline
-value class HSVColorContainer constructor(private val colors: FloatArray) {
+value class HSVColorContainer constructor(private val hsv: FloatArray) {
+
+    init {
+        require(this.hsv.size == 3) { "HSVFloatColorContainer must have exactly 3 elements." }
+        require(this.hsv[0] in 0.0f..1.0f) { "HSVFloatColorContainer components must be between 0.0 and 1.0." }
+        require(this.hsv[1] in 0.0f..1.0f) { "HSVFloatColorContainer components must be between 0.0 and 1.0." }
+        require(this.hsv[2] in 0.0f..1.0f) { "HSVFloatColorContainer components must be between 0.0 and 1.0." }
+    }
 
     constructor(hue: Float, saturation: Float, value: Float) : this(floatArrayOf(hue, saturation, value))
     constructor(hue: Double, saturation: Double, value: Double) : this(floatArrayOf(hue.toFloat(), saturation.toFloat(), value.toFloat()))
 
     /** Accessor for the hue component of the [HSVColorContainer]. */
     val hue: Float
-        get() = this.colors[0]
+        get() = this.hsv[0]
 
     /** Accessor for the saturation component of the [HSVColorContainer]. */
     val saturation: Float
-        get() = this.colors[1]
+        get() = this.hsv[1]
 
     /** Accessor for the value component of the [HSVColorContainer]. */
     val value: Float
-        get() = this.colors[2]
+        get() = this.hsv[2]
 
     /**
      * Converts this [HSVColorContainer] a [Value.FloatVector]
      *
      * @return [Value.FloatVector]
      */
-    fun toVector() = Value.FloatVector(this.colors)
+    fun toVector() = Value.FloatVector(this.hsv)
 
     /**
      * Converts this [HSVColorContainer] to a [RGBColorContainer].
@@ -40,23 +47,9 @@ value class HSVColorContainer constructor(private val colors: FloatArray) {
      * @return [RGBColorContainer]
      */
     fun toRGB(): RGBColorContainer {
-        if (this.saturation < 0.00001f) {
-            return RGBColorContainer(this.value, this.value, this.value)
-        } else {
-            val h: Float = ((this.hue * 6.0) % 6.0).toFloat()
-            val i = floor(h).toInt()
-            val v1 = (this.value * (1.0f - this.saturation))
-            val v2 = (this.value * (1.0f - this.saturation * (h - i)))
-            val v3 = (this.value * (1.0f - this.saturation * (1.0f - (h - i))))
-            return when (i) {
-                0 -> RGBColorContainer(this.value, v3, v1)
-                1 -> RGBColorContainer(v2, this.value, v1)
-                2 -> RGBColorContainer(v1, this.value, v3)
-                3 -> RGBColorContainer(v1, v2, 1.0f)
-                4 -> RGBColorContainer(v3, v1, this.value)
-                else -> RGBColorContainer(this.value, v1, v2)
-            }
-        }
+        val space = ColorSpace.getInstance(ColorSpace.TYPE_HSV)
+        val hsv = space.toRGB(this.hsv)
+        return RGBColorContainer(hsv[0], hsv[1], hsv[2])
     }
 
     override fun toString(): String = "HSVFloatColorContainer(H=$hue, S=$saturation, V=$value)"

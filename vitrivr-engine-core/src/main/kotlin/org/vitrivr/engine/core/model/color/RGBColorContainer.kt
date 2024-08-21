@@ -1,9 +1,9 @@
 package org.vitrivr.engine.core.model.color
 
 import org.vitrivr.engine.core.model.types.Value
+import java.awt.color.ColorSpace
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.pow
 import kotlin.math.sqrt
 
 /**
@@ -16,12 +16,11 @@ import kotlin.math.sqrt
 value class RGBColorContainer constructor(private val rgb: FloatArray) {
 
     init {
-        require(this.rgb.size == 4) { "RGBFloatColorContainer must have exactly 3 elements." }
+        require(this.rgb.size == 4) { "RGBFloatColorContainer must have exactly 4 elements." }
         require(this.rgb[0] in 0.0f..1.0f) { "RGBFloatColorContainer components must be between 0.0 and 1.0." }
         require(this.rgb[1] in 0.0f..1.0f) { "RGBFloatColorContainer components must be between 0.0 and 1.0." }
         require(this.rgb[2] in 0.0f..1.0f) { "RGBFloatColorContainer components must be between 0.0 and 1.0." }
         require(this.rgb[3] in 0.0f..1.0f) { "RGBFloatColorContainer components must be between 0.0 and 1.0." }
-
     }
 
     constructor(rgb: Int) : this((rgb shr 16 and 0xFF).toByte(), (rgb shr 8 and 0xFF).toByte(), (rgb and 0xFF).toByte())
@@ -97,17 +96,18 @@ value class RGBColorContainer constructor(private val rgb: FloatArray) {
      * @return [HSVColorContainer]
      */
     fun toHSV(): HSVColorContainer {
-        val max = maxOf(this.red, this.green, this.blue)
-        val min = minOf(this.red, this.green, this.blue)
-        val d = max - min
-        val s = if (max == 0f) 0f else d / max
-        val h = when {
-            d == 0f -> 0f
-            max == this.red -> (this.green - this.blue) / d + (if (this.green < this.blue) 6 else 0)
-            max == this.green -> (this.blue - this.red) / d + 2
-            else -> (this.red - this.green) / d + 4
-        }
-        return HSVColorContainer(h, s, max)
+        val space = ColorSpace.getInstance(ColorSpace.TYPE_HSV)
+        return HSVColorContainer(space.fromRGB(this.rgb))
+    }
+
+    /**
+     * Converts this [RGBColorContainer] to a [LabColorContainer].
+     *
+     * @return [LabColorContainer]
+     */
+    fun toLab(): LabColorContainer {
+        val space = ColorSpace.getInstance(ColorSpace.TYPE_Lab)
+        return LabColorContainer(space.fromRGB(this.rgb))
     }
 
     /**
@@ -116,43 +116,18 @@ value class RGBColorContainer constructor(private val rgb: FloatArray) {
      * @return [XYZColorContainer]
      */
     fun toXYZ(): XYZColorContainer {
-        var r = this.red.toDouble()
-        var g = this.green.toDouble()
-        var b = this.blue.toDouble()
-        if (r > 0.04045) {
-            r = ((r + 0.055) / 1.055).pow(2.4)
-        } else {
-            r /= 12.92
-        }
-
-        if (g > 0.04045) {
-            g = ((g + 0.055) / 1.055).pow(2.4)
-        } else {
-            g /= 12.92
-        }
-
-        if (b > 0.04045) {
-            b = ((b + 0.055) / 1.055).pow(2.4)
-        } else {
-            b /= 12.92
-        }
-
-        r *= 100.0
-        g *= 100.0
-        b *= 100.0
-
-        return XYZColorContainer(
-            r * 0.4121 + g * 0.3576 + b * 0.1805,
-            r * 0.2126 + g * 0.7152 + b * 0.0722,
-            r * 0.0193 + g * 0.1192 + b * 0.9505
-        )
+        val space = ColorSpace.getInstance(ColorSpace.TYPE_XYZ)
+        return XYZColorContainer(space.fromRGB(this.rgb))
     }
 
+    /**
+     * Converts this [RGBColorContainer] to a [YCbCrColorContainer].
+     *
+     * @return [YCbCrColorContainer]
+     */
     fun toYCbCr(): YCbCrColorContainer {
-        val y = Math.round((this.red * 255.0f * 65.738f + this.green * 255.0f * 129.057f + this.blue * 255.0f * 25.064f) / 256f + 16)
-        val cb = Math.round((this.red * 255.0f * -37.945f + this.green * 255.0f * -74.494f + this.blue * 255.0f * 112.439f) / 256f + 128)
-        val cr = Math.round((this.red * 255.0f * 112.439f + this.green * 255.0f * -94.154f + this.blue * 255.0f * -18.285f) / 256f + 128)
-        return YCbCrColorContainer(y, cb, cr)
+        val space = ColorSpace.getInstance(ColorSpace.TYPE_YCbCr)
+        return YCbCrColorContainer(space.fromRGB(this.rgb))
     }
 
     /**
