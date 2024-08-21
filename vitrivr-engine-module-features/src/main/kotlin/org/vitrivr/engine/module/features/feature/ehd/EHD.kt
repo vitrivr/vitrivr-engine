@@ -4,6 +4,8 @@ import boofcv.io.image.ConvertBufferedImage
 import boofcv.struct.image.GrayU8
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.features.dense.DenseRetriever
+import org.vitrivr.engine.core.math.correspondence.LinearCorrespondence
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -102,23 +104,23 @@ class EHD : Analyser<ImageContent, FloatVectorDescriptor> {
     override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext) = EHDExtractor(input, this, field)
 
     /**
-     * Generates and returns a new [EHDRetriever] instance for this [EHD].
+     * Generates and returns a new [DenseRetriever] instance for this [EHD].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param query The [Query] to use with the [Retriever].
      * @param context The [QueryContext] to use with the [Retriever].
      *
-     * @return A new [EHDRetriever] instance for this [EHD]
+     * @return A new [DenseRetriever] instance for this [EHD]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, context: QueryContext): EHDRetriever {
+    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, context: QueryContext): DenseRetriever<ImageContent> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
         @Suppress("UNCHECKED_CAST")
-        return EHDRetriever(field, query as ProximityQuery<Value.FloatVector>, context)
+        return DenseRetriever(field, query as ProximityQuery<Value.FloatVector>, context, LinearCorrespondence(4f))
     }
 
     /**
-     * Generates and returns a new [EHDRetriever] instance for this [EHD].
+     * Generates and returns a new [DenseRetriever] instance for this [EHD].
      *
      * Invoking this method involves converting the provided [FloatVectorDescriptor] into a [ProximityQuery] that can be used to retrieve similar [ImageContent] elements.
      *
@@ -126,7 +128,7 @@ class EHD : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): EHDRetriever {
+    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): DenseRetriever<ImageContent> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
 
         /* Prepare query parameters. */
@@ -138,7 +140,7 @@ class EHD : Analyser<ImageContent, FloatVectorDescriptor> {
     }
 
     /**
-     * Generates and returns a new [EHDRetriever] instance for this [EHD].
+     * Generates and returns a new [DenseRetriever] instance for this [EHD].
      *
      * Invoking this method involves converting the provided [ImageContent] and the [QueryContext] into a [FloatVectorDescriptor]
      * that can be used to retrieve similar [ImageContent] elements.
@@ -147,8 +149,7 @@ class EHD : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param content An array of [Content] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext): EHDRetriever =
-        this.newRetrieverForDescriptors(field, content.map { this.analyse(it) }, context)
+    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext) = this.newRetrieverForDescriptors(field, content.map { this.analyse(it) }, context)
 
     /**
      * Performs the [EHD] analysis on the provided [ImageContent] and returns a [FloatVectorDescriptor] that represents the result.
