@@ -17,7 +17,7 @@ import java.sql.SQLException
 internal val LOGGER: KLogger = logger("org.vitrivr.engine.database.pgvector.PgVectorConnection")
 
 /**
- * A [AbstractConnection] to connect to a PostgreSQL instance with the pgVector extension.
+ * An [AbstractConnection] to connect to a PostgreSQL instance with the pgVector extension.
  *
  * @author Ralph Gasser
  * @version 1.0.0

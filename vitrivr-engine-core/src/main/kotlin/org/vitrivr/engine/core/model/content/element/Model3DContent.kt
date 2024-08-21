@@ -2,7 +2,6 @@ package org.vitrivr.engine.core.model.content.element
 
 import org.vitrivr.engine.core.model.content.ContentType
 import org.vitrivr.engine.core.model.mesh.Model3D
-import java.awt.image.BufferedImage
 
 /**
  * A 3D [ContentElement].
