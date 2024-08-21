@@ -40,59 +40,23 @@ value class HSVColorContainer constructor(private val colors: FloatArray) {
      * @return [RGBColorContainer]
      */
     fun toRGB(): RGBColorContainer {
-        var r = 0
-        var g = 0
-        var b = 0
         if (this.saturation < 0.00001f) {
-            b = (this.value * 255f).toInt()
-            g = b
-            r = g
+            return RGBColorContainer(this.value, this.value, this.value)
         } else {
-            val h: Double = (this.hue * 6.0) % 6.0
+            val h: Float = ((this.hue * 6.0) % 6.0).toFloat()
             val i = floor(h).toInt()
-            val v1 = (this.value * (1.0 - this.saturation) * 255f).toInt()
-            val v2 = (this.value * (1.0 - this.saturation * (h - i)) * 255f).toInt()
-            val v3 = (this.value * (1.0 - this.saturation * (1 - (h - i))) * 255f).toInt()
-
-            when (i) {
-                0 -> {
-                    r = (255f * this.value).toInt()
-                    g = v3
-                    b = v1
-                }
-
-                1 -> {
-                    r = v2
-                    g = (255f * this.value).toInt()
-                    b = v1
-                }
-
-                2 -> {
-                    r = v1
-                    g = (255f * this.value).toInt()
-                    b = v3
-                }
-
-                3 -> {
-                    r = v1
-                    g = v2
-                    b = (this.value * 255f).toInt()
-                }
-
-                4 -> {
-                    r = v3
-                    g = v1
-                    b = (this.value * 255f).toInt()
-                }
-
-                else -> {
-                    r = (255f * this.value).toInt()
-                    g = v1
-                    b = v2
-                }
+            val v1 = (this.value * (1.0f - this.saturation))
+            val v2 = (this.value * (1.0f - this.saturation * (h - i)))
+            val v3 = (this.value * (1.0f - this.saturation * (1.0f - (h - i))))
+            return when (i) {
+                0 -> RGBColorContainer(this.value, v3, v1)
+                1 -> RGBColorContainer(v2, this.value, v1)
+                2 -> RGBColorContainer(v1, this.value, v3)
+                3 -> RGBColorContainer(v1, v2, 1.0f)
+                4 -> RGBColorContainer(v3, v1, this.value)
+                else -> RGBColorContainer(this.value, v1, v2)
             }
         }
-        return RGBColorContainer(r, g, b)
     }
 
     override fun toString(): String = "HSVFloatColorContainer(H=$hue, S=$saturation, V=$value)"
