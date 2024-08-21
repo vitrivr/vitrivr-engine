@@ -2,9 +2,7 @@ package org.vitrivr.engine.module.features.feature.dominantcolor
 
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
-import org.vitrivr.engine.module.features.feature.averagecolor.AverageColorExtractor
-import org.vitrivr.engine.core.model.color.ColorConverter
-import org.vitrivr.engine.core.model.color.rgb.RGBByteColorContainer
+import org.vitrivr.engine.core.model.color.RGBColorContainer
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
@@ -13,7 +11,6 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.BooleanQuery
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
-import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
@@ -111,39 +108,31 @@ class DominantColor : Analyser<ImageContent, LabelDescriptor> {
         val hist = IntArray(10) { 0 }
         val rgb = it.content.getRGBArray()
         rgb.forEach { color ->
-            val hsv = ColorConverter.rgbToHsv(RGBByteColorContainer(color))
+            val hsv = RGBColorContainer(color).toHSV()
 
             if(hsv.saturation < 0.02f){
-                ++hist[0];
-                return@forEach;
+                ++hist[0]
+                return@forEach
             }
-            if(hsv.saturation < 0.2f || hsv.value < 0.3f){
-                ++hist[9];
-                return@forEach;
-            }
-            else if(hsv.hue >= 0.07 && hsv.hue < 0.14){  //orange
-                ++hist[2];
-            }
-            else if(hsv.hue >= 0.14 && hsv.hue < 0.17){ //yellow
-                ++hist[3];
-            }
-            else if(hsv.hue >= 0.17 && hsv.hue < 0.44){ //green
-                ++hist[4];
-            }
-            else if(hsv.hue >= 0.44 && hsv.hue < 0.56){ //cyan
-                ++hist[5];
-            }
-            else if(hsv.hue >= 0.56 && hsv.hue < 0.73){ //blue
-                ++hist[6];
-            }
-            else if(hsv.hue >= 0.73 && hsv.hue < 0.76){ //violet
-                ++hist[7];
-            }
-            else if(hsv.hue >= 0.76 && hsv.hue < 0.92){ //magenta
-                ++hist[8];
-            }
-            else{
-                ++hist[1];
+            if (hsv.saturation < 0.2f || hsv.value < 0.3f) {
+                ++hist[9]
+                return@forEach
+            } else if (hsv.hue >= 0.07 && hsv.hue < 0.14) {  //orange
+                ++hist[2]
+            } else if (hsv.hue >= 0.14 && hsv.hue < 0.17) { //yellow
+                ++hist[3]
+            } else if (hsv.hue >= 0.17 && hsv.hue < 0.44) { //green
+                ++hist[4]
+            } else if (hsv.hue >= 0.44 && hsv.hue < 0.56) { //cyan
+                ++hist[5]
+            } else if (hsv.hue >= 0.56 && hsv.hue < 0.73) { //blue
+                ++hist[6]
+            } else if (hsv.hue >= 0.73 && hsv.hue < 0.76) { //violet
+                ++hist[7]
+            } else if (hsv.hue >= 0.76 && hsv.hue < 0.92) { //magenta
+                ++hist[8]
+            } else {
+                ++hist[1]
             }
 
         }
@@ -152,7 +141,5 @@ class DominantColor : Analyser<ImageContent, LabelDescriptor> {
         val label = if (max < rgb.size / 2) ColorLabel.UNDETERMINED else  ColorLabel.entries[hist.indexOf(max)]
 
         return@map LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), label.name)
-
     }
-
 }
