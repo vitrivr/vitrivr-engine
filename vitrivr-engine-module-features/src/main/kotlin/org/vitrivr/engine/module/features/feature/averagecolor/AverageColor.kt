@@ -109,7 +109,7 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param context The [QueryContext] to use with the [Retriever]
      */
     override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext): DenseRetriever<ImageContent> =
-        this.newRetrieverForDescriptors(field, this.analyse(content), context)
+        this.newRetrieverForDescriptors(field, content.map { this.analyse(it) }, context)
 
     /**
      * Performs the [AverageColor] analysis on the provided [List] of [ImageContent] elements.
@@ -117,9 +117,9 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param content The [List] of [ImageContent] elements.
      * @return [List] of [FloatVectorDescriptor]s.
      */
-    fun analyse(content: Collection<ImageContent>): List<FloatVectorDescriptor> = content.map {
+    fun analyse(content: ImageContent): FloatVectorDescriptor {
         val color = floatArrayOf(0f, 0f, 0f)
-        val rgb = it.content.getRGBArray()
+        val rgb = content.content.getRGBArray()
         for (c in rgb) {
             val container = RGBColorContainer(c)
             color[0] += container.red
@@ -129,6 +129,6 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
 
         /* Generate descriptor. */
         val averageColor = RGBColorContainer(color[0] / rgb.size, color[1] / rgb.size, color[2] / rgb.size)
-        FloatVectorDescriptor(UUID.randomUUID(), null, averageColor.toVector())
+        return FloatVectorDescriptor(UUID.randomUUID(), null, averageColor.toVector())
     }
 }
