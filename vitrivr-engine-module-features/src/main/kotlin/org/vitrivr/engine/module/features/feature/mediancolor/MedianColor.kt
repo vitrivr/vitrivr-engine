@@ -17,6 +17,7 @@ import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
+import org.vitrivr.engine.core.util.extension.getRGBArray
 import org.vitrivr.engine.core.util.math.StatisticsHelper.medianFromHistogram
 import java.util.*
 
@@ -128,12 +129,12 @@ class MedianColor : Analyser<ImageContent, FloatVectorDescriptor> {
         val b = IntArray(256)
 
         /* Extract colors from content and generate histogram. */
-        val colors: IntArray = content.content.getRGB(0, 0, content.content.width, content.content.height, null, 0, content.content.width);
+        val colors: IntArray = content.content.getRGBArray()
         for (color in colors) {
             val rgb = RGBColorContainer(color)
-            r[(rgb.red * 255).toInt()]++
-            g[(rgb.green * 255).toInt()]++
-            b[(rgb.blue * 255).toInt()]++
+            r[rgb.redAsInt()]++
+            g[rgb.greenAsInt()]++
+            b[rgb.blueAsInt()]++
         }
 
         /* Generate vector from per-color histograms. */
