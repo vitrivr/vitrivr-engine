@@ -31,13 +31,13 @@ class RepresentativeImageContentAggregator : TransformerFactory {
      * @param context The [IndexContext] to use.
      * @return [RepresentativeImageContentAggregator.Instance]
      */
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer = Instance(input, context as IndexContext)
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer = Instance(input, context as IndexContext, name)
 
 
     /**
      * The [Instance] returns by the [RepresentativeImageContentAggregator]
      */
-    private class Instance(override val input: Operator<out Retrievable>, override val context: IndexContext) : AbstractAggregator(input, context) {
+    private class Instance(override val input: Operator<out Retrievable>, override val context: IndexContext, name: String) : AbstractAggregator(input, context, name) {
         override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> {
             val images = content.filterIsInstance<ImageContent>()
             if (images.isEmpty()) {
@@ -56,7 +56,7 @@ class RepresentativeImageContentAggregator : TransformerFactory {
             images.forEach { imageContent ->
                 require(imageContent.height == height && imageContent.width == width) { "Unable to aggregate images! All images must have same dimension." }
                 imageContent.content.getRGBArray().forEachIndexed { index, color ->
-                    colors[index] += RGBByteColorContainer.fromRGB(color)
+                    colors[index] += RGBByteColorContainer(color)
                 }
             }
 
@@ -68,7 +68,7 @@ class RepresentativeImageContentAggregator : TransformerFactory {
             val mostRepresentative = images.minBy { imageContent ->
 
                 imageContent.content.getRGBArray().mapIndexed { index, color ->
-                    RGBByteColorContainer.fromRGB(color).toFloatContainer().distanceTo(colors[index])
+                    RGBByteColorContainer(color).toFloatContainer().distanceTo(colors[index])
                 }.sum()
 
             }

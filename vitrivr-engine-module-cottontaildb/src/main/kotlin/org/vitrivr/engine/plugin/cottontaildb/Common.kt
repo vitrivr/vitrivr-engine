@@ -3,7 +3,7 @@ package org.vitrivr.engine.plugin.cottontaildb
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.core.types.Types
 import org.vitrivr.cottontail.core.values.*
-import org.vitrivr.engine.core.model.descriptor.FieldSchema
+import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.scalar.*
 import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
@@ -39,9 +39,6 @@ const val DESCRIPTOR_ENTITY_PREFIX = "descriptor"
 /** The column name of a descriptor ID. */
 const val DESCRIPTOR_ID_COLUMN_NAME = "descriptorId"
 
-/** The column name of a descriptor ID. */
-const val DESCRIPTOR_COLUMN_NAME = "descriptor"
-
 /** The column name used to describe a distance.*/
 const val DISTANCE_COLUMN_NAME = "distance"
 
@@ -49,48 +46,27 @@ const val DISTANCE_COLUMN_NAME = "distance"
 const val SCORE_COLUMN_NAME = "score"
 
 /**
- * Converts a vitrivr-engine [FieldSchema] to a Cottontail DB [Types].
+ * Converts a vitrivr-engine [Attribute] to a Cottontail DB [Types].
  *
  * @return [Compare.Operator] used for this [SimpleBooleanQuery]
  */
-internal fun FieldSchema.toCottontailType(): Types<*> {
-    val vector = this.dimensions.size == 1
-    return when (this.type) {
-        Type.STRING -> Types.String
-        Type.BYTE -> Types.Byte
-        Type.SHORT -> Types.Short
-        Type.BOOLEAN -> if (vector) {
-            Types.BooleanVector(this.dimensions[0])
-        } else {
-            Types.Boolean
-        }
-
-        Type.INT -> if (vector) {
-            Types.IntVector(this.dimensions[0])
-        } else {
-            Types.Int
-        }
-
-        Type.LONG -> if (vector) {
-            Types.LongVector(this.dimensions[0])
-        } else {
-            Types.Long
-        }
-
-        Type.FLOAT -> if (vector) {
-            Types.FloatVector(this.dimensions[0])
-        } else {
-            Types.Float
-        }
-
-        Type.DOUBLE -> if (vector) {
-            Types.DoubleVector(this.dimensions[0])
-        } else {
-            Types.Double
-        }
-
-        Type.DATETIME -> Types.Date
-    }
+internal fun Type.toCottontailType(): Types<*> = when (this) {
+    Type.String -> Types.String
+    Type.Text -> Types.String
+    Type.Byte -> Types.Byte
+    Type.Short -> Types.Short
+    Type.Boolean -> Types.Boolean
+    Type.Int -> Types.Int
+    Type.Long -> Types.Long
+    Type.Float -> Types.Float
+    Type.Double -> Types.Double
+    Type.Datetime -> Types.Date
+    Type.UUID -> Types.Uuid
+    is Type.BooleanVector -> Types.BooleanVector(this.dimensions)
+    is Type.DoubleVector -> Types.DoubleVector(this.dimensions)
+    is Type.FloatVector -> Types.FloatVector(this.dimensions)
+    is Type.IntVector -> Types.IntVector(this.dimensions)
+    is Type.LongVector -> Types.LongVector(this.dimensions)
 }
 
 /**
@@ -150,7 +126,14 @@ internal fun Value<*>.toCottontailValue(): PublicValue = when (this) {
     is Value.Long -> LongValue(this.value)
     is Value.Short -> ShortValue(this.value)
     is Value.String -> StringValue(this.value)
+    is Value.Text -> StringValue(this.value)
     is Value.DateTime -> DateValue(this.value)
+    is Value.UUIDValue -> UuidValue(this.value)
+    is Value.BooleanVector -> BooleanVectorValue(this.value)
+    is Value.DoubleVector -> DoubleVectorValue(this.value)
+    is Value.FloatVector -> FloatVectorValue(this.value)
+    is Value.IntVector -> IntVectorValue(this.value)
+    is Value.LongVector -> LongVectorValue(this.value)
 }
 
 /**
@@ -158,20 +141,23 @@ internal fun Value<*>.toCottontailValue(): PublicValue = when (this) {
  *
  * @return [PublicValue] for this [ScalarDescriptor]
  */
-internal fun ScalarDescriptor<*>.toCottontailValue(): PublicValue = this.value.toCottontailValue()
+internal fun ScalarDescriptor<*, *>.toCottontailValue(): PublicValue = this.value.toCottontailValue()
 
 /**
  * Converts this [ScalarDescriptor] to a [Types].
  *
  * @return [Types] for this [ScalarDescriptor]
  */
-internal fun ScalarDescriptor<*>.toType() = when (this) {
+internal fun ScalarDescriptor<*, *>.toType() = when (this) {
     is BooleanDescriptor -> Types.Boolean
+    is ByteDescriptor -> Types.Byte
+    is ShortDescriptor -> Types.Short
     is IntDescriptor -> Types.Int
     is LongDescriptor -> Types.Long
     is FloatDescriptor -> Types.Float
     is DoubleDescriptor -> Types.Double
     is StringDescriptor -> Types.String
+    is TextDescriptor -> Types.String
 }
 
 /**
@@ -196,14 +182,14 @@ internal fun List<Value<*>>.toCottontailValue(): PublicValue {
  *
  * @return [PublicValue] for this [VectorDescriptor]
  */
-internal fun VectorDescriptor<*>.toCottontailValue(): PublicValue = this.vector.toCottontailValue()
+internal fun VectorDescriptor<*, *>.toCottontailValue(): PublicValue = this.vector.toCottontailValue()
 
 /**
  * Converts this [VectorDescriptor] to a [Types].
  *
  * @return [Types] for this [VectorDescriptor]
  */
-internal fun VectorDescriptor<*>.toType() = when (this) {
+internal fun VectorDescriptor<*, *>.toType() = when (this) {
     is BooleanVectorDescriptor -> Types.BooleanVector(this.dimensionality)
     is IntVectorDescriptor -> Types.IntVector(this.dimensionality)
     is LongVectorDescriptor -> Types.LongVector(this.dimensionality)

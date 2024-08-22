@@ -1,7 +1,6 @@
 {
-  "schemas": [
-    {
-      "name": "vitrivr",
+  "schemas": {
+    "vitrivr": {
       "connection": {
         "database": "CottontailConnectionProvider",
         "parameters": {
@@ -9,35 +8,31 @@
           "port": "1865"
         }
       },
-      "fields": [
-        {
-          "name": "averagecolor",
+      "fields": {
+        "averagecolor": {
           "factory": "AverageColor"
         },
-        {
-          "name": "file",
+        "file": {
           "factory": "FileSourceMetadata"
         },
-        {
-          "name": "time",
+        "time": {
           "factory": "TemporalMetadata"
         },
-        {
-          "name": "video",
+        "video": {
           "factory": "VideoSourceMetadata"
         }
-      ],
+      },
       "resolvers": {
         "disk": {
           "factory": "DiskResolver",
           "parameters": {
-            "location": "./thumbnails/vitrivr"
+            "location": "./thumbnails/vitrivr",
+            "mimeType": "GIF"
           }
         }
       },
-      "exporters": [
-        {
-          "name": "thumbnail",
+      "exporters": {
+        "thumbnail": {
           "factory": "ThumbnailExporter",
           "resolverName": "disk",
           "parameters": {
@@ -45,23 +40,27 @@
             "mimeType": "JPG"
           }
         },
-        {
-          "name": "preview",
-          "factory": "VideoPreviewExporter",
+        "preview": {
+          "factory": "ModelPreviewExporter",
           "resolverName": "disk",
           "parameters": {
             "maxSideResolution": "400",
-            "mimeType": "JPG",
-            "previewTimeSec": "5"
+            "mimeType": "GLTF",
+            "distance": "1",
+            "format": "jpg",
+            "views": "4"
           }
         }
-      ],
-      "extractionPipelines": [
-        {
-          "name": "ingestion",
+      },
+      "extractionPipelines": {
+        "ingestion": {
           "path": "./config-ingestion.json"
+        },
+        "preview": {
+          "path": "./config-ingestion-preview-mesh.json"
         }
-      ]
+      }
     }
-  ]
+  }
 }
+

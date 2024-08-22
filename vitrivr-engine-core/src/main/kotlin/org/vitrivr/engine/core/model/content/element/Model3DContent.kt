@@ -12,9 +12,6 @@ import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
 interface Model3DContent : ContentElement<Model3d> {
     /** The [ContentType] of a [Model3DContent] is always [ContentType.MESH]. */
 
-    val id: String
-        get() = this.content.modelId
-
     override val type: ContentType
         get() = ContentType.MESH
 }

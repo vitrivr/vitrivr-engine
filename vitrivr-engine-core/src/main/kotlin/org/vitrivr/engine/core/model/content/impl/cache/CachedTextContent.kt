@@ -1,10 +1,12 @@
 package org.vitrivr.engine.core.model.content.impl.cache
 
+import org.vitrivr.engine.core.model.content.element.ContentId
 import org.vitrivr.engine.core.model.content.element.TextContent
 import java.lang.ref.SoftReference
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
+import java.util.*
 
 /**
  * A [TextContent] implementation that is backed by a cache file.
@@ -12,7 +14,7 @@ import java.nio.file.StandardOpenOption
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class CachedTextContent(override val path: Path, text: String) : TextContent, CachedContent {
+class CachedTextContent(override val path: Path, text: String, override val id: ContentId = ContentId.randomUUID()) : TextContent, CachedContent {
 
     /** The [SoftReference] of the [String] used for caching. */
     private var reference: SoftReference<String> = SoftReference(text)

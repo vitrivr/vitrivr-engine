@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.mapNotNull
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.operators.ingest.DecoderFactory
@@ -30,11 +31,11 @@ class MeshDecoder : DecoderFactory {
      * @param input The input [Enumerator].
      * @param context The [IndexContext]
      */
-    override fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder = Instance(input, context)
+    override fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder = Instance(input, context, name)
     /**
      * The [Decoder] returned by this [MeshDecoder].
      */
-    private class Instance(override val input: Enumerator, private val context: IndexContext) : Decoder {
+    private class Instance(override val input: Enumerator, private val context: IndexContext, private val name : String) : Decoder {
 
         /** [KLogger] instance. */
         private val logger: KLogger = KotlinLogging.logger {}
@@ -59,10 +60,9 @@ class MeshDecoder : DecoderFactory {
                 val model = source.newInputStream().use {
                     handler.loadModel(source.sourceId.toString(), it) // Pass InputStream directly
                 }
-                val modelContent = model?.let { this.context.contentFactory.newMeshContent(it) }
-                if (modelContent != null) {
-                    sourceRetrievable.addContent(modelContent)
-                }
+                val modelContent = this.context.contentFactory.newMeshContent(model!!)
+                sourceRetrievable.addContent(modelContent)
+                sourceRetrievable.addAttribute(ContentAuthorAttribute(modelContent.id, this.name))
                 sourceRetrievable
             } catch (e: IOException) {
                 logger.error(e) { "Failed to decode 3D model from $source due to an IO exception." }

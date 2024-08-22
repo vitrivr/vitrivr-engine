@@ -2,7 +2,6 @@ package org.vitrivr.engine.core.context
 
 import io.javalin.openapi.OpenApiIgnore
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import org.vitrivr.engine.core.model.metamodel.Schema
 
 /**
@@ -11,7 +10,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  * This is applicable for index and query phases.
  */
 @Serializable
-sealed class Context() {
+sealed class Context {
     /**
      * Configuration per named operator.
      */

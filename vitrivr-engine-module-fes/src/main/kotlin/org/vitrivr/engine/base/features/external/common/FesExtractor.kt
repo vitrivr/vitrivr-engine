@@ -1,31 +1,57 @@
 package org.vitrivr.engine.base.features.external.common
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.HOST_PARAMETER_DEFAULT
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.HOST_PARAMETER_NAME
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.MODEL_PARAMETER_NAME
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.POLLINGINTERVAL_MS_PARAMETER_DEFAULT
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.POLLINGINTERVAL_MS_PARAMETER_NAME
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.RETRIES_PARAMETER_DEFAULT
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.RETRIES_PARAMETER_NAME
+import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.TIMEOUT_MS_PARAMETER_DEFAULT
 import org.vitrivr.engine.core.features.AbstractBatchedExtractor
+import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
-import java.util.logging.Logger
-
-private val logger: KLogger = KotlinLogging.logger {}
+import org.vitrivr.engine.core.operators.ingest.Extractor
 
 /**
- * An abstract [Extractor] implementation that is suitable for [ExternalFesAnalyser]s.
+ * An abstract [Extractor] implementation that is suitable for analysers that use the external Feature Extraction Server (FES) API.
  *
- * @param D The type of the [Descriptor] to extract.
- * @param C The type of the [ContentElement] to extract from.
- * @param A The type of the [ExternalFesAnalyser] to use.
+ * @author Fynn Faber
+ * @version 1.1.0
  */
-abstract class FesExtractor<D:Descriptor,C:ContentElement<*>, A:ExternalFesAnalyser<C,D>>(
-        input: Operator<Retrievable>,
-        field: Schema.Field<C, D>?,
-        bufferSize: Int
-) : AbstractBatchedExtractor<C, D>(input, field, bufferSize) {
+abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>>(
+    input: Operator<Retrievable>,
+    field: Schema.Field<C, D>?,
+    analyser: ExternalFesAnalyser<C, D>,
+    protected val parameters: Map<String, String>,
+) : AbstractBatchedExtractor<C, D>(input, analyser, field, parameters["batchSize"]?.toIntOrNull() ?: 1) {
 
+    private val contentSources = parameters[CONTENT_AUTHORS_KEY]?.split(",")?.toSet()
+
+    protected val host: String
+        get() = this.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
+
+    /** Name of the model that should be used. */
+    protected val model: String
+        get() = this.parameters[MODEL_PARAMETER_NAME] ?: throw IllegalStateException("Model parameter not set.")
+
+    /** */
+    protected val timeoutMs: Long
+        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull() ?: TIMEOUT_MS_PARAMETER_DEFAULT
+
+    /** */
+    protected val pollingIntervalMs: Long
+        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull() ?: POLLINGINTERVAL_MS_PARAMETER_DEFAULT
+
+    /** */
+    protected val retries: Int
+        get() = parameters[RETRIES_PARAMETER_NAME]?.toIntOrNull() ?: RETRIES_PARAMETER_DEFAULT
 
     /**
      * Checks if the [Retrievable] matches this [Extractor] and should thus be processed.
@@ -34,50 +60,18 @@ abstract class FesExtractor<D:Descriptor,C:ContentElement<*>, A:ExternalFesAnaly
      * @return True on match, false otherwise,
      */
     override fun matches(retrievable: Retrievable): Boolean {
-        val analyser = field!!.analyser as A
-        return retrievable.findContent { contentItem ->
-            analyser.contentClasses.any { contentClass ->
-                contentClass.isInstance(contentItem)
-            }
-        }.isNotEmpty()
-
+        val contentIds = this.contentSources?.let { retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it) }
+        return retrievable.content.any { content ->
+            this.analyser.contentClasses.any { it.isInstance(content) && (contentIds?.contains(content.id) ?: false) }
+        }
     }
 
-    /**
-     * Extracts descriptors from the given [Retrievable]s.
-     *
-     * @param retrievables The [Retrievable]s to extract descriptors from.
-     * @return List of resulting [Descriptor]s.
-     */
-    override fun extract(retrievables: List<Retrievable>): List<List<D>> {
-        val analyser = field!!.analyser as A
-
-        val allContent : List<List<C>> = retrievables.map { retrievable ->
-            retrievable.findContent { contentItem ->
-                analyser.contentClasses.any { contentClass ->
-                    contentClass.isInstance(contentItem)
-                }
-            }.map{ it as C}
+    fun filterContent(retrievable: Retrievable): List<C> {
+        val contentIds = this.contentSources?.let {
+            retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it)
         }
-        logger.debug { "Extracting descriptors from ${retrievables.size} retrievables (${allContent.flatten().size} content elements total)." }
-
-        val allDescriptors: List<List<D>>
-        try {
-            allDescriptors = analyser.analyse(allContent, field!!.parameters)
-        } catch (e: Exception) {
-            logger.error(e) { "Error during extraction of descriptors in field ${field!!.fieldName}." }
-            throw e
-        }
-
-        logger.debug { "Extracted ${allDescriptors.flatten().size} descriptors from ${allContent.flatten().size} content elements total." }
-
-        return allDescriptors.mapIndexed { index, descriptors ->
-            val retrievableId = retrievables[index].id
-            descriptors.map { assignRetrievableId(it, retrievableId) }
-        }
-
+        return retrievable.content.filter { content ->
+            this.analyser.contentClasses.any { it.isInstance(content) && (contentIds?.contains(content.id) ?: false) }
+        }.map { it as C }
     }
-
-    abstract fun assignRetrievableId(descriptor: D, retrievableId: RetrievableId): D
-
 }

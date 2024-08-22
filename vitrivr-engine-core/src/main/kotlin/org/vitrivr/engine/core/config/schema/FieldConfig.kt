@@ -11,6 +11,5 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  * @author Ralph Gasser
  * @version 1.0.0
  */
-
 @Serializable
-data class FieldConfig(val name: String, val factory: String, val parameters: Map<String,String> = emptyMap())
+data class FieldConfig(val factory: String, val parameters: Map<String,String> = emptyMap(), val indexes: List<IndexConfig> = emptyList())
