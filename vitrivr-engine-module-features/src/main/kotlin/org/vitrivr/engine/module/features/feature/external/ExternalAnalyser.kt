@@ -27,7 +27,7 @@ import java.util.*
  * @version 1.2.0
  */
 
-abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor> : Analyser<T, U> {
+abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor<*>> : Analyser<T, U> {
     companion object {
         /** Name of the host parameter */
         const val HOST_PARAMETER_NAME = "host"
@@ -48,7 +48,7 @@ abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor> : Analyse
          */
         @OptIn(ExperimentalSerializationApi::class)
         @JvmStatic
-        protected inline fun <reified U : Descriptor> httpRequest(
+        protected inline fun <reified U : Descriptor<*>> httpRequest(
             url: String,
             requestBody: String,
             contentType: String = "application/x-www-form-urlencoded",
@@ -83,7 +83,7 @@ abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor> : Analyse
                 if (responseCode != HttpURLConnection.HTTP_OK) return null
                 return connection.inputStream.use { stream ->
                     when (U::class) {
-                        FloatVectorDescriptor::class -> FloatVectorDescriptor(UUID.randomUUID(), null, Json.decodeFromStream<FloatArray>(stream).map { Value.Float(it) })
+                        FloatVectorDescriptor::class -> FloatVectorDescriptor(UUID.randomUUID(), null, Value.FloatVector(Json.decodeFromStream<FloatArray>(stream)))
                         else -> null
                     } as U?
                 }

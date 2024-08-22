@@ -19,7 +19,7 @@ data class ServerConfig(
     val api: ApiConfig = ApiConfig(),
 
     /** List of [SchemaConfig] managed by this [ServerConfig]. */
-    val schemas: List<SchemaConfig>
+    val schemas: Map<String, SchemaConfig>
 ) {
     companion object {
         /** Default path to fall back to. */

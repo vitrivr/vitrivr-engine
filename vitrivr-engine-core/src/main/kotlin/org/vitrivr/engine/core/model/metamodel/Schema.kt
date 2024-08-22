@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.model.metamodel
 
 import org.vitrivr.engine.core.config.ingest.IngestionConfig
 import org.vitrivr.engine.core.config.ingest.IngestionPipelineBuilder
+import org.vitrivr.engine.core.config.schema.IndexConfig
 import org.vitrivr.engine.core.config.schema.SchemaConfig
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
@@ -29,12 +30,12 @@ typealias FieldName = String
  * A [Schema] that defines a particular vitrivr instance's meta data model.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 open class Schema(val name: String = "vitrivr", val connection: Connection) : Closeable {
 
     /** The [List] of [Field]s contained in this [Schema]. */
-    private val fields: MutableList<Schema.Field<ContentElement<*>, Descriptor>> = mutableListOf()
+    private val fields: MutableList<Schema.Field<ContentElement<*>, Descriptor<*>>> = mutableListOf()
 
     /** The [List] of [Exporter]s contained in this [Schema]. */
     private val exporters: MutableList<Schema.Exporter> = mutableListOf()
@@ -49,13 +50,13 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      * Adds a new [Field] to this [Schema].
      *
      * @param name The name of the new [Field]. Must be unique.
+     * @param analyser The [Analyser] to use with the new [Field].
+     * @param parameters The (optional) parameters used to configure the [Field].
+     * @param indexes List of [IndexConfig]s that can be used to configure indexes on the [Field].
+     * @return [Field] instance.
      */
-    fun addField(
-        name: String,
-        analyser: Analyser<ContentElement<*>, Descriptor>,
-        parameters: Map<String, String> = emptyMap()
-    ) {
-        this.fields.add(Field(name, analyser, parameters))
+    fun addField(name: String, analyser: Analyser<ContentElement<*>, Descriptor<*>>, parameters: Map<String, String> = emptyMap(), indexes: List<IndexConfig>) {
+        this.fields.add(Field(name, analyser, parameters, indexes))
     }
 
     /**
@@ -98,7 +99,7 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      *
      * @return Unmodifiable list of [Schema.Field].
      */
-    fun fields(): List<Schema.Field<ContentElement<*>, Descriptor>> = Collections.unmodifiableList(this.fields)
+    fun fields(): List<Schema.Field<ContentElement<*>, Descriptor<*>>> = Collections.unmodifiableList(this.fields)
 
     /**
      * Returns the field at the provided [index].
@@ -154,11 +155,17 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      *
      * A [Field] always has a unique name and is backed by an existing [Analyser].
      */
-    inner class Field<C : ContentElement<*>, D : Descriptor>(
+    inner class Field<C : ContentElement<*>, D : Descriptor<*>>(
         val fieldName: FieldName,
         val analyser: Analyser<C, D>,
-        val parameters: Map<String, String> = emptyMap()
+        val parameters: Map<String, String> = emptyMap(),
+        val indexes: List<IndexConfig> = emptyList()
     ) {
+
+        init {
+            require(this.fieldName.matches(Regex("^[a-zA-Z0-9]+$"))) { "Field name can only contain alpha-numeric characters and numbers." }
+        }
+
         /** Pointer to the [Schema] this [Field] belongs to.*/
         val schema: Schema
             get() = this@Schema
@@ -231,14 +238,14 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          *
          * @return [DescriptorReader]
          */
-        fun getReader(): DescriptorReader<D> = this@Schema.connection.getDescriptorReader(this as Field<*, D>)
+        fun getReader(): DescriptorReader<D> = this.connection.getDescriptorReader(this as Field<*, D>)
 
         /**
          * Convenience method to generate and return a [DescriptorWriter] for this [Field].
          *
          * @return [DescriptorWriter]
          */
-        fun getWriter(): DescriptorWriter<D> = this@Schema.connection.getDescriptorWriter(this as Field<*, D>)
+        fun getWriter(): DescriptorWriter<D> = this.connection.getDescriptorWriter(this as Field<*, D>)
     }
 
     /**

@@ -7,7 +7,6 @@ import org.vitrivr.engine.core.model.content.element.Model3DContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.source.file.FileSource
@@ -19,10 +18,19 @@ import org.vitrivr.engine.core.source.file.FileSource
  *  A search engine for 3D models. ACM Trans. Graph., 22(1), 83–105. http://doi.org/10.1145/588272.588279
  *
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.2.0
  */
-class SphericalHarmonicsExtractor(input: Operator<Retrievable>, field: Schema.Field<Model3DContent, FloatVectorDescriptor>?, private val gridSize: Int, private val cap: Int, private val minL: Int, private val maxL: Int) :
-    AbstractExtractor<Model3DContent, FloatVectorDescriptor>(input, field) {
+class SphericalHarmonicsExtractor(
+    input: Operator<Retrievable>,
+    analyser: SphericalHarmonics,
+    field: Schema.Field<Model3DContent, FloatVectorDescriptor>?,
+    private val gridSize: Int,
+    private val cap: Int,
+    private val minL: Int,
+    private val maxL: Int
+) :
+    AbstractExtractor<Model3DContent, FloatVectorDescriptor>(input, analyser, field) {
+
     init {
         require(this.minL < this.maxL) { "Parameter mismatch: min_l must be smaller than max_l. "}
     }

@@ -1,33 +1,29 @@
 package org.vitrivr.engine.plugin.cottontaildb
 
+import org.vitrivr.engine.core.database.AbstractConnectionProvider
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
-import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.scalar.*
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
-import org.vitrivr.engine.core.model.descriptor.struct.RasterDescriptor
-import org.vitrivr.engine.core.model.descriptor.struct.SkeletonDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.MediaDimensionsDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.Rectangle2DMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
-import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.MapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.scalar.ScalarDescriptorProvider
-import org.vitrivr.engine.plugin.cottontaildb.descriptors.string.StringDescriptorProvider
-import java.util.*
-import kotlin.reflect.KClass
+import org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider
+import org.vitrivr.engine.plugin.cottontaildb.descriptors.vector.VectorDescriptorProvider
 
 /**
  * Implementation of the [ConnectionProvider] interface for Cottontail DB.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
-class CottontailConnectionProvider: ConnectionProvider {
+class CottontailConnectionProvider: AbstractConnectionProvider() {
 
     companion object {
         /** Name of the host parameter. */
@@ -49,36 +45,34 @@ class CottontailConnectionProvider: ConnectionProvider {
     /** The version of the [CottontailConnectionProvider]. */
     override val version: String = "1.0.0"
 
-    /** List of registered [LinkedList]*/
-    private val registered = mutableMapOf<KClass<*>, DescriptorProvider<*>>(
+    /**
+     * This method is called during initialization of the [CottontailConnectionProvider] and can be used to register [DescriptorProvider]s.
+     */
+    override fun initialize() {
         /* Scalar descriptors. */
-        BooleanDescriptor::class to ScalarDescriptorProvider,
-        IntDescriptor::class to ScalarDescriptorProvider,
-        LongDescriptor::class to ScalarDescriptorProvider,
-        FloatDescriptor::class to ScalarDescriptorProvider,
-        DoubleDescriptor::class to ScalarDescriptorProvider,
-
-        /* String descriptor. */
-        StringDescriptor::class to StringDescriptorProvider,
+        this.register(BooleanDescriptor::class, ScalarDescriptorProvider)
+        this.register(IntDescriptor::class, ScalarDescriptorProvider)
+        this.register(LongDescriptor::class, ScalarDescriptorProvider)
+        this.register(FloatDescriptor::class, ScalarDescriptorProvider)
+        this.register(DoubleDescriptor::class, ScalarDescriptorProvider)
+        this.register(StringDescriptor::class, ScalarDescriptorProvider)
+        this.register(TextDescriptor::class, ScalarDescriptorProvider)
 
         /* Vector descriptors. */
-        BooleanVectorDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.vector.VectorDescriptorProvider,
-        IntVectorDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.vector.VectorDescriptorProvider,
-        LongVectorDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.vector.VectorDescriptorProvider,
-        FloatVectorDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.vector.VectorDescriptorProvider,
-        DoubleVectorDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.vector.VectorDescriptorProvider,
+        this.register(BooleanVectorDescriptor::class, VectorDescriptorProvider)
+        this.register(IntVectorDescriptor::class, VectorDescriptorProvider)
+        this.register(LongVectorDescriptor::class, VectorDescriptorProvider)
+        this.register(FloatVectorDescriptor::class, VectorDescriptorProvider)
+        this.register(DoubleVectorDescriptor::class, VectorDescriptorProvider)
 
         /* Struct descriptor. */
-        LabelDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
-        FileSourceMetadataDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
-        VideoSourceMetadataDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
-        TemporalMetadataDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
-        Rectangle2DMetadataDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
-        MediaDimensionsDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
-        SkeletonDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
-        RasterDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider,
-        MapStructDescriptor::class to org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider
-    )
+        this.register(LabelDescriptor::class, StructDescriptorProvider)
+        this.register(FileSourceMetadataDescriptor::class, StructDescriptorProvider)
+        this.register(VideoSourceMetadataDescriptor::class, StructDescriptorProvider)
+        this.register(TemporalMetadataDescriptor::class, StructDescriptorProvider)
+        this.register(Rectangle2DMetadataDescriptor::class, StructDescriptorProvider)
+        this.register(MediaDimensionsDescriptor::class, StructDescriptorProvider)
+    }
 
     /**
      * Opens a new [CottontailConnection] for the given [Schema].
@@ -92,25 +86,4 @@ class CottontailConnectionProvider: ConnectionProvider {
         parameters[PARAMETER_NAME_HOST] ?: PARAMETER_DEFAULT_HOST,
         parameters[PARAMETER_NAME_PORT]?.toIntOrNull() ?: PARAMETER_DEFAULT_PORT
     )
-
-    /**
-     * Registers an [DescriptorProvider] for a particular [KClass] of [Descriptor] with this [Connection].
-     *
-     * This method is an extension point to add support for new [Descriptor]s to a pre-existing database driver.
-     *
-     * @param descriptorClass The [KClass] of the [Descriptor] to register [DescriptorProvider] for.
-     * @param provider The [DescriptorProvider] to register.
-     */
-    override fun <T : Descriptor> register(descriptorClass: KClass<T>, provider: DescriptorProvider<*>) {
-        this.registered[descriptorClass] = provider
-    }
-
-    /**
-     * Obtains an [DescriptorProvider] for a particular [KClass] of [Descriptor], that has been registered with this [ConnectionProvider].
-     *
-     * @param descriptorClass The [KClass] of the [Descriptor] to lookup [DescriptorProvider] for.
-     * @return The registered [DescriptorProvider] .
-     */
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : Descriptor> obtain(descriptorClass: KClass<T>): DescriptorProvider<T> = this.registered[descriptorClass] as DescriptorProvider<T>
 }

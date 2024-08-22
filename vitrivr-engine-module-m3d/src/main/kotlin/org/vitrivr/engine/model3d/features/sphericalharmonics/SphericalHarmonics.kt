@@ -35,7 +35,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  *  A search engine for 3D models. ACM Trans. Graph., 22(1), 83–105. http://doi.org/10.1145/588272.588279
  *
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.2.0
  */
 class SphericalHarmonics : Analyser<Model3DContent, FloatVectorDescriptor> {
     companion object {
@@ -94,12 +94,12 @@ class SphericalHarmonics : Analyser<Model3DContent, FloatVectorDescriptor> {
             val numberOfCoefficients: Int = SphericalHarmonicsFunction.numberOfCoefficients(maxL, true) - SphericalHarmonicsFunction.numberOfCoefficients(minL - 1, true)
 
             /* Prepares an empty array for the feature vector. */
-            val feature = Array((R - cap) * numberOfCoefficients) { _ -> Value.Float(0f) }
+            val feature = FloatArray((R - cap) * numberOfCoefficients) { _ -> 0f }
 
             /* Voxelizes the grid from the mesh. If the resulting grid is invisible, the method returns immediately. */
             val grid: VoxelModel = voxelizer.voxelize(mesh, gridSize + 1, gridSize + 1, gridSize + 1)
             if (!grid.isVisible()) {
-                return FloatVectorDescriptor(UUID.randomUUID(), null, feature.toList())
+                return FloatVectorDescriptor(UUID.randomUUID(), null, Value.FloatVector(feature))
             }
 
             val descriptors: MutableList<MutableList<Complex>> = LinkedList()
@@ -144,12 +144,12 @@ class SphericalHarmonics : Analyser<Model3DContent, FloatVectorDescriptor> {
             var index = 0
             for (radius in descriptors) {
                 for (descriptor in radius) {
-                    feature[index++] = Value.Float(descriptor.abs().toFloat())
+                    feature[index++] = descriptor.abs().toFloat()
                 }
             }
 
             /* Returns the normalized vector. */
-            return FloatVectorDescriptor(UUID.randomUUID(), null, MathHelper.normalizeL2(feature).toList())
+            return FloatVectorDescriptor(UUID.randomUUID(), null, Value.FloatVector(MathHelper.normalizeL2(feature)))
         }
     }
 
@@ -162,16 +162,16 @@ class SphericalHarmonics : Analyser<Model3DContent, FloatVectorDescriptor> {
         val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
         val numberOfCoefficients: Int = SphericalHarmonicsFunction.numberOfCoefficients(maxL, true) - SphericalHarmonicsFunction.numberOfCoefficients(minL - 1, true)
         val vectorSize = ((gridSize / 2) - cap) * numberOfCoefficients
-        return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(vectorSize) { Value.Float(0f) })
+        return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(FloatArray(vectorSize)))
     }
 
     override fun newRetrieverForQuery(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, query: Query, context: QueryContext): Retriever<Model3DContent, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        require(query is ProximityQuery<*> && query.value.first() is Value.Float) { }
+        require(query is ProximityQuery<*> && query.value is Value.FloatVector) { }
 
         /* Construct query. */
         @Suppress("UNCHECKED_CAST")
-        return SphericalHarmonicsRetriever(field, query as ProximityQuery<Value.Float>, context)
+        return SphericalHarmonicsRetriever(field, query as ProximityQuery<Value.FloatVector>, context)
     }
 
     override fun newRetrieverForDescriptors(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): Retriever<Model3DContent, FloatVectorDescriptor> {
@@ -199,30 +199,36 @@ class SphericalHarmonics : Analyser<Model3DContent, FloatVectorDescriptor> {
     }
 
     /**
+     * Generates and returns a new [SphericalHarmonicsExtractor] instance for this [SphericalHarmonics].
      *
+     * @param field The [Schema.Field] to create an [Extractor] for.
+     * @param input The [Operator] that acts as input to the new [Extractor].
+     * @param context The [IndexContext] to use with the [Extractor].
+     * @return [SphericalHarmonicsExtractor]
      */
-    override fun newExtractor(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext): Extractor<Model3DContent, FloatVectorDescriptor> {
+    override fun newExtractor(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext): SphericalHarmonicsExtractor {
         val gridSize = field.parameters[GRID_SIZE_PARAMETER_NAME]?.toIntOrNull() ?: context.getProperty("", "")?.toIntOrNull() ?: GRID_SIZE_PARAMETER_DEFAULT
         val cap = field.parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: context.getProperty("", "")?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
         val minL = field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: context.getProperty("", "")?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
         val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: context.getProperty("", "")?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
-
         logger.debug { "Creating new SphericalHarmonicsExtract for field '${field.fieldName}' with parameters ($gridSize, $cap, $minL, $maxL)." }
-
-        return SphericalHarmonicsExtractor(input, field, gridSize, cap, minL, maxL)
+        return SphericalHarmonicsExtractor(input, this, field, gridSize, cap, minL, maxL)
     }
 
     /**
+     * Generates and returns a new [SphericalHarmonicsExtractor] instance for this [SphericalHarmonics].
      *
+     * @param name The name of the [SphericalHarmonicsExtractor].
+     * @param input The [Operator] that acts as input to the new [Extractor].
+     * @param context The [IndexContext] to use with the [Extractor].
+     * @return [SphericalHarmonicsExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<Model3DContent, FloatVectorDescriptor> {
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): SphericalHarmonicsExtractor {
         val gridSize = context.getProperty(name, GRID_SIZE_PARAMETER_NAME)?.toIntOrNull() ?: GRID_SIZE_PARAMETER_DEFAULT
         val cap = context.getProperty(name, CAP_PARAMETER_NAME)?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
         val minL = context.getProperty(name, MINL_PARAMETER_NAME)?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
         val maxL = context.getProperty(name, MAXL_PARAMETER_NAME)?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
-
         logger.debug { "Creating new SphericalHarmonicsExtract with parameters ($gridSize, $cap, $minL, $maxL)." }
-
-        return SphericalHarmonicsExtractor(input, null, gridSize, cap, minL, maxL)
+        return SphericalHarmonicsExtractor(input, this, null, gridSize, cap, minL, maxL)
     }
 }

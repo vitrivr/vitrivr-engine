@@ -9,11 +9,11 @@ import org.vitrivr.engine.core.model.types.Value
  * A [SimpleFulltextQuery] that uses a [Value.String] to execute fulltext search on the underlying field.
  *
  * @author Ralph Gasser
- * @version 2.0.0
+ * @version 2.1.0
  */
 data class SimpleFulltextQuery(
     /** The [Value] being used for the query. */
-    val value: Value.String,
+    val value: Value.Text,
 
     /**
      * The name of the attribute that should be compared.

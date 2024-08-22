@@ -19,9 +19,10 @@ import java.util.*
  * An [Extractor] that extracts [VideoSourceMetadataDescriptor]s from [Ingested] objects.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
-class VideoSourceMetadataExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>?) : AbstractExtractor<ContentElement<*>, VideoSourceMetadataDescriptor>(input, field) {
+class VideoSourceMetadataExtractor(input: Operator<Retrievable>, analyser: VideoSourceMetadata, field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>?) :
+    AbstractExtractor<ContentElement<*>, VideoSourceMetadataDescriptor>(input, analyser, field) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
@@ -30,8 +31,7 @@ class VideoSourceMetadataExtractor(input: Operator<Retrievable>, field: Schema.F
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,
      */
-    override fun matches(retrievable: Retrievable): Boolean =
-        retrievable.filteredAttribute(SourceAttribute::class.java)?.source?.type == MediaType.VIDEO
+    override fun matches(retrievable: Retrievable): Boolean = retrievable.filteredAttribute(SourceAttribute::class.java)?.source?.type == MediaType.VIDEO
 
     /**
      * Internal method to perform extraction on [Retrievable].
@@ -46,12 +46,15 @@ class VideoSourceMetadataExtractor(input: Operator<Retrievable>, field: Schema.F
             VideoSourceMetadataDescriptor(
                 id = UUID.randomUUID(),
                 retrievableId = retrievable.id,
-                width = Value.Int(source.width() ?: 0),
-                height = Value.Int(source.height() ?: 0),
-                fps = Value.Double(source.fps() ?: 0.0),
-                channels = Value.Int(source.channels() ?: 0),
-                sampleRate = Value.Int(source.sampleRate() ?: 0),
-                sampleSize = Value.Int(source.sampleSize() ?: 0),
+                mapOf(
+                    "width" to Value.Int(source.width() ?: 0),
+                    "height" to Value.Int(source.height() ?: 0),
+                    "duration" to Value.Long(source.duration() ?: 0L),
+                    "fps" to Value.Double(source.fps() ?: 0.0),
+                    "channels" to Value.Int(source.channels() ?: 0),
+                    "sampleRate" to Value.Int(source.sampleRate() ?: 0),
+                    "sampleSize" to Value.Int(source.sampleSize() ?: 0)
+                ),
                 this@VideoSourceMetadataExtractor.field
             )
         )
