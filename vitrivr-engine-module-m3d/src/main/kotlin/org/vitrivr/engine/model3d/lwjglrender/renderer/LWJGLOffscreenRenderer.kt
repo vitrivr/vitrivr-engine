@@ -1,7 +1,5 @@
 package org.vitrivr.engine.model3d.lwjglrender.renderer
 
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
 import org.joml.Vector3f
 import org.vitrivr.engine.core.model.mesh.texturemodel.Entity
 import org.vitrivr.engine.core.model.mesh.texturemodel.IModel
@@ -10,11 +8,11 @@ import org.vitrivr.engine.model3d.lwjglrender.engine.Engine
 import org.vitrivr.engine.model3d.lwjglrender.engine.EngineLogic
 import org.vitrivr.engine.model3d.lwjglrender.glmodel.GLScene
 import org.vitrivr.engine.model3d.lwjglrender.glmodel.IGLModel
-import org.vitrivr.engine.model3d.lwjglrender.window.Window
-import org.vitrivr.engine.model3d.lwjglrender.window.WindowOptions
 import org.vitrivr.engine.model3d.lwjglrender.render.Render
 import org.vitrivr.engine.model3d.lwjglrender.render.RenderOptions
 import org.vitrivr.engine.model3d.lwjglrender.scene.*
+import org.vitrivr.engine.model3d.lwjglrender.window.Window
+import org.vitrivr.engine.model3d.lwjglrender.window.WindowOptions
 import java.awt.image.BufferedImage
 import java.util.concurrent.LinkedTransferQueue
 import java.util.function.Consumer
@@ -45,14 +43,6 @@ class LWJGLOffscreenRenderer : EngineLogic() {
      * The image queue. In this queue the renderer puts the rendered images.
      */
     private val imageQueue = LinkedTransferQueue<BufferedImage>()
-
-
-    /**
-     * Constructor for the LWJGLOffscreenRenderer. Initializes the model queue and the image queue.
-     */
-    init {
-        LOGGER.trace("LWJGLOffscreenRenderer created")
-    }
 
     /**
      * Sets the window options for the engine.
@@ -87,7 +77,6 @@ class LWJGLOffscreenRenderer : EngineLogic() {
      */
     fun render() {
         engine!!.runOnce()
-        LOGGER.trace("LWJGLOffscreenRenderer rendered")
     }
 
     /**
@@ -116,7 +105,7 @@ class LWJGLOffscreenRenderer : EngineLogic() {
      * Is called from the engine as first step during refresh and cleanup DO NOT CALL ENGINE METHODS IN THIS METHOD DO NOT CALL THIS METHOD FROM THIS CLASS
      */
     override fun cleanup() {
-        LOGGER.trace("LWJGLOffscreenRenderer cleaned")
+
     }
 
 
@@ -236,8 +225,4 @@ class LWJGLOffscreenRenderer : EngineLogic() {
          * @return The height of the window. (in pixels)
          */
         get() = windowOptions!!.height
-
-    companion object {
-        private val LOGGER: Logger = LogManager.getLogger()
-    }
 }
