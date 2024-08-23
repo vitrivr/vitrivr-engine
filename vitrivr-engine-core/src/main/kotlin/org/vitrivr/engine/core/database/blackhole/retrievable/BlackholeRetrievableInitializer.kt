@@ -9,7 +9,7 @@ import org.vitrivr.engine.core.database.retrievable.RetrievableInitializer
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class BlackholeRetrievableInitializer(private val connection: BlackholeConnection): RetrievableInitializer {
+class BlackholeRetrievableInitializer(private val connection: BlackholeConnection) : RetrievableInitializer {
     override fun initialize() = this.connection.logIf("Initializing entities 'retrievable' and 'relationship'.")
     override fun deinitialize() = this.connection.logIf("De-initializing entities 'retrievable' and 'relationship'.")
     override fun isInitialized(): Boolean = false

@@ -14,7 +14,7 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
  */
 class BlackholeRetrievableReader(override val connection: BlackholeConnection) : RetrievableReader {
     override fun get(id: RetrievableId): Retrievable? = null
-    override fun exists(id: RetrievableId): Boolean =  false
+    override fun exists(id: RetrievableId): Boolean = false
     override fun getAll(ids: Iterable<RetrievableId>) = emptySequence<Retrievable>()
     override fun getAll() = emptySequence<Retrievable>()
     override fun getConnections(subjectIds: Collection<RetrievableId>, predicates: Collection<String>, objectIds: Collection<RetrievableId>) = emptySequence<Triple<RetrievableId, String, RetrievableId>>()

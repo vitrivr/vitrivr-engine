@@ -2,8 +2,7 @@ package org.vitrivr.engine.index.aggregators.image
 
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.model.color.MutableRGBFloatColorContainer
-import org.vitrivr.engine.core.model.color.RGBByteColorContainer
+import org.vitrivr.engine.core.model.color.RGBColorContainer
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.decorators.TemporalContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -52,17 +51,23 @@ class AverageImageContentAggregator : TransformerFactory {
             val firstImage = images.first()
             val height = firstImage.height
             val width = firstImage.width
-            val colors = List(firstImage.width * firstImage.height) { MutableRGBFloatColorContainer() }
+            val colors = List(firstImage.width * firstImage.height) { floatArrayOf(0f, 0f, 0f) }
             images.forEach { imageContent ->
                 require(imageContent.height == height && imageContent.width == width) { "Unable to aggregate images! All images must have same dimension." }
                 imageContent.content.getRGBArray().forEachIndexed { index, color ->
-                    colors[index] += RGBByteColorContainer(color)
+                    val rgb = RGBColorContainer(color)
+                    colors[index][0] += rgb.red
+                    colors[index][1] += rgb.green
+                    colors[index][2] += rgb.blue
                 }
             }
 
             val div = images.size.toFloat()
-            val intColors = colors.map {
-                (it / div).toByteContainer().toRGBInt()
+            val intColors = colors.map { c ->
+                c[0] /= div
+                c[1] /= div
+                c[2] /= div
+                RGBColorContainer(c).toRGBInt()
             }.toIntArray()
 
             /* Prepare buffered image. */

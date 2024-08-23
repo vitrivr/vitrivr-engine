@@ -15,7 +15,7 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class BlackholeDescriptorReader<T: Descriptor<*>>(override val connection: BlackholeConnection, override val field: Schema.Field<*, T>) : DescriptorReader<T> {
+class BlackholeDescriptorReader<T : Descriptor<*>>(override val connection: BlackholeConnection, override val field: Schema.Field<*, T>) : DescriptorReader<T> {
     override fun exists(descriptorId: DescriptorId): Boolean = false
     override fun get(descriptorId: DescriptorId): T? = null
     override fun getAll(descriptorIds: Iterable<DescriptorId>) = emptySequence<T>()
