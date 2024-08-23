@@ -12,16 +12,15 @@ import java.util.concurrent.LinkedBlockingDeque
 import kotlin.system.exitProcess
 
 /**
- *
+ * Main method of the external rendering process.
  */
 fun main() {
 
     /* Initialize RenderWorker. */
     val worker = try {
-        /* Initialize RenderWorker. */
         RenderWorker(LinkedBlockingDeque())
     } catch (e: Throwable) {
-        System.err.println("Could not initialize renderer: ${e.message}")
+        System.err.println(e.message)
         exitProcess(1)
     }
 
