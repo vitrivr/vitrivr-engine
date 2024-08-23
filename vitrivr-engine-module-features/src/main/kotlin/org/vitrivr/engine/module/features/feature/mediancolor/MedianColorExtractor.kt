@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.features.averagecolor
+package org.vitrivr.engine.module.features.feature.mediancolor
 
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataExtractor
@@ -12,18 +12,19 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.source.file.FileSource
 
-/**
- * [Extractor] implementation for the [AverageColor] analyser.
- *
- * @see [AverageColor]
- *
- * @author Luca Rossetto
- * @version 1.2.0
- */
-class AverageColorExtractor : AbstractExtractor<ImageContent, FloatVectorDescriptor> {
 
-    constructor(input: Operator<Retrievable>, analyser: AverageColor, field: Schema.Field<ImageContent, FloatVectorDescriptor>) : super(input, analyser, field)
-    constructor(input: Operator<Retrievable>, analyser: AverageColor, name: String) : super(input, analyser, name)
+/**
+ * [Extractor] implementation for the [MedianColor] analyser.
+ *
+ * @see [MedianColor]
+ *
+ * @author Ralph Gasser
+ * @version 1.0.0
+ */
+class MedianColorExtractor : AbstractExtractor<ImageContent, FloatVectorDescriptor> {
+
+    constructor(input: Operator<Retrievable>, analyser: MedianColor, field: Schema.Field<ImageContent, FloatVectorDescriptor>) : super(input, analyser, field)
+    constructor(input: Operator<Retrievable>, analyser: MedianColor, name: String) : super(input, analyser, name)
 
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
@@ -43,6 +44,6 @@ class AverageColorExtractor : AbstractExtractor<ImageContent, FloatVectorDescrip
      */
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
         val content = retrievable.content.filterIsInstance<ImageContent>()
-        return content.map { (this.analyser as AverageColor).analyse(it).copy(retrievableId = retrievable.id, field = this.field) }
+        return content.map { (this.analyser as MedianColor).analyse(it).copy(retrievableId = retrievable.id, field = this.field) }
     }
 }
