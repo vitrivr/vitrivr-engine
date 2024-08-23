@@ -3,6 +3,7 @@ package org.vitrivr.engine.module.features.feature.external.implementations.clip
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.dense.DenseRetriever
+import org.vitrivr.engine.core.math.correspondence.BoundedCorrespondence
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
@@ -106,10 +107,9 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
      * @throws [UnsupportedOperationException], if this [CLIP] does not support the creation of an [Retriever] instance.
      */
     override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, query: Query, context: QueryContext): DenseRetriever<ContentElement<*>> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
         @Suppress("UNCHECKED_CAST")
-        return DenseRetriever(field, query as ProximityQuery<Value.FloatVector>, context)
+        return DenseRetriever(field, query as ProximityQuery<Value.FloatVector>, context, BoundedCorrespondence(0.0f, 2.0f))
     }
 
     /**

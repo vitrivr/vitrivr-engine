@@ -1,2 +1,7 @@
+org.vitrivr.engine.module.features.feature.cld.CLD
+org.vitrivr.engine.module.features.feature.dominantcolor.DominantColor
+org.vitrivr.engine.module.features.feature.ehd.EHD
+org.vitrivr.engine.module.features.feature.huehistogram.HueHistogram
+org.vitrivr.engine.module.features.feature.mediancolor.MedianColor
 org.vitrivr.engine.module.features.feature.external.implementations.dino.DINO
 org.vitrivr.engine.module.features.feature.external.implementations.clip.CLIP

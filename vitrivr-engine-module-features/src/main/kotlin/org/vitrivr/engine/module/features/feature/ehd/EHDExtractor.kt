@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.features.averagecolor
+package org.vitrivr.engine.module.features.feature.ehd
 
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataExtractor
@@ -13,14 +13,14 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.source.file.FileSource
 
 /**
- * [Extractor] implementation for the [AverageColor] analyser.
+ * [Extractor] implementation for the [EHD] analyser.
  *
- * @see [AverageColor]
+ * @see [EHD]
  *
- * @author Luca Rossetto
- * @version 1.2.0
+ * @author Ralph Gasser
+ * @version 1.0.0
  */
-class AverageColorExtractor(input: Operator<Retrievable>, analyser: AverageColor, field: Schema.Field<ImageContent, FloatVectorDescriptor>?) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, analyser, field) {
+class EHDExtractor(input: Operator<Retrievable>, analyser: EHD, field: Schema.Field<ImageContent, FloatVectorDescriptor>?) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, analyser, field) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
@@ -33,12 +33,12 @@ class AverageColorExtractor(input: Operator<Retrievable>, analyser: AverageColor
 
     /**
      * Internal method to perform extraction on [Retrievable].
-     **
+     *
      * @param retrievable The [Retrievable] to process.
      * @return List of resulting [Descriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
         val content = retrievable.content.filterIsInstance<ImageContent>()
-        return content.map { (this.analyser as AverageColor).analyse(it).copy(retrievableId = retrievable.id, field = this.field) }
+        return content.map { (this.analyser as EHD).analyse(it).copy(retrievableId = retrievable.id, field = this.field) }
     }
 }
