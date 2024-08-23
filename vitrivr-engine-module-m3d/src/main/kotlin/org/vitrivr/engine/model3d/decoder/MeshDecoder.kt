@@ -30,11 +30,11 @@ class MeshDecoder : DecoderFactory {
      * @param input The input [Enumerator].
      * @param context The [IndexContext]
      */
-    override fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder = Instance(input, context)
+    override fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder = Instance(input, context, name)
     /**
      * The [Decoder] returned by this [MeshDecoder].
      */
-    private class Instance(override val input: Enumerator, private val context: IndexContext) : Decoder {
+    private class Instance(override val input: Enumerator, private val context: IndexContext, override val name: String) : Decoder {
 
         /** [KLogger] instance. */
         private val logger: KLogger = KotlinLogging.logger {}

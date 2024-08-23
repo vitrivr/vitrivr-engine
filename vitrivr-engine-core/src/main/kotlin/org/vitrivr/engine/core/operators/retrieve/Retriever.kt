@@ -18,6 +18,9 @@ interface Retriever<C: ContentElement<*>, D: Descriptor> : Operator.Nullary<Retr
     /** The [Schema.Field] queried by this [Retriever]. */
     val field: Schema.Field<C, D>
 
+    override val name: String
+        get() = this.field.fieldName
+
     /** The [Analyser] instance this [Retriever] belongs to. */
     val analyser: Analyser<C, D>
         get() = this.field.analyser

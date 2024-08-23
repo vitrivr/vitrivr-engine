@@ -28,13 +28,20 @@ class DescriptorAsContentTransformer : TransformerFactory {
 
         return Instance(
             input = input,
+            name = name,
             contentFactory = (context as IndexContext).contentFactory,
             fieldName = context[name, "field"]  ?: throw IllegalArgumentException("The descriptor as content transformer requires a field name."),
             removeContent = context[name, "removeContent"]?.toBoolean() ?: false
         )
     }
 
-    private class Instance(override val input: Operator<out Retrievable>, val contentFactory: ContentFactory, val fieldName : String, val removeContent: Boolean) : Transformer {
+    private class Instance(
+        override val input: Operator<out Retrievable>,
+        override val name: String,
+        val contentFactory: ContentFactory,
+        val fieldName : String,
+        val removeContent: Boolean
+    ) : Transformer {
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
             input.toFlow(scope).collect {
                 retrievable : Retrievable ->
