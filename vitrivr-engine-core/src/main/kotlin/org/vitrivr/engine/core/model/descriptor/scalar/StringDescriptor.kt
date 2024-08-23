@@ -12,15 +12,15 @@ import org.vitrivr.engine.core.model.types.Value
  * A [ScalarDescriptor] using a [String] value.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 
 data class StringDescriptor(
-    override var id: DescriptorId,
-    override var retrievableId: RetrievableId?,
+    override val id: DescriptorId,
+    override val retrievableId: RetrievableId?,
     override val value: Value.String,
     override val field: Schema.Field<*, StringDescriptor>? = null
-) : ScalarDescriptor<Value.String> {
+) : ScalarDescriptor<StringDescriptor, Value.String> {
     companion object {
         private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.String))
     }
@@ -31,4 +31,14 @@ data class StringDescriptor(
      * @return [List] of [Attribute]
      */
     override fun layout(): List<Attribute> = SCHEMA
+
+    /**
+     * Returns a copy of this [StringDescriptor] with new [RetrievableId] and/or [DescriptorId]
+     *
+     * @param id [DescriptorId] of the new [StringDescriptor].
+     * @param retrievableId [RetrievableId] of the new [StringDescriptor].
+     * @param field [Schema.Field] the new [StringDescriptor] belongs to.
+     * @return Copy of this [StringDescriptor].
+     */
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, StringDescriptor>?) = StringDescriptor(id, retrievableId, this.value, field)
 }

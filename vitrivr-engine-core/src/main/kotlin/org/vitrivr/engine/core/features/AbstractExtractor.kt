@@ -20,7 +20,7 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Ralph Gasser
  * @version 1.2.0
  */
-abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor> private constructor(
+abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>> private constructor(
     final override val input: Operator<Retrievable>,
     final override val analyser: Analyser<C, D>,
     final override val field: Schema.Field<C, D>? = null,
@@ -40,7 +40,6 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor> private 
         null,
         name
     )
-
     protected val logger: KLogger = KotlinLogging.logger {}
 
     init {
@@ -61,7 +60,7 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor> private 
             if (this.matches(retrievable)) {
                 /* Perform extraction. */
                 val descriptors = try {
-                    logger.debug { "Extraction for retrievable: $retrievable" }
+                    logger.debug{"Extraction on field ${field?.fieldName} for retrievable: $retrievable" }
                     extract(retrievable)
                 } catch (e: Throwable) {
                     logger.error(e) { "Error during extraction of $retrievable" }

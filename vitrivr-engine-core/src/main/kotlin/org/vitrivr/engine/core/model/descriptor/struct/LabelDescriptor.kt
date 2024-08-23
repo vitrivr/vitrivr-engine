@@ -1,8 +1,8 @@
 package org.vitrivr.engine.core.model.descriptor.struct
 
-import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.AttributeName
+import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Type
@@ -15,11 +15,11 @@ import org.vitrivr.engine.core.model.types.Value
  * @version 2.0.0
  */
 class LabelDescriptor(
-    override var id: DescriptorId,
-    override var retrievableId: RetrievableId?,
+    override val id: DescriptorId,
+    override val retrievableId: RetrievableId?,
     values: Map<AttributeName, Value<*>?>,
     override val field: Schema.Field<*, LabelDescriptor>? = null
-) : MapStructDescriptor(id, retrievableId, SCHEMA, values, field) {
+) : StructDescriptor<LabelDescriptor>(id, retrievableId, SCHEMA, values, field) {
     companion object {
         private val SCHEMA = listOf(
             Attribute("label", Type.String),
@@ -32,4 +32,14 @@ class LabelDescriptor(
 
     /** The associated confidence. */
     val confidence: Value.Float by this.values
+
+    /**
+     * Returns a copy of this [LabelDescriptor] with new [RetrievableId] and/or [DescriptorId]
+     *
+     * @param id [DescriptorId] of the new [LabelDescriptor].
+     * @param retrievableId [RetrievableId] of the new [LabelDescriptor].
+     * @param field [Schema.Field] the new [LabelDescriptor] belongs to.
+     * @return Copy of this [LabelDescriptor].
+     */
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, LabelDescriptor>?) = LabelDescriptor(id, retrievableId, HashMap(this.values), this.field)
 }

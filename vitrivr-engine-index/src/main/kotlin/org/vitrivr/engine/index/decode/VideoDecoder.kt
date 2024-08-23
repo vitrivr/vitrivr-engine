@@ -20,6 +20,7 @@ import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
 import org.vitrivr.engine.core.operators.ingest.Decoder
@@ -60,7 +61,7 @@ class VideoDecoder : DecoderFactory {
         private val video: Boolean = true,
         private val audio: Boolean = true,
         private val keyFrames: Boolean = false,
-        private val timeWindowMs: Long = 500L
+        private val timeWindowMs: Long = 500L,
     ) : Decoder {
 
         /** [KLogger] instance. */
@@ -116,12 +117,13 @@ class VideoDecoder : DecoderFactory {
             grabber.imageMode = FrameGrabber.ImageMode.COLOR
             grabber.sampleMode = FrameGrabber.SampleMode.SHORT
 
-            logger.info { "Start decoding source ${source.name} (${source.sourceId})" }
+            logger.info { "Start decoding source ${source.name} (${source.sourceId}): ${sourceRetrievable.id}" }
             try {
                 grabber.start()
 
                 /* Extract and enrich source metadata. */
                 source.metadata[Metadata.METADATA_KEY_VIDEO_FPS] = grabber.videoFrameRate
+                source.metadata[Metadata.METADATA_KEY_AV_DURATION] = TimeUnit.MICROSECONDS.toMillis(grabber.lengthInTime)
                 source.metadata[Metadata.METADATA_KEY_IMAGE_WIDTH] = grabber.imageWidth
                 source.metadata[Metadata.METADATA_KEY_IMAGE_HEIGHT] = grabber.imageHeight
                 source.metadata[Metadata.METADATA_KEY_AUDIO_CHANNELS] = grabber.audioChannels
@@ -178,7 +180,7 @@ class VideoDecoder : DecoderFactory {
                     emit(imageBuffer, audioBuffer, grabber, windowEnd, sourceRetrievable, channel)
                 }
 
-                logger.info { "Finished decoding video from source '${source.name}' (${source.sourceId})." }
+                logger.info { "Finished decoding video from source '${source.name}' (${source.sourceId}): ${sourceRetrievable.id}" }
             } catch (exception: Exception) {
                 error = true
                 logger.error(exception) { "Failed to decode video from source '${source.name}' (${source.sourceId})." }
@@ -188,6 +190,7 @@ class VideoDecoder : DecoderFactory {
 
             /* Send source retrievable downstream as a signal that file has been decoded. */
             if (!error) {
+                logger.debug { "Emitting source ${sourceRetrievable.id} as signal that video has been decoded." }
                 channel.send(sourceRetrievable)
             }
         }
@@ -242,12 +245,17 @@ class VideoDecoder : DecoderFactory {
                 samples.clear()
                 val audio = this.context.contentFactory.newAudioContent(grabber.audioChannels.toShort(), grabber.sampleRate, samples)
                 ingested.addContent(audio)
+                ingested.addAttribute(ContentAuthorAttribute(audio.id, name))
             }
 
             /* Prepare and append image content element. */
             for (image in emitImage) {
-                ingested.addContent(this.context.contentFactory.newImageContent(image))
+                val imageContent = this.context.contentFactory.newImageContent(image)
+                ingested.addContent(imageContent)
+                ingested.addAttribute(ContentAuthorAttribute(imageContent.id, name))
             }
+
+            logger.debug { "Emitting ingested ${ingested.id} with ${emitImage.size} images and ${emitAudio.size} audio samples: ${ingested.id}" }
 
             /* Emit ingested. */
             channel.send(ingested)

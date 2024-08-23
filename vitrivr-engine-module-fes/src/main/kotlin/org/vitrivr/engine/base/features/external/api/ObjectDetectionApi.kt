@@ -1,6 +1,7 @@
 package org.vitrivr.engine.base.features.external.api
 
 import org.openapitools.client.apis.ObjectDetectionApi
+import org.openapitools.client.models.BatchedObjectDetectionInput
 import org.openapitools.client.models.JobState
 import org.openapitools.client.models.JobStatus
 import org.openapitools.client.models.ObjectDetectionInput
@@ -36,6 +37,17 @@ class ObjectDetectionApi(host: String, model: String, timeoutMs: Long, pollingIn
         }
     }
 
+    override suspend fun startBatchedJob(input: List<ImageContent>): JobStatus {
+        logger.debug { "Starting batched object detection job for images." }
+        val wrapped = BatchedObjectDetectionInput(input.map { it.toDataUrl() })
+        return try {
+            this.objectDetectionApi.newBatchedJobApiTasksObjectDetectionBatchedModelJobsPost(this.model, wrapped).body()
+        } catch (e: Throwable) {
+            logger.error(e) { "Failed to start batched object detection job." }
+            JobStatus("unknown", JobState.failed)
+        }
+    }
+
     /**
      * This method is used to poll for results of an object detection job on the API.
      *
@@ -48,6 +60,21 @@ class ObjectDetectionApi(host: String, model: String, timeoutMs: Long, pollingIn
         }
     } catch (e: Throwable) {
         logger.error(e) { "Failed to poll for status of object detection job." }
+        JobResult(JobState.failed, null)
+    }
+
+    /**
+     * This method is used to poll for results of a batched object detection job on the API.
+     *
+     * @param jobId The ID of the job to poll.
+     * @return The [JobResult]
+     */
+    override suspend fun pollBatchedJob(jobId: String): JobResult<List<List<Value.String>>> = try {
+        this.objectDetectionApi.getBatchedJobResultsApiTasksObjectDetectionBatchedJobsJobGet(jobId).body().let { result ->
+            JobResult(result.status, result.result?.map { it.labels.map { Value.String(it.trim()) } })
+        }
+    } catch (e: Throwable) {
+        logger.error(e) { "Failed to poll for status of batched object detection job." }
         JobResult(JobState.failed, null)
     }
 }

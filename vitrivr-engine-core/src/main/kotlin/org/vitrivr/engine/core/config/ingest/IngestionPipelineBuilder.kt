@@ -55,8 +55,10 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
     @Suppress("UNCHECKED_CAST")
     fun build(stream: Stream<*>? = null): List<Operator.Sink<Retrievable>> {
         return parseOperations().map { root ->
+
             val config = root.opConfig as? OperatorConfig.Enumerator ?: throw IllegalArgumentException("Root stage must always be an enumerator!")
             val built = HashMap<String, Operator<*>>()
+            root.opName ?: throw IllegalArgumentException("Root stage cannot be passthrough!")
             built[root.name] = buildEnumerator(root.opName, config, stream)
 
             for (output in root.output) {
@@ -82,7 +84,7 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
     /**
      * This is an internal function that can be called recursively to build the [Operator] DAG.
      *
-     * @param operation The [Operation] to build.
+     * @param operation The [BaseOperation] to build.
      * @param memoizationTable The memoization table that holds the already built operators.
      * @return The built [Operator].
      */
@@ -107,11 +109,21 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
         }
 
         /* Prepare and cache operator. */
-        var operator = buildOperator(operation.opName, op, operation.opConfig)
-        if (operation.output.size > 1) {
-            operator = BroadcastOperator(operator)
+        if (operation.opName != null && operation.opConfig != null) {
+            val operator = buildOperator(operation.opName, op, operation.opConfig)
+            if (operation.output.size > 1) {
+                memoizationTable[operation.name] = BroadcastOperator(operator)
+            } else {
+                memoizationTable[operation.name] = operator
+            }
+        } else {
+            if (operation.output.size > 1) {
+                memoizationTable[operation.name] = BroadcastOperator(op)
+            } else {
+                memoizationTable[operation.name] = op
+            }
         }
-        memoizationTable[operation.name] = operator
+
 
         /* Process output operators. */
         for (output in operation.output) {
@@ -134,16 +146,28 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
         /* Build trees with entry points as roots. */
         return entrypoints.map {
             val stages = HashMap<String, Operation>()
-            val root = Operation(it.key, it.value.operator, config.operators[it.value.operator] ?: throw IllegalArgumentException("Undefined operator '${it.value.operator}'"), it.value.merge)
+            it.value.operator ?: throw IllegalArgumentException("Entrypoints must have an operator!")
+            val root = Operation(it.key, it.value.operator!!, config.operators[it.value.operator] ?: throw IllegalArgumentException("Undefined operator '${it.value.operator}'"), it.value.merge)
             stages[it.key] = root
             for (operation in this.config.operations) {
                 if (!stages.containsKey(operation.key)) {
-                    stages[operation.key] = Operation(operation.key, operation.value.operator, config.operators[operation.value.operator] ?: throw IllegalArgumentException("Undefined operator '${operation.value.operator}'"), operation.value.merge)
+                    when(operation.value.operator) {
+                        is String ->
+                            stages[operation.key] = Operation(
+                                name = operation.key,
+                                opName = operation.value.operator!!,
+                                opConfig = config.operators[operation.value.operator!!] ?: throw IllegalArgumentException("Undefined operator '${operation.value.operator}'"),
+                                merge = operation.value.merge
+                            )
+
+                        null ->
+                            stages[operation.key] = Operation(name = operation.key, opName = null, opConfig = null, merge = operation.value.merge)
+                    }
                 }
                 for (inputKey in operation.value.inputs) {
                     if (!stages.containsKey(inputKey)) {
                         val op = this.config.operations[inputKey] ?: throw IllegalArgumentException("Undefined operation '${inputKey}'")
-                        stages[inputKey] = Operation(inputKey, op.operator, config.operators[op.operator] ?: throw IllegalArgumentException("Undefined operator '${op.operator}'"), op.merge)
+                        stages[inputKey] = Operation(inputKey, op.operator!!, config.operators[op.operator] ?: throw IllegalArgumentException("Undefined operator '${op.operator}'"), op.merge)
                     }
                     stages[operation.key]?.addInput(stages[inputKey]!!)
                 }
@@ -267,7 +291,7 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
                 logger.info { "Built extractor by name field name: ${config.fieldName}" }
             }
         } else if (!config.factory.isNullOrBlank()) {
-            val factory = loadFactory<Analyser<ContentElement<*>, Descriptor>>(config.factory)
+            val factory = loadFactory<Analyser<ContentElement<*>, Descriptor<*>>>(config.factory)
             return factory.newExtractor(name, parent, this.context).apply {
                 logger.info { "Built extractor by factory: ${config.factory}" }
             }

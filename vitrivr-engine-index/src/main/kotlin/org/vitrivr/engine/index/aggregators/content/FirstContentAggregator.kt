@@ -30,7 +30,7 @@ class FirstContentAggregator : TransformerFactory {
     /**
      * The [Instance] returned by the [FirstContentAggregator]
      */
-    private class Instance(override val input: Operator<out Retrievable>, context: Context, override val name: String) : AbstractAggregator(input, context) {
+    private class Instance(override val input: Operator<out Retrievable>, context: Context, name: String) : AbstractAggregator(input, context, name) {
         override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> = content.groupBy { it.type }.mapNotNull { (_, elements) -> elements.firstOrNull() }
     }
 }

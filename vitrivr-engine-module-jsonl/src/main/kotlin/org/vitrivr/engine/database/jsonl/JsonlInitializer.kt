@@ -6,7 +6,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import java.io.IOException
 import kotlin.io.path.*
 
-class JsonlInitializer<D : Descriptor>(
+class JsonlInitializer<D : Descriptor<*>>(
     override val field: Schema.Field<*, D>,
     connection: JsonlConnection
 ) : DescriptorInitializer<D> {

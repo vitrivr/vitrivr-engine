@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.mapNotNull
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.operators.ingest.DecoderFactory
@@ -61,6 +62,7 @@ class MeshDecoder : DecoderFactory {
                 }
                 val modelContent = this.context.contentFactory.newMeshContent(model)
                 sourceRetrievable.addContent(modelContent)
+                sourceRetrievable.addAttribute(ContentAuthorAttribute(modelContent.id, this.name))
                 sourceRetrievable
             } catch (e: IOException) {
                 logger.error(e) { "Failed to decode 3D model from $source due to an IO exception." }

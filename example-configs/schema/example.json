@@ -1,7 +1,6 @@
 {
-  "schemas": [
-    {
-      "name": "example",
+  "schemas": {
+    "example": {
       "connection": {
         "database": "CottontailConnectionProvider",
         "parameters": {
@@ -9,58 +8,50 @@
           "port": "1865"
         }
       },
-      "fields": [
-        {
-          "name": "averagecolor",
+      "fields": {
+        "averagecolor": {
           "factory": "AverageColor"
         },
-        {
-          "name": "file",
+        "file": {
           "factory": "FileSourceMetadata"
         },
-        {
-          "name": "clip",
+        "clip": {
           "factory": "DenseEmbedding",
           "parameters": {
             "host": "http://127.0.0.1:8888",
             "model": "open-clip-vit-b32",
-            "length":"512"
+            "length": "512"
           }
         },
-        {
-          "name": "dino",
+        "dino": {
           "factory": "DenseEmbedding",
           "parameters": {
             "host": "http://127.0.0.1:8888/",
             "model": "dino-v2-vits14",
-            "length":"384"
+            "length": "384"
           }
         },
-        {
-          "name": "whisper",
+        "whisper": {
           "factory": "ASR",
           "parameters": {
             "host": "http://127.0.0.1:8888/",
             "model": "whisper"
           }
         },
-        {
-          "name": "ocr",
+        "ocr": {
           "factory": "OCR",
           "parameters": {
             "host": "http://127.0.0.1:8888/",
             "model": "tesseract"
           }
         },
-        {
-          "name": "time",
+        "time": {
           "factory": "TemporalMetadata"
         },
-        {
-          "name": "video",
+        "video": {
           "factory": "VideoSourceMetadata"
-        },
-      ],
+        }
+      },
       "resolvers": {
         "disk": {
           "factory": "DiskResolver",
@@ -69,9 +60,8 @@
           }
         }
       },
-      "exporters": [
-        {
-          "name": "thumbnail",
+      "exporters": {
+        "thumbnail": {
           "factory": "ThumbnailExporter",
           "resolverName": "disk",
           "parameters": {
@@ -79,17 +69,15 @@
             "mimeType": "JPG"
           }
         }
-      ],
-      "extractionPipelines": [
-        {
-          "name": "video",
+      },
+      "extractionPipelines": {
+        "video": {
           "path": "./example/video.json"
         },
-        {
-          "name": "image",
+        "image": {
           "path": "./example/image.json"
         }
-      ]
+      }
     }
-  ]
+  }
 }

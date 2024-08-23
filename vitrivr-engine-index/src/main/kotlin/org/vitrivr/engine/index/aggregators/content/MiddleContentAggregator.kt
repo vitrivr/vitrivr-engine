@@ -30,7 +30,7 @@ class MiddleContentAggregator : TransformerFactory {
     /**
      * The [Instance] returns by the [MiddleContentAggregator]
      */
-    private class Instance(override val input: Operator<out Retrievable>, context: Context, override val name: String) : AbstractAggregator(input, context) {
+    private class Instance(override val input: Operator<out Retrievable>, context: Context, name: String) : AbstractAggregator(input, context, name) {
         override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> = content.groupBy { it.type }.mapNotNull { (_, elements) ->
             if (elements.isNotEmpty()) {
                 elements[Math.floorDiv(elements.size, 2)]

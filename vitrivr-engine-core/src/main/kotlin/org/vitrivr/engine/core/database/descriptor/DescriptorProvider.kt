@@ -10,7 +10,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface DescriptorProvider<D : Descriptor> {
+interface DescriptorProvider<D : Descriptor<*>> {
     /**
      * Returns a [DescriptorInitializer].
      *

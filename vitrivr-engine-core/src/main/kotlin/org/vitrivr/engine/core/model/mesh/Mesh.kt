@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.model.mesh
 
 import org.joml.Vector3f
 import org.joml.Vector3i
+import org.vitrivr.engine.core.model.mesh.Mesh.Face
 import kotlin.math.sign
 import kotlin.math.sqrt
 

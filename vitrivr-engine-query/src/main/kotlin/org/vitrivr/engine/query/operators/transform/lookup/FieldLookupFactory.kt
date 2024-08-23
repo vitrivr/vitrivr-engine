@@ -22,6 +22,6 @@ class FieldLookupFactory() : TransformerFactory {
         }else{
             emptyList()
         }
-        return FieldLookup(input, reader, keys)
+        return FieldLookup(input, reader, keys, name)
     }
 }

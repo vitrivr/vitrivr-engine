@@ -5,12 +5,9 @@ import org.vitrivr.engine.core.operators.transform.shape.MergeType
 import java.util.*
 
 /**
- * This [Operation] class represents a single operation in the ingest pipeline.
- *
- * @author Ralph Gasser
- * @version 1.0.0
+ * This sealed class represents a base operation in the ingest pipeline.
  */
-data class Operation(val name: String, val opName: String, val opConfig: OperatorConfig, val merge: MergeType? = null) {
+class Operation(val name: String, val opName: String?, val opConfig: OperatorConfig?, val merge: MergeType?) {
 
     /** A [LinkedList] of all input [Operation]s. */
     private val _input = LinkedList<Operation>()
@@ -46,3 +43,4 @@ data class Operation(val name: String, val opName: String, val opConfig: Operato
         operation._input.add(this)
     }
 }
+

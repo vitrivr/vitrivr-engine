@@ -11,7 +11,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  * @author Luca Rossetto
  * @version 1.0.0
  */
-class NoDescriptorInitializer<D: Descriptor>(override val field: Schema.Field<*,D>) : DescriptorInitializer<D> {
+class NoDescriptorInitializer<D : Descriptor<*>>(override val field: Schema.Field<*, D>) : DescriptorInitializer<D> {
     override fun initialize() {
         /* No op. */
     }

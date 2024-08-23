@@ -9,6 +9,6 @@ import org.vitrivr.engine.core.operators.general.TransformerFactory
 class ScoreExaggeratorFactory : TransformerFactory{
     override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
         val factor = context[name, "factor"]?.toFloat() ?: throw IllegalArgumentException("Property 'factor' must be specified")
-        return ScoreExaggerator(input, factor)
+        return ScoreExaggerator(input, factor, name)
     }
 }

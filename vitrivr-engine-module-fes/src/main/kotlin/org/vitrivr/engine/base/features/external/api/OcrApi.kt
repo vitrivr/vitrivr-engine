@@ -1,6 +1,7 @@
 package org.vitrivr.engine.base.features.external.api
 
 import org.openapitools.client.apis.OpticalCharacterRecognitionApi
+import org.openapitools.client.models.BatchedOpticalCharacterRecognitionInput
 import org.openapitools.client.models.JobState
 import org.openapitools.client.models.JobStatus
 import org.openapitools.client.models.OpticalCharacterRecognitionInput
@@ -36,6 +37,23 @@ class OcrApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Lo
     }
 
     /**
+     * This method is used to start a batched OCR job on the API.
+     *
+     * @param input The input for the job.
+     * @return The [JobStatus]
+     */
+    override suspend fun startBatchedJob(input: List<ImageContent>): JobStatus {
+        logger.debug { "Starting batched OCR job for images." }
+        val wrapped = BatchedOpticalCharacterRecognitionInput(input.map { it.toDataUrl() })
+        return try {
+            this.opticalCharacterRecognitionApi.newBatchedJobApiTasksOpticalCharacterRecognitionBatchedModelJobsPost(this.model, wrapped).body()
+        } catch (e: Throwable) {
+            logger.error(e) { "Failed to start batched OCR job." }
+            JobStatus("unknown", JobState.failed)
+        }
+    }
+
+    /**
      * This method is used to poll for results of an OCR job on the API.
      *
      * @param jobId The ID of the job to poll.
@@ -52,6 +70,21 @@ class OcrApi(host: String, model: String, timeoutMs: Long, pollingIntervalMs: Lo
         }
     } catch (e: Throwable) {
         logger.error(e) { "Failed to poll for status of OCR job." }
+        JobResult(JobState.failed, null)
+    }
+
+    /**
+     * This method is used to poll for results of a batched OCR job on the API.
+     *
+     * @param jobId The ID of the job to poll.
+     * @return The [JobResult]
+     */
+    override suspend fun pollBatchedJob(jobId: String): JobResult<List<Value.Text>> = try {
+        this.opticalCharacterRecognitionApi.getBatchedJobResultsApiTasksOpticalCharacterRecognitionBatchedJobsJobGet(jobId).body().let { result ->
+            JobResult(result.status, result.result?.map { Value.Text(it.text.trim()) })
+        }
+    } catch (e: Throwable) {
+        logger.error(e) { "Failed to poll for status of batched OCR job." }
         JobResult(JobState.failed, null)
     }
 }
