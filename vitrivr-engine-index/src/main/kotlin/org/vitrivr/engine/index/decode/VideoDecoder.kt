@@ -47,7 +47,7 @@ class VideoDecoder : DecoderFactory {
         val audio = context[name, "audio"]?.let { it.lowercase() == "true" } ?: true
         val keyFrames = context[name, "keyFrames"]?.let { it.lowercase() == "true" } ?: false
         val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
-        return Instance(input, context, video, audio, keyFrames, timeWindowMs)
+        return Instance(input, context, name, video, audio, keyFrames, timeWindowMs)
     }
 
     /**
@@ -56,10 +56,11 @@ class VideoDecoder : DecoderFactory {
     private class Instance(
         override val input: Enumerator,
         private val context: IndexContext,
+        override val name: String,
         private val video: Boolean = true,
         private val audio: Boolean = true,
         private val keyFrames: Boolean = false,
-        private val timeWindowMs: Long = 500L,
+        private val timeWindowMs: Long = 500L
     ) : Decoder {
 
         /** [KLogger] instance. */

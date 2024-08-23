@@ -15,7 +15,7 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.1.0
  */
-class MergeOperator<T : Retrievable>(override val inputs: List<Operator<T>>) : Operator.NAry<T, T> {
+class MergeOperator<T : Retrievable>(override val inputs: List<Operator<T>>, override val name: String = "merge") : Operator.NAry<T, T> {
     override fun toFlow(scope: CoroutineScope): Flow<T> = channelFlow {
         val jobs = this@MergeOperator.inputs.map { p ->
             launch {

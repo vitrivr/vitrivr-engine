@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAuthorAttribute
@@ -22,11 +23,35 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>(
-    final override val input: Operator<Retrievable>, final override val field: Schema.Field<C, D>?,
-    final override val name: String, val bufferSize: Int = 100
+abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor>
+    private constructor(
+        final override val input: Operator<Retrievable>,
+        final override val analyser: Analyser<C, D>,
+        final override val field: Schema.Field<C, D>? = null,
+        final override val name: String,
+        private val bufferSize: Int
 ) :
     Extractor<C, D> {
+
+    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, field: Schema.Field<C, D>, bufferSize: Int = 100) : this(
+        input,
+        analyser,
+        field,
+        field.fieldName,
+        bufferSize
+    )
+
+    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, name: String, bufferSize: Int = 100) : this(
+        input,
+        analyser,
+        null,
+        name,
+        bufferSize
+    )
+
+
+
+
     private val logger: KLogger = KotlinLogging.logger {}
 
     /**

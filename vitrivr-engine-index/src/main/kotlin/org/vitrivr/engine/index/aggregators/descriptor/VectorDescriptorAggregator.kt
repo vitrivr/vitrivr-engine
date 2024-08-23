@@ -91,7 +91,7 @@ class VectorDescriptorAggregator : TransformerFactory {
 
     private class Instance(
         override val input: Operator<out Retrievable>,
-        private val name: String,
+        override val name: String,
         private val authorName: String,
         private val strategy: AggregationStrategy
     ) : Transformer {

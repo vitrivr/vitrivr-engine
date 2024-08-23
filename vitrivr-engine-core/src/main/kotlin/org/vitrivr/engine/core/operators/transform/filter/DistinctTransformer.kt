@@ -20,12 +20,12 @@ import java.util.*
  * @version 1.0.0
  */
 class DistinctTransformer : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer = Instance(input)
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer = Instance(input, name)
 
     /**
      * [Transformer] that extracts [Retrievable] objects from a [Flow] of [Retrievable] objects based on a given [Relationship].
      */
-    private class Instance(override val input: Operator<out Retrievable>) : Transformer {
+    private class Instance(override val input: Operator<out Retrievable>, override val name: String) : Transformer {
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = channelFlow {
             val set = HashSet<UUID>()
             this@Instance.input.toFlow(scope).collect {

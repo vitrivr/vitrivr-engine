@@ -34,7 +34,7 @@ class DescriptorDistanceSegmenter : TransformerFactory {
             throw IllegalArgumentException("Property 'atLeast' or 'atMost' must be specified.")
         }
 
-        return Instance(input, authorName, distance, atLeast ?: Float.NEGATIVE_INFINITY, atMost ?: Float.POSITIVE_INFINITY)
+        return Instance(input, authorName, distance, atLeast ?: Float.NEGATIVE_INFINITY, atMost ?: Float.POSITIVE_INFINITY, name)
     }
 
     private class Instance(
@@ -42,7 +42,8 @@ class DescriptorDistanceSegmenter : TransformerFactory {
         private val authorName: String,
         private val distance: Distance,
         private val atLeast: Float,
-        private val atMost: Float
+        private val atMost: Float,
+        override val name: String
     ) : Transformer {
 
         private fun compare(comparisonAnchor: Value.Vector<*>, descriptor: VectorDescriptor<*>): Boolean {
