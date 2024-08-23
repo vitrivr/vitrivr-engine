@@ -58,7 +58,7 @@ class HueHistogram : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = HueHistogramExtractor(input, this, null)
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = HueHistogramExtractor(input, this, name)
 
     /**
      * Generates and returns a new [HueHistogramExtractor] instance for this [HueHistogram].

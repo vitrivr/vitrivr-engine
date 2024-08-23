@@ -25,14 +25,31 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Fynn Faber
  * @version 1.1.0
  */
-abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>>(
-    input: Operator<Retrievable>,
-    field: Schema.Field<C, D>?,
-    analyser: ExternalFesAnalyser<C, D>,
-    protected val parameters: Map<String, String>,
-) : AbstractBatchedExtractor<C, D>(input, analyser, field, parameters["batchSize"]?.toIntOrNull() ?: 1) {
+abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>> : AbstractBatchedExtractor<C, D> {
 
-    private val contentSources = parameters[CONTENT_AUTHORS_KEY]?.split(",")?.toSet()
+    protected val parameters: Map<String, String>
+    private val contentSources: Set<String>?
+
+    constructor(
+        input: Operator<Retrievable>,
+        field: Schema.Field<C, D>,
+        analyser: ExternalFesAnalyser<C, D>,
+        parameters: Map<String, String>
+    ) : super(input, analyser, field, parameters["batchSize"]?.toIntOrNull() ?: 1) {
+        this.parameters = parameters
+        this.contentSources = parameters[CONTENT_AUTHORS_KEY]?.split(",")?.toSet()
+    }
+
+    constructor(
+        input: Operator<Retrievable>,
+        name: String,
+        analyser: ExternalFesAnalyser<C, D>,
+        parameters: Map<String, String>
+    ) : super(input, analyser, name, parameters["batchSize"]?.toIntOrNull() ?: 1) {
+        this.parameters = parameters
+        this.contentSources = parameters[CONTENT_AUTHORS_KEY]?.split(",")?.toSet()
+    }
+
 
     protected val host: String
         get() = this.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
@@ -43,11 +60,13 @@ abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>>(
 
     /** */
     protected val timeoutMs: Long
-        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull() ?: TIMEOUT_MS_PARAMETER_DEFAULT
+        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull()
+            ?: TIMEOUT_MS_PARAMETER_DEFAULT
 
     /** */
     protected val pollingIntervalMs: Long
-        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull() ?: POLLINGINTERVAL_MS_PARAMETER_DEFAULT
+        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull()
+            ?: POLLINGINTERVAL_MS_PARAMETER_DEFAULT
 
     /** */
     protected val retries: Int

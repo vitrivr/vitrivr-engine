@@ -17,7 +17,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class CombineOperator<T : Retrievable>(override val inputs: List<Operator<T>>) : Operator.NAry<T, T> {
+class CombineOperator<T : Retrievable>(override val inputs: List<Operator<T>>, override val name: String = "combine") : Operator.NAry<T, T> {
 
     /**
      *  Generates a new [channelFlow] that merges the results of multiple incoming [Operator]s into a single [Flow]. Incoming operators are

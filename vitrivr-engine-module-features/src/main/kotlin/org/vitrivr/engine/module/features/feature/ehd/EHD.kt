@@ -89,7 +89,7 @@ class EHD : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = EHDExtractor(input, this, null)
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = EHDExtractor(input, this, name)
 
     /**
      * Generates and returns a new [EHDExtractor] instance for this [EHD].

@@ -48,7 +48,7 @@ class FileSystemEnumerator : EnumeratorFactory {
         val limit = context[name, "limit"]?.toLongOrNull() ?: Long.MAX_VALUE
         val type = context[name, "type"]
         logger.info { "Enumerator: FileSystemEnumerator with path: $path, depth: $depth, mediaTypes: $mediaTypes, skip: $skip, limit: ${if (limit == Long.MAX_VALUE) "none" else limit}" }
-        return Instance(path, depth, mediaTypes, skip, limit, type)
+        return Instance(path, depth, mediaTypes, skip, limit, type, name)
     }
 
     /**
@@ -70,7 +70,8 @@ class FileSystemEnumerator : EnumeratorFactory {
         private val mediaTypes: Collection<MediaType> = MediaType.allValid,
         private val skip: Long = 0,
         private val limit: Long = Long.MAX_VALUE,
-        private val typeName: String? = null
+        private val typeName: String? = null,
+        override val name: String
     ) : Enumerator {
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {

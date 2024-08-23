@@ -40,7 +40,7 @@ class TemplateTextTransformer : TransformerFactory {
         )
     }
 
-    private class Instance(override val input: Operator<out Retrievable>, val contentFactory: ContentFactory, val template: String, val contentFields: List<String>, val defaultValue: String, val name: String) : Transformer {
+    private class Instance(override val input: Operator<out Retrievable>, val contentFactory: ContentFactory, val template: String, val contentFields: List<String>, val defaultValue: String, override val name: String) : Transformer {
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
             input.toFlow(scope).collect { retrievable: Retrievable ->
                 var mergedContent = template

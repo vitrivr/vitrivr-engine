@@ -16,9 +16,13 @@ import org.vitrivr.engine.core.operators.general.TransformerFactory
  * @version 1.1.0
  */
 class ContentSamplingTransformer : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer = Instance(input, context[name, "sample"]?.toIntOrNull() ?: 10)
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer = Instance(input, name, context[name, "sample"]?.toIntOrNull() ?: 10)
 
-    private class Instance(override val input: Operator<out Retrievable>, private val sample: Int) : Transformer {
+    private class Instance(
+        override val input: Operator<out Retrievable>,
+        override val name: String,
+        private val sample: Int
+    ) : Transformer {
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> {
             var counter = 0L
             return this.input.toFlow(scope).filter {

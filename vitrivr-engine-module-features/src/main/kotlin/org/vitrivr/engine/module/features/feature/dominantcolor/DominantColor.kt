@@ -95,7 +95,7 @@ class DominantColor : Analyser<ImageContent, LabelDescriptor> {
         name: String,
         input: Operator<Retrievable>,
         context: IndexContext
-    ): Extractor<ImageContent, LabelDescriptor> = DominantColorExtractor(input, this, null) //TODO name
+    ): Extractor<ImageContent, LabelDescriptor> = DominantColorExtractor(input, this, name)
 
     /**
      * Performs the [DominantColor] analysis on the provided [List] of [ImageContent] elements.

@@ -1,4 +1,4 @@
-package org.vitrivr.engine.index.aggregators
+package org.vitrivr.engine.index.aggregators.content
 
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.context.IndexContext
@@ -30,7 +30,7 @@ class LastContentAggregator : TransformerFactory {
     /**
      * The [Instance] returns by the [LastContentAggregator]
      */
-    private class Instance(override val input: Operator<out Retrievable>, context: Context, name: String) : AbstractAggregator(input, context, name, newContent = false) {
+    private class Instance(override val input: Operator<out Retrievable>, context: Context, name: String) : AbstractAggregator(input, context, name) {
         override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> = content.groupBy { it.type }.mapNotNull { (_, elements) -> elements.lastOrNull() }
     }
 }

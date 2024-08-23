@@ -87,8 +87,10 @@ private fun JsonObject.convertType(type: Type): Value<*>? {
     }
 }
 
-class ExifMetadataExtractor(input: Operator<Retrievable>, analyser: ExifMetadata, field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>?) : AbstractExtractor<ContentElement<*>, AnyMapStructDescriptor>(input, analyser, field) {
+class ExifMetadataExtractor : AbstractExtractor<ContentElement<*>, AnyMapStructDescriptor> {
 
+    constructor(input: Operator<Retrievable>, analyser: ExifMetadata, field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>) : super(input, analyser, field)
+    constructor(input: Operator<Retrievable>, analyser: ExifMetadata, name: String): super(input, analyser, name)
 
     override fun matches(retrievable: Retrievable): Boolean =
         retrievable.filteredAttribute(SourceAttribute::class.java)?.source is FileSource

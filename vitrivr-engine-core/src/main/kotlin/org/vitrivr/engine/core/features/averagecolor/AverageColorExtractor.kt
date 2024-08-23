@@ -20,7 +20,11 @@ import org.vitrivr.engine.core.source.file.FileSource
  * @author Luca Rossetto
  * @version 1.2.0
  */
-class AverageColorExtractor(input: Operator<Retrievable>, analyser: AverageColor, field: Schema.Field<ImageContent, FloatVectorDescriptor>?) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, analyser, field) {
+class AverageColorExtractor : AbstractExtractor<ImageContent, FloatVectorDescriptor> {
+
+    constructor(input: Operator<Retrievable>, analyser: AverageColor, field: Schema.Field<ImageContent, FloatVectorDescriptor>) : super(input, analyser, field)
+    constructor(input: Operator<Retrievable>, analyser: AverageColor, name: String) : super(input, analyser, name)
+
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *

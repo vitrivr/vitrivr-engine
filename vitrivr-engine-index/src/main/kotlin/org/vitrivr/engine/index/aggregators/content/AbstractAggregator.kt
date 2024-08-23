@@ -1,4 +1,4 @@
-package org.vitrivr.engine.index.aggregators
+package org.vitrivr.engine.index.aggregators.content
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -19,7 +19,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.1.0
  */
-abstract class AbstractAggregator(override val input: Operator<out Retrievable>, protected open val context: Context, protected val name: String, val newContent: Boolean = true) : Transformer {
+abstract class AbstractAggregator(override val input: Operator<out Retrievable>, protected open val context: Context, override val name: String, val newContent: Boolean = true) : Transformer {
     /**
      *  Creates a flow for this [AbstractAggregator].
      *

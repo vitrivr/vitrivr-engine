@@ -1,4 +1,4 @@
-package org.vitrivr.engine.index.aggregators
+package org.vitrivr.engine.index.aggregators.content
 
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.context.IndexContext

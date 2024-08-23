@@ -21,7 +21,11 @@ import org.vitrivr.engine.core.source.file.FileSource
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class MedianColorExtractor(input: Operator<Retrievable>, analyser: MedianColor, field: Schema.Field<ImageContent, FloatVectorDescriptor>?) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, analyser, field) {
+class MedianColorExtractor : AbstractExtractor<ImageContent, FloatVectorDescriptor> {
+
+    constructor(input: Operator<Retrievable>, analyser: MedianColor, field: Schema.Field<ImageContent, FloatVectorDescriptor>) : super(input, analyser, field)
+    constructor(input: Operator<Retrievable>, analyser: MedianColor, name: String) : super(input, analyser, name)
+
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *

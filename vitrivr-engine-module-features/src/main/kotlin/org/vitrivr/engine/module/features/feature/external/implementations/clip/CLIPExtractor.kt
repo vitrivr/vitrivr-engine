@@ -20,7 +20,18 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Rahel Arnold
  * @version 1.3.0
  */
-class CLIPExtractor(input: Operator<Retrievable>, analyser: CLIP, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>?, private val host: String) : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor>(input, analyser, field) {
+class CLIPExtractor : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor> {
+
+    private val host: String
+
+    constructor(input: Operator<Retrievable>, analyser: CLIP, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, host: String) : super(input, analyser, field) {
+        this.host = host
+    }
+    constructor(input: Operator<Retrievable>, analyser: CLIP, name: String, host: String) : super(input, analyser, name) {
+        this.host = host
+    }
+
+
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *

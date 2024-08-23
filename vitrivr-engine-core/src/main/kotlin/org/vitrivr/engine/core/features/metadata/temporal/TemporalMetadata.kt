@@ -53,7 +53,7 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
      *
      * @return [TemporalMetadataExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = TemporalMetadataExtractor(input, this, null)
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = TemporalMetadataExtractor(input, this, name)
 
     /**
      * Generates and returns a new [TemporalMetadataRetriever] for the provided [Schema.Field].

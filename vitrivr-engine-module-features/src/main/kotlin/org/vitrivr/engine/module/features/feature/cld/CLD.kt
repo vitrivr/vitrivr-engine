@@ -69,7 +69,7 @@ class CLD : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = CLDExtractor(input, this, null)
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = CLDExtractor(input, this, name)
 
     /**
      * Generates and returns a new [CLDExtractor] instance for this [CLD].

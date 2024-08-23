@@ -11,7 +11,7 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.util.extension.getRGBArray
-import org.vitrivr.engine.index.aggregators.AbstractAggregator
+import org.vitrivr.engine.index.aggregators.content.AbstractAggregator
 
 /**
  * A [Transformer] that derives the 'most representative' [ImageContent] from all [ImageContent] found in an [Ingested].
@@ -36,7 +36,8 @@ class RepresentativeImageContentAggregator : TransformerFactory {
     /**
      * The [Instance] returns by the [RepresentativeImageContentAggregator]
      */
-    private class Instance(override val input: Operator<out Retrievable>, override val context: IndexContext, name: String) : AbstractAggregator(input, context, name) {
+    private class Instance(override val input: Operator<out Retrievable>, override val context: IndexContext, name: String
+    ) : AbstractAggregator(input, context, name) {
         override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> {
             val images = content.filterIsInstance<ImageContent>()
             if (images.isEmpty()) {
