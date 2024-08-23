@@ -87,10 +87,11 @@ class ExternalRenderer : Closeable {
             val os = System.getProperty("os.name").lowercase()
             val processBuilder = if (os.contains("mac")) {
                 ProcessBuilder(javaBin, "-cp", classpath, "-XstartOnFirstThread", CLASS_NAME) /* Mac only issue. */
-            } else if (os.contains("linux")) {
-                ProcessBuilder("DISPLAY=:1", javaBin, "-cp", classpath, CLASS_NAME)
             } else {
                 ProcessBuilder(javaBin, "-cp", classpath, CLASS_NAME)
+            }
+            if (os.contains("linux")) {
+                processBuilder.environment()["DISPLAY"] = ":1"
             }
             this.process = processBuilder.start()
 
