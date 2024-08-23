@@ -50,7 +50,7 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
       - name: Test with gradle ubuntu
         if: matrix.os == 'ubuntu-latest'
-        run: DISPLAY=:1 ./gradlew test --info
+        run: ./gradlew test --info
       - name: Test with gradle windows
         if: matrix.os == 'windows-latest'
         run: ./gradlew test --info
