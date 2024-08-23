@@ -12,7 +12,7 @@ import org.vitrivr.engine.model3d.renderer.ExternalRenderer
  */
 class M3DTest {
     /**
-     * Tests if the Standfor Bunny model can be loaded.
+     * Tests if the Standford Bunny model can be loaded.
      */
     @Test
     fun loadBunny() {
