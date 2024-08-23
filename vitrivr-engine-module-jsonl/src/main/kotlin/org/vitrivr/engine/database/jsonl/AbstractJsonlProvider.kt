@@ -7,7 +7,7 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 
-abstract class AbstractJsonlProvider<D : Descriptor> : DescriptorProvider<D> {
+abstract class AbstractJsonlProvider<D : Descriptor<*>> : DescriptorProvider<D> {
 
     override fun newInitializer(connection: Connection, field: Schema.Field<*, D>): DescriptorInitializer<D> =
         JsonlInitializer(

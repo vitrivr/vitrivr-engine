@@ -14,8 +14,8 @@ import org.vitrivr.engine.plugin.cottontaildb.descriptors.CottontailDescriptorWr
  * @author Ralph Gasser
  * @version 1.0.0
  */
-internal object VectorDescriptorProvider : DescriptorProvider<VectorDescriptor<*>> {
-    override fun newInitializer(connection: Connection, field: Schema.Field<*, VectorDescriptor<*>>) = CottontailDescriptorInitializer(field, connection as CottontailConnection)
-    override fun newReader(connection: Connection, field: Schema.Field<*, VectorDescriptor<*>>) = VectorDescriptorReader(field, connection as CottontailConnection)
-    override fun newWriter(connection: Connection, field: Schema.Field<*, VectorDescriptor<*>>) = CottontailDescriptorWriter(field, connection as CottontailConnection)
+internal object VectorDescriptorProvider : DescriptorProvider<VectorDescriptor<*, *>> {
+    override fun newInitializer(connection: Connection, field: Schema.Field<*, VectorDescriptor<*, *>>) = CottontailDescriptorInitializer(field, connection as CottontailConnection)
+    override fun newReader(connection: Connection, field: Schema.Field<*, VectorDescriptor<*, *>>) = VectorDescriptorReader(field, connection as CottontailConnection)
+    override fun newWriter(connection: Connection, field: Schema.Field<*, VectorDescriptor<*, *>>) = CottontailDescriptorWriter(field, connection as CottontailConnection)
 }

@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.operators.ingest.DecoderFactory
@@ -54,6 +55,7 @@ class ImageDecoder : DecoderFactory {
                     this.context.contentFactory.newImageContent(ImageIO.read(it))
                 }
                 sourceRetrievable.addContent(content)
+                sourceRetrievable.addAttribute(ContentAuthorAttribute(content.id, this.name))
                 logger.info { "Finished decoding image from source '${source.name}' (${source.sourceId})." }
 
                 /* Return ingested. */

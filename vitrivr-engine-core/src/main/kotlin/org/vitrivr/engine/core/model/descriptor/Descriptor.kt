@@ -19,15 +19,15 @@ typealias DescriptorId = @Serializable(UUIDSerializer::class) UUID
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface Descriptor : Persistable {
+interface Descriptor<T : Descriptor<T>> : Persistable {
     /** The [DescriptorId] held by this [Descriptor]. */
-    var id: DescriptorId
+    val id: DescriptorId
 
     /** The [RetrievableId] of the [Retrievable] that is being described by this [Descriptor]. */
-    var retrievableId: RetrievableId?
+    val retrievableId: RetrievableId?
 
     /** The [Schema.Field] backing this [Descriptor]. */
-    val field: Schema.Field<*, out Descriptor>?
+    val field: Schema.Field<*, out T>?
 
     /** Flag indicating whether this [Descriptor] is persistent or not. */
     override val transient: Boolean
@@ -46,4 +46,15 @@ interface Descriptor : Persistable {
      * @return A [Map] of this [Descriptor]'s fields (without the IDs).
      */
     fun values(): Map<AttributeName, Value<*>?>
+
+    /**
+     * Returns a copy of this [Descriptor] with new [RetrievableId] and/or [DescriptorId]
+     *
+     * @param id [DescriptorId] of the new [Descriptor].
+     * @param retrievableId [RetrievableId] of the new [Descriptor].
+     * @param field [Schema.Field] the new [Descriptor] belongs to.
+     *
+     * @return Copy of this [Descriptor].
+     */
+    fun copy(id: DescriptorId = this.id, retrievableId: RetrievableId? = this.retrievableId, field: Schema.Field<*, T>? = null): T
 }

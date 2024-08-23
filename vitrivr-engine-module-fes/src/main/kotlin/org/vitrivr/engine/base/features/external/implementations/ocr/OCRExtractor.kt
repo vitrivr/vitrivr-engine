@@ -36,20 +36,23 @@ class OCRExtractor : FesExtractor<ImageContent, TextDescriptor> {
     /** The [OcrApi] used to perform extraction with. */
     private val api = OcrApi(this.host, this.model, this.timeoutMs, this.pollingIntervalMs, this.retries)
 
+
     /**
      * Internal method to perform extraction on [Retrievable].
      **
-     * @param retrievable The [Retrievable] to process.
-     * @return List of resulting [Descriptor]s.
+     * @param retrievables The [Retrievable]s to process.
+     * @return List of resulting [Descriptor]s grouped by [Retrievable].
      */
-    override fun extract(retrievable: Retrievable): List<TextDescriptor> {
-        val content = retrievable.content.filterIsInstance<ImageContent>()
-        return content.mapNotNull { audio ->
-            val result = this.api.analyse(audio)
-            if (result != null) {
-                TextDescriptor(UUID.randomUUID(), retrievable.id, result, this.field)
-            } else {
-                null
+    override fun extract(retrievables: List<Retrievable>): List<List<TextDescriptor>> {
+        val flatResults = this.api.analyseBatched(retrievables.flatMap { this.filterContent(it) }).mapNotNull { result ->
+            TextDescriptor(UUID.randomUUID(), null, result, this.field)
+        }
+
+        var index = 0
+
+        return retrievables.map { retrievable ->
+            this.filterContent(retrievable).map {
+                flatResults[index++].also { TextDescriptor(it.id, retrievable.id, it.value, it.field) }
             }
         }
     }

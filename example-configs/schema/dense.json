@@ -1,7 +1,6 @@
 {
-  "schemas": [
-    {
-      "name": "dense",
+  "schemas": {
+    "dense": {
       "connection": {
         "database": "PgVectorConnectionProvider",
         "parameters": {
@@ -11,113 +10,100 @@
           "password": "admin"
         }
       },
-      "fields": [
-        {
-          "name": "averagecolor",
+      "fields": {
+        "averagecolor": {
           "factory": "AverageColor"
         },
-        {
-          "name": "file",
+        "file": {
           "factory": "FileSourceMetadata"
         },
-        {
-          "name": "time",
+        "time": {
           "factory": "TemporalMetadata"
         },
-        {
-          "name": "video",
+        "video": {
           "factory": "VideoSourceMetadata"
         },
-        {
-          "name": "asrSparse",
+        "asrSparse": {
           "factory": "ASR",
           "parameters": {
             "host": "http://10.34.64.84:8888/",
             "model": "whisper",
             "timeoutSeconds": "100",
-            "retries":"1000"
+            "retries": "1000"
           }
         },
-        {
-          "name": "asrDense",
+        "asrDense": {
           "factory": "DenseEmbedding",
           "parameters": {
             "host": "http://10.34.64.84:8888/",
             "model": "e5mistral7b-instruct",
             "length": "4096",
             "timeoutSeconds": "100",
-            "retries":"1000"
+            "retries": "1000"
           }
         },
-        {
-          "name": "clip",
+        "clip": {
           "factory": "DenseEmbedding",
           "parameters": {
             "host": "http://10.34.64.84:8888/",
             "model": "open-clip-vit-b32",
             "length": "512",
             "timeoutSeconds": "100",
-            "retries":"1000"
+            "retries": "1000"
           }
         },
-
-        {
-          "name": "documentType",
+        "documentType": {
           "factory": "ImageClassification",
           "parameters": {
             "host": "http://10.34.64.84:8888/",
             "model": "open-clip-vit-b32",
             "timeoutSeconds": "100",
-            "retries":"1000",
+            "retries": "1000",
             "classes": "text document,photograph",
             "threshold": "0.1",
             "top_k": "1"
           }
         },
-        {
-          "name": "captionSparse",
+        "captionSparse": {
           "factory": "ImageCaption",
           "parameters": {
             "host": "http://10.34.64.84:8888/",
             "timeoutSeconds": "100",
-            "retries":"1000",
+            "retries": "1000",
             "model": "gpt4o",
             "prompt": "Describe the contents of this image to help document the image and to aid archivists in searching for the image. Use information from the internet to enhance the description. The image is part of the PTT Archive which preserves the history (1848-1997) of Swiss Post, Telegraphy and Telephony (PTT)."
           }
         },
-        {
-          "name": "captionDense",
+        "captionDense": {
           "factory": "DenseEmbedding",
           "parameters": {
             "host": "http://10.34.64.84:8888/",
             "model": "e5mistral7b-instruct",
             "length": "4096",
             "timeoutSeconds": "100",
-            "retries":"1000"
+            "retries": "1000"
           }
         },
-        {
-          "name": "ocrSparse",
+        "ocrSparse": {
           "factory": "OCR",
           "parameters": {
             "host": "http://10.34.64.84:8888/",
             "model": "tesseract",
             "timeoutSeconds": "100",
-            "retries":"1000"
+            "retries": "1000"
           }
         },
-        {
-          "name": "ocrDense",
+        "ocrDense": {
           "factory": "DenseEmbedding",
           "parameters": {
             "host": "http://10.34.64.84:8888/",
             "model": "e5mistral7b-instruct",
             "length": "4096",
             "timeoutSeconds": "100",
-            "retries":"1000"
+            "retries": "1000"
           }
         }
-      ],
+      },
       "resolvers": {
         "disk": {
           "factory": "DiskResolver",
@@ -126,9 +112,8 @@
           }
         }
       },
-      "exporters": [
-        {
-          "name": "thumbnail",
+      "exporters": {
+        "thumbnail": {
           "factory": "ThumbnailExporter",
           "resolverName": "disk",
           "parameters": {
@@ -136,13 +121,12 @@
             "mimeType": "JPG"
           }
         }
-      ],
-      "extractionPipelines": [
-        {
-          "name": "wit1",
+      },
+      "extractionPipelines": {
+        "wit1": {
           "path": "./pipelines/wit1.json"
         }
-      ]
+      }
     }
-  ]
+  }
 }

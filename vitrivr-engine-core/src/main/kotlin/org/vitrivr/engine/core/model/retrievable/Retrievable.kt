@@ -31,7 +31,7 @@ interface Retrievable : Persistable {
     val content: List<ContentElement<*>>
 
     /** The [Descriptor]s held by this [Retrievable]- */
-    val descriptors: Collection<Descriptor>
+    val descriptors: Collection<Descriptor<*>>
 
     /** The [RetrievableAttribute]s held by this [Retrievable]. */
     val attributes: Collection<RetrievableAttribute>
@@ -112,7 +112,7 @@ interface Retrievable : Persistable {
      * @param descriptor The [Descriptor] to add.
      * @return True on success, false otherwise.
      */
-    fun addDescriptor(descriptor: Descriptor): Boolean
+    fun addDescriptor(descriptor: Descriptor<*>): Boolean
 
     /**
      * Removes a [Descriptor] from this [Retrievable].
@@ -120,7 +120,7 @@ interface Retrievable : Persistable {
      * @param descriptor The [Descriptor] to remove.
      * @return True on success, false otherwise.
      */
-    fun removeDescriptor(descriptor: Descriptor): Boolean
+    fun removeDescriptor(descriptor: Descriptor<*>): Boolean
 
     /**
      * Finds all [Descriptor]s held by this [Retrievable] that satisfy the given [Predicate].
@@ -128,7 +128,7 @@ interface Retrievable : Persistable {
      * @param predicate The [Predicate] to test the [Descriptor]s against.
      * @return List of matching [Descriptor]s
      */
-    fun findDescriptor(predicate: Predicate<Descriptor>): List<Descriptor> = this.descriptors.filter { predicate.test(it) }
+    fun findDescriptor(predicate: Predicate<Descriptor<*>>): List<Descriptor<*>> = this.descriptors.filter { predicate.test(it) }
 
     /**
      * Adds a [Relationship] to this [Retrievable].

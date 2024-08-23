@@ -1,6 +1,5 @@
 package org.vitrivr.engine.model3d
 
-import org.joml.Vector3f
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.nio.file.Files
@@ -26,6 +25,5 @@ class ModelHandlerTest {
         val mesh = model.getMaterials().first().meshes.first()
         Assertions.assertEquals(4968, mesh.numberOfFaces)
         Assertions.assertEquals(2503, mesh.numberOfVertices)
-        //TODO: Maybe more tests?
     }
 }

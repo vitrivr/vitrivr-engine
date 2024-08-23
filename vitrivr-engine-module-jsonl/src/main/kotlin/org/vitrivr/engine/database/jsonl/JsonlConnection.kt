@@ -48,10 +48,10 @@ class JsonlConnection(
     companion object {
 
         /** The column name of a retrievable ID. */
-        const val RETRIEVABLE_ID_COLUMN_NAME = "retrievableId"
+        const val RETRIEVABLE_ID_COLUMN_NAME = "retrievableid"
 
         /** The column name of a descriptor ID. */
-        const val DESCRIPTOR_ID_COLUMN_NAME = "descriptorId"
+        const val DESCRIPTOR_ID_COLUMN_NAME = "descriptorid"
     }
 
 }
