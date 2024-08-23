@@ -29,6 +29,8 @@ jobs:
 
     # Start actual job.
     steps:
+      - name: Set up Xvfb
+        run: Xvfb :1 -ac -screen 0 1024x768x24 &
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Cottontail DB connection test
@@ -48,7 +50,7 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
       - name: Test with gradle ubuntu
         if: matrix.os == 'ubuntu-latest'
-        run: ./gradlew test --info
+        run: DISPLAY=:1 ./gradlew test --info
       - name: Test with gradle windows
         if: matrix.os == 'windows-latest'
         run: ./gradlew test --info
