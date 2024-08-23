@@ -9,14 +9,20 @@ import java.io.Closeable
 import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
+import kotlin.jvm.optionals.getOrNull
 
 /**
- * A helper class that boots an external renderer and allows to render [Model]s using it.
+ * A helper class that boots an external renderer and allows to render 3D models using it.
  *
  * @author Ralph Gasser
  * @version 1.0.0
  */
 class ExternalRenderer : Closeable {
+
+
+    companion object {
+        private const val CLASS_NAME = "org.vitrivr.engine.model3d.renderer.RendererKt"
+    }
 
     private var process: RenderProcess? = null
 
@@ -76,17 +82,18 @@ class ExternalRenderer : Closeable {
         val ois: ObjectInputStream
 
         init {
-            val javaHome = System.getProperty("java.home")
-            val javaBin = "$javaHome/bin/java"
+            val javaBin = ProcessHandle.current().info().command().getOrNull() ?: throw IllegalStateException("Could not determine JAVA_HOME.")
             val classpath = System.getProperty("java.class.path")
-            val className = "org.vitrivr.engine.model3d.renderer.RendererKt"
-
-            val processBuilder = ProcessBuilder(javaBin, "-cp", classpath, "-XstartOnFirstThread", className)
+            val processBuilder = ProcessBuilder(javaBin, "-cp", classpath, "-XstartOnFirstThread", CLASS_NAME)
             this.process = processBuilder.start()
 
             /* Initialize streams. */
-            this.oos = ObjectOutputStream(this.process.outputStream)
-            this.ois = ObjectInputStream(this.process.inputStream)
+            if (this.process.isAlive) {
+                this.oos = ObjectOutputStream(this.process.outputStream)
+                this.ois = ObjectInputStream(this.process.inputStream)
+            } else {
+                throw IllegalStateException("Failed to start external renderer.")
+            }
         }
 
         /**
