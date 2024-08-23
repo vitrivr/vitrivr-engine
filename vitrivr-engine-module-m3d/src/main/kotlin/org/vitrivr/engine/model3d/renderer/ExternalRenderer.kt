@@ -84,7 +84,12 @@ class ExternalRenderer : Closeable {
         init {
             val javaBin = ProcessHandle.current().info().command().getOrNull() ?: throw IllegalStateException("Could not determine JAVA_HOME.")
             val classpath = System.getProperty("java.class.path")
-            val processBuilder = ProcessBuilder(javaBin, "-cp", classpath, "-XstartOnFirstThread", CLASS_NAME)
+            val os = System.getProperty("os.name").lowercase()
+            val processBuilder = if (os.contains("mac")) {
+                ProcessBuilder(javaBin, "-cp", classpath, "-XstartOnFirstThread", CLASS_NAME) /* Mac only issue. */
+            } else {
+                ProcessBuilder(javaBin, "-cp", classpath, CLASS_NAME)
+            }
             this.process = processBuilder.start()
 
             /* Initialize streams. */
