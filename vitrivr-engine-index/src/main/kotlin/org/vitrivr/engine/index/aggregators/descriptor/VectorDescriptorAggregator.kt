@@ -26,50 +26,50 @@ class VectorDescriptorAggregator : TransformerFactory {
         MEAN {
             override fun aggregate(collection: Collection<VectorDescriptor<*, *>>): VectorDescriptor<*, *> {
 
-                val vec = FloatArray(collection.first().vector.size)
+                val vec = DoubleArray(collection.first().vector.size)
 
                 collection.forEach { descriptor ->
                     when (descriptor) {
                         is FloatVectorDescriptor -> {
                             for (i in vec.indices) {
-                                vec[i] += descriptor.vector.value[i]
+                                vec[i] += descriptor.vector.value[i].toDouble()
                             }
                         }
 
                         is DoubleVectorDescriptor -> {
                             for (i in vec.indices) {
-                                vec[i] += descriptor.vector.value[i].toFloat()
+                                vec[i] += descriptor.vector.value[i]
                             }
                         }
 
                         is IntVectorDescriptor -> {
                             for (i in vec.indices) {
-                                vec[i] += descriptor.vector.value[i].toFloat()
+                                vec[i] += descriptor.vector.value[i].toDouble()
                             }
                         }
 
                         is LongVectorDescriptor -> {
                             for (i in vec.indices) {
-                                vec[i] += descriptor.vector.value[i].toFloat()
+                                vec[i] += descriptor.vector.value[i].toDouble()
                             }
                         }
 
                         is BooleanVectorDescriptor -> {
                             for (i in vec.indices) {
-                                vec[i] += if (descriptor.vector.value[i]) 1f else 0f
+                                vec[i] += if (descriptor.vector.value[i]) 1.0 else 0.0
                             }
                         }
                     }
                 }
 
-                val div = collection.size.toFloat()
+                val div = collection.size.toDouble()
 
                 for (i in vec.indices) {
                     vec[i] /= div
                 }
 
-                return FloatVectorDescriptor(
-                    UUID.randomUUID(), null, Value.FloatVector(vec)
+                return DoubleVectorDescriptor(
+                    UUID.randomUUID(), null, Value.DoubleVector(vec)
                 )
             }
         };
