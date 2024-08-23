@@ -5,10 +5,7 @@ import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
 import org.vitrivr.engine.model3d.lwjglrender.render.RenderOptions
 import org.vitrivr.engine.model3d.lwjglrender.window.WindowOptions
 import java.awt.image.BufferedImage
-import java.io.Closeable
-import java.io.IOException
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
+import java.io.*
 import kotlin.jvm.optionals.getOrNull
 
 /**
@@ -81,6 +78,9 @@ class ExternalRenderer : Closeable {
         /** The [ObjectInputStream] used by the [ExternalRenderer]. */
         val ois: ObjectInputStream
 
+        /** The standard error */
+        val err: BufferedReader
+
         init {
             val javaBin = ProcessHandle.current().info().command().getOrNull() ?: throw IllegalStateException("Could not determine JAVA_HOME.")
             val classpath = System.getProperty("java.class.path")
@@ -88,11 +88,13 @@ class ExternalRenderer : Closeable {
             this.process = processBuilder.start()
 
             /* Initialize streams. */
-            if (this.process.isAlive) {
+            this.err = this.process.errorReader()
+            try {
                 this.oos = ObjectOutputStream(this.process.outputStream)
                 this.ois = ObjectInputStream(this.process.inputStream)
-            } else {
-                throw IllegalStateException("Failed to start external renderer.")
+            } catch (e: Throwable) {
+                val err = this.err.readText()
+                throw IllegalStateException("Failed to start external renderer due to error: $err", e)
             }
         }
 
@@ -112,6 +114,9 @@ class ExternalRenderer : Closeable {
             /* Read response and return image. */
             val image = try {
                 this.ois.readObject() as? RenderResponse ?: throw IllegalStateException("Could not parse model.")
+            } catch (e: IOException) {
+                this.ois.reset()
+                throw IllegalStateException("Could not parse model due to IO exception.", e)
             } catch (e: IOException) {
                 this.ois.reset()
                 throw IllegalStateException("Could not parse model due to IO exception.", e)
