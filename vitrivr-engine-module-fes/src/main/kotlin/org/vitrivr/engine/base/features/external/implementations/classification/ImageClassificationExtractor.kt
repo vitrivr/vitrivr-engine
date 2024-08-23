@@ -47,10 +47,11 @@ class ImageClassificationExtractor(
         val topK = this.parameters[TOPK_PARAMETER_NAME]?.toInt() ?: 1
         val threshold = this.parameters[THRESHOLD_PARAMETER_NAME]?.toFloat() ?: 0.0f
 
-        val flatResults = this.api.analyseBatched(
-            retrievables.flatMap {
-                this.filterContent(it).filterIsInstance<ImageContent>().map { it to classes }
-            }).mapIndexed { idx, result ->
+        val content = retrievables.mapIndexed { idx, retrievable ->
+            this.filterContent(retrievable).filterIsInstance<ImageContent>().map { idx to (it to classes) }
+        }.flatten()
+
+        return this.api.analyseBatched(content.map{it.second}).zip(content.map{it.first}).map { (result, idx) ->
             result.mapIndexed { idy, confidence ->
                 LabelDescriptor(
                     UUID.randomUUID(),
@@ -63,6 +64,5 @@ class ImageClassificationExtractor(
                 )
             }.filter { it.confidence.value >= threshold }.sortedByDescending { it.confidence.value }.take(topK)
         }
-        return flatResults
     }
 }
