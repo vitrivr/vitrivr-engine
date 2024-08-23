@@ -113,7 +113,8 @@ class ExternalRenderer : Closeable {
                 this.oos.flush()
             } catch (e: IOException) {
                 this.oos.reset()
-                throw IllegalStateException("Could not send request due to IO exception.", e)
+                val err = this.err.readText()
+                throw IllegalStateException("Could not send request due to IO exception. External renderer reported: $err", e)
             }
 
             /* Read response and return image. */
@@ -121,10 +122,8 @@ class ExternalRenderer : Closeable {
                 this.ois.readObject() as? RenderResponse ?: throw IllegalStateException("Could not parse model.")
             } catch (e: IOException) {
                 this.ois.reset()
-                throw IllegalStateException("Could not parse model due to IO exception.", e)
-            } catch (e: IOException) {
-                this.ois.reset()
-                throw IllegalStateException("Could not parse model due to IO exception.", e)
+                val err = this.err.readText()
+                throw IllegalStateException("Could not parse model due to IO exception. External renderer reported: $err", e)
             }
             return image
         }
