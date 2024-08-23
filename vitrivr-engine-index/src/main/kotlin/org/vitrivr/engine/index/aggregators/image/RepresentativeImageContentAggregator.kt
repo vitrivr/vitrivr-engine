@@ -2,8 +2,7 @@ package org.vitrivr.engine.index.aggregators.image
 
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.model.color.MutableRGBFloatColorContainer
-import org.vitrivr.engine.core.model.color.RGBByteColorContainer
+import org.vitrivr.engine.core.model.color.RGBColorContainer
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.retrievable.Ingested
@@ -53,23 +52,29 @@ class RepresentativeImageContentAggregator : TransformerFactory {
             val firstImage = images.first()
             val height = firstImage.height
             val width = firstImage.width
-            val colors = List(firstImage.width * firstImage.height) { MutableRGBFloatColorContainer() }
+            val colors = List(firstImage.width * firstImage.height) { floatArrayOf(0.0f, 0.0f, 0.0f) }
             images.forEach { imageContent ->
                 require(imageContent.height == height && imageContent.width == width) { "Unable to aggregate images! All images must have same dimension." }
                 imageContent.content.getRGBArray().forEachIndexed { index, color ->
-                    colors[index] += RGBByteColorContainer(color)
+                    val rgb = RGBColorContainer(color)
+                    colors[index][0] += rgb.red
+                    colors[index][1] += rgb.green
+                    colors[index][2] += rgb.blue
                 }
             }
 
             /* normalize */
             val div = images.size.toFloat()
-            colors.forEach { it /= div }
+            for (color in colors) {
+                color[0] /= div
+                color[1] /= div
+                color[2] /= div
+            }
 
             /* find image with smallest pixel-wise distance */
             val mostRepresentative = images.minBy { imageContent ->
-
                 imageContent.content.getRGBArray().mapIndexed { index, color ->
-                    RGBByteColorContainer(color).toFloatContainer().distanceTo(colors[index])
+                    RGBColorContainer(color).distanceTo(RGBColorContainer(colors[index]))
                 }.sum()
 
             }

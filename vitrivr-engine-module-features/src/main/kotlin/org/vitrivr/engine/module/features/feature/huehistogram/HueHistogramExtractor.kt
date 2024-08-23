@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.features.averagecolor
+package org.vitrivr.engine.module.features.feature.huehistogram
 
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataExtractor
@@ -11,19 +11,20 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.source.file.FileSource
+import org.vitrivr.engine.module.features.feature.ehd.EHD
 
 /**
- * [Extractor] implementation for the [AverageColor] analyser.
+ * An [Extractor] implementation for the [HueHistogram] analyser.
  *
- * @see [AverageColor]
+ * @see [EHD]
  *
- * @author Luca Rossetto
- * @version 1.2.0
+ * @author Ralph Gasser
+ * @version 1.0.0
  */
-class AverageColorExtractor : AbstractExtractor<ImageContent, FloatVectorDescriptor> {
+class HueHistogramExtractor : AbstractExtractor<ImageContent, FloatVectorDescriptor> {
 
-    constructor(input: Operator<Retrievable>, analyser: AverageColor, field: Schema.Field<ImageContent, FloatVectorDescriptor>) : super(input, analyser, field)
-    constructor(input: Operator<Retrievable>, analyser: AverageColor, name: String) : super(input, analyser, name)
+    constructor(input: Operator<Retrievable>, analyser: HueHistogram, field: Schema.Field<ImageContent, FloatVectorDescriptor>) : super(input, analyser, field)
+    constructor(input: Operator<Retrievable>, analyser: HueHistogram, name: String) : super(input, analyser, name)
 
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
@@ -37,12 +38,12 @@ class AverageColorExtractor : AbstractExtractor<ImageContent, FloatVectorDescrip
 
     /**
      * Internal method to perform extraction on [Retrievable].
-     **
+     *
      * @param retrievable The [Retrievable] to process.
      * @return List of resulting [Descriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
         val content = retrievable.content.filterIsInstance<ImageContent>()
-        return content.map { (this.analyser as AverageColor).analyse(it).copy(retrievableId = retrievable.id, field = this.field) }
+        return content.map { (this.analyser as HueHistogram).analyse(it).copy(retrievableId = retrievable.id, field = this.field) }
     }
 }
