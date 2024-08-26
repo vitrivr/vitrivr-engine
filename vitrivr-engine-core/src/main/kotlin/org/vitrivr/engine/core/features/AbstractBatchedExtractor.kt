@@ -41,7 +41,7 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor<*>
             retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it)
         }
         return retrievable.content.filter { content ->
-            this.analyser.contentClasses.any { it.isInstance(content) && (contentIds?.contains(content.id) ?: false) }
+        this.analyser.contentClasses.any { it.isInstance(content) && (contentIds?.contains(content.id) ?: true) }
         }.map { it as C }
     }
 

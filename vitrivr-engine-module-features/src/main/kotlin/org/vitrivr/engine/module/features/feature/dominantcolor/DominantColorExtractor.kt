@@ -26,7 +26,7 @@ class DominantColorExtractor(input: Operator<Retrievable>, analyser: DominantCol
 
 
     override fun extract(retrievable: Retrievable): List<LabelDescriptor> {
-        val content = retrievable.content.filterIsInstance<ImageContent>()
+        val content = this.filterContent(retrievable)
         return (this.analyser as DominantColor).analyse(content).map { it.copy(retrievableId = retrievable.id, field = this@DominantColorExtractor.field) }
     }
 

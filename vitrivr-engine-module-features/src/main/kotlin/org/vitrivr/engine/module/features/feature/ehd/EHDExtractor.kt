@@ -38,7 +38,7 @@ class EHDExtractor(input: Operator<Retrievable>, analyser: EHD, field: Schema.Fi
      * @return List of resulting [Descriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
-        val content = retrievable.content.filterIsInstance<ImageContent>()
+        val content = this.filterContent(retrievable)
         return content.map { (this.analyser as EHD).analyse(it).copy(retrievableId = retrievable.id, field = this.field) }
     }
 }
