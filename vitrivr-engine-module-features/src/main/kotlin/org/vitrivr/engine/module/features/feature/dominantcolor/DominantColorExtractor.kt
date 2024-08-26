@@ -1,26 +1,18 @@
-package org.vitrivr.engine.core.features.averagecolor
+package org.vitrivr.engine.module.features.feature.dominantcolor
 
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataExtractor
 import org.vitrivr.engine.core.model.content.ContentType
 import org.vitrivr.engine.core.model.content.element.ImageContent
-import org.vitrivr.engine.core.model.descriptor.Descriptor
-import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.source.file.FileSource
 
-/**
- * [Extractor] implementation for the [AverageColor] analyser.
- *
- * @see [AverageColor]
- *
- * @author Luca Rossetto
- * @version 1.2.0
- */
-class AverageColorExtractor(input: Operator<Retrievable>, analyser: AverageColor, field: Schema.Field<ImageContent, FloatVectorDescriptor>?) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, analyser, field) {
+class DominantColorExtractor(input: Operator<Retrievable>, analyser: DominantColor, field: Schema.Field<ImageContent, LabelDescriptor>?) : AbstractExtractor<ImageContent, LabelDescriptor>(input, analyser, field) {
+
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
@@ -31,14 +23,12 @@ class AverageColorExtractor(input: Operator<Retrievable>, analyser: AverageColor
      */
     override fun matches(retrievable: Retrievable): Boolean = retrievable.content.any { it.type == ContentType.BITMAP_IMAGE }
 
-    /**
-     * Internal method to perform extraction on [Retrievable].
-     **
-     * @param retrievable The [Retrievable] to process.
-     * @return List of resulting [Descriptor]s.
-     */
-    override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
+
+
+    override fun extract(retrievable: Retrievable): List<LabelDescriptor> {
         val content = retrievable.content.filterIsInstance<ImageContent>()
-        return content.map { (this.analyser as AverageColor).analyse(it).copy(retrievableId = retrievable.id, field = this.field) }
+        return (this.analyser as DominantColor).analyse(content).map { it.copy(retrievableId = retrievable.id, field = this@DominantColorExtractor.field) }
     }
+
+
 }

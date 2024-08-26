@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.features.averagecolor
+package org.vitrivr.engine.module.features.feature.mediancolor
 
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataExtractor
@@ -12,15 +12,16 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.source.file.FileSource
 
+
 /**
- * [Extractor] implementation for the [AverageColor] analyser.
+ * [Extractor] implementation for the [MedianColor] analyser.
  *
- * @see [AverageColor]
+ * @see [MedianColor]
  *
- * @author Luca Rossetto
- * @version 1.2.0
+ * @author Ralph Gasser
+ * @version 1.0.0
  */
-class AverageColorExtractor(input: Operator<Retrievable>, analyser: AverageColor, field: Schema.Field<ImageContent, FloatVectorDescriptor>?) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, analyser, field) {
+class MedianColorExtractor(input: Operator<Retrievable>, analyser: MedianColor, field: Schema.Field<ImageContent, FloatVectorDescriptor>?) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, analyser, field) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
@@ -39,6 +40,6 @@ class AverageColorExtractor(input: Operator<Retrievable>, analyser: AverageColor
      */
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
         val content = retrievable.content.filterIsInstance<ImageContent>()
-        return content.map { (this.analyser as AverageColor).analyse(it).copy(retrievableId = retrievable.id, field = this.field) }
+        return content.map { (this.analyser as MedianColor).analyse(it).copy(retrievableId = retrievable.id, field = this.field) }
     }
 }

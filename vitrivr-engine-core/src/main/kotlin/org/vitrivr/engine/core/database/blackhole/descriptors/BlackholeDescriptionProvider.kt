@@ -14,8 +14,8 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class BlackholeDescriptionProvider<T: Descriptor<*>>: DescriptorProvider<T> {
-    override fun newInitializer(connection: Connection, field: Schema.Field<*, T>)= BlackholeDescriptorInitializer(connection as BlackholeConnection, field)
+class BlackholeDescriptionProvider<T : Descriptor<*>> : DescriptorProvider<T> {
+    override fun newInitializer(connection: Connection, field: Schema.Field<*, T>) = BlackholeDescriptorInitializer(connection as BlackholeConnection, field)
     override fun newReader(connection: Connection, field: Schema.Field<*, T>): DescriptorReader<T> = BlackholeDescriptorReader(connection as BlackholeConnection, field)
     override fun newWriter(connection: Connection, field: Schema.Field<*, T>): DescriptorWriter<T> = BlackholeDescriptorWriter(connection as BlackholeConnection, field)
 }

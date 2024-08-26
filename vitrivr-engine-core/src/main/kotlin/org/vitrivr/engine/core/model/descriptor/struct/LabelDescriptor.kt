@@ -27,6 +27,14 @@ class LabelDescriptor(
         )
     }
 
+    constructor(
+        id: DescriptorId,
+        retrievableId: RetrievableId?,
+        label: String,
+        confidence: Float = 1f,
+        field: Schema.Field<*, LabelDescriptor>? = null
+    ) : this(id, retrievableId, mapOf("label" to Value.String(label), "confidence" to Value.Float(confidence)), field)
+
     /** The stored label. */
     val label: Value.String by this.values
 
@@ -41,5 +49,6 @@ class LabelDescriptor(
      * @param field [Schema.Field] the new [LabelDescriptor] belongs to.
      * @return Copy of this [LabelDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, LabelDescriptor>?) = LabelDescriptor(id, retrievableId, HashMap(this.values), this.field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, LabelDescriptor>?) =
+        LabelDescriptor(id, retrievableId, HashMap(this.values), this.field)
 }
