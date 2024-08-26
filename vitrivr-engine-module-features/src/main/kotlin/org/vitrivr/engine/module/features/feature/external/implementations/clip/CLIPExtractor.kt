@@ -36,7 +36,7 @@ class CLIPExtractor(input: Operator<Retrievable>, analyser: CLIP, field: Schema.
      * @return List of resulting [Descriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
-        val content = retrievable.content.filterIsInstance<ImageContent>()
+        val content = this.filterContent(retrievable)
         return content.map { c ->
             CLIP.analyse(c, this.host).copy(retrievableId = retrievable.id, field = this@CLIPExtractor.field)
         }
