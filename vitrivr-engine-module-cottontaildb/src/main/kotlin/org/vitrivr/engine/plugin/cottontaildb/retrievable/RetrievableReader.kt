@@ -4,8 +4,8 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.basics.expression.Column
-import org.vitrivr.cottontail.client.language.basics.expression.List
 import org.vitrivr.cottontail.client.language.basics.expression.Literal
+import org.vitrivr.cottontail.client.language.basics.expression.ValueList
 import org.vitrivr.cottontail.client.language.basics.predicate.And
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.client.language.dql.Query
@@ -103,7 +103,7 @@ internal class RetrievableReader(override val connection: CottontailConnection) 
             Compare(
                 Column(this.entityName.column(RETRIEVABLE_ID_COLUMN_NAME)),
                 Compare.Operator.IN,
-                List(ids.map { UuidValue(it) }.toTypedArray())
+                ValueList(ids.map { UuidValue(it) }.toTypedArray())
             )
         )
         return try {
@@ -160,7 +160,7 @@ internal class RetrievableReader(override val connection: CottontailConnection) 
                 Compare(
                     Column(Name.ColumnName.create(SUBJECT_ID_COLUMN_NAME)),
                     Compare.Operator.IN,
-                    List(subjectIds.map { UuidValue(it) }.toTypedArray())
+                    ValueList(subjectIds.map { UuidValue(it) }.toTypedArray())
                 )
             } else {
                 null
@@ -169,7 +169,7 @@ internal class RetrievableReader(override val connection: CottontailConnection) 
                 Compare(
                     Column(Name.ColumnName.create(PREDICATE_COLUMN_NAME)),
                     Compare.Operator.IN,
-                    List(predicates.map { StringValue(it) }.toTypedArray())
+                    ValueList(predicates.map { StringValue(it) }.toTypedArray())
                 )
             } else {
                 null
@@ -178,7 +178,7 @@ internal class RetrievableReader(override val connection: CottontailConnection) 
                 Compare(
                     Column(Name.ColumnName.create(OBJECT_ID_COLUMN_NAME)),
                     Compare.Operator.IN,
-                    List(objectIds.map { UuidValue(it) }.toTypedArray())
+                    ValueList(objectIds.map { UuidValue(it) }.toTypedArray())
                 )
             } else {
                 null

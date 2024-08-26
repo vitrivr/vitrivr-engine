@@ -5,6 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.basics.expression.Column
 import org.vitrivr.cottontail.client.language.basics.expression.Literal
+import org.vitrivr.cottontail.client.language.basics.expression.ValueList
 import org.vitrivr.cottontail.client.language.basics.predicate.And
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.client.language.dml.BatchInsert
@@ -142,7 +143,7 @@ internal class RetrievableWriter(override val connection: CottontailConnection) 
             Compare(
                 Column(this.entityName.column(RETRIEVABLE_ID_COLUMN_NAME)),
                 Compare.Operator.IN,
-                org.vitrivr.cottontail.client.language.basics.expression.List(ids.toTypedArray())
+                ValueList(ids.toTypedArray())
             )
         )
 
