@@ -20,7 +20,7 @@ import org.vitrivr.engine.core.source.file.FileSource
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class EHDExtractor(input: Operator<Retrievable>, analyser: EHD, field: Schema.Field<ImageContent, FloatVectorDescriptor>?) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, analyser, field) {
+class EHDExtractor(input: Operator<Retrievable>, analyser: EHD, field: Schema.Field<ImageContent, FloatVectorDescriptor>?, parameters: Map<String,String>) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, analyser, field, parameters) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *

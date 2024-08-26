@@ -20,8 +20,8 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.3.0
  */
-class TemporalMetadataExtractor(input: Operator<Retrievable>, analyser: TemporalMetadata, field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>?) :
-    AbstractExtractor<ContentElement<*>, TemporalMetadataDescriptor>(input, analyser, field) {
+class TemporalMetadataExtractor(input: Operator<Retrievable>, analyser: TemporalMetadata, field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>?, parameters: Map<String,String>) :
+    AbstractExtractor<ContentElement<*>, TemporalMetadataDescriptor>(input, analyser, field, parameters) {
 
     override fun matches(retrievable: Retrievable): Boolean = retrievable.hasAttribute(TimePointAttribute::class.java) || retrievable.hasAttribute(TimeRangeAttribute::class.java)
 

@@ -1,5 +1,6 @@
 package org.vitrivr.engine.module.features.feature.mediancolor
 
+import kotlinx.coroutines.flow.merge
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.dense.DenseRetriever
@@ -57,7 +58,7 @@ class MedianColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext) = MedianColorExtractor(input, this, field)
+    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext) = MedianColorExtractor(input, this, field, Analyser.merge(field, context))
 
     /**
      * Generates and returns a new [MedianColorExtractor] instance for this [MedianColor].
@@ -69,7 +70,7 @@ class MedianColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, FloatVectorDescriptor> = MedianColorExtractor(input, this, null)
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, FloatVectorDescriptor> = MedianColorExtractor(input, this, null, context.local[name] ?: emptyMap())
 
     /**
      * Generates and returns a new [DenseRetriever] instance for this [MedianColor].
