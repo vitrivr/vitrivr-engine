@@ -6,6 +6,7 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.struct.AnyMapStructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
+import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
@@ -39,7 +40,7 @@ class ExifMetadata : Analyser<ContentElement<*>, AnyMapStructDescriptor> {
      *
      * @return A new [Extractor] instance for this [Analyser]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ExifMetadataExtractor(input, this, null)
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ExifMetadataExtractor(input, this, null, context.local[name] ?: emptyMap())
 
     /**
      * Generates and returns a new [ExifMetadataExtractor] instance for this [ExifMetadata].
@@ -50,7 +51,7 @@ class ExifMetadata : Analyser<ContentElement<*>, AnyMapStructDescriptor> {
      *
      * @return A new [Extractor] instance for this [Analyser]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, input: Operator<Retrievable>, context: IndexContext) = ExifMetadataExtractor(input, this, field)
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, input: Operator<Retrievable>, context: IndexContext) = ExifMetadataExtractor(input, this, field, merge(field, context))
 
     /**
      *

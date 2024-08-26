@@ -9,6 +9,8 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 
@@ -19,13 +21,28 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor<*>>(final override val input: Operator<Retrievable>, final override val analyser: Analyser<C, D>, final override val field: Schema.Field<C, D>?, private val bufferSize: Int = 100) : Extractor<C, D> {
+abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor<*>>(final override val input: Operator<Retrievable>, final override val analyser: Analyser<C, D>, final override val field: Schema.Field<C, D>?, protected val parameters: Map<String, String>) : Extractor<C, D> {
 
     private val logger: KLogger = KotlinLogging.logger {}
 
 
     init {
         require(field == null || this.field.analyser == this.analyser) { "Field and analyser do not match! This is a programmer's error!" }
+    }
+
+    protected val contentSources : Set<String>?
+        get() = parameters[CONTENT_AUTHORS_KEY]?.split(",")?.toSet()
+
+    private val bufferSize : Int
+        get() = parameters["batchSize"]?.toIntOrNull() ?: 1
+
+    fun filterContent(retrievable: Retrievable): List<C> {
+        val contentIds = this.contentSources?.let {
+            retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it)
+        }
+        return retrievable.content.filter { content ->
+            this.analyser.contentClasses.any { it.isInstance(content) && (contentIds?.contains(content.id) ?: false) }
+        }.map { it as C }
     }
 
     /**

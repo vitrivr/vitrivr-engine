@@ -22,8 +22,8 @@ import kotlin.io.path.absolutePathString
  * @author Ralph Gasser
  * @version 1.2.0
  */
-class FileSourceMetadataExtractor(input: Operator<Retrievable>, analyser: FileSourceMetadata, field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>?) :
-    AbstractExtractor<ContentElement<*>, FileSourceMetadataDescriptor>(input, analyser, field) {
+class FileSourceMetadataExtractor(input: Operator<Retrievable>, analyser: FileSourceMetadata, field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>?, parameters: Map<String,String>) :
+    AbstractExtractor<ContentElement<*>, FileSourceMetadataDescriptor>(input, analyser, field, parameters) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
