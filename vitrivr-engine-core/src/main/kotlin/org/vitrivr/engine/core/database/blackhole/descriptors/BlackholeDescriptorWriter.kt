@@ -11,7 +11,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class BlackholeDescriptorWriter<T: Descriptor<*>>(override val connection: BlackholeConnection, override val field: Schema.Field<*, T>): DescriptorWriter<T> {
+class BlackholeDescriptorWriter<T : Descriptor<*>>(override val connection: BlackholeConnection, override val field: Schema.Field<*, T>) : DescriptorWriter<T> {
     override fun add(item: T): Boolean {
         this.connection.logIf("Adding descriptor '${item.id}' to entity '${this.field.fieldName}'.")
         return false

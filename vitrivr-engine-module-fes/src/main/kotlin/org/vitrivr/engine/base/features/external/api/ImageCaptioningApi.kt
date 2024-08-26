@@ -82,7 +82,7 @@ class ImageCaptioningApi(host: String, model: String, timeoutMs: Long, pollingIn
      */
     override suspend fun pollBatchedJob(jobId: String): JobResult<List<Value.Text>> = try {
         this.imageCaptioningApi.getBatchedJobResultsApiTasksImageCaptioningBatchedJobsJobGet(jobId).body().let { result ->
-            val values = result.result?.map { Value.Text(it.caption.trim() ?: "") }
+            val values = result.result?.map { Value.Text(it.caption.trim()) }
             JobResult(result.status, values)
         }
     } catch (e: Throwable) {

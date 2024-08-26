@@ -12,14 +12,14 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class BlackholeRetrievableWriter(override val connection: BlackholeConnection): RetrievableWriter {
+class BlackholeRetrievableWriter(override val connection: BlackholeConnection) : RetrievableWriter {
     override fun connect(relationship: Relationship): Boolean {
         this.connection.logIf("Adding relationship ${relationship.subjectId} >[${relationship.predicate}]  ${relationship.objectId}.")
         return false
     }
 
     override fun connectAll(relationships: Iterable<Relationship>): Boolean {
-        relationships.forEach { relationship ->  this.connection.logIf("Adding relationship ${relationship.subjectId} >[${relationship.predicate}]  ${relationship.objectId}.")}
+        relationships.forEach { relationship -> this.connection.logIf("Adding relationship ${relationship.subjectId} >[${relationship.predicate}]  ${relationship.objectId}.") }
         return false
     }
 
@@ -29,7 +29,7 @@ class BlackholeRetrievableWriter(override val connection: BlackholeConnection): 
     }
 
     override fun disconnectAll(relationships: Iterable<Relationship>): Boolean {
-        relationships.forEach { relationship ->  this.connection.logIf("Removing relationship ${relationship.subjectId} >[${relationship.predicate}]  ${relationship.objectId}.")}
+        relationships.forEach { relationship -> this.connection.logIf("Removing relationship ${relationship.subjectId} >[${relationship.predicate}]  ${relationship.objectId}.") }
         return false
     }
 
