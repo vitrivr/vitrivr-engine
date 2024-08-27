@@ -25,7 +25,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  * A [Decoder] that can decode [ImageContent] from a [Source] of [MediaType.IMAGE].
  *
  * @author Luca Rossetto
- * @version 1.1.0
+ * @version 1.1.1
  */
 class ImageDecoder : DecoderFactory {
 
@@ -45,13 +45,18 @@ class ImageDecoder : DecoderFactory {
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).mapNotNull { sourceRetrievable ->
             val source = sourceRetrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@mapNotNull null
             if (source.type != MediaType.IMAGE) {
-                logger.debug { "In flow: Skipping source ${source.name} (${source.sourceId}) because it is not of type IMAGE." }
+                logger.debug { "Skipping source ${source.name} (${source.sourceId}) because it is not of type IMAGE." }
                 return@mapNotNull null
             }
-            logger.debug { "In flow: Decoding source ${source.name} (${source.sourceId})" }
+            logger.debug { "Decoding source ${source.name} (${source.sourceId})" }
             try {
                 val content = source.newInputStream().use {
-                    this.context.contentFactory.newImageContent(ImageIO.read(it))
+                    val image = ImageIO.read(it)
+                    if (image == null) {
+                        logger.warn { "Failed to decode image from source '${source.name}' (${source.sourceId})." }
+                        return@mapNotNull null
+                    }
+                    this.context.contentFactory.newImageContent(image)
                 }
                 sourceRetrievable.addContent(content)
                 sourceRetrievable.addAttribute(ContentAuthorAttribute(content.id, this.name))
@@ -60,7 +65,10 @@ class ImageDecoder : DecoderFactory {
                 /* Return ingested. */
                 sourceRetrievable
             } catch (e: IOException) {
-                logger.error(e) { "Failed to decode image from source '${source.name}' (${source.sourceId})." }
+                logger.error(e) { "Failed to decode image from source '${source.name}' (${source.sourceId}) due to IO exception: ${e.message}" }
+                null
+            } catch (e: Throwable) {
+                logger.error(e) { "Failed to decode image from source '${source.name}' (${source.sourceId}) due to exception: ${e.message}" }
                 null
             }
         }
