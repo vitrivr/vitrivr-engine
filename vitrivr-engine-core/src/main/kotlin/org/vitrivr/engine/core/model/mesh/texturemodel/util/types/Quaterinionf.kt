@@ -3,10 +3,11 @@ package org.vitrivr.engine.core.model.mesh.texturemodel.util.types
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
-
+import kotlinx.serialization.Serializable
 /**
  * Represents a quaternion, which is a complex number used to represent rotations in 3D space.
  */
+@Serializable
 class Quaternionf {
     var x: Float = 0f
     var y: Float = 0f

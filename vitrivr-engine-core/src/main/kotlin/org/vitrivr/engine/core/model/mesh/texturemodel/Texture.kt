@@ -1,17 +1,22 @@
 package org.vitrivr.engine.core.model.mesh.texturemodel
 
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import java.awt.image.BufferedImage
 import java.io.*
+import java.io.Serializable as JavaSerializable
 import javax.imageio.ImageIO
 
 /**
  * This class represents a texture.
  * In the context of a free 3D model, a texture is basically a path to a texture file.
  */
+@Serializable
 data class Texture(
     var texturePath: String? = null,
+    @Contextual
     var textureImage: BufferedImage? = null
-) : Serializable {
+) : JavaSerializable {
 
     companion object {
         /**

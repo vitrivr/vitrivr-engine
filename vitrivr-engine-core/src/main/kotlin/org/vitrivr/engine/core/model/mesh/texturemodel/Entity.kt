@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Matrix4f
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Quaternionf
+import kotlinx.serialization.Serializable
 
 /**
  * An Entity in the context of a [Model3d] describes a position and scale of a model in the scene.
@@ -14,6 +15,7 @@ import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Quaternionf
  * It does not change the mesh of the model.
  * Neither does it change the viewpoint of the camera.
  */
+@Serializable
 class Entity(val id: String, val modelId: String) {
 
     /**

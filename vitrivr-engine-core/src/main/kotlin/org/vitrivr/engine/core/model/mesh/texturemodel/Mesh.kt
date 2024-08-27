@@ -1,10 +1,11 @@
 package org.vitrivr.engine.core.model.mesh.texturemodel
 
+import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Vec3f
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.MinimalBoundingBox
-import java.io.Serializable
+import java.io.Serializable as JavaSerializable
 import kotlin.math.sign
 import kotlin.math.sqrt
 
@@ -13,6 +14,7 @@ import kotlin.math.sqrt
  * It contains the vertices, faces, normals, and texture coordinates.
  * It also constructs the face normals and the minimal bounding box.
  */
+@Serializable
 class Mesh(
     /**
      * List of all vertices in the mesh.
@@ -43,7 +45,7 @@ class Mesh(
      * face2 = (3, 1, 2)
      */
     private val idx: IntArray
-) : Serializable {
+) : JavaSerializable {
 
     companion object {
         private val LOGGER: Logger = LogManager.getLogger()
