@@ -1,7 +1,7 @@
 package org.vitrivr.engine.core.model.content.element
 
 import org.vitrivr.engine.core.model.content.ContentType
-import org.vitrivr.engine.core.model.mesh.Model3D
+import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
 
 /**
  * A 3D [ContentElement].
@@ -9,7 +9,7 @@ import org.vitrivr.engine.core.model.mesh.Model3D
  * @author Rahel Arnold
  * @version 1.0.0
  */
-interface Model3DContent: ContentElement<Model3D>{
+interface Model3DContent : ContentElement<Model3d> {
     /** The [ContentType] of a [Model3DContent] is always [ContentType.MESH]. */
 
     override val type: ContentType

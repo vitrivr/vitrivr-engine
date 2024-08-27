@@ -10,7 +10,7 @@ import java.awt.color.ColorSpace
  * @version 1.0.0
  */
 @JvmInline
-value class XYZColorContainer constructor(private val xyz: FloatArray) {
+value class XYZColorContainer(private val xyz: FloatArray) {
 
     constructor(x: Float, y: Float, z: Float) : this(floatArrayOf(x, y, z))
     constructor(x: Double, y: Double, z: Double) : this(floatArrayOf(x.toFloat(), y.toFloat(), z.toFloat()))

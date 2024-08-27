@@ -14,7 +14,7 @@ import org.vitrivr.engine.core.operators.ingest.DecoderFactory
 import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Source
-import org.vitrivr.engine.model3d.ModelHandler
+import org.vitrivr.engine.model3d.ModelLoader
 import java.io.IOException
 
 /**
@@ -56,11 +56,11 @@ class MeshDecoder : DecoderFactory {
             logger.info { "Decoding source ${source.name} (${source.sourceId})" }
 
             try {
-                val handler = ModelHandler()
+                val handler = ModelLoader()
                 val model = source.newInputStream().use {
                     handler.loadModel(source.sourceId.toString(), it) // Pass InputStream directly
                 }
-                val modelContent = this.context.contentFactory.newMeshContent(model)
+                val modelContent = this.context.contentFactory.newMeshContent(model!!)
                 sourceRetrievable.addContent(modelContent)
                 sourceRetrievable.addAttribute(ContentAuthorAttribute(modelContent.id, this.name))
                 sourceRetrievable

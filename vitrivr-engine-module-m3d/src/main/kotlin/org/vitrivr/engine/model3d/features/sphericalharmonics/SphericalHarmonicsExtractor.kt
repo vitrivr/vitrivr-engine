@@ -53,6 +53,6 @@ class SphericalHarmonicsExtractor(
      */
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
         val content = retrievable.content.filterIsInstance<Model3DContent>()
-        return content.flatMap { c -> c.content.getMaterials().flatMap { mat -> mat.meshes.map { mesh -> SphericalHarmonics.analyse(mesh, this.gridSize, this.minL, this.maxL, this.cap).copy(field = this.field) } } }
+        return content.flatMap { c -> c.content.getMaterials().flatMap { mat -> mat.materialMeshes.map { mesh -> SphericalHarmonics.analyse(mesh, this.gridSize, this.minL, this.maxL, this.cap).copy(field = this.field) } } }
     }
 }

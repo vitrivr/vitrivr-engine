@@ -10,7 +10,7 @@ import java.awt.color.ColorSpace
  * @version 1.0.0
  */
 @JvmInline
-value class LabColorContainer constructor(private val lab: FloatArray) {
+value class LabColorContainer(private val lab: FloatArray) {
     init {
         require(this.lab.size == 3) { "LabColorContainer must have exactly 3 elements." }
     }

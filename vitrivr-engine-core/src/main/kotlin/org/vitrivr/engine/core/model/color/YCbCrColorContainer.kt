@@ -9,7 +9,7 @@ import java.awt.color.ColorSpace
  * @version 1.0.0
  */
 @JvmInline
-value class YCbCrColorContainer constructor(private val ycbcr: FloatArray) {
+value class YCbCrColorContainer(private val ycbcr: FloatArray) {
     init {
         require(this.ycbcr.size == 3) { "YCbCrColorContainer must have exactly 3 elements." }
     }
