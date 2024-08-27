@@ -4,9 +4,10 @@ import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Vec3f
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.MinimalBoundingBox
-import java.io.Serializable
+import java.io.Serializable as JavaSerializable
 import java.util.*
 import java.util.function.Consumer
+import kotlinx.serialization.Serializable
 
 /**
  * This class represents a 3d model that can be rendered by the [Engine]. The 3d3 model is composed of a
@@ -14,6 +15,7 @@ import java.util.function.Consumer
  * position and scale the 3d model in the scene. The [Material] objects are used to define the
  * appearance of the 3d model.
  */
+@Serializable
 data class Model3d(
   /** ID of the 3d model. */
     val modelId: String,
@@ -22,7 +24,7 @@ data class Model3d(
    * Textures that are used by the 3d model.
      */
     val modelMaterials: MutableList<Material>
-) : IModel, Serializable {
+) : IModel, JavaSerializable {
   /** List of [Entity] objects that define the position and scale of the 3d model. */
   private val entities: MutableList<Entity> = ArrayList()
 

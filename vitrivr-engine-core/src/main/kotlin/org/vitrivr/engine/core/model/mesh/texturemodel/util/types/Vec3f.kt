@@ -1,14 +1,15 @@
 package org.vitrivr.engine.core.model.mesh.texturemodel.util.types
 
 import kotlin.math.sqrt
-import java.io.Serializable
-
+import java.io.Serializable as JavaSerializable
+import kotlinx.serialization.Serializable
 /**
  * Represents a 3D vector with floating-point coordinates.
  * This class provides basic vector operations such as addition, subtraction, scaling, and normalization.
  */
+@Serializable
 class Vec3f
-@JvmOverloads constructor(var x: Float = 0.0f, var y: Float = 0.0f, var z: Float = 0.0f) : Serializable {
+@JvmOverloads constructor(var x: Float = 0.0f, var y: Float = 0.0f, var z: Float = 0.0f) : JavaSerializable {
 
     /**
      * Copy constructor.
