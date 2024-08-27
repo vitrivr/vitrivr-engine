@@ -8,7 +8,7 @@ import org.vitrivr.engine.core.model.content.impl.memory.InMemoryAudioContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryImageContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryMeshContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryTextContent
-import org.vitrivr.engine.core.model.mesh.Model3D
+import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
 import org.vitrivr.engine.core.model.metamodel.Schema
 import java.awt.image.BufferedImage
 import java.nio.ShortBuffer
@@ -25,6 +25,6 @@ class InMemoryContentFactory : ContentFactoriesFactory {
         override fun newImageContent(bufferedImage: BufferedImage) = InMemoryImageContent(bufferedImage)
         override fun newAudioContent(channels: Short, sampleRate: Int, audio: ShortBuffer) = InMemoryAudioContent(channels, sampleRate, audio)
         override fun newTextContent(text: String): TextContent = InMemoryTextContent(text)
-        override fun newMeshContent(model3D: Model3D): Model3DContent = InMemoryMeshContent(model3D)
+        override fun newMeshContent(model3d: Model3d): Model3DContent = InMemoryMeshContent(model3d)
     }
 }

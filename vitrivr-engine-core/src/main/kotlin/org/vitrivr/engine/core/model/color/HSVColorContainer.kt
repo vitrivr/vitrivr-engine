@@ -10,7 +10,7 @@ import java.awt.color.ColorSpace
  * @version 1.0.0
  */
 @JvmInline
-value class HSVColorContainer constructor(private val hsv: FloatArray) {
+value class HSVColorContainer(private val hsv: FloatArray) {
 
     init {
         require(this.hsv.size == 3) { "HSVFloatColorContainer must have exactly 3 elements." }
