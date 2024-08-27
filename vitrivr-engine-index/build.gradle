@@ -25,7 +25,7 @@ dependencies {
     runtimeOnly group: 'com.twelvemonkeys.imageio', name: 'imageio-pdf', version: version_twelvemonkeys
 
     /** NightMonkeys for advancaded image formats (HEIF & WEBP). */
-    implementation group: 'com.github.gotson.nightmonkeys', name: 'imageio-heif', version: version_nightmonkeys
+    //implementation group: 'com.github.gotson.nightmonkeys', name: 'imageio-heif', version: version_nightmonkeys
 }
 
 /* Publication of vitrivr engine index to Maven Central. */
