@@ -4,13 +4,42 @@ plugins {
     id 'signing'
 }
 
+
+
+switch (org.gradle.internal.os.OperatingSystem.current()) {
+    case org.gradle.internal.os.OperatingSystem.LINUX:
+        project.ext.set("javacppPlatform", 'linux-x86_64')
+        break
+    case org.gradle.internal.os.OperatingSystem.WINDOWS:
+        project.ext.set("javacppPlatform", 'windows-x86_64')
+        break
+    case org.gradle.internal.os.OperatingSystem.MAC_OS:
+        project.ext.set("javacppPlatform", 'macosx-x86_64')
+        break
+}
+
 dependencies {
+
     /* vitrivr core dependency. */
     api project(':vitrivr-engine-core')
     api project(':vitrivr-engine-module-m3d')
 
     /** Java CV (used for video decoding). */
-    implementation group: 'org.bytedeco', name: 'javacv-platform', version: version_javacv
+    implementation group: 'org.bytedeco', name: 'javacv', version: version_javacv
+    implementation group: 'org.bytedeco', name: 'javacpp', version: version_javacpp, classifier: project.ext.javacppPlatform
+    implementation group: 'org.bytedeco', name: 'artoolkitplus', version: version_artoolkitplus, classifier: project.ext.javacppPlatform
+    implementation group: 'org.bytedeco', name: 'ffmpeg', version: version_ffmpeg, classifier: project.ext.javacppPlatform
+    implementation group: 'org.bytedeco', name: 'flycapture', version: version_flycapture, classifier: project.ext.javacppPlatform
+    implementation group: 'org.bytedeco', name: 'leptonica', version: version_leptonica, classifier: project.ext.javacppPlatform
+    implementation group: 'org.bytedeco', name: 'libdc1394', version: version_libdc1394, classifier: project.ext.javacppPlatform
+    implementation group: 'org.bytedeco', name: 'libfreenect', version: version_libfreenect, classifier: project.ext.javacppPlatform
+    implementation group: 'org.bytedeco', name: 'libfreenect2', version: version_libfreenect2, classifier: project.ext.javacppPlatform
+    implementation group: 'org.bytedeco', name: 'librealsense', version: version_librealsense, classifier: project.ext.javacppPlatform
+    implementation group: 'org.bytedeco', name: 'librealsense2', version: version_librealsense2, classifier: project.ext.javacppPlatform
+    implementation group: 'org.bytedeco', name: 'openblas', version: version_openblas, classifier: project.ext.javacppPlatform
+    implementation group: 'org.bytedeco', name: 'opencv', version: version_opencv, classifier: project.ext.javacppPlatform
+    implementation group: 'org.bytedeco', name: 'tesseract', version: version_tesseract, classifier: project.ext.javacppPlatform
+
 
     /** ScrImage (used for image resizing). */
     implementation group: 'com.sksamuel.scrimage', name: 'scrimage-core', version: version_scrimage
