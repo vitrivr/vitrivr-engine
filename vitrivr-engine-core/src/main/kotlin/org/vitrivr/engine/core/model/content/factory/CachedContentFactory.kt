@@ -114,9 +114,9 @@ class CachedContentFactory : ContentFactoriesFactory {
             return content
         }
 
-        override fun newMeshContent(model3d: Model3d): Model3DContent {
+        override fun newMeshContent(model3d: Model3d): Model3dContent {
             check(!this.closed) { "CachedContentFactory has been closed." }
-            val content = CachedMeshContent(this.nextPath(), model3d)
+            val content = CachedModel3dContent(this.nextPath(), model3d)
             this.refSet.add(CachedItem(content, this.referenceQueue))
             return content
         }

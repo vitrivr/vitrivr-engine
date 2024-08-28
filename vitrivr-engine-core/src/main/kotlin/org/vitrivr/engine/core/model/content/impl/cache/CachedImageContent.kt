@@ -7,7 +7,6 @@ import java.lang.ref.SoftReference
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
-import java.util.*
 import javax.imageio.ImageIO
 
 /**
@@ -29,6 +28,7 @@ class CachedImageContent(override val path: Path, image: BufferedImage, override
 
     /** The [BufferedImage] contained in this [CachedImageContent]. */
     override val content: BufferedImage
+        @Synchronized
         get() {
             var image = this.reference.get()
             if (image == null) {

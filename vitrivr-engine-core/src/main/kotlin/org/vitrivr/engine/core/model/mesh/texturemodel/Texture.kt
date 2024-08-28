@@ -1,11 +1,11 @@
 package org.vitrivr.engine.core.model.mesh.texturemodel
 
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
+import org.vitrivr.engine.core.model.serializer.BufferedImageSerializer
 import java.awt.image.BufferedImage
 import java.io.*
-import java.io.Serializable as JavaSerializable
 import javax.imageio.ImageIO
+import java.io.Serializable as JavaSerializable
 
 /**
  * This class represents a texture.
@@ -14,7 +14,8 @@ import javax.imageio.ImageIO
 @Serializable
 data class Texture(
     var texturePath: String? = null,
-    @Contextual
+
+    @Serializable(with = BufferedImageSerializer::class)
     var textureImage: BufferedImage? = null
 ) : JavaSerializable {
 

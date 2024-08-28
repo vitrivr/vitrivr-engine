@@ -1,14 +1,15 @@
 package org.vitrivr.engine.core.model.mesh.texturemodel.util.types
 
+import kotlinx.serialization.Serializable
 import kotlin.math.sqrt
 import java.io.Serializable as JavaSerializable
-import kotlinx.serialization.Serializable
+
 /**
  * Represents a 3D vector with floating-point coordinates.
  * This class provides basic vector operations such as addition, subtraction, scaling, and normalization.
  */
 @Serializable
-class Vec3f
+data class Vec3f
 @JvmOverloads constructor(var x: Float = 0.0f, var y: Float = 0.0f, var z: Float = 0.0f) : JavaSerializable {
 
     /**
@@ -175,30 +176,6 @@ class Vec3f
      */
     override fun toString(): String {
         return "Vec3f($x, $y, $z)"
-    }
-
-    /**
-     * Compares this vector to another object for equality.
-     *
-     * @param obj The object to compare to.
-     * @return True if the object is a Vec3f with the same x, y, and z components, false otherwise.
-     */
-    override fun equals(obj: Any?): Boolean {
-        if (this === obj) return true
-        if (obj == null || javaClass != obj.javaClass) return false
-        val vector = obj as Vec3f
-        return java.lang.Float.compare(vector.x, x) == 0 && java.lang.Float.compare(
-            vector.y, y
-        ) == 0 && java.lang.Float.compare(vector.z, z) == 0
-    }
-
-    /**
-     * Computes a hash code for this vector.
-     *
-     * @return A hash code value for the vector.
-     */
-    override fun hashCode(): Int {
-        return java.lang.Float.hashCode(x) xor java.lang.Float.hashCode(y) xor java.lang.Float.hashCode(z)
     }
 
     /**
