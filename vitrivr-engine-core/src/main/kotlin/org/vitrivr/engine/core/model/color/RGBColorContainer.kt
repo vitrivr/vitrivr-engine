@@ -23,8 +23,8 @@ value class RGBColorContainer(private val rgb: FloatArray) {
         require(this.rgb[3] in 0.0f..1.0f) { "RGBFloatColorContainer components must be between 0.0 and 1.0." }
     }
 
-    constructor(rgb: Int) : this((rgb shr 16 and 0xFF).toByte(), (rgb shr 8 and 0xFF).toByte(), (rgb and 0xFF).toByte())
-    constructor(red: Byte, green: Byte, blue: Byte, alpha: Byte = Byte.MAX_VALUE) : this(red.toFloat() / 255f, green.toFloat() / 255f, blue.toFloat() / 255f, alpha.toFloat() / 255f)
+    constructor(rgb: Int) : this((rgb shr 16 and 0xFF).toUByte(), (rgb shr 8 and 0xFF).toUByte(), (rgb and 0xFF).toUByte())
+    constructor(red: UByte, green: UByte, blue: UByte, alpha: UByte = UByte.MAX_VALUE) : this(red.toFloat() / 255f, green.toFloat() / 255f, blue.toFloat() / 255f, alpha.toFloat() / 255f)
     constructor(red: Int, green: Int, blue: Int, alpha: Int = 255) : this(red.toFloat() / 255f, green.toFloat() / 255f, blue.toFloat() / 255f, alpha.toFloat() / 255f)
     constructor(r: Double, g: Double, b: Double, alpha: Double = 1.0) : this(r.toFloat(), g.toFloat(), b.toFloat(), alpha.toFloat())
     constructor(red: Float, green: Float, blue: Float, alpha: Float = 1.0f) : this(floatArrayOf(red, green, blue, alpha))
