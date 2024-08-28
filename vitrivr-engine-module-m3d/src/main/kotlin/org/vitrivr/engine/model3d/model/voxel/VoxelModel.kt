@@ -119,7 +119,7 @@ data class VoxelModel(
      * @param x x position of the Voxel.
      * @param y y position of the Voxel.
      * @param z z position of the Voxel.
-     * @return Vector3f containing the center of the voxel.
+     * @return org.vitrivr.engine.core.model.types.Vector3f containing the center of the voxel.
      * @throws ArrayIndexOutOfBoundsException If one of the three indices is larger than the grid.
      */
     fun getVoxelCenter(x: Int, y: Int, z: Int): Vector3f {

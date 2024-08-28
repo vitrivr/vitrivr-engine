@@ -13,7 +13,7 @@ import kotlin.math.sqrt
  * @version 1.0.0
  */
 @JvmInline
-value class RGBColorContainer constructor(private val rgb: FloatArray) {
+value class RGBColorContainer(private val rgb: FloatArray) {
 
     init {
         require(this.rgb.size == 4) { "RGBFloatColorContainer must have exactly 4 elements." }

@@ -5,9 +5,6 @@ plugins {
 }
 
 dependencies {
-    /** JOML dependencies for 3D mesh support. */
-    implementation group: 'org.joml', name: 'joml', version: version_joml
-
     /** dependencies for exif metadata extraction. */
     implementation group: 'com.drewnoakes', name: 'metadata-extractor', version: version_metadataextractor
     implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: version_javalin
