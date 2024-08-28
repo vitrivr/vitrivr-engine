@@ -35,6 +35,40 @@ data class Texture(
         }
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Texture) return false
+
+        if (texturePath != other.texturePath) return false
+        if (!compareBufferedImages(textureImage, other.textureImage)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = texturePath?.hashCode() ?: 0
+        result = 31 * result + (textureImage?.let { it.hashCode() } ?: 0)
+        return result
+    }
+
+    /**
+     * Compares two BufferedImages pixel by pixel.
+     */
+    private fun compareBufferedImages(img1: BufferedImage?, img2: BufferedImage?): Boolean {
+        if (img1 == null || img2 == null) return img1 == img2
+        if (img1.width != img2.width || img1.height != img2.height) return false
+
+        for (y in 0 until img1.height) {
+            for (x in 0 until img1.width) {
+                if (img1.getRGB(x, y) != img2.getRGB(x, y)) {
+                    return false
+                }
+            }
+        }
+
+        return true
+    }
+
     constructor(texturePath: String) : this(texturePath, null)
 
     constructor(textureImage: BufferedImage) : this(null, textureImage)

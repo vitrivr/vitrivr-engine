@@ -51,6 +51,26 @@ class Mesh(
         private val LOGGER: Logger = LogManager.getLogger()
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Mesh) return false
+
+        if (!positions.contentEquals(other.positions)) return false
+        if (!normals.contentEquals(other.normals)) return false
+        if (!textureCoords.contentEquals(other.textureCoords)) return false
+        if (!idx.contentEquals(other.idx)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = positions.contentHashCode()
+        result = 31 * result + (normals?.contentHashCode() ?: 0)
+        result = 31 * result + textureCoords.contentHashCode()
+        result = 31 * result + idx.contentHashCode()
+        return result
+    }
+
     /**
      * Number of all vertices in the mesh.
      */
