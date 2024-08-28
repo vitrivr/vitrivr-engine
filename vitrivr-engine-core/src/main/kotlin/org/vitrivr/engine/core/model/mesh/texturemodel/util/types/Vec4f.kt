@@ -13,7 +13,7 @@ import java.io.Serializable as JavaSerializable
  * @property w The w component of the vector.
  */
 @Serializable
-class Vec4f(
+data class Vec4f(
     var x: Float = 0.0f, var y: Float = 0.0f, var z: Float = 0.0f, var w: Float = 0.0f
 ) : JavaSerializable {
 

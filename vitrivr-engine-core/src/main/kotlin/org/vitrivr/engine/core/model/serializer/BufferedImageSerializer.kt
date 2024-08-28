@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.model.mesh.texturemodel.util
+package org.vitrivr.engine.core.model.serializer
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -9,9 +9,17 @@ import kotlinx.serialization.encoding.Encoder
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import javax.imageio.ImageIO
 import java.util.*
+import javax.imageio.ImageIO
 
+/**
+ * A custom [KSerializer] for [BufferedImage] objects.
+ *
+ * This serializer encodes a [BufferedImage] as a Base64 encoded PNG image.
+ *
+ * @author Rahel Arnold
+ * @version 1.0.0
+ */
 object BufferedImageSerializer : KSerializer<BufferedImage> {
 
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("BufferedImage", PrimitiveKind.STRING)

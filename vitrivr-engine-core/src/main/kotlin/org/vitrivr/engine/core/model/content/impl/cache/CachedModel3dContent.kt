@@ -2,12 +2,9 @@ package org.vitrivr.engine.core.model.content.impl.cache
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.contextual
 import org.vitrivr.engine.core.model.content.element.ContentId
-import org.vitrivr.engine.core.model.content.element.Model3DContent
+import org.vitrivr.engine.core.model.content.element.Model3dContent
 import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
-import org.vitrivr.engine.core.model.mesh.texturemodel.util.BufferedImageSerializer
 import java.lang.ref.SoftReference
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -15,7 +12,7 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 
 /**
- * A [Model3DContent] implementation that is backed by a cache file.
+ * A [Model3dContent] implementation that is backed by a cache file.
  *
  * This class caches a 3D model to disk in JSON format and uses a [SoftReference] to hold it in memory,
  * reloading from JSON if necessary.
@@ -23,14 +20,14 @@ import java.nio.file.StandardOpenOption
  * @author Rahel Arnold
  * @version 1.0.0
  */
-class CachedMeshContent(override val path: Path, model: Model3d, override val id: ContentId = ContentId.randomUUID()) :
-    Model3DContent, CachedContent {
+class CachedModel3dContent(override val path: Path, model: Model3d, override val id: ContentId = ContentId.randomUUID()) : Model3dContent, CachedContent {
 
     /** The [SoftReference] of the [Model3d] used for caching. */
     private var reference: SoftReference<Model3d> = SoftReference(model)
 
-    /** The [Model3d] contained in this [CachedMeshContent]. */
+    /** The [Model3d] contained in this [CachedModel3dContent]. */
     override val content: Model3d
+        @Synchronized
         get() {
             var cachedModel = reference.get()
             if (cachedModel == null) {
@@ -40,24 +37,10 @@ class CachedMeshContent(override val path: Path, model: Model3d, override val id
             return cachedModel
         }
 
-    /** JSON format configuration for serialization. */
-    private val jsonFormat = Json { prettyPrint = true }
-
     init {
-        // Serialize the Model3d to JSON and write it to the cache file during initialization.
-        val jsonFormat = Json {
-            prettyPrint = true
-            serializersModule = SerializersModule {
-                contextual(BufferedImageSerializer)  // Register the custom BufferedImage serializer
-            }
-        }
-        Files.newBufferedWriter(
-            this.path,
-            StandardCharsets.UTF_8,
-            StandardOpenOption.CREATE_NEW,
-            StandardOpenOption.WRITE
-        ).use { writer ->
-            writer.write(jsonFormat.encodeToString(model))
+        /* Serialize the Model3d to JSON and write it to the cache file during initialization. */
+        Files.newBufferedWriter(this.path, StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE).use { writer ->
+            writer.write(Json.encodeToString(model))
         }
     }
 
@@ -68,7 +51,7 @@ class CachedMeshContent(override val path: Path, model: Model3d, override val id
      */
     private fun reload(): Model3d {
         return Files.newBufferedReader(this.path, StandardCharsets.UTF_8).use { reader ->
-            jsonFormat.decodeFromString(reader.readText())
+            Json.decodeFromString(reader.readText())
         }
     }
 }
