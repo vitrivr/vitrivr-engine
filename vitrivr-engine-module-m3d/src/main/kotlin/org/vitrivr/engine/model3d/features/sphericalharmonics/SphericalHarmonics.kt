@@ -9,7 +9,7 @@ import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.Model3DContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.mesh.Mesh
+import org.vitrivr.engine.core.model.mesh.texturemodel.Mesh
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
@@ -37,7 +37,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @author Ralph Gasser
  * @version 1.2.0
  */
-class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
+class SphericalHarmonics : Analyser<Model3DContent, FloatVectorDescriptor> {
     companion object {
         /** Name of the grid_size parameter; determines size of voxel grid for rasterization. */
         const val GRID_SIZE_PARAMETER_NAME = "grid_size"
@@ -87,7 +87,7 @@ class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
          * @param minL The minimum L parameter to obtain [SphericalHarmonics] function value for.
          * @param maxL The maximum L parameter to obtain [SphericalHarmonics] function value for.
          */
-        fun analyse(mesh: Mesh, gridSize: Int, cap: Int, minL: Int, maxL: Int): FloatVectorDescriptor {
+        fun analyse(mesh: org.vitrivr.engine.core.model.mesh.texturemodel.Mesh, gridSize: Int, cap: Int, minL: Int, maxL: Int): FloatVectorDescriptor {
             val voxelizer = Voxelizer(2.0f / gridSize)
             val increment = 0.1 /* Increment of the angles during calculation of the descriptors. */
             val R: Int = gridSize / 2
@@ -192,7 +192,7 @@ class SphericalHarmonics: Analyser<Model3DContent, FloatVectorDescriptor> {
         val cap = field.parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
         val minL = field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
         val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
-        val descriptors = content.map { analyse(it.content.getMaterials().first().meshes.first(), gridSize, cap, minL, maxL) }
+        val descriptors = content.map { analyse(it.content.getMaterials().first().materialMeshes.first(), gridSize, cap, minL, maxL) }
 
         /* Return retriever. */
         return this.newRetrieverForDescriptors(field, descriptors, context)

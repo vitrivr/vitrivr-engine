@@ -7,6 +7,7 @@ plugins {
 dependencies {
     /* vitrivr core dependency. */
     api project(':vitrivr-engine-core')
+    api project(':vitrivr-engine-module-m3d')
 
     /** Java CV (used for video decoding). */
     implementation group: 'org.bytedeco', name: 'javacv-platform', version: version_javacv
@@ -14,6 +15,17 @@ dependencies {
     /** ScrImage (used for image resizing). */
     implementation group: 'com.sksamuel.scrimage', name: 'scrimage-core', version: version_scrimage
 
+    /** TwelveMonkeys for image support */
+    runtimeOnly group: 'com.twelvemonkeys.imageio', name: 'imageio-core', version: version_twelvemonkeys
+    runtimeOnly group: 'com.twelvemonkeys.imageio', name: 'imageio-tiff', version: version_twelvemonkeys
+    runtimeOnly group: 'com.twelvemonkeys.imageio', name: 'imageio-jpeg', version: version_twelvemonkeys
+    runtimeOnly group: 'com.twelvemonkeys.imageio', name: 'imageio-psd', version: version_twelvemonkeys
+    runtimeOnly group: 'com.twelvemonkeys.imageio', name: 'imageio-bmp', version: version_twelvemonkeys
+    runtimeOnly group: 'com.twelvemonkeys.imageio', name: 'imageio-webp', version: version_twelvemonkeys
+    runtimeOnly group: 'com.twelvemonkeys.imageio', name: 'imageio-pdf', version: version_twelvemonkeys
+
+    /** NightMonkeys for advancaded image formats (HEIF & WEBP). */
+    implementation group: 'com.github.gotson.nightmonkeys', name: 'imageio-heif', version: version_nightmonkeys
 }
 
 /* Publication of vitrivr engine index to Maven Central. */

@@ -34,8 +34,8 @@ class CombineOperator<T : Retrievable>(override val inputs: List<Operator<T>>) :
                 p.toFlow(this).collect { it ->
                     var send: T? = null
                     mutex.lock()
-                    buffer.compute(it.id) { _, v -> if (v == null) it to 1 else v.first to v.second + 1 }
-                    if (buffer[it.id]?.second == require) {
+                    val entry = buffer.compute(it.id) { _, v -> if (v == null) it to 1 else v.first to v.second + 1 }
+                    if (entry?.second == require) {
                         buffer.remove(it.id)?.first?.let { send = it }
                     }
                     mutex.unlock()

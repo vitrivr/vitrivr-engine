@@ -89,11 +89,14 @@ fun main(args: Array<String>) {
         cli.register(SchemaCommand(schema, executor))
     }
 
-    /* Start the Javalin and CLI. */
+    /* Start the Javalin server. */
     javalin.start(config.api.port)
     logger.info { "vitrivr engine API is listening on port ${config.api.port}." }
-    cli.start() /* Blocks. */
 
-    /* End Javalin once Cli is stopped. */
+    /* Start the CLI in a new thread;  this will block the thread it runs on. */
+    cli.start()
+
+    /* Upon reaching this point, the program was aborted. */
+    /* Stop the Javalin server. */
     javalin.stop()
 }
