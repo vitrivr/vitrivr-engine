@@ -44,6 +44,26 @@ class Material : JavaSerializable {
         val EMPTY = Material()
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Material) return false
+
+        return materialMeshes == other.materialMeshes &&
+                materialTexture == other.materialTexture &&
+                materialDiffuseColor == other.materialDiffuseColor
+    }
+
+    override fun hashCode(): Int {
+        var result = materialMeshes.hashCode()
+        result = 31 * result + (materialTexture?.hashCode() ?: 0)
+        result = 31 * result + materialDiffuseColor.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "Material(materialMeshes=$materialMeshes, materialTexture=$materialTexture, materialDiffuseColor=$materialDiffuseColor)"
+    }
+
     /**
      * @return A MinimalBoundingBox which encloses all MinimalBoundingBoxes from containing meshes.
      */
