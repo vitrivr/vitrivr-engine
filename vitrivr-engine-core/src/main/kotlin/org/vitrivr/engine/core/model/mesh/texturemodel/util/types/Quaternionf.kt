@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.mesh.texturemodel.util.types
 
+import kotlinx.serialization.Serializable
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -7,37 +8,10 @@ import kotlin.math.sqrt
 /**
  * Represents a quaternion, which is a complex number used to represent rotations in 3D space.
  */
-class Quaternionf {
-    var x: Float = 0f
-    var y: Float = 0f
-    var z: Float = 0f
-    var w: Float = 0f
-
+@Serializable
+data class Quaternionf(var x: Float = 0f, var y: Float = 0f, var z: Float = 0f, var w: Float = 0f,) {
     /**
-     * Default constructor - initializes the quaternion as an identity quaternion (no rotation).
-     */
-    constructor() {
-        identity()
-    }
-
-    /**
-     * Constructor with specified components.
-     *
-     * @param x The x-component of the quaternion.
-     * @param y The y-component of the quaternion.
-     * @param z The z-component of the quaternion.
-     * @param w The w-component of the quaternion.
-     */
-    constructor(x: Float, y: Float, z: Float, w: Float) {
-        this.x = x
-        this.y = y
-        this.z = z
-        this.w = w
-    }
-
-    /**
-     * Sets the quaternion to the identity quaternion.
-     * The identity quaternion represents no rotation.
+     * Sets the quaternion to the identity quaternion. The identity quaternion represents no rotation.
      *
      * @return This quaternion after being set to the identity quaternion.
      */

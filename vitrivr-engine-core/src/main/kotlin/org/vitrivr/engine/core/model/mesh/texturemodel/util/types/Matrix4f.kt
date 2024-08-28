@@ -3,10 +3,12 @@ package org.vitrivr.engine.core.model.mesh.texturemodel.util.types
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
+import kotlinx.serialization.Serializable
 
 /**
  * Represents a 4x4 matrix, commonly used in 3D graphics for transformations including translation, scaling, and rotation.
  */
+@Serializable
 class Matrix4f {
 
     /**

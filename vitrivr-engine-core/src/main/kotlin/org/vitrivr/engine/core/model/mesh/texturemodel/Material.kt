@@ -1,17 +1,19 @@
 package org.vitrivr.engine.core.model.mesh.texturemodel
 
+import kotlinx.serialization.Serializable
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.MinimalBoundingBox
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Vec4f
-import java.io.Serializable
+import java.io.Serializable as JavaSerializable
 import java.util.*
 
 /**
  * The Material contains all meshes and the texture that are drawn with on the meshes.
  * Further, it contains the diffuse color of the material.
  */
-class Material : Serializable {
+@Serializable
+class Material : JavaSerializable {
 
     /**
      * List of [Mesh] objects that define the appearance of the model.
@@ -40,6 +42,26 @@ class Material : Serializable {
          * Empty material that can be used as a placeholder.
          */
         val EMPTY = Material()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Material) return false
+
+        return materialMeshes == other.materialMeshes &&
+                materialTexture == other.materialTexture &&
+                materialDiffuseColor == other.materialDiffuseColor
+    }
+
+    override fun hashCode(): Int {
+        var result = materialMeshes.hashCode()
+        result = 31 * result + (materialTexture?.hashCode() ?: 0)
+        result = 31 * result + materialDiffuseColor.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "Material(materialMeshes=$materialMeshes, materialTexture=$materialTexture, materialDiffuseColor=$materialDiffuseColor)"
     }
 
     /**

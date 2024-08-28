@@ -1,6 +1,7 @@
 package org.vitrivr.engine.core.model.mesh.texturemodel.util.types
 
-import java.io.Serializable
+import kotlinx.serialization.Serializable
+import java.io.Serializable as JavaSerializable
 
 /**
  * Represents a 4D vector with floating-point coordinates.
@@ -11,9 +12,10 @@ import java.io.Serializable
  * @property z The z component of the vector.
  * @property w The w component of the vector.
  */
-class Vec4f(
+@Serializable
+data class Vec4f(
     var x: Float = 0.0f, var y: Float = 0.0f, var z: Float = 0.0f, var w: Float = 0.0f
-) : Serializable {
+) : JavaSerializable {
 
     /**
      * Sets the components of this vector to the specified values.

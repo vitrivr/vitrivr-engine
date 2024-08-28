@@ -63,9 +63,13 @@ class MeshDecoder : DecoderFactory {
                 val modelContent = this.context.contentFactory.newMeshContent(model!!)
                 sourceRetrievable.addContent(modelContent)
                 sourceRetrievable.addAttribute(ContentAuthorAttribute(modelContent.id, this.name))
+                logger.info { "Model decoded successfully for source ${source.name} (${source.sourceId})" }
                 sourceRetrievable
             } catch (e: IOException) {
                 logger.error(e) { "Failed to decode 3D model from $source due to an IO exception." }
+                null
+            } catch (e: Throwable) {
+                logger.error(e) { "Failed to decode 3D model from source '${source.name}' (${source.sourceId}) due to exception: ${e.message}" }
                 null
             }
         }
