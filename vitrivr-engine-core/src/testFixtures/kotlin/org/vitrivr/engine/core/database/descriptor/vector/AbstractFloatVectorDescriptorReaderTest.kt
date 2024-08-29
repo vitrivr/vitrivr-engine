@@ -30,7 +30,8 @@ import java.util.*
 abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : AbstractDatabaseTest(schemaPath) {
 
     /** The [Schema.Field] used for this [DescriptorInitializerTest]. */
-    private val field: Schema.Field<*, FloatVectorDescriptor> = this.testSchema["averagecolor"]!! as Schema.Field<*, FloatVectorDescriptor>
+    private val field: Schema.Field<*, FloatVectorDescriptor> =
+        this.testSchema["averagecolor"]!! as Schema.Field<*, FloatVectorDescriptor>
 
     /**
      * Tests [VectorDescriptorReader.getAll] method.
@@ -62,7 +63,7 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
         /* Generate and store test data. */
         val descriptors = this.initialize(writer, random)
         val selection = descriptors.shuffled().take(100).map { it.id }
-        reader.getAll(selection).forEach{ descriptor ->
+        reader.getAll(selection).forEach { descriptor ->
             Assertions.assertTrue(selection.contains(descriptor.id))
         }
     }
@@ -104,6 +105,8 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
     @ParameterizedTest
     @EnumSource(mode = EnumSource.Mode.EXCLUDE, names = ["JACCARD", "HAMMING"])
     fun testNearestNeighbourSearch(distance: Distance) {
+
+
         val writer = this.testConnection.getDescriptorWriter(this.field)
         val reader = this.testConnection.getDescriptorReader(this.field)
         val random = SplittableRandom()
@@ -111,9 +114,10 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
         /* Generate and store test data. */
         val descriptors = this.initialize(writer, random)
 
+
         /* Perform nearest neighbour search. */
         val query = ProximityQuery(
-            Value.FloatVector(FloatArray(3) { random.nextFloat() }),
+            Value.DoubleVector(DoubleArray(3) { random.nextDouble() }),
             distance,
             SortOrder.ASC,
             100,
@@ -122,10 +126,16 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
         val result = reader.query(query).toList()
 
         /* Make manual query and compare. */
-        val manual = descriptors.sortedBy { distance(it.vector, query.value) }.take(100)
+        val manual = descriptors.sortedBy { vec ->
+            distance(
+                Value.DoubleVector(DoubleArray(3) { i -> vec.vector.value[i].toDouble() }),
+                query.value
+            )
+        }.take(100)
         result.zip(manual).forEach {
             Assertions.assertEquals(it.first.id, it.second.id)
         }
+
     }
 
     /**
@@ -161,7 +171,10 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
     /**
      * Initializes the test data.
      */
-    private fun initialize(writer: DescriptorWriter<FloatVectorDescriptor>, random: SplittableRandom): List<FloatVectorDescriptor> {
+    private fun initialize(
+        writer: DescriptorWriter<FloatVectorDescriptor>,
+        random: SplittableRandom
+    ): List<FloatVectorDescriptor> {
         val size = random.nextInt(500, 5000)
 
         /* Generate and store test data. */
