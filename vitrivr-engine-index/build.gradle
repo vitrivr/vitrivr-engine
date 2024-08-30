@@ -83,8 +83,8 @@ publishing {
                         email = 'rahel.arnold@unibas.ch'
                     }
                     developer {
-                        id = 'rahelarnold98'
-                        name = 'faberf'
+                        id = 'faberf'
+                        name = 'Fynn Faber'
                         email = 'fynnfirouz.faber@unibas.ch'
                     }
                 }

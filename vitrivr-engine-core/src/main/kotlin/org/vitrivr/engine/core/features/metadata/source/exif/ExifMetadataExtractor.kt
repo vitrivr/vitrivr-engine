@@ -87,7 +87,7 @@ private fun JsonObject.convertType(type: Type): Value<*>? {
     }
 }
 
-class ExifMetadataExtractor(input: Operator<Retrievable>, analyser: ExifMetadata, field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>?) : AbstractExtractor<ContentElement<*>, AnyMapStructDescriptor>(input, analyser, field) {
+class ExifMetadataExtractor(input: Operator<Retrievable>, analyser: ExifMetadata, field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>?, parameters: Map<String,String>) : AbstractExtractor<ContentElement<*>, AnyMapStructDescriptor>(input, analyser, field, parameters) {
 
 
     override fun matches(retrievable: Retrievable): Boolean =

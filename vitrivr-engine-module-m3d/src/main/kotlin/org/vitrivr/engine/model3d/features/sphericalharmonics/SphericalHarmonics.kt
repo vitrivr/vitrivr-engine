@@ -11,6 +11,7 @@ import org.vitrivr.engine.core.model.content.element.Model3dContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.mesh.texturemodel.Mesh
 import org.vitrivr.engine.core.model.metamodel.Analyser
+import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.basics.Distance
@@ -212,7 +213,7 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
         val minL = field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: context.getProperty("", "")?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
         val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: context.getProperty("", "")?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
         logger.debug { "Creating new SphericalHarmonicsExtract for field '${field.fieldName}' with parameters ($gridSize, $cap, $minL, $maxL)." }
-        return SphericalHarmonicsExtractor(input, this, field, gridSize, cap, minL, maxL)
+        return SphericalHarmonicsExtractor(input, this, field, gridSize, cap, minL, maxL, merge(field, context))
     }
 
     /**
@@ -229,6 +230,6 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
         val minL = context.getProperty(name, MINL_PARAMETER_NAME)?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
         val maxL = context.getProperty(name, MAXL_PARAMETER_NAME)?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
         logger.debug { "Creating new SphericalHarmonicsExtract with parameters ($gridSize, $cap, $minL, $maxL)." }
-        return SphericalHarmonicsExtractor(input, this, null, gridSize, cap, minL, maxL)
+        return SphericalHarmonicsExtractor(input, this, null, gridSize, cap, minL, maxL, context.local[name] ?: emptyMap())
     }
 }

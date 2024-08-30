@@ -27,9 +27,9 @@ class SphericalHarmonicsExtractor(
     private val gridSize: Int,
     private val cap: Int,
     private val minL: Int,
-    private val maxL: Int
-) :
-    AbstractExtractor<Model3dContent, FloatVectorDescriptor>(input, analyser, field) {
+    private val maxL: Int,
+    parameters : Map<String,String>
+) : AbstractExtractor<Model3dContent, FloatVectorDescriptor>(input, analyser, field, parameters) {
 
     init {
         require(this.minL < this.maxL) { "Parameter mismatch: min_l must be smaller than max_l. "}
@@ -52,7 +52,7 @@ class SphericalHarmonicsExtractor(
      * @return List of resulting [FloatVectorDescriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
-        val content = retrievable.content.filterIsInstance<Model3dContent>()
+        val content = this.filterContent(retrievable)
         return content.flatMap { c -> c.content.getMaterials().flatMap { mat -> mat.materialMeshes.map { mesh -> SphericalHarmonics.analyse(mesh, this.gridSize, this.minL, this.maxL, this.cap).copy(field = this.field) } } }
     }
 }

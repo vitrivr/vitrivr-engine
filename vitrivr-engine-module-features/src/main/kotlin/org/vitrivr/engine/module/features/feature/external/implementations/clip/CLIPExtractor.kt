@@ -20,7 +20,7 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Rahel Arnold
  * @version 1.3.0
  */
-class CLIPExtractor(input: Operator<Retrievable>, analyser: CLIP, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>?, private val host: String) : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor>(input, analyser, field) {
+class CLIPExtractor(input: Operator<Retrievable>, analyser: CLIP, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>?, private val host: String, parameters:Map<String,String>) : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor>(input, analyser, field, parameters) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
@@ -36,7 +36,7 @@ class CLIPExtractor(input: Operator<Retrievable>, analyser: CLIP, field: Schema.
      * @return List of resulting [Descriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
-        val content = retrievable.content.filterIsInstance<ImageContent>()
+        val content = this.filterContent(retrievable)
         return content.map { c ->
             CLIP.analyse(c, this.host).copy(retrievableId = retrievable.id, field = this@CLIPExtractor.field)
         }
