@@ -4,13 +4,29 @@ plugins {
     id 'signing'
 }
 
+
+
+switch (org.gradle.internal.os.OperatingSystem.current()) {
+    case org.gradle.internal.os.OperatingSystem.LINUX:
+        project.ext.set("javacppPlatform", 'linux-x86_64')
+        break
+    case org.gradle.internal.os.OperatingSystem.WINDOWS:
+        project.ext.set("javacppPlatform", 'windows-x86_64')
+        break
+    case org.gradle.internal.os.OperatingSystem.MAC_OS:
+        project.ext.set("javacppPlatform", 'macosx-x86_64')
+        break
+}
+
 dependencies {
+
     /* vitrivr core dependency. */
     api project(':vitrivr-engine-core')
     api project(':vitrivr-engine-module-m3d')
 
     /** Java CV (used for video decoding). */
-    implementation group: 'org.bytedeco', name: 'javacv-platform', version: version_javacv
+    implementation group: 'org.bytedeco', name: 'javacv', version: version_javacv
+    implementation group: 'org.bytedeco', name: 'ffmpeg', version: version_ffmpeg, classifier: project.ext.javacppPlatform
 
     /** ScrImage (used for image resizing). */
     implementation group: 'com.sksamuel.scrimage', name: 'scrimage-core', version: version_scrimage
@@ -25,7 +41,7 @@ dependencies {
     runtimeOnly group: 'com.twelvemonkeys.imageio', name: 'imageio-pdf', version: version_twelvemonkeys
 
     /** NightMonkeys for advancaded image formats (HEIF & WEBP). */
-    implementation group: 'com.github.gotson.nightmonkeys', name: 'imageio-heif', version: version_nightmonkeys
+    //implementation group: 'com.github.gotson.nightmonkeys', name: 'imageio-heif', version: version_nightmonkeys
 }
 
 /* Publication of vitrivr engine index to Maven Central. */

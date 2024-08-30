@@ -6,7 +6,6 @@ import java.lang.ref.SoftReference
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
-import java.util.*
 
 /**
  * A [TextContent] implementation that is backed by a cache file.
@@ -24,6 +23,7 @@ class CachedTextContent(override val path: Path, text: String, override val id: 
 
     /** The [String] contained in this [CachedTextContent]. */
     override val content: String
+        @Synchronized
         get() {
             var image = this.reference.get()
             if (image == null) {
