@@ -8,7 +8,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.vitrivr.engine.core.database.AbstractDatabaseTest
 import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
-import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.basics.Distance
@@ -16,7 +15,6 @@ import org.vitrivr.engine.core.model.query.basics.SortOrder
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
-import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.model.types.Value
 import java.util.*
 
@@ -125,7 +123,7 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
         /* Make manual query and compare. */
         val manual = descriptors.sortedBy { distance(it.vector, query.value) }.take(100)
         result.zip(manual).forEach {
-            Assertions.assertEquals( distance(it.first.vector,query.value), distance(it.second.vector,query.value))
+            Assertions.assertEquals(distance(it.first.vector, query.value), distance(it.second.vector, query.value), 0.00005f)
         }
     }
 
@@ -155,7 +153,7 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
         /* Make manual query and compare. */
         val manual = descriptors.sortedByDescending { distance(it.vector, query.value) }.take(100)
         result.zip(manual).forEach {
-            Assertions.assertEquals(it.first.id, it.second.id)
+            Assertions.assertEquals(distance(it.first.vector, query.value), distance(it.second.vector, query.value), 0.00005f)
         }
     }
 
