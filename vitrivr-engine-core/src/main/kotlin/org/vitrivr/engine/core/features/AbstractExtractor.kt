@@ -19,27 +19,20 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * An abstract [Extractor] implementation that is suitable for most default [Extractor] implementations.
  *
  * @author Ralph Gasser
- * @version 1.2.0
+ * @version 1.3.0
  */
 abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>>(final override val input: Operator<Retrievable>, final override val analyser: Analyser<C, D>, final override val field: Schema.Field<C, D>? = null, protected val parameters: Map<String, String>) : Extractor<C, D> {
-    
-    protected val logger: KLogger = KotlinLogging.logger {}
 
     init {
         require(field == null || this.field.analyser == this.analyser) { "Field and analyser do not match! This is a programmer's error!" }
     }
 
-    protected val contentSources : Set<String>?
-        get() = parameters[CONTENT_AUTHORS_KEY]?.split(",")?.toSet()
+    /** The [KLogger] instance used by this [AbstractExtractor]. */
+    protected val logger: KLogger = KotlinLogging.logger {}
 
-    fun filterContent(retrievable: Retrievable): List<C> {
-        val contentIds = this.contentSources?.let {
-            retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it)
-        }
-        return retrievable.content.filter { content ->
-            this.analyser.contentClasses.any { it.isInstance(content) && (contentIds?.contains(content.id) ?: true) }
-        }.map { it as C}
-    }
+    /** The names of the content source to consider during processing. */
+    protected val contentSources : Set<String>?
+        get() = this.parameters[CONTENT_AUTHORS_KEY]?.split(",")?.toSet()
 
     /**
      * A default [Extractor] implementation. It executes the following steps:
@@ -50,7 +43,7 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>>(final
      *
      * @return [Flow] of [Retrievable]
      */
-    final override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
+    override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
         if (this.matches(retrievable)) {
             /* Perform extraction. */
             val descriptors = try {
@@ -88,4 +81,24 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>>(final
      * @return List of resulting [Descriptor]s.
      */
     protected abstract fun extract(retrievable: Retrievable): List<D>
+
+    /**
+     * Filters the content of a [Retrievable] based on the [ContentAuthorAttribute] and the [contentSources] parameter.
+     *
+     * @param retrievable [Retrievable] to extract content from.
+     */
+    @Suppress("UNCHECKED_CAST")
+    protected fun filterContent(retrievable: Retrievable): List<C> {
+        val contentIds = this.contentSources?.let {
+            retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it)
+        }
+        return retrievable.content.filter { content ->
+            if (this.analyser.contentClasses.none { it.isInstance(content) }) return@filter false
+            if (contentIds == null) {
+                return@filter true
+            } else {
+                return@filter contentIds.contains(content.id)
+            }
+        }.map { it as C }
+    }
 }
