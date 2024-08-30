@@ -9,7 +9,6 @@ import java.nio.ShortBuffer
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
-import java.util.*
 
 /**
  * A [AudioContent] implementation that is backed by a cache file.
@@ -29,6 +28,7 @@ class CachedAudioContent(override val path: Path, override val channels: Short, 
 
     /** The audio samples contained in this [CachedAudioContent]. */
     override val content: ShortBuffer
+        @Synchronized
         get() {
             var buffer = this.reference.get()
             if (buffer == null) {

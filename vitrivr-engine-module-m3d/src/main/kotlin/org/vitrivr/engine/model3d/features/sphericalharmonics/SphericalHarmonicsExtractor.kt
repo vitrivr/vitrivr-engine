@@ -3,7 +3,7 @@ package org.vitrivr.engine.model3d.features.sphericalharmonics
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataExtractor
 import org.vitrivr.engine.core.model.content.ContentType
-import org.vitrivr.engine.core.model.content.element.Model3DContent
+import org.vitrivr.engine.core.model.content.element.Model3dContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
@@ -23,13 +23,13 @@ import org.vitrivr.engine.core.source.file.FileSource
 class SphericalHarmonicsExtractor(
     input: Operator<Retrievable>,
     analyser: SphericalHarmonics,
-    field: Schema.Field<Model3DContent, FloatVectorDescriptor>?,
+    field: Schema.Field<Model3dContent, FloatVectorDescriptor>?,
     private val gridSize: Int,
     private val cap: Int,
     private val minL: Int,
     private val maxL: Int,
     parameters : Map<String,String>
-) : AbstractExtractor<Model3DContent, FloatVectorDescriptor>(input, analyser, field, parameters) {
+) : AbstractExtractor<Model3dContent, FloatVectorDescriptor>(input, analyser, field, parameters) {
 
     init {
         require(this.minL < this.maxL) { "Parameter mismatch: min_l must be smaller than max_l. "}
