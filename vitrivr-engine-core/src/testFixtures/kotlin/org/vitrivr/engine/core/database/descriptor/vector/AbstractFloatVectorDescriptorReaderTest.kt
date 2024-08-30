@@ -105,8 +105,6 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
     @ParameterizedTest
     @EnumSource(mode = EnumSource.Mode.EXCLUDE, names = ["JACCARD", "HAMMING"])
     fun testNearestNeighbourSearch(distance: Distance) {
-
-
         val writer = this.testConnection.getDescriptorWriter(this.field)
         val reader = this.testConnection.getDescriptorReader(this.field)
         val random = SplittableRandom()
@@ -114,10 +112,9 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
         /* Generate and store test data. */
         val descriptors = this.initialize(writer, random)
 
-
         /* Perform nearest neighbour search. */
         val query = ProximityQuery(
-            Value.DoubleVector(DoubleArray(3) { random.nextDouble() }),
+            Value.FloatVector(FloatArray(3) { random.nextFloat() }),
             distance,
             SortOrder.ASC,
             100,
@@ -126,16 +123,10 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
         val result = reader.query(query).toList()
 
         /* Make manual query and compare. */
-        val manual = descriptors.sortedBy { vec ->
-            distance(
-                Value.DoubleVector(DoubleArray(3) { i -> vec.vector.value[i].toDouble() }),
-                query.value
-            )
-        }.take(100)
+        val manual = descriptors.sortedBy { distance(it.vector, query.value) }.take(100)
         result.zip(manual).forEach {
-            Assertions.assertEquals(it.first.id, it.second.id)
+            Assertions.assertEquals( distance(it.first.vector,query.value), distance(it.second.vector,query.value))
         }
-
     }
 
     /**
