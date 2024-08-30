@@ -29,10 +29,10 @@ abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>>(
     input: Operator<Retrievable>,
     field: Schema.Field<C, D>?,
     analyser: ExternalFesAnalyser<C, D>,
-    protected val parameters: Map<String, String>,
-) : AbstractBatchedExtractor<C, D>(input, analyser, field, parameters["batchSize"]?.toIntOrNull() ?: 1) {
+    parameters: Map<String, String>
+) : AbstractBatchedExtractor<C, D>(input, analyser, field, parameters) {
 
-    private val contentSources = parameters[CONTENT_AUTHORS_KEY]?.split(",")?.toSet()
+
 
     protected val host: String
         get() = this.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
@@ -66,12 +66,5 @@ abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>>(
         }
     }
 
-    fun filterContent(retrievable: Retrievable): List<C> {
-        val contentIds = this.contentSources?.let {
-            retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it)
-        }
-        return retrievable.content.filter { content ->
-            this.analyser.contentClasses.any { it.isInstance(content) && (contentIds?.contains(content.id) ?: false) }
-        }.map { it as C }
-    }
+
 }

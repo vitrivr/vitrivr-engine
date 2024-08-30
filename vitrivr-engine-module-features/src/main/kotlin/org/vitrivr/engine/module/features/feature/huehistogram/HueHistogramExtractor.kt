@@ -21,7 +21,7 @@ import org.vitrivr.engine.module.features.feature.ehd.EHD
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class HueHistogramExtractor(input: Operator<Retrievable>, analyser: HueHistogram, field: Schema.Field<ImageContent, FloatVectorDescriptor>?) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, analyser, field) {
+class HueHistogramExtractor(input: Operator<Retrievable>, analyser: HueHistogram, field: Schema.Field<ImageContent, FloatVectorDescriptor>?, parameters:Map<String,String>) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, analyser, field, parameters) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
@@ -39,7 +39,7 @@ class HueHistogramExtractor(input: Operator<Retrievable>, analyser: HueHistogram
      * @return List of resulting [Descriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
-        val content = retrievable.content.filterIsInstance<ImageContent>()
+        val content = this.filterContent(retrievable)
         return content.map { (this.analyser as HueHistogram).analyse(it).copy(retrievableId = retrievable.id, field = this.field) }
     }
 }
