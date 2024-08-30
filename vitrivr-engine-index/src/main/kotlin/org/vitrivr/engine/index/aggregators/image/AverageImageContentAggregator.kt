@@ -1,45 +1,45 @@
 package org.vitrivr.engine.index.aggregators.image
 
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.model.color.MutableRGBFloatColorContainer
-import org.vitrivr.engine.core.model.color.RGBByteColorContainer
+import org.vitrivr.engine.core.model.color.RGBColorContainer
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.decorators.TemporalContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
+import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.Aggregator
-import org.vitrivr.engine.core.operators.ingest.AggregatorFactory
-import org.vitrivr.engine.core.operators.ingest.Segmenter
+import org.vitrivr.engine.core.operators.general.Transformer
+import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.util.extension.getRGBArray
 import org.vitrivr.engine.core.util.extension.setRGBArray
 import org.vitrivr.engine.index.aggregators.AbstractAggregator
 import java.awt.image.BufferedImage
 
 /**
- * A [Aggregator] that returns an average image of all [ImageContent].
+ * A [Transformer] that merges all [ImageContent] found in an [Ingested] into an average [ImageContent].
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
-class AverageImageContentAggregator : AggregatorFactory {
+class AverageImageContentAggregator : TransformerFactory {
 
     /**
      * Returns an [AverageImageContentAggregator.Instance].
      *
-     * @param input The [Segmenter] to use as input.
+     * @param name The name of the [Transformer]
+     * @param input The input [Operator] .
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      * @return [AverageImageContentAggregator.Instance]
      */
-    override fun newOperator(input: Segmenter, context: IndexContext, parameters: Map<String, String>): Aggregator = Instance(input, context)
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer = Instance(input, context as IndexContext, name)
 
     /**
-     * The [Instance] returns by the [AggregatorFactory]
+     * The [Instance] returns by the [AverageImageContentAggregator]
      */
-    private class Instance(override val input: Operator<Retrievable>, context: IndexContext) : AbstractAggregator(input, context) {
+    private class Instance(override val input: Operator<out Retrievable>, override val context: IndexContext, name: String) : AbstractAggregator(input, context, name) {
         override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> {
             /* Filter out images. */
             val images = content.filterIsInstance<ImageContent>()
@@ -51,17 +51,23 @@ class AverageImageContentAggregator : AggregatorFactory {
             val firstImage = images.first()
             val height = firstImage.height
             val width = firstImage.width
-            val colors = List(firstImage.width * firstImage.height) { MutableRGBFloatColorContainer() }
+            val colors = List(firstImage.width * firstImage.height) { floatArrayOf(0f, 0f, 0f) }
             images.forEach { imageContent ->
                 require(imageContent.height == height && imageContent.width == width) { "Unable to aggregate images! All images must have same dimension." }
                 imageContent.content.getRGBArray().forEachIndexed { index, color ->
-                    colors[index] += RGBByteColorContainer.fromRGB(color)
+                    val rgb = RGBColorContainer(color)
+                    colors[index][0] += rgb.red
+                    colors[index][1] += rgb.green
+                    colors[index][2] += rgb.blue
                 }
             }
 
             val div = images.size.toFloat()
-            val intColors = colors.map {
-                (it / div).toByteContainer().toRGBInt()
+            val intColors = colors.map { c ->
+                c[0] /= div
+                c[1] /= div
+                c[2] /= div
+                RGBColorContainer(c).toRGBInt()
             }.toIntArray()
 
             /* Prepare buffered image. */

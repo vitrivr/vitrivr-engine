@@ -5,10 +5,11 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
 import io.javalin.openapi.*
+import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.query.execution.RetrievalRuntime
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
 import org.vitrivr.engine.query.model.api.result.QueryResult
+import org.vitrivr.engine.query.parsing.QueryParser
 import org.vitrivr.engine.server.api.rest.model.ErrorStatus
 import org.vitrivr.engine.server.api.rest.model.ErrorStatusException
 import kotlin.time.measureTime
@@ -30,14 +31,20 @@ private val logger: KLogger = KotlinLogging.logger {}
         OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)])
     ]
 )
-fun executeQuery(ctx: Context, schema: Schema, runtime: RetrievalRuntime) {
+fun executeQuery(ctx: Context, schema: Schema, executor: ExecutionServer) {
     val duration = measureTime {
+        /* Extract information need. */
         val informationNeed = try {
             ctx.bodyAsClass<InformationNeedDescription>()
         } catch (e: Exception) {
             throw ErrorStatusException(400, "Invalid request: ${e.message}")
         }
-        val results = runtime.query(schema, informationNeed)
+
+        /* Obtain query parser. */
+        val operator = QueryParser(schema).parse(informationNeed)
+
+        /* Execute query. */
+        val results = executor.query(operator)
         ctx.json(QueryResult(results))
     }
     logger.info { "Executing ${ctx.req().pathInfo} took $duration." }

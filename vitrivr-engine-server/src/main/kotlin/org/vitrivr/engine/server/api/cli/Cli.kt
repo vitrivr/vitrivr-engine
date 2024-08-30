@@ -153,6 +153,17 @@ class Cli(private val manager: SchemaManager) {
                 StopCommand()
             )
         }
+
+        /**
+         * Defines global aliasses in the form of a list of commands with arguments / parameters
+         */
+        override fun aliases(): Map<String, List<String>> {
+            return mapOf(
+                "quit" to listOf("stop"),
+                "exit" to listOf("stop"),
+                "q" to listOf("stop")
+            )
+        }
     }
 
     /**

@@ -3,21 +3,23 @@ package org.vitrivr.engine.index.aggregators
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.ContentAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.Aggregator
+import org.vitrivr.engine.core.operators.general.Transformer
+import java.util.*
 
 /**
- * An abstract [Aggregator] implementation.
+ * An abstract [Transformer] implementation for aggregators; aggregators are used to aggregate the content of [Ingested] objects.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
-abstract class AbstractAggregator(override val input: Operator<Retrievable>, protected val context: IndexContext) : Aggregator {
+abstract class AbstractAggregator(override val input: Operator<out Retrievable>, protected open val context: Context, protected val name: String, val newContent: Boolean = false) : Transformer {
     /**
      *  Creates a flow for this [AbstractAggregator].
      *
@@ -26,11 +28,18 @@ abstract class AbstractAggregator(override val input: Operator<Retrievable>, pro
      *  @param scope [CoroutineScope] to use for the [Flow].
      */
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).map {
-        val content = it.filteredAttributes(ContentAttribute::class.java).map { a -> a.content }
-        if (content.isNotEmpty()) {
-            val aggregated = this.aggregate(content)
-            it.removeAttributes(ContentAttribute::class.java)
-            aggregated.forEach { c -> it.addAttribute(ContentAttribute(c)) }
+        val contentSources = context.getProperty(name, CONTENT_AUTHORS_KEY)?.split(",")?.toSet()
+        val contentIds = contentSources?.flatMap { source -> it.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(source) ?: emptySet() }?.toSet()
+
+
+        if (it.content.isNotEmpty()) {
+            val aggregated = this.aggregate(it.content.filter { c -> contentIds?.contains(c.id) ?: true})
+            aggregated.forEach { c ->
+                if (newContent) {
+                    it.addContent(c)
+                }
+                it.addAttribute(ContentAuthorAttribute(c.id, name))
+            }
             it
         } else {
             it

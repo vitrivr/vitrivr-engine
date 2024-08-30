@@ -9,7 +9,7 @@ import java.io.OutputStream
  * A [Resolvable] as returned by a [Resolver].
  *
  * @author Fynn Faber
- * @version 1.0.0.
+ * @version 1.0.0
  */
 interface Resolvable {
     /** The [RetrievableId] represented by this [Resolvable]. */

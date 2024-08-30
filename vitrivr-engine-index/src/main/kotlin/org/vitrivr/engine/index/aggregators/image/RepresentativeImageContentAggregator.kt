@@ -1,43 +1,42 @@
 package org.vitrivr.engine.index.aggregators.image
 
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.model.color.MutableRGBFloatColorContainer
-import org.vitrivr.engine.core.model.color.RGBByteColorContainer
+import org.vitrivr.engine.core.model.color.RGBColorContainer
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
+import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.Aggregator
-import org.vitrivr.engine.core.operators.ingest.AggregatorFactory
-import org.vitrivr.engine.core.operators.ingest.Segmenter
+import org.vitrivr.engine.core.operators.general.Transformer
+import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.util.extension.getRGBArray
 import org.vitrivr.engine.index.aggregators.AbstractAggregator
 
 /**
- * A [Aggregator] thatderives the 'most representative' image out of a list of images as defined by the smallest pixel-wise distance.
+ * A [Transformer] that derives the 'most representative' [ImageContent] from all [ImageContent] found in an [Ingested].
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.2.0
  */
-class RepresentativeImageContentAggregator : AggregatorFactory {
+class RepresentativeImageContentAggregator : TransformerFactory {
 
     /**
      * Returns an [RepresentativeImageContentAggregator.Instance].
      *
-     * @param input The [Segmenter] to use as input.
+     * @param name The name of the [Transformer]
+     * @param input The input [Operator].
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      * @return [RepresentativeImageContentAggregator.Instance]
      */
-    override fun newOperator(input: Segmenter, context: IndexContext, parameters: Map<String, String>): Aggregator =
-        Instance(input, context)
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer = Instance(input, context as IndexContext, name)
+
 
     /**
-     * The [Instance] returns by the [AggregatorFactory]
+     * The [Instance] returns by the [RepresentativeImageContentAggregator]
      */
-    private class Instance(override val input: Operator<Retrievable>, context: IndexContext) :
-        AbstractAggregator(input, context) {
+    private class Instance(override val input: Operator<out Retrievable>, override val context: IndexContext, name: String) : AbstractAggregator(input, context, name) {
         override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> {
             val images = content.filterIsInstance<ImageContent>()
             if (images.isEmpty()) {
@@ -52,30 +51,33 @@ class RepresentativeImageContentAggregator : AggregatorFactory {
             val firstImage = images.first()
             val height = firstImage.height
             val width = firstImage.width
-            val colors = List(firstImage.width * firstImage.height) { MutableRGBFloatColorContainer() }
+            val colors = List(firstImage.width * firstImage.height) { floatArrayOf(0.0f, 0.0f, 0.0f) }
             images.forEach { imageContent ->
                 require(imageContent.height == height && imageContent.width == width) { "Unable to aggregate images! All images must have same dimension." }
                 imageContent.content.getRGBArray().forEachIndexed { index, color ->
-                    colors[index] += RGBByteColorContainer.fromRGB(color)
+                    val rgb = RGBColorContainer(color)
+                    colors[index][0] += rgb.red
+                    colors[index][1] += rgb.green
+                    colors[index][2] += rgb.blue
                 }
             }
 
             /* normalize */
             val div = images.size.toFloat()
-            colors.forEach { it /= div }
+            for (color in colors) {
+                color[0] /= div
+                color[1] /= div
+                color[2] /= div
+            }
 
             /* find image with smallest pixel-wise distance */
             val mostRepresentative = images.minBy { imageContent ->
-
                 imageContent.content.getRGBArray().mapIndexed { index, color ->
-                    RGBByteColorContainer.fromRGB(color).toFloatContainer().distanceTo(colors[index])
+                    RGBColorContainer(color).distanceTo(RGBColorContainer(colors[index]))
                 }.sum()
 
             }
-
             return listOf(mostRepresentative)
-
-
         }
     }
 }

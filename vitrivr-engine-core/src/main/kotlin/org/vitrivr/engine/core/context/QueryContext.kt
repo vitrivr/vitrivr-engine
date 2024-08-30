@@ -1,15 +1,18 @@
 package org.vitrivr.engine.core.context
 
+import io.javalin.openapi.OpenApiIgnore
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
+import org.vitrivr.engine.core.model.metamodel.Schema
+
 
 @Serializable
-data class QueryContext(
-    /** properties applicable to all operators */
-    private val global: Map<String, String> = emptyMap(),
-    /** properties per operator*/
-    private val local: Map<String, Map<String, String>> = emptyMap()
-) {
+class QueryContext(
+    override val local: Map<String, Map<String, String>> = emptyMap(),
+    override val global: Map<String, String> = emptyMap()
+) : Context() {
 
-    fun getProperty(operator: String, property: String): String? = local[operator]?.get(property) ?: global[property]
-
+    @Transient
+    @get:OpenApiIgnore
+    override lateinit var schema: Schema
 }

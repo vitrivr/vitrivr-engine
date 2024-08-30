@@ -4,18 +4,18 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
-import org.vitrivr.engine.core.model.retrievable.Relationship
+import org.vitrivr.engine.core.model.relationship.Relationship
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.PropertyAttribute
-import org.vitrivr.engine.core.model.retrievable.attributes.RelationshipAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.retrieve.Aggregator
+import org.vitrivr.engine.core.operators.general.Aggregator
 import java.util.*
 
 class TemporalSequenceAggregator(
-    override val inputs: List<Operator<Retrieved>>
+    override val inputs: List<Operator<out Retrievable>>
 ) : Aggregator {
 
     companion object {
@@ -24,14 +24,14 @@ class TemporalSequenceAggregator(
     }
 
     data class ContinuousSequence(
-        val retrieved: List<Retrieved>,
+        val retrieved: List<Retrievable>,
         val start: Long,
         val end: Long,
         val score: Float,
         val stage: Int
     )
 
-    override fun toFlow(scope: CoroutineScope): Flow<Retrieved> = flow {
+    override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
 
         val inputs = inputs.map { it.toFlow(scope).toList() }
 
@@ -56,32 +56,34 @@ class TemporalSequenceAggregator(
             val sources = stage.filter { it.type == "source" }
 
             for (source in sources) {
-
-                val relationships =
-                    source.filteredAttribute<RelationshipAttribute>()?.relationships ?: continue
+                val relationships = source.relationships
+                if (relationships.isEmpty()) continue
 
                 //get all valid segments per source, sorted by time if available
-                val segments =
-                    relationships.asSequence().filter { it.pred == "partOf" && it.obj.first == source.id }
-                        .mapNotNull { retrievedMap[it.sub.first] }.map {
-                            val properties =
-                                it.filteredAttribute<PropertyAttribute>()?.properties ?: emptyMap()
-                            it to properties
-                        }
-                        .filter { it.second["start"]?.toLongOrNull() != null && it.second["end"]?.toLongOrNull() != null }
-                        .sortedBy { it.second["start"]!!.toLong() }.map { it.first }.toList()
+                val segments = relationships.asSequence().filter {
+                    it.predicate == "partOf" && it.objectId == source.id
+                }.mapNotNull {
+                    retrievedMap[it.subjectId]
+                }.map {
+                    val properties = it.filteredAttribute(PropertyAttribute::class.java)?.properties ?: emptyMap()
+                    it to properties
+                }.filter {
+                    it.second["start"]?.toLongOrNull() != null && it.second["end"]?.toLongOrNull() != null
+                }.sortedBy {
+                    it.second["start"]!!.toLong()
+                }.map { it.first }.toList()
 
                 if (segments.isEmpty()) {
                     continue
                 }
 
-                val sequences = mutableListOf<MutableList<Retrieved>>()
-                var currentSequence = mutableListOf<Retrieved>()
+                val sequences = mutableListOf<MutableList<Retrievable>>()
+                var currentSequence = mutableListOf<Retrievable>()
                 var lastEndTime = -1L
 
                 for (segment in segments) {
 
-                    val properties = segment.filteredAttribute<PropertyAttribute>()!!.properties
+                    val properties = segment.filteredAttribute(PropertyAttribute::class.java)!!.properties
 
                     val startTime = properties["start"]!!.toLong()
 
@@ -113,11 +115,11 @@ class TemporalSequenceAggregator(
                 for (sequence in sequences) {
 
                     val start = sequence.first()
-                        .filteredAttribute<PropertyAttribute>()!!.properties["start"]!!.toLong()
+                        .filteredAttribute(PropertyAttribute::class.java)!!.properties["start"]!!.toLong()
                     val end =
-                        sequence.last().filteredAttribute<PropertyAttribute>()!!.properties["end"]!!.toLong()
+                        sequence.last().filteredAttribute(PropertyAttribute::class.java)!!.properties["end"]!!.toLong()
                     val score =
-                        sequence.maxOfOrNull { (it.filteredAttribute<ScoreAttribute>())?.score ?: 0f } ?: 0f
+                        sequence.maxOfOrNull { (it.filteredAttribute(ScoreAttribute::class.java))?.score ?: 0f } ?: 0f
 
                     continuousSequences[source.id]!!.add(
                         ContinuousSequence(
@@ -184,20 +186,16 @@ class TemporalSequenceAggregator(
             val id = UUID.randomUUID()
 
             val relationships = sequence.flatMap {
-                it.retrieved.map { r -> Relationship(r.id to null, "partOf", id to null) }
+                it.retrieved.map { r -> Relationship.ById(r.id, "partOf", id, false) }
             }.toSet()
 
             if (relationships.size < 2) {
                 return@forEach
             }
+            val retrieved = Retrieved(id, "temporalSequence", true)
 
-            val retrieved = Retrieved(
-                id, "temporalSequence", true
-            )
-
-            retrieved.addAttribute(ScoreAttribute(score))
-            retrieved.addAttribute(RelationshipAttribute(relationships))
-
+            retrieved.addAttribute(ScoreAttribute.Unbound(score))
+            relationships.forEach { retrieved.addRelationship(it) }
             emit(retrieved)
         }
 

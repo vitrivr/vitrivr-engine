@@ -2,7 +2,9 @@ package org.vitrivr.engine.core.model.query.proximity
 
 import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor
 import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.query.basics.SortOrder
+import org.vitrivr.engine.core.model.types.Value
 
 /**
  * A [ProximityQuery] that uses a [VectorDescriptor] of type [T].
@@ -15,9 +17,9 @@ import org.vitrivr.engine.core.model.query.basics.SortOrder
  * @version 1.0.0
  */
 
-data class ProximityQuery<T: VectorDescriptor<*>>(
+data class ProximityQuery<T : Value.Vector<*>>(
     /** The [VectorDescriptor] being used; specifies both the query field and the comparison value. */
-    override val descriptor: T,
+    val value: T,
 
     /** The [Distance] used for the comparison. */
     val distance: Distance = Distance.EUCLIDEAN,
@@ -26,8 +28,15 @@ data class ProximityQuery<T: VectorDescriptor<*>>(
     val order: SortOrder = SortOrder.ASC,
 
     /** The number of results that should be returned by this [ProximityQuery]. */
-    val k: Int = 1000,
+    val k: Long = 1000L,
 
     /** Flag indicating, whether [VectorDescriptor] should be returned as well. */
-    val withDescriptor: Boolean = false
-) : Query<T>
+    val fetchVector: Boolean = false,
+
+    /**
+     * The name of the attribute that should be compared.
+     *
+     * Typically, this is pre-determined by the analyser. However, in some cases, this must be specified (e.g., when querying struct fields).
+     */
+    val attributeName: String? = null
+) : Query

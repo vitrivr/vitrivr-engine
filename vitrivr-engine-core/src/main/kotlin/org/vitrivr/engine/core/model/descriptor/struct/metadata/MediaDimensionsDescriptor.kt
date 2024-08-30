@@ -1,40 +1,59 @@
 package org.vitrivr.engine.core.model.descriptor.struct.metadata
 
+import org.vitrivr.engine.core.model.descriptor.Attribute
+import org.vitrivr.engine.core.model.descriptor.AttributeName
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
-import org.vitrivr.engine.core.model.descriptor.FieldSchema
-import org.vitrivr.engine.core.model.descriptor.FieldType
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSourceMetadataDescriptor
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.types.Type
+import org.vitrivr.engine.core.model.types.Value
+import java.util.*
 
-data class MediaDimensionsDescriptor(
-        override val id: DescriptorId,
-        override val retrievableId: RetrievableId,
-        val width: Int,
-        val height: Int,
-        override val transient: Boolean = false
-) : StructDescriptor {
-
-        companion object {
-            private val SCHEMA = listOf(
-                FieldSchema("width", FieldType.INT),
-                FieldSchema("height", FieldType.INT),
-            )
-        }
-
-        /**
-        * Returns the [FieldSchema] [List ]of this [StructDescriptor].
-        *
-        * @return [List] of [FieldSchema]
-        */
-        override fun schema(): List<FieldSchema> = SCHEMA
-
-        /**
-        * Returns the fields and its values of this [MediaDimensionsDescriptor] as a [Map].
-        *
-        * @return A [Map] of this [MediaDimensionsDescriptor]'s fields (without the IDs).
-        */
-        override fun values(): List<Pair<String, Any?>> = listOf(
-                "width" to this.width,
-                "height" to this.height
+/**
+ * A [StructDescriptor] used to store metadata about a 2D raster graphic.
+ *
+ * @author Ralph Gasser
+ * @version 2.1.0
+ */
+class MediaDimensionsDescriptor(
+    override val id: DescriptorId,
+    override val retrievableId: RetrievableId?,
+    values: Map<AttributeName, Value<*>?>,
+    override val field: Schema.Field<*, MediaDimensionsDescriptor>? = null
+) : StructDescriptor<MediaDimensionsDescriptor>(id, retrievableId, SCHEMA, values, field) {
+    companion object {
+        /** The field schema associated with a [VideoSourceMetadataDescriptor]. */
+        private val SCHEMA = listOf(
+            Attribute("width", Type.Int),
+            Attribute("height", Type.Int),
         )
+
+        /** The prototype [MediaDimensionsDescriptor]. */
+        val PROTOTYPE = MediaDimensionsDescriptor(
+            UUID.randomUUID(),
+            UUID.randomUUID(),
+            mapOf(
+                "width" to Value.Int(0),
+                "height" to Value.Int(0)
+            )
+        )
+    }
+
+    /** The width of this image. */
+    val width: Value.Int by this.values
+
+    /** The height of this image. */
+    val height: Value.Int by this.values
+
+    /**
+     * Returns a copy of this [MediaDimensionsDescriptor] with new [RetrievableId] and/or [DescriptorId]
+     *
+     * @param id [DescriptorId] of the new [MediaDimensionsDescriptor].
+     * @param retrievableId [RetrievableId] of the new [MediaDimensionsDescriptor].
+     * @param field [Schema.Field] the new [MediaDimensionsDescriptor] belongs to.
+     * @return Copy of this [MediaDimensionsDescriptor].
+     */
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, MediaDimensionsDescriptor>?) = MediaDimensionsDescriptor(id, retrievableId, HashMap(this.values), field)
 }

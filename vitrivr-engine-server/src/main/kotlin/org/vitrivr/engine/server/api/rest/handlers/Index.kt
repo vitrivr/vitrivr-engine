@@ -34,24 +34,24 @@ fun executeIngest(ctx: Context, schema: Schema, executor: ExecutionServer) {
     }
     val filestream: MutableList<Path> = mutableListOf()
     // folder with threadId to avoid deleting files from other threads
-    val uuid = UUID.randomUUID();
+    val uuid = UUID.randomUUID()
     val basepath = Path.of("upload/$uuid/")
     try {
         /* Handle uploaded file. */
         ctx.uploadedFiles("data").forEach { uploadedFile ->
             val path = Path.of("$basepath/${uploadedFile.filename()}")
-            FileUtil.streamToFile(uploadedFile.content(), path.toString());
+            FileUtil.streamToFile(uploadedFile.content(), path.toString())
             filestream.add(path)
         }
         val stream = filestream.stream()
 
         /* Construct extraction pipeline */
-        val pipelineBuilder = pipelineName?.let { schema.getPipelineBuilder(it) }
-            ?: throw ErrorStatusException(400, "Invalid request: Pipeline '$pipelineName' does not exist.")
-        val pipeline = pipelineBuilder.getApiPipeline(stream)
+        val pipelineBuilder = pipelineName?.let { schema.getIngestionPipelineBuilder(it) }
+            ?: throw ErrorStatusException(404, "Invalid request: Pipeline '$pipelineName' does not exist.")
+        val pipeline = pipelineBuilder.build(stream)
 
         /* Schedule pipeline and return job Id. */
-        val jobId = executor.extractAsync(pipeline)
+        val jobId = executor.extractAsync(pipeline.first())
         ctx.json(IngestStatus(jobId.toString(), executor.status(jobId), System.currentTimeMillis()))
     } catch (e: Exception) {
         throw ErrorStatusException(400, "Invalid request: ${e.message}")
@@ -64,12 +64,12 @@ fun executeIngest(ctx: Context, schema: Schema, executor: ExecutionServer) {
 @OpenApi(
     path = "/api/{schema}/index/{jobId}",
     methods = [HttpMethod.GET],
-    summary = "Indexes an item, adding it to the defined schema.",
-    operationId = "postExecuteIngest",
+    summary = "Queries the status of a given ingest job.",
+    operationId = "getIngestStatus",
     tags = ["Ingest"],
     pathParams = [
         OpenApiParam("schema", type = String::class, description = "The name of the schema to execute a query for.", required = true),
-        OpenApiParam("jobId", type = String::class, description = "The id querying the state.", required = true)
+        OpenApiParam("jobId", type = String::class, description = "The id of the job to query the status for.", required = true)
     ],
     responses = [
         OpenApiResponse("200", [OpenApiContent(IngestStatus::class)]),
