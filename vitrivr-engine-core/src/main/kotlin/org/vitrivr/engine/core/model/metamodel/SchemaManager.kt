@@ -1,28 +1,19 @@
 package org.vitrivr.engine.core.model.metamodel
 
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.decodeFromStream
-import org.vitrivr.engine.core.config.IndexConfig
-import org.vitrivr.engine.core.config.SchemaConfig
+import org.vitrivr.engine.core.config.ingest.IngestionConfig
+import org.vitrivr.engine.core.config.schema.SchemaConfig
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
-import org.vitrivr.engine.core.operators.ingest.ExporterFactory
+import org.vitrivr.engine.core.operators.general.ExporterFactory
 import org.vitrivr.engine.core.resolver.ResolverFactory
 import org.vitrivr.engine.core.util.extension.loadServiceForName
-import java.nio.file.Files
 import java.nio.file.Paths
-import java.nio.file.StandardOpenOption
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
-import kotlin.system.exitProcess
-
-private val logger: KLogger = KotlinLogging.logger {}
 
 /**
  * The central [Schema] manager used by vitrivr.
@@ -30,7 +21,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  * The [SchemaManager] maps [Schema] definitions to database [Connection] objects.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.0.1
  */
 class SchemaManager {
     /** An internal [HashMap] of all open [Connection]. */
@@ -58,30 +49,47 @@ class SchemaManager {
         /* Create new connection using reflection. */
         val connection = connectionProvider.openConnection(config.name, config.connection.parameters)
         val schema = Schema(config.name, connection)
-        config.fields.map {
-            val analyser = loadServiceForName<Analyser<*,*>>(it.factory) ?: throw IllegalArgumentException("Failed to find a factory implementation for '${it.factory}'.")
+        config.fields.forEach { (fieldName, fieldConfig) ->
+            val analyser = loadServiceForName<Analyser<*,*>>(fieldConfig.factory) ?: throw IllegalArgumentException("Failed to find a factory implementation for '${fieldConfig.factory}'.")
+            if(fieldName.contains(".")){
+                throw IllegalArgumentException("Field names must not have a dot (.) in their name.")
+            }
             @Suppress("UNCHECKED_CAST")
-            schema.addField(it.name, analyser as Analyser<ContentElement<*>, Descriptor>, it.parameters)
+            schema.addField(fieldName, analyser as Analyser<ContentElement<*>, Descriptor<*>>, fieldConfig.parameters, fieldConfig.indexes)
         }
-        config.exporters.map {
+        config.resolvers.forEach { (resolverName, resolverConfig) ->
+            schema.addResolver(resolverName, (loadServiceForName<ResolverFactory>(resolverConfig.factory) ?: throw IllegalArgumentException("Failed to find resolver factory implementation for '${resolverConfig.factory}'.")).newResolver(schema, resolverConfig.parameters))
+        }
+        config.exporters.forEach { (exporterName, exporterConfig) ->
             schema.addExporter(
-                it.name,
-                loadServiceForName<ExporterFactory>(it.factory) ?: throw IllegalArgumentException("Failed to find exporter factory implementation for '${it.factory}'."),
-                it.parameters,
-                (loadServiceForName<ResolverFactory>(it.resolver.factory) ?: throw IllegalArgumentException("Failed to find resolver factory implementation for '${it.resolver.factory}'.")).newResolver(schema, it.resolver.parameters),
+                exporterName,
+                loadServiceForName<ExporterFactory>(exporterConfig.factory) ?: throw IllegalArgumentException("Failed to find exporter factory implementation for '${exporterConfig.factory}'."),
+                exporterConfig.parameters,
+                exporterConfig.resolverName
             )
         }
-        config.extractionPipelines.map {
-            val indexConfig = IndexConfig.read(Paths.get(it.path))
-                ?: throw IllegalArgumentException("Failed to read pipeline configuration from '${it.path}'.")
-            if (indexConfig.schema != schema.name) {
-                throw IllegalArgumentException("Schema name in pipeline configuration '${indexConfig.schema}' does not match schema name '${schema.name}'.")
+        config.extractionPipelines.forEach { (extractionPipelineName, extractionPipelineConfig) ->
+            val ingestionConfig = IngestionConfig.read(Paths.get(extractionPipelineConfig.path))
+                ?: throw IllegalArgumentException("Failed to read pipeline configuration from '${extractionPipelineConfig.path}'.")
+            if (ingestionConfig.schema != schema.name) {
+                throw IllegalArgumentException("Schema name in pipeline configuration '${ingestionConfig.schema}' does not match schema name '${schema.name}'.")
             }
-            schema.addPipeline(it.name, indexConfig)
+            schema.addIngestionPipeline(extractionPipelineName, ingestionConfig)
         }
 
         /* Cache and return connection. */
         this.schemas[schema.name] = schema
+    }
+
+    /**
+     * Sets the name for a [SchemaConfig], then calls load.
+     *
+     * @param name The name of the schema.
+     * @param config The [SchemaConfig] to which to assign the name and load.
+     */
+    fun load(name: String, config: SchemaConfig) {
+        config.name = name
+        load(config)
     }
 
     /**

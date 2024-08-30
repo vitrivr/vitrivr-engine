@@ -1,23 +1,36 @@
 package org.vitrivr.engine.core.config
 
-import org.vitrivr.engine.core.content.ContentFactory
 import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.context.IngestionContextConfig
+import org.vitrivr.engine.core.model.content.factory.ContentFactoriesFactory
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.resolver.ResolverFactory
 import org.vitrivr.engine.core.util.extension.loadServiceForName
 
 /**
- *
+ * The [IndexContextFactory] creates the appropriate [IndexContext], based on the [Schema] and [IngestionContextConfig].
  */
 object IndexContextFactory {
-    fun newContext(schema: Schema, contextConfig: ContextConfig): IndexContext {
-        /* Load content factory. */
-        val contentFactory = loadServiceForName<ContentFactory>(contextConfig.contentFactory) ?: throw IllegalArgumentException("Failed to find content factory implementation for name '${contextConfig.contentFactory}'.")
 
-        /* Load default resolver. */
-        val resolverFactory = loadServiceForName<ResolverFactory>(contextConfig.resolverFactory) ?: throw IllegalArgumentException("Failed to find resolver implementation for name '${contextConfig.resolverFactory}'.")
+    /**
+     * Primarily creates the [ContentFactoriesFactory], on which foundation the [IndexContext] is created.
+     *
+     * @param contextConfig The [IngestionContextConfig] describing the [IndexContext] to-be-built.
+     *
+     * @return A [IndexContext] based on the [contextConfig]'s description and for the [schema].
+     */
+    fun newContext(contextConfig: IngestionContextConfig): IndexContext {
+        /* Load content factory. */
+        val contentFactory = loadServiceForName<ContentFactoriesFactory>(contextConfig.contentFactory) ?: throw IllegalArgumentException("Failed to find content factory implementation for name '${contextConfig.contentFactory}'.")
+
+        val schema = contextConfig.schema
 
         /* Return new context. */
-        return IndexContext(schema, contentFactory, resolverFactory.newResolver(schema, contextConfig.parameters))
+        return IndexContext(
+            schema,
+            contentFactory.newContentFactory(schema, contextConfig),
+            schema.getResolver(contextConfig.resolverName),
+            contextConfig.local,
+            contextConfig.global
+        )
     }
 }

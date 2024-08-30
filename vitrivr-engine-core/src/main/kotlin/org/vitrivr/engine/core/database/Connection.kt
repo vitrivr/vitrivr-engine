@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.database
 
+import io.javalin.openapi.OpenApiIgnore
 import org.vitrivr.engine.core.database.descriptor.DescriptorInitializer
 import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
@@ -18,8 +19,18 @@ import java.io.Closeable
  */
 sealed interface Connection: Closeable {
 
+    /** The [ConnectionProvider] used to create this [Connection]. */
+    val provider: ConnectionProvider
+
     /** The name of the [Schema] managed by this [Connection]. */
     val schemaName: String
+
+    /**
+     * Executes the provided action within a transaction (if supported by the database).
+     *
+     * @param action The action to execute within the transaction.
+     */
+    fun <T> withTransaction(action: (Unit) -> T): T
 
     /**
      * Initializes the database layer with the [Schema] used by this [Connection].
@@ -37,6 +48,7 @@ sealed interface Connection: Closeable {
      * It remains up to the implementation, whether the [RetrievableInitializer] returned by this method is
      * re-used or re-created every time the method is being called.
      */
+    @OpenApiIgnore
     fun getRetrievableInitializer(): RetrievableInitializer
 
     /**
@@ -45,6 +57,7 @@ sealed interface Connection: Closeable {
      * It remains up to the implementation, whether the [RetrievableWriter] returned by this method is
      * re-used or re-created every time the method is being called.
      */
+    @OpenApiIgnore
     fun getRetrievableWriter(): RetrievableWriter
 
     /**
@@ -53,6 +66,7 @@ sealed interface Connection: Closeable {
      * It remains up to the implementation, whether the [RetrievableReader] returned by this method is
      * re-used or re-created every time the method is being called.
      */
+    @OpenApiIgnore
     fun getRetrievableReader(): RetrievableReader
 
     /**
@@ -63,7 +77,8 @@ sealed interface Connection: Closeable {
      * It remains up to the implementation, whether the [DescriptorInitializer] returned by this method is
      * re-used or re-created every time the method is being called.
      */
-    fun <D: Descriptor> getDescriptorInitializer(field: Schema.Field<*,D>): DescriptorInitializer<D>
+    @OpenApiIgnore
+    fun <D : Descriptor<*>> getDescriptorInitializer(field: Schema.Field<*, D>): DescriptorInitializer<D>
 
     /**
      * Returns a [DescriptorWriter].
@@ -73,7 +88,8 @@ sealed interface Connection: Closeable {
      * It remains up to the implementation, whether the [DescriptorWriter] returned by this method is
      * re-used or re-created every time the method is being called.
      */
-    fun <D: Descriptor> getDescriptorWriter(field: Schema.Field<*,D>): DescriptorWriter<D>
+    @OpenApiIgnore
+    fun <D : Descriptor<*>> getDescriptorWriter(field: Schema.Field<*, D>): DescriptorWriter<D>
 
     /**
      * Returns a [DescriptorReader].
@@ -83,12 +99,14 @@ sealed interface Connection: Closeable {
      * It remains up to the implementation, whether the [DescriptorReader] returned by this method is
      * re-used or re-created every time the method is being called.
      */
-    fun <D: Descriptor> getDescriptorReader(field: Schema.Field<*,D>): DescriptorReader<D>
+    @OpenApiIgnore
+    fun <D : Descriptor<*>> getDescriptorReader(field: Schema.Field<*, D>): DescriptorReader<D>
 
     /**
      * Returns a human-readable descriptor of this [Connection].
      *
      * @return Human-readable description of this [Connection].
      */
+    @OpenApiIgnore
     fun description(): String
 }

@@ -1,3 +1,0 @@
-org.vitrivr.engine.query.transform.RelationExpanderFactory
-org.vitrivr.engine.query.transform.ScoreAggregatorFactory
-org.vitrivr.engine.query.transform.FieldLookupFactory

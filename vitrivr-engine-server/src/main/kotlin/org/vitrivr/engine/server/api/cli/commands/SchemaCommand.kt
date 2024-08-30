@@ -4,16 +4,19 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.convert
-import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.required
 import com.jakewharton.picnic.table
-import org.vitrivr.engine.core.config.IndexConfig
-import org.vitrivr.engine.core.config.pipeline.ExtractionPipelineBuilder
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.vitrivr.engine.core.config.ingest.IngestionConfig
+import org.vitrivr.engine.core.config.ingest.IngestionPipelineBuilder
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.database.Initializer
 import org.vitrivr.engine.core.model.metamodel.Schema
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.*
 
 /**
  *
@@ -22,7 +25,7 @@ import java.nio.file.Paths
  */
 class SchemaCommand(private val schema: Schema, private val server: ExecutionServer) : NoOpCliktCommand(
     name = schema.name,
-    help = "Groups commands related to a specific the schema '${schema.name}'.",
+    help = "Groups commands related to a specific schema, in this case the schema '${schema.name}'.",
     epilog = "Schema related commands usually have the form: <schema> <command>, e.g., `vitrivr about` Check help for command specific parameters.",
     invokeWithoutSubcommand = true,
     printHelpOnEmptyArgs = true
@@ -33,7 +36,8 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
         this.subcommands(
             About(),
             Initialize(),
-            Extract(this.schema, this.server)
+            Extract(this.schema, this.server),
+            Status(this.schema, this.server)
         )
     }
 
@@ -78,7 +82,8 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
     /**
      * [CliktCommand] to initialize the schema.
      */
-    inner class Initialize : CliktCommand(name = "init", help = "Initializes the schema using the database connection.") {
+    inner class Initialize :
+        CliktCommand(name = "init", help = "Initializes the schema using the database connection.") {
         override fun run() {
             val schema = this@SchemaCommand.schema
             var initialized = 0
@@ -101,31 +106,64 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
     /**
      * [CliktCommand] to start an extraction job.
      */
-    inner class Extract(private val schema: Schema, private val executor: ExecutionServer) : CliktCommand(name = "extract", help = "Extracts data from a source and stores it in the schema.") {
+    inner class Extract(private val schema: Schema, private val executor: ExecutionServer) :
+        CliktCommand(name = "extract", help = "Extracts data from a source and stores it in the schema.") {
+
+        private val logger: KLogger = KotlinLogging.logger {}
 
         /** Path to the configuration file. */
-        private val input: Path by option("-c", "--config", help = "Path to the extraction configuration.").convert { Paths.get(it) }.default(Paths.get(IndexConfig.DEFAULT_PIPELINE_PATH))
+        private val input: Path? by option(
+            "-c",
+            "--config",
+            help = "Path to the extraction configuration."
+        ).convert { Paths.get(it) }
+
+        /** Name of the ingestion config as specified on the schema */
+        private val name: String? by option(
+            "-n",
+            "--name",
+            help = "The name of the ingestion pipeline configuration to use from the schema"
+        )
+
 
         override fun run() {
-            /* Read configuration file. */
-            val config = try {
-                IndexConfig.read(this.input)
-            } catch (e: Exception) {
-                System.err.println("Failed to read extraction configuration due to error: ${e.message}")
+            val pipeline = if (name != null) {
+                this.schema.getIngestionPipelineBuilder(name!!).build()
+            } else if (input != null) {
+                /* Read configuration file. */
+                val config = try {
+                    IngestionConfig.read(this.input!!)
+                } catch (e: Exception) {
+                    System.err.println("Failed to read extraction configuration due to error: ${e.message}")
+                    return
+                }
+
+                /* Check if configuration is valid. */
+                if (config == null) {
+                    println("Failed to read extraction configuration. No extraction is being started.")
+                    return
+                }
+
+                config.context.schema = this.schema
+
+                IngestionPipelineBuilder(config).build()
+            } else {
+                System.err.println("Requires either -n / --name: Name of the ingestion config defined on the schema or -c / --config the path to a ingestion config")
                 return
             }
+            val uuid = this.executor.extractAsync(pipeline.first())
+            logger.info { "Started extraction job with UUID $uuid." }
+        }
+    }
 
-            /* Check if configuration is valid. */
-            if (config == null) {
-                println("Failed to read extraction configuration. No extraction is being started.")
-                return
-            }
+    inner class Status(private val schema: Schema, private val executor: ExecutionServer) :
+        CliktCommand(name = "status", help = "Prints indexing status") {
+        private val logger: KLogger = KotlinLogging.logger {}
 
-            /* Instantiate pipeline and start extraction. */
-            val pipelineBuilder = ExtractionPipelineBuilder.forConfig(this.schema, config)
-            val pipeline = pipelineBuilder.getPipeline()
-            val uuid = this.executor.extractAsync(pipeline)
-            println("Started extraction job with UUID $uuid.")
+        private val jobId: UUID by option("--job-id", help = "The job id").convert { UUID.fromString(it) }.required()
+
+        override fun run() {
+            logger.info { "Status: ${executor.status(jobId)} at ${System.currentTimeMillis()}" }
         }
     }
 }

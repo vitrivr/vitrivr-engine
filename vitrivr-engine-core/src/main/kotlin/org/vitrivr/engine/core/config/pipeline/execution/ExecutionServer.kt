@@ -2,11 +2,12 @@ package org.vitrivr.engine.core.config.pipeline.execution
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.flow.toList
+import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.Retrieved
-import org.vitrivr.engine.core.operators.ingest.AbstractSegmenter
+import org.vitrivr.engine.core.operators.Operator
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
@@ -73,34 +74,32 @@ class ExecutionServer {
     }
 
     /**
-     * Executes an extraction [IndexingPipeline] in a blocking fashion, i.e., the call will block until the [IndexingPipeline] has been executed.
+     * Executes an extraction [Operator.Sink] in a blocking fashion, i.e., the call will block until the [Operator.Sink] has been executed.
      *
      * This is mainly for testing purposes!
      *
-     * @param pipeline The [IndexingPipeline] to execute.
+     * @param sink The [Operator.Sink] to execute.
      */
-    fun extract(pipeline: IndexingPipeline) {
+    fun extract(sink: Operator.Sink<Ingested>) {
         val jobId = UUID.randomUUID()
         val scope = CoroutineScope(this@ExecutionServer.dispatcher) + CoroutineName("index-job-$jobId")
         runBlocking {
-            val jobs = pipeline.getLeaves().map { e -> scope.launch { e.toFlow(this).takeWhile { it != AbstractSegmenter.TerminalRetrievable }.collect() } }
-            jobs.forEach { it.join() }
+            sink.toFlow(scope).collect()
         }
     }
 
     /**
-     * Executes an [IndexingPipeline] in a blocking fashion, i.e., the call will block until the [IndexingPipeline] has been executed.
+     * Executes an [Operator.Sink] in a blocking fashion, i.e., the call will block until the [Operator.Sink] has been executed.
      *
-     * @param pipeline The [IndexingPipeline] to execute.
+     * @param sink The [Operator.Sink] to execute.
      * @return [UUID] identifying the job.
      */
-    fun extractAsync(pipeline: IndexingPipeline): UUID {
+    fun extractAsync(sink: Operator.Sink<Retrievable>): UUID {
         val jobId = UUID.randomUUID()
         val scope = CoroutineScope(this@ExecutionServer.dispatcher) + CoroutineName("index-job-$jobId")
         val job = scope.launch {
             try {
-                val jobs = pipeline.getLeaves().map { e -> this.launch { e.toFlow(scope).cancellable().takeWhile { it != AbstractSegmenter.TerminalRetrievable }.collect() } }
-                jobs.forEach { it.join() }
+                sink.toFlow(scope).collect()
                 this@ExecutionServer.jobHistory.add(Triple(jobId, ExecutionStatus.COMPLETED, System.currentTimeMillis()))
             } catch (e: Throwable) {
                 this@ExecutionServer.jobHistory.add(Triple(jobId, ExecutionStatus.FAILED, System.currentTimeMillis()))
@@ -117,28 +116,49 @@ class ExecutionServer {
     }
 
     /**
-     * Executes a [RetrievalPipeline] in a blocking fashion, i.e., the call will block until the [IndexingPipeline] has been executed.
+     * Executes a [RetrievalPipeline] in a blocking fashion, i.e., the call will block until the [RetrievalPipeline] has been executed.
 
-     * @param pipeline The [RetrievalPipeline] to execute.
+     * @param query The [Operator] to execute.
      * @return The resulting [List] of [Retrieved]
      */
-    fun query(pipeline: RetrievalPipeline): List<Retrieved> {
+    fun query(query: Operator<out Retrievable>): List<Retrievable> {
         val jobId = UUID.randomUUID()
         val scope = CoroutineScope(this@ExecutionServer.dispatcher) + CoroutineName("query-job-$jobId")
-        TODO()
+        val results = LinkedList<Retrievable>()
+        runBlocking {
+            val job = scope.launch {
+                query.toFlow(scope).toList(results)
+            }
+            job.join()
+        }
+        return results
     }
 
     /**
      * Executes an [RetrievalPipeline] in an asynchronous fashion, sending all results to the provided [SendChannel].
      *
-     * @param pipeline The [RetrievalPipeline] to execute.
+     * @param query The [Operator] to execute.
      * @param into The [SendChannel] to send the results to.
      * @return The [UUID] of the resulting [Job].
      */
-    fun queryAsync(pipeline: RetrievalPipeline, into: SendChannel<Retrieved>): UUID {
+    fun queryAsync(query: Operator<Retrieved>, into: SendChannel<Retrieved>): UUID {
         val jobId = UUID.randomUUID()
         val scope = CoroutineScope(this@ExecutionServer.dispatcher) + CoroutineName("query-job-$jobId")
-        TODO()
+        scope.launch {
+            try {
+                val job = this.launch { query.toFlow(scope).collect { into.send(it) } }
+                this@ExecutionServer.jobHistory.add(Triple(jobId, ExecutionStatus.COMPLETED, System.currentTimeMillis()))
+                job.join()
+            } catch (e: Throwable) {
+                this@ExecutionServer.jobHistory.add(Triple(jobId, ExecutionStatus.FAILED, System.currentTimeMillis()))
+            } finally {
+                this@ExecutionServer.jobs.remove(jobId)
+                if (this@ExecutionServer.jobHistory.size > 100) {
+                    this@ExecutionServer.jobHistory.removeFirst()
+                }
+            }
+
+        }
         return jobId
     }
 }

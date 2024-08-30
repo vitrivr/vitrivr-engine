@@ -1,0 +1,5 @@
+org.vitrivr.engine.base.features.external.implementations.dense.DenseEmbedding
+org.vitrivr.engine.base.features.external.implementations.asr.ASR
+org.vitrivr.engine.base.features.external.implementations.ocr.OCR
+org.vitrivr.engine.base.features.external.implementations.classification.ImageClassification
+org.vitrivr.engine.base.features.external.implementations.caption.ImageCaption

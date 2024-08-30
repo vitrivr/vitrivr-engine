@@ -5,15 +5,19 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
-import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.retrieve.Aggregator
+import org.vitrivr.engine.core.operators.general.Aggregator
+import java.util.*
+import kotlin.math.pow
 
 class WeightedScoreFusion(
-    override val inputs: List<Operator<Retrieved>>,
-    weights: List<Float>
+    override val inputs: List<Operator<out Retrievable>>,
+    weights: List<Float>,
+    val p: Float,
+    val normalize: Boolean
 ) : Aggregator {
 
     private val weights: List<Float> = when {
@@ -24,7 +28,7 @@ class WeightedScoreFusion(
 
     private val weightsSum = this.weights.sum()
 
-    override fun toFlow(scope: CoroutineScope): Flow<Retrieved> {
+    override fun toFlow(scope: CoroutineScope): Flow<Retrievable> {
 
         if (inputs.isEmpty()) {
             return emptyFlow()
@@ -44,7 +48,7 @@ class WeightedScoreFusion(
                 return@flow
             }
 
-            val scoreMap = mutableMapOf<RetrievableId, MutableList<Pair<Int, Retrieved>>>()
+            val scoreMap = mutableMapOf<RetrievableId, MutableList<Pair<Int, Retrievable>>>()
 
             for ((index, retrieveds) in inputs.withIndex()) {
 
@@ -62,15 +66,33 @@ class WeightedScoreFusion(
 
             for((_, retrieveds) in scoreMap) {
 
-                val score = retrieveds.map { ((it.second.filteredAttribute<ScoreAttribute>())?.score ?: 0f) * weights[it.first] }.sum() / weightsSum
+                var score : Float
+                var first : Retrievable
 
-                val first = retrieveds.first().second
+                if (p == Float.POSITIVE_INFINITY){
+                    score = retrieveds.map { ((it.second.filteredAttribute(ScoreAttribute::class.java))?.score ?: 0f) }.max()
 
+                    first = retrieveds.first().second
+                }
+                else{
+                    val normalization = (retrieveds.map { weights[it.first] }.sum()).pow(1/p)
+
+                    if (normalization == 0f){
+                        score = 0f
+                    }
+                    else {
+                        score = retrieveds.map {
+                            ((it.second.filteredAttribute(ScoreAttribute::class.java))?.score ?: 0f).pow(p) * weights[it.first]
+                        }.sum().pow(1 / p)
+                        if (normalize) score /= normalization
+                    }
+                    first = retrieveds.first().second
+                }
 
                 //make a copy and override score
                 val retrieved = first.copy()
-                retrieved.filteredAttribute<ScoreAttribute>()
-                retrieved.addAttribute(ScoreAttribute(score))
+                retrieved.filteredAttribute(ScoreAttribute::class.java)
+                retrieved.addAttribute(ScoreAttribute.Unbound(score))
 
                 emit(retrieved)
 

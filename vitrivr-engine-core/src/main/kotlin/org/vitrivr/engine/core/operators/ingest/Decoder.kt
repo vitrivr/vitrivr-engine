@@ -2,9 +2,9 @@ package org.vitrivr.engine.core.operators.ingest
 
 import kotlinx.coroutines.flow.Flow
 import org.vitrivr.engine.core.model.content.Content
-import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.source.Source
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.source.Source
 
 /**
  * An [Operator.Unary] that converts a [Flow] of [Source] into a [Flow] of [Content] elements.
@@ -13,8 +13,6 @@ import org.vitrivr.engine.core.operators.Operator
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
-interface Decoder: Operator.Unary<Source, ContentElement<*>> {
-
-}
+interface Decoder : Operator.Unary<Retrievable, Retrievable>

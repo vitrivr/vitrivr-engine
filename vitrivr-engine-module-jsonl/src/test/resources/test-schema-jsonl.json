@@ -1,0 +1,30 @@
+{
+  "connection":  {
+    "database": "JsonlConnectionProvider",
+    "parameters": {
+      "root": "jsonl-test"
+    }
+  },
+  "fields": {
+    "averagecolor": { "factory": "AverageColor" },
+    "file": {
+      "factory": "FileSourceMetadata",
+      "indexes": [
+        {
+          "attributes": [
+            "path"
+          ],
+          "type": "FULLTEXT"
+        },
+        {
+          "attributes": [
+            "size"
+          ],
+          "type": "SCALAR"
+        }
+      ]
+    },
+    "time": { "factory": "TemporalMetadata" },
+    "video": { "factory": "VideoSourceMetadata" }
+  }
+}

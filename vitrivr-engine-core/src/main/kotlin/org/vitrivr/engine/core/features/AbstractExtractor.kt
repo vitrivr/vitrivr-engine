@@ -1,27 +1,38 @@
 package org.vitrivr.engine.core.features
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
-import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
-import java.util.*
 
 /**
  * An abstract [Extractor] implementation that is suitable for most default [Extractor] implementations.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.3.0
  */
-abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final override val input: Operator<Retrievable>, final override val field: Schema.Field<C, D>, final override val persisting: Boolean = true, private val bufferSize: Int = 100) :
-    Extractor<C, D> {
+abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>>(final override val input: Operator<Retrievable>, final override val analyser: Analyser<C, D>, final override val field: Schema.Field<C, D>? = null, protected val parameters: Map<String, String>) : Extractor<C, D> {
+
+    init {
+        require(field == null || this.field.analyser == this.analyser) { "Field and analyser do not match! This is a programmer's error!" }
+    }
+
+    /** The [KLogger] instance used by this [AbstractExtractor]. */
+    protected val logger: KLogger = KotlinLogging.logger {}
+
+    /** The names of the content source to consider during processing. */
+    protected val contentSources : Set<String>?
+        get() = this.parameters[CONTENT_AUTHORS_KEY]?.split(",")?.toSet()
 
     /**
      * A default [Extractor] implementation. It executes the following steps:
@@ -32,43 +43,21 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final ov
      *
      * @return [Flow] of [Retrievable]
      */
-    final override fun toFlow(scope: CoroutineScope): Flow<Retrievable> {
-        /* The [DescriptorWriter] used by this [AbstractExtractor]. */
-        val writer: DescriptorWriter<D> by lazy { this.field.getWriter() }
-
-        /* The buffer used for writing descriptors. */
-        val buffer = LinkedList<D>()
-
-        /* Prepare and return flow. */
-        return this.input.toFlow(scope).onEach { retrievable ->
-            if (this.matches(retrievable)) {
-                /* Perform extraction. */
-                val descriptors = extract(retrievable)
-
-                /* Append descriptor. */
-                for (d in descriptors) {
-                    retrievable.addAttribute(DescriptorAttribute(d))
-                }
-
-                /* Persist descriptor. */
-                if (this.persisting) {
-                    /* Add descriptors to buffer. */
-                    for (d in descriptors) {
-                        buffer.add(d)
-                    }
-
-                    /* Persist buffer if necessary. */
-                    if (buffer.size >= this.bufferSize) {
-                        writer.addAll(buffer)
-                        buffer.clear()
-                    }
-                }
+    override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
+        if (this.matches(retrievable)) {
+            /* Perform extraction. */
+            val descriptors = try {
+                logger.debug{"Extraction on field ${field?.fieldName} for retrievable: $retrievable" }
+                extract(retrievable)
+            } catch (e: Throwable) {
+                logger.error(e) { "Error during extraction of $retrievable" }
+                emptyList()
             }
-        }.onCompletion {
-            /* Persist buffer if necessary. */
-            if (buffer.isNotEmpty()) {
-                writer.addAll(buffer)
-                buffer.clear()
+
+            /* Append descriptor. */
+            logger.trace { "Extracted descriptors for retrievable ($retrievable): $descriptors" }
+            for (d in descriptors) {
+                retrievable.addDescriptor(d)
             }
         }
     }
@@ -76,10 +65,14 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final ov
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
+     * By default, a [Retrievable] matches this [Extractor] if it contains at least one [ContentElement] that matches the [Analyser.contentClasses].
+     *
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,
      */
-    protected abstract fun matches(retrievable: Retrievable): Boolean
+    protected open fun matches(retrievable: Retrievable): Boolean = retrievable.content.any { content ->
+        this.analyser.contentClasses.any { it.isInstance(content) }
+    }
 
     /**
      * Internal method to perform extraction on [Retrievable].
@@ -88,4 +81,24 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor>(final ov
      * @return List of resulting [Descriptor]s.
      */
     protected abstract fun extract(retrievable: Retrievable): List<D>
+
+    /**
+     * Filters the content of a [Retrievable] based on the [ContentAuthorAttribute] and the [contentSources] parameter.
+     *
+     * @param retrievable [Retrievable] to extract content from.
+     */
+    @Suppress("UNCHECKED_CAST")
+    protected fun filterContent(retrievable: Retrievable): List<C> {
+        val contentIds = this.contentSources?.let {
+            retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it)
+        }
+        return retrievable.content.filter { content ->
+            if (this.analyser.contentClasses.none { it.isInstance(content) }) return@filter false
+            if (contentIds == null) {
+                return@filter true
+            } else {
+                return@filter contentIds.contains(content.id)
+            }
+        }.map { it as C }
+    }
 }

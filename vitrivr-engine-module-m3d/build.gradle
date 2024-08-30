@@ -1,0 +1,121 @@
+plugins {
+    id 'maven-publish'
+    id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
+    id 'signing'
+}
+
+switch (org.gradle.internal.os.OperatingSystem.current()) {
+    case org.gradle.internal.os.OperatingSystem.LINUX:
+        def osArch = System.getProperty("os.arch")
+        project.ext.lwjglNatives = osArch.startsWith("arm") || osArch.startsWith("aarch64")
+                ? "natives-linux-${osArch.contains("64") || osArch.startsWith("armv8") ? "arm64" : "arm32"}"
+                : "natives-linux"
+        break
+    case org.gradle.internal.os.OperatingSystem.MAC_OS:
+        project.ext.lwjglNatives = System.getProperty("os.arch").startsWith("aarch64") ? "natives-macos-arm64" : "natives-macos"
+        break
+    case org.gradle.internal.os.OperatingSystem.WINDOWS:
+        def osArch = System.getProperty("os.arch")
+        project.ext.lwjglNatives = osArch.contains("64")
+                ? "natives-windows${osArch.startsWith("aarch64") ? "-arm64" : ""}"
+                : "natives-windows-x86"
+        break
+}
+
+dependencies {
+    api project(':vitrivr-engine-core')
+
+    /* Apache Commons Math. */
+    api group: "org.apache.commons", name: "commons-math3", version: version_commonsmath3
+
+    /** JOML dependencies for 3D mesh support. */
+    api group: 'org.joml', name: 'joml', version: version_joml
+
+    /** LWJGL. Minimal OpenGl Configuration from customizer https://www.lwjgl.org/customize **/
+    api group: "org.lwjgl", name: "lwjgl", version: version_lwjgl
+    api group: "org.lwjgl", name: "lwjgl-assimp", version: version_lwjgl
+    api group: "org.lwjgl", name: "lwjgl-glfw", version: version_lwjgl
+    api group: "org.lwjgl", name: "lwjgl-opengl", version: version_lwjgl
+    api group: "org.lwjgl", name: "lwjgl-stb", version: version_lwjgl
+
+    runtimeOnly group: "org.lwjgl", name: "lwjgl", version: version_lwjgl, classifier: project.ext.lwjglNatives
+    runtimeOnly group: "org.lwjgl", name: "lwjgl-assimp", version: version_lwjgl, classifier: project.ext.lwjglNatives
+    runtimeOnly group: "org.lwjgl", name: "lwjgl-bgfx", version: version_lwjgl, classifier: project.ext.lwjglNatives
+    runtimeOnly group: "org.lwjgl", name: "lwjgl-glfw", version: version_lwjgl, classifier: project.ext.lwjglNatives
+    runtimeOnly group: "org.lwjgl", name: "lwjgl-nanovg", version: version_lwjgl, classifier: project.ext.lwjglNatives
+    runtimeOnly group: "org.lwjgl", name: "lwjgl-nuklear", version: version_lwjgl, classifier: project.ext.lwjglNatives
+    runtimeOnly group: "org.lwjgl", name: "lwjgl-opengl", version: version_lwjgl, classifier: project.ext.lwjglNatives
+    runtimeOnly group: "org.lwjgl", name: "lwjgl-par", version: version_lwjgl, classifier: project.ext.lwjglNatives
+    runtimeOnly group: "org.lwjgl", name: "lwjgl-stb", version: version_lwjgl, classifier: project.ext.lwjglNatives
+    if (lwjglNatives == "natives-macos" || lwjglNatives == "natives-macos-arm64") {
+        runtimeOnly group: "org.lwjgl", name: "lwjgl-vulkan", version: version_lwjgl, classifier: project.ext.lwjglNatives
+    }
+}
+
+
+/* Publication of vitrivr engine query to Maven Central. */
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'org.vitrivr'
+            artifactId = 'vitrivr-engine-plugin-m3d'
+            version = System.getenv().getOrDefault("MAVEN_PUBLICATION_VERSION", version.toString())
+            from components.java
+            pom {
+                name = 'vitrivr Engine Base'
+                description = 'Shared based components of the vitrivr multimedia retrieval engine. To contains logic an features to handle 3D meshes.'
+                url = 'https://github.com/vitrivr/vitrivr-engine/'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'ppanopticon'
+                        name = 'Ralph Gasser'
+                        email = 'ralph.gasser@unibas.ch'
+                    }
+                    developer {
+                        id = 'lucaro'
+                        name = 'Luca Rossetto'
+                        email = 'rossetto@ifi.uzh.ch'
+                    }
+                    developer {
+                        id = 'net-cscience-raphael'
+                        name = 'Raphael Waltensül'
+                        email = 'raphael.waltenspuel@unibas.ch'
+                    }
+                    developer {
+                        id = 'rahelarnold98'
+                        name = 'Rahel Arnold'
+                        email = 'rahel.arnold@unibas.ch'
+                    }
+                    developer {
+                        id = 'faberf'
+                        name = 'Fynn Faber'
+                        email = 'fynnfirouz.faber@unibas.ch'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/vitrivr/vitrivr-engine.git'
+                    url = 'https://github.com/vitrivr/vitrivr-engine/'
+                }
+            }
+        }
+    }
+    repositories {
+        repositories {
+            maven {
+                def releasesRepoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+                def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
+                name = "OSSRH"
+                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+                credentials {
+                    username = System.getenv("MAVEN_USERNAME")
+                    password = System.getenv("MAVEN_PASSWORD")
+                }
+            }
+        }
+    }
+}

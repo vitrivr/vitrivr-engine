@@ -40,7 +40,7 @@ interface ConnectionProvider {
      * @param descriptorClass The [KClass] of the [Descriptor] to register [DescriptorProvider] for.
      * @param provider The [DescriptorProvider] to register.
      */
-    fun <T : Descriptor> register(descriptorClass: KClass<T>, provider: DescriptorProvider<T>)
+    fun <T : Descriptor<*>> register(descriptorClass: KClass<T>, provider: DescriptorProvider<*>)
 
     /**
      * Obtains an [DescriptorProvider] for a particular [KClass] of [Descriptor], that has been registered with this [ConnectionProvider].
@@ -48,5 +48,5 @@ interface ConnectionProvider {
      * @param descriptorClass The [KClass] of the [Descriptor] to lookup [DescriptorProvider] for.
      * @return The registered [DescriptorProvider] .
      */
-    fun <T : Descriptor> obtain(descriptorClass: KClass<T>): DescriptorProvider<T>?
+    fun <T : Descriptor<*>> obtain(descriptorClass: KClass<T>): DescriptorProvider<T>?
 }

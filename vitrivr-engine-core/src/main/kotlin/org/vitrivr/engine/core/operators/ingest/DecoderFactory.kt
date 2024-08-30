@@ -12,9 +12,9 @@ interface DecoderFactory {
     /**
      * Creates a new [Decoder] instance from this [DecoderFactory].
      *
+     * @param name The name of the [Decoder]
      * @param input The input [Enumerator].
      * @param context The [IndexContext] to use.
-     * @param parameters Optional set of parameters.
      */
-    fun newOperator(input: Enumerator, context: IndexContext, parameters: Map<String, String> = emptyMap()): Decoder
+    fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder
 }

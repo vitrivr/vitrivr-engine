@@ -26,7 +26,7 @@ sealed interface Operator<O> {
     /**
      * A nullary operator (usually a source).
      */
-    interface Nullary<O>: Operator<O> {
+    interface Nullary<I>: Operator<I> {
         /**
          * Returns root of this [Nullary] (which is this).
          */
@@ -38,7 +38,7 @@ sealed interface Operator<O> {
      */
     interface Unary<I,O>: Operator<O> {
         /** The input [Operator]. */
-        val input: Operator<I>
+        val input: Operator<out I>
 
         /**
          * Returns root of this [Unary].
@@ -51,10 +51,10 @@ sealed interface Operator<O> {
      */
     interface Binary<I,O>: Operator<O> {
         /** The input [Operator]. */
-        val input1: Operator<I>
+        val input1: Operator<out I>
 
         /** The input [Operator]. */
-        val input2: Operator<I>
+        val input2: Operator<out I>
 
         /**
          * Returns root of this [Unary], which is the left-hand operator (by definition).
@@ -67,7 +67,7 @@ sealed interface Operator<O> {
      */
     interface NAry<I,O>: Operator<O> {
         /** The input [Operator]s. */
-        val inputs: List<Operator<I>>
+        val inputs: List<Operator<out I>>
 
         /**
          * Returns root of this [Unary], which is the left-hand operator (by definition).
@@ -80,7 +80,7 @@ sealed interface Operator<O> {
      */
     interface Sink<I>: Operator<Unit> {
         /** The input [Operator]. */
-        val input: Operator<I>
+        val input: Operator<out I>
 
         /**
          * Returns root of this [Unary], which is the left-hand operator (by definition).

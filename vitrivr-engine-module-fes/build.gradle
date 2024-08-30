@@ -1,0 +1,61 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
+
+plugins {
+    id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
+}
+
+/* Downloads the OpenAPI spec from the feature extraction server. */
+tasks.register('downloadOpenApiSpec', Download) {
+    src 'https://raw.githubusercontent.com/vitrivr/feature-extraction-server/main/openapi_spec.json'
+    dest "${layout.buildDirectory.get()}/api-client-spec/openapi_spec.json"
+}
+
+/* Generates the API client based on the OpenAPI spec. */
+tasks.register('generateFESClient', GenerateTask) {
+    generatorName = "kotlin"
+    inputSpec = "${layout.buildDirectory.get()}/api-client-spec/openapi_spec.json"
+    outputDir = "${layout.buildDirectory.get()}/api-client-generated"
+    id = 'vitrivr-engine-module-fes-generate-api-client'
+    skipValidateSpec = true
+    logToStderr = true
+    generateAliasAsModel = false
+    enablePostProcessFile = false
+    library = "multiplatform"
+    additionalProperties = [
+            'dateLibrary' : 'kotlinx-datetime'
+    ]
+
+    dependsOn 'downloadOpenApiSpec'
+}
+
+compileKotlin {
+    dependsOn 'generateFESClient'
+}
+
+sourcesJar.dependsOn 'generateFESClient'
+
+/* Add generated Open API client as source directory. */
+sourceSets {
+    main {
+        kotlin {
+            srcDirs += "$buildDir/api-client-generated/src/commonMain/kotlin"
+        }
+    }
+}
+
+
+
+dependencies {
+    /* vitrivr engine features dependency. */
+    implementation project(path: ':vitrivr-engine-core')
+
+    /* Ktor client. */
+    implementation group: 'io.ktor', name: 'ktor-client-content-negotiation', version: version_ktor
+    implementation group: 'io.ktor', name: 'ktor-serialization-kotlinx-json', version: version_ktor
+    implementation group: 'io.ktor', name: 'ktor-client-core', version: version_ktor
+    implementation group: 'io.ktor', name: 'ktor-client-okhttp', version: version_ktor
+
+    /* Kotlinx */
+    implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-datetime', version: version_kotlinx_datetime
+}

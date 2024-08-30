@@ -9,11 +9,13 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
+import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.bool.BooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.retrieve.Retriever
-import java.util.*
+import org.vitrivr.engine.core.operators.ingest.Extractor
 
 /**
  * Implementation of the [VideoSourceMetadata] [Analyser], which derives metadata information from a [Retrievable].
@@ -36,47 +38,46 @@ class VideoSourceMetadata : Analyser<ContentElement<*>, VideoSourceMetadataDescr
     /**
      * Generates and returns a new [FileSourceMetadataExtractor] for the provided [Schema.Field].
      *
-     * @param field The [Schema.Field] for which to create the [FileSourceMetadataExtractor].
+     * @param field The [Schema.Field] for which to create the [FileSourceMetadataExtractor]. Can be null.
      * @param input The input [Operator]
      * @param context The [IndexContext]
-     * @param persisting Whether the resulting [FileSourceMetadataDescriptor]s should be persisted.
      *
      * @return [FileSourceMetadataExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): VideoSourceMetadataExtractor {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext) = VideoSourceMetadataExtractor(input, this, field, merge(field, context))
+
+    /**
+     * Generates and returns a new [FileSourceMetadataExtractor] for the provided [Schema.Field].
+     *
+     * @param name The name of the [FileSourceMetadataExtractor].
+     * @param input The input [Operator]
+     * @param context The [IndexContext]
+     *
+     * @return [FileSourceMetadataExtractor]
+     */
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, VideoSourceMetadataDescriptor> = VideoSourceMetadataExtractor(input, this, null, context.local[name] ?: emptyMap())
+
+    /**
+     * Generates and returns a new [VideoSourceMetadataRetriever] for the provided [Schema.Field].
+     *
+     * @param field The [Schema.Field] for which to create the [VideoSourceMetadataRetriever].
+     * @param query The [Query] to create [VideoSourceMetadataRetriever] for.
+     * @param context The [QueryContext]
+     *
+     * @return [VideoSourceMetadataRetriever]
+     */
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>, query: Query, context: QueryContext): VideoSourceMetadataRetriever {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
-        return VideoSourceMetadataExtractor(input, field, persisting)
+        require(query is BooleanQuery) { "Query is not a Boolean query." }
+        return VideoSourceMetadataRetriever(field, query, context)
     }
 
     /**
-     * Generates and returns a new [FileSourceMetadataRetriever] for the provided [Schema.Field].
+     * [FileSourceMetadataRetriever] Cannot derive a [VideoSourceMetadataRetriever] from content.
      *
-     * @param field The [Schema.Field] for which to create the [FileSourceMetadataRetriever].
-     * @param content The [List] of [ContentElement] to create [FileSourceMetadataRetriever] for. This is usually empty.
-     * @param context The [QueryContext]
-     *
-     * @return [FileSourceMetadataRetriever]
+     * This method will always throw an [UnsupportedOperationException]
      */
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): VideoSourceMetadataRetriever {
-        require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
-        return VideoSourceMetadataRetriever(field, context)
-    }
-
-    /**
-     * Generates and returns a new [FileSourceMetadataRetriever] for the provided [Schema.Field].
-     *
-     * @param field The [Schema.Field] for which to create the [FileSourceMetadataRetriever].
-     * @param descriptors The [List] of [FileSourceMetadataDescriptor] to create [FileSourceMetadataRetriever] for. This is usually empty.
-     * @param context The [QueryContext]
-     *
-     * @return [FileSourceMetadataRetriever]
-     */
-    override fun newRetrieverForDescriptors(
-        field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>,
-        descriptors: Collection<VideoSourceMetadataDescriptor>,
-        context: QueryContext
-    ): Retriever<ContentElement<*>, VideoSourceMetadataDescriptor> {
-        require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
-        return VideoSourceMetadataRetriever(field, context)
+        throw UnsupportedOperationException("FileSourceMetadata does not support the creation of a Retriever instance from content.")
     }
 }
