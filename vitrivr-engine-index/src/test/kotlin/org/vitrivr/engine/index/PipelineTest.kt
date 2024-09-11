@@ -81,11 +81,11 @@ class PipelineTest {
         /* The first 24 frames should be R, followed by G and B. */
         for (i in allDescriptors.indices) {
             if (i < 24) {
-                Assertions.assertArrayEquals(floatArrayOf(1.0f, 0.0f, 0.0f, 1.0f), allDescriptors[i].vector.value, 0.05f)
+                Assertions.assertArrayEquals(floatArrayOf(1.0f, 0.0f, 0.0f), allDescriptors[i].vector.value, 0.05f)
             } else if (i < 48) {
-                Assertions.assertArrayEquals(floatArrayOf(0.0f, 1.0f, 0.0f, 1.0f), allDescriptors[i].vector.value, 0.05f)
+                Assertions.assertArrayEquals(floatArrayOf(0.0f, 1.0f, 0.0f), allDescriptors[i].vector.value, 0.05f)
             } else {
-                Assertions.assertArrayEquals(floatArrayOf(0.0f, 0.0f, 1.0f, 1.0f), allDescriptors[i].vector.value, 0.05f)
+                Assertions.assertArrayEquals(floatArrayOf(0.0f, 0.0f, 1.0f), allDescriptors[i].vector.value, 0.05f)
             }
         }
 
@@ -93,8 +93,8 @@ class PipelineTest {
         Assertions.assertEquals(3, aggDescriptors.size)
 
         /* The descriptors should find a full R value followed by G and B. */
-        Assertions.assertArrayEquals(floatArrayOf(1.0f, 0.0f, 0.0f, 1.0f), aggDescriptors[0].vector.value, 0.05f)
-        Assertions.assertArrayEquals(floatArrayOf(0.0f, 1.0f, 0.0f, 1.0f), aggDescriptors[1].vector.value, 0.05f)
-        Assertions.assertArrayEquals(floatArrayOf(0.0f, 0.0f, 1.0f, 1.0f), aggDescriptors[2].vector.value, 0.05f)
+        Assertions.assertArrayEquals(floatArrayOf(1.0f, 0.0f, 0.0f), aggDescriptors[0].vector.value, 0.05f)
+        Assertions.assertArrayEquals(floatArrayOf(0.0f, 1.0f, 0.0f), aggDescriptors[1].vector.value, 0.05f)
+        Assertions.assertArrayEquals(floatArrayOf(0.0f, 0.0f, 1.0f), aggDescriptors[2].vector.value, 0.05f)
     }
 }
