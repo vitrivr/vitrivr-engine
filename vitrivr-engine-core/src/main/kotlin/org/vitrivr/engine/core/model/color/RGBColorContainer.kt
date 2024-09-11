@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.color
 
+import kotlinx.serialization.json.internal.decodeStringToJsonTree
 import org.vitrivr.engine.core.model.types.Value
 import java.awt.color.ColorSpace
 import kotlin.math.max
@@ -163,14 +164,14 @@ value class RGBColorContainer(private val rgb: FloatArray) {
      *
      * @return [List] of [Float]s
      */
-    fun toList() = listOf(this.red, this.green, this.blue)
+    fun toList(rgba: Boolean = false) = if (rgba) listOf(this.red, this.green, this.blue, this.alpha) else listOf(this.red, this.green, this.blue)
 
     /**
      * Converts this [RGBColorContainer] a [Value.FloatVector]
      *
      * @return [Value.FloatVector]
      */
-    fun toVector() = Value.FloatVector(this.rgb)
+    fun toVector(rgba: Boolean = false) = if (rgba) Value.FloatVector(this.rgb) else Value.FloatVector(this.rgb.copyOfRange(0, 3))
 
     /**
      * Calculates distance to another [RGBColorContainer].
