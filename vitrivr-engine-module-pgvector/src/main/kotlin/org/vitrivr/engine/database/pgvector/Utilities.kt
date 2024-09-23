@@ -57,7 +57,7 @@ internal fun Type.toSql(): Int = when (this) {
     is Type.FloatVector -> JDBCType.ARRAY
     is Type.IntVector -> JDBCType.ARRAY
     is Type.LongVector -> JDBCType.ARRAY
-}.ordinal
+}.vendorTypeNumber
 
 /**
  * Converts a [Distance] to a pgVector distance operator.
