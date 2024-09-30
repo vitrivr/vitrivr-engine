@@ -9,10 +9,12 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
+import org.bytedeco.javacpp.PointerScope
 import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.Frame
 import org.bytedeco.javacv.FrameGrabber
 import org.bytedeco.javacv.Java2DFrameConverter
+
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.AudioContent
@@ -61,7 +63,7 @@ class VideoDecoder : DecoderFactory {
         private val audio: Boolean = true,
         private val keyFrames: Boolean = false,
         private val timeWindowMs: Long = 500L,
-        private val name : String
+        private val name: String
     ) : Decoder {
 
         /** [KLogger] instance. */
@@ -108,10 +110,16 @@ class VideoDecoder : DecoderFactory {
          * @param grabber The [FFmpegFrameGrabber] used to decode the video.
          * @param channel The [ProducerScope] used to emit [Retrievable] elements.
          */
-        private suspend fun decodeFromGrabber(source: Source, sourceRetrievable: Retrievable, grabber: FFmpegFrameGrabber, channel: ProducerScope<Retrievable>) {
+        private suspend fun decodeFromGrabber(
+            source: Source,
+            sourceRetrievable: Retrievable,
+            grabber: FFmpegFrameGrabber,
+            channel: ProducerScope<Retrievable>
+        ) {
             /* Determine end of time window. */
             var windowEnd = TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
             var error = false
+
 
             /* Configure FFmpegFrameGrabber. */
             grabber.imageMode = FrameGrabber.ImageMode.COLOR
@@ -123,7 +131,8 @@ class VideoDecoder : DecoderFactory {
 
                 /* Extract and enrich source metadata. */
                 source.metadata[Metadata.METADATA_KEY_VIDEO_FPS] = grabber.videoFrameRate
-                source.metadata[Metadata.METADATA_KEY_AV_DURATION] = TimeUnit.MICROSECONDS.toMillis(grabber.lengthInTime)
+                source.metadata[Metadata.METADATA_KEY_AV_DURATION] =
+                    TimeUnit.MICROSECONDS.toMillis(grabber.lengthInTime)
                 source.metadata[Metadata.METADATA_KEY_IMAGE_WIDTH] = grabber.imageWidth
                 source.metadata[Metadata.METADATA_KEY_IMAGE_HEIGHT] = grabber.imageHeight
                 source.metadata[Metadata.METADATA_KEY_AUDIO_CHANNELS] = grabber.audioChannels
@@ -139,10 +148,19 @@ class VideoDecoder : DecoderFactory {
                 var audioReady = !(grabber.hasAudio() && this@Instance.audio)
 
                 do {
-                    val frame = grabber.grabFrame(this@Instance.audio, this@Instance.video, true, this@Instance.keyFrames, true) ?: break
+                    val frame =
+                        grabber.grabFrame(this@Instance.audio, this@Instance.video, true, this@Instance.keyFrames, true)
+                            ?: break
                     when (frame.type) {
                         Frame.Type.VIDEO -> {
-                            imageBuffer.add(Java2DFrameConverter().use { it.convert(frame) to frame.timestamp })
+                            imageBuffer.add(
+                                (try {
+                                    PointerScope().use { scope -> Java2DFrameConverter().convert(frame) to frame.timestamp }
+                                } catch (e: Exception) {
+                                    logger.error(e) { "Error converting frame to BufferedImage" }
+                                    null
+                                })!!
+                            )
                             if (frame.timestamp > windowEnd) {
                                 videoReady = true
                             }
@@ -204,7 +222,14 @@ class VideoDecoder : DecoderFactory {
          * @param timestampEnd The end timestamp.
          * @param source The source [Retrievable] the emitted [Retrievable] is part of.
          */
-        private suspend fun emit(imageBuffer: LinkedList<Pair<BufferedImage, Long>>, audioBuffer: LinkedList<Pair<ShortBuffer, Long>>, grabber: FrameGrabber, timestampEnd: Long, source: Retrievable, channel: ProducerScope<Retrievable>) {
+        private suspend fun emit(
+            imageBuffer: LinkedList<Pair<BufferedImage, Long>>,
+            audioBuffer: LinkedList<Pair<ShortBuffer, Long>>,
+            grabber: FrameGrabber,
+            timestampEnd: Long,
+            source: Retrievable,
+            channel: ProducerScope<Retrievable>
+        ) {
             /* Audio samples. */
             var audioSize = 0
             val emitImage = mutableListOf<BufferedImage>()
@@ -233,7 +258,13 @@ class VideoDecoder : DecoderFactory {
             val ingested = Ingested(UUID.randomUUID(), "SEGMENT", false)
             source.filteredAttribute(SourceAttribute::class.java)?.let { ingested.addAttribute(it) }
             ingested.addRelationship(Relationship.ByRef(ingested, "partOf", source, false))
-            ingested.addAttribute(TimeRangeAttribute(timestampEnd - TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs), timestampEnd, TimeUnit.MICROSECONDS))
+            ingested.addAttribute(
+                TimeRangeAttribute(
+                    timestampEnd - TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs),
+                    timestampEnd,
+                    TimeUnit.MICROSECONDS
+                )
+            )
 
             /* Prepare and append audio content element. */
             if (emitAudio.size > 0) {
@@ -243,7 +274,11 @@ class VideoDecoder : DecoderFactory {
                     samples.put(frame)
                 }
                 samples.clear()
-                val audio = this.context.contentFactory.newAudioContent(grabber.audioChannels.toShort(), grabber.sampleRate, samples)
+                val audio = this.context.contentFactory.newAudioContent(
+                    grabber.audioChannels.toShort(),
+                    grabber.sampleRate,
+                    samples
+                )
                 ingested.addContent(audio)
                 ingested.addAttribute(ContentAuthorAttribute(audio.id, name))
             }
