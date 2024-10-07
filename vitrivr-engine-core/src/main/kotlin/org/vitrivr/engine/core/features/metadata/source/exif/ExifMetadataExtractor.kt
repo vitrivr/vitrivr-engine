@@ -65,24 +65,38 @@ private fun convertType(directory: Directory, tagType: Int, type: Type): Value<*
     is Type.LongVector -> throw IllegalArgumentException("Unsupported type: $type")
 }
 
-private fun JsonObject.convertType(type: Type): Value<*>? {
-    val jsonPrimitive = this.jsonPrimitive
-    if (jsonPrimitive.isString) {
-        return when (type) {
-            Type.String -> Value.String(jsonPrimitive.content)
-            Type.Datetime -> convertDate(jsonPrimitive.content)?.let { Value.DateTime(it) }
-            else -> null
+private fun JsonElement.convertType(type: Type): Value<*>? {
+    return when (this) {
+        is JsonPrimitive -> {
+            if (this.isString) {
+                when (type) {
+                    Type.String -> Value.String(this.content)
+                    Type.Datetime -> convertDate(this.content)?.let { Value.DateTime(it) }
+                    else -> null
+                }
+            } else {
+                when (type) {
+                    Type.Boolean -> this.booleanOrNull?.let { Value.Boolean(it) }
+                    Type.Byte -> this.intOrNull?.let { Value.Byte(it.toByte()) }
+                    Type.Short -> this.intOrNull?.let { Value.Short(it.toShort()) }
+                    Type.Int -> this.intOrNull?.let { Value.Int(it) }
+                    Type.Long -> this.longOrNull?.let { Value.Long(it) }
+                    Type.Float -> this.floatOrNull?.let { Value.Float(it) }
+                    Type.Double -> this.doubleOrNull?.let { Value.Double(it) }
+                    else -> null
+                }
+            }
         }
-    } else {
-        return when (type) {
-            Type.Boolean -> Value.Boolean(jsonPrimitive.boolean)
-            Type.Byte -> Value.Byte(jsonPrimitive.int.toByte())
-            Type.Short -> Value.Short(jsonPrimitive.int.toShort())
-            Type.Int -> Value.Int(jsonPrimitive.int)
-            Type.Long -> Value.Long(jsonPrimitive.int.toLong())
-            Type.Float -> Value.Float(jsonPrimitive.float)
-            Type.Double -> Value.Double(jsonPrimitive.double)
-            else -> null
+        is JsonObject, is JsonArray -> {
+            if (type == Type.String) {
+                // Return the raw JSON as a string
+                Value.String(this.toString())
+            } else {
+                throw IllegalArgumentException("Cannot convert non-primitive JsonElement to type $type")
+            }
+        }
+        else -> {
+            throw IllegalStateException("Unsupported JsonElement type")
         }
     }
 }
@@ -111,7 +125,7 @@ class ExifMetadataExtractor(input: Operator<Retrievable>, analyser: ExifMetadata
                         val json = Json.parseToJsonElement(tag.description).jsonObject
                         json.forEach { (key, value) ->
                             attributes[key]?.let { attribute ->
-                                value.jsonObject.convertType(attribute.type)?.let { converted ->
+                                value.convertType(attribute.type)?.let { converted ->
                                     columnValues[key] = converted
                                 }
                             }
