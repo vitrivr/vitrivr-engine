@@ -71,6 +71,7 @@ private fun JsonElement.convertType(type: Type): Value<*>? {
             if (this.isString) {
                 when (type) {
                     Type.String -> Value.String(this.content)
+                    Type.Text -> Value.String(this.content)
                     Type.Datetime -> convertDate(this.content)?.let { Value.DateTime(it) }
                     else -> null
                 }
@@ -88,11 +89,11 @@ private fun JsonElement.convertType(type: Type): Value<*>? {
             }
         }
         is JsonObject, is JsonArray -> {
-            if (type == Type.String) {
-                // Return the raw JSON as a string
-                Value.String(this.toString())
-            } else {
-                throw IllegalArgumentException("Cannot convert non-primitive JsonElement to type $type")
+            when (type) {
+                Type.Text -> Value.String(this.toString())
+                Type.String -> Value.String(this.toString())
+                Type.UUID -> Value.UUIDValue(UUID.fromString(this.toString()))
+                else -> throw IllegalArgumentException("Cannot convert non-primitive JsonElement to type $type")
             }
         }
         else -> {
