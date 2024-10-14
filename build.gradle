@@ -14,7 +14,7 @@ allprojects {
     group = 'org.vitrivr'
 
     /* Current version of our artifacts. */
-    version = '0.0.1'
+    version = '0.0.2-SNAPSHOT'
 
     /* Repositories for build script. */
     buildscript {
