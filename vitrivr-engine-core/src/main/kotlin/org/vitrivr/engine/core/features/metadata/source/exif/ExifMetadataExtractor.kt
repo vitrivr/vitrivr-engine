@@ -116,11 +116,15 @@ class ExifMetadataExtractor(
                     }
                     try {
                         val jsonElement = Json.parseToJsonElement(tag.description)
-                        val jsonValue = jsonElement.toValue()
-                        val attribute = attributes[fullname]
-                        if (attribute != null && jsonValue != null) {
-                            jsonValue.convertToType(attribute.type)?.let { converted ->
-                                columnValues[fullname] = converted
+                        if (jsonElement is JsonObject) {
+                            attributes.forEach { (attributeKey, attributeValue) ->
+                                if (jsonElement.containsKey(attributeKey)) {
+                                    val jsonValue = jsonElement[attributeKey]?.toValue()
+
+                                    jsonValue?.convertToType(attributeValue.type)?.let { converted ->
+                                        columnValues[attributeKey] = converted
+                                    }
+                                }
                             }
                         }
                     } catch (e: SerializationException) {
