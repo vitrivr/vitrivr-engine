@@ -1,5 +1,6 @@
 package org.vitrivr.engine.database.pgvector
 
+import com.zaxxer.hikari.HikariConfig
 import org.vitrivr.engine.core.database.AbstractConnectionProvider
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
@@ -27,7 +28,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class PgVectorConnectionProvider: AbstractConnectionProvider() {
+class PgVectorConnectionProvider : AbstractConnectionProvider() {
 
     companion object {
         /** Name of the host parameter. */
@@ -56,6 +57,9 @@ class PgVectorConnectionProvider: AbstractConnectionProvider() {
 
         /** Name of the host parameter. */
         const val PARAMETER_NAME_SSL = "ssl"
+
+        /** Name of the host parameter. */
+        const val POOLING = "pooling"
 
     }
 
@@ -113,8 +117,15 @@ class PgVectorConnectionProvider: AbstractConnectionProvider() {
         parameters[PARAMETER_NAME_USERNAME]?.let { props.setProperty("user", it) }
         parameters[PARAMETER_NAME_PASSWORD]?.let { props.setProperty("password", it) }
         parameters[PARAMETER_NAME_SSL]?.let { props.setProperty("ssl", it) }
+        parameters[POOLING]?.let { props.setProperty("pooling", it) }
+
+
+        if (props.getProperty("pooling") == "true") {
+            return PgVectorConnection(this, schemaName, PoolingConnection.getConnection())
+        }
 
         /* Open JDBC connection and return PgVectorConnection. */
         return PgVectorConnection(this, schemaName, DriverManager.getConnection(url, props))
     }
+
 }

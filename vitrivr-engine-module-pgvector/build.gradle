@@ -12,6 +12,7 @@ dependencies {
 
     /** PostgreSQL driver. */
     implementation group: 'org.postgresql', name: 'postgresql', version: version_jdbc_postgres
+    implementation group: 'com.zaxxer', name: 'HikariCP', version: '6.0.0'
 
     /** Vitrivr engine Core is required for running tests. */
     testImplementation(testFixtures(project(':vitrivr-engine-core')))
