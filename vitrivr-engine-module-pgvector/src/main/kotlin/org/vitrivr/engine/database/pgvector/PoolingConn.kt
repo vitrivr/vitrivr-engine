@@ -6,25 +6,36 @@ import java.sql.Connection
 import java.sql.SQLException
 import java.util.*
 
+/***
+ * Singleton provides a connection pool for the PostgreSQL database.
+ * @param url URL of the PostgreSQL database in the form `"jdbc:postgresql://${host}:${port}/${database}"`.
+ * @param properties `java.util.Properties` for the connection. Options are `user`, `password`.
 
-class PoolingConn(properties: Properties) {
+ */
+class PoolingConn(url:String, properties: Properties) {
 
     private val config: HikariConfig = HikariConfig()
     private lateinit var datasource: HikariDataSource
 
     init {
         if (instance == null) {
-            this.config.jdbcUrl = "jdbc:postgresql://10.34.64.130/postgres"
-            this.config.username = "postgres"
-            this.config.password = "admin"
-            this.config.addDataSourceProperty("cachePrepStmts", "true")
+            this.config.jdbcUrl = url
+            this.config.username = properties["user"]!!.toString()
+            this.config.password = properties["password"]!!.toString()
+            this.config.addDataSourceProperty("pool", "true")
             this.config.addDataSourceProperty("prepStmtCacheSize", "250")
             this.config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048")
             this.datasource = HikariDataSource(config)
             instance = this
+        }else{
+            throw SQLException("Connection pool has already been initialized!")
         }
     }
 
+    /***
+     * Returns a connection for the connection pool.
+     * @return Connection
+     */
     val connection: Connection
         get() = datasource.connection
 
@@ -32,6 +43,11 @@ class PoolingConn(properties: Properties) {
         @JvmStatic
         private var instance: PoolingConn? = null
 
+        /***
+         * Returns a connection for the connection pool.
+         * @return Connection
+         * @throws SQLException If the connection pool has not been initialized.
+         */
         @get:Throws(SQLException::class)
         val connection: Connection
             get() {
@@ -41,6 +57,4 @@ class PoolingConn(properties: Properties) {
                 return instance!!.datasource.connection
             }
     }
-
-
 }

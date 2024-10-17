@@ -121,7 +121,7 @@ class PgVectorConnectionProvider : AbstractConnectionProvider() {
 
 
         if (props.getProperty("pooling") == "true") {
-            return PgVectorConnection(this, schemaName, PoolingConn(props).connection)
+            return PgVectorConnection(this, schemaName, PoolingConn(url, props).connection)
         }
 
         /* Open JDBC connection and return PgVectorConnection. */
