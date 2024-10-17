@@ -26,6 +26,7 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
 
     init {
         /* Make sure that the pg_vector extension is installed. */
+
         try {
             this.jdbc.prepareStatement("CREATE EXTENSION IF NOT EXISTS vector;").use {
                 it.execute()

@@ -11,6 +11,9 @@
         }
       },
       "fields": {
+        "imageFilePathContent": {
+          "field": "file"
+        },
         "averagecolor": {
           "factory": "AverageColor"
         },
