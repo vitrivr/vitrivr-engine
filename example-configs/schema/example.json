@@ -58,6 +58,65 @@
           "path": "./example-configs/ingestion/example/video.json"
         }
       }
+    },
+    "example1": {
+      "connection": {
+        "database": "PgVectorConnectionProvider",
+        "parameters": {
+          "Host": "127.0.0.1",
+          "port": "5432",
+          "username": "postgres",
+          "password": "vitrivr",
+          "pooling": "true"
+        }
+      },
+      "fields": {
+        "averagecolor": {
+          "factory": "AverageColor"
+        },
+        "file": {
+          "factory": "FileSourceMetadata"
+        },
+        "clip": {
+          "factory": "DenseEmbedding",
+          "parameters": {
+            "host": "http://10.34.64.84:8888/",
+            "model": "open-clip-vit-b32",
+            "length": "512",
+            "timeoutSeconds": "100",
+            "retries": "1000"
+          }
+        },
+        "time": {
+          "factory": "TemporalMetadata"
+        },
+        "video": {
+          "factory": "VideoSourceMetadata"
+        }
+      },
+      "resolvers": {
+        "disk": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "./example/thumbs"
+          }
+        }
+      },
+      "exporters": {
+        "thumbnail": {
+          "factory": "ThumbnailExporter",
+          "resolverName": "disk",
+          "parameters": {
+            "maxSideResolution": "300",
+            "mimeType": "JPG"
+          }
+        }
+      },
+      "extractionPipelines": {
+        "video": {
+          "path": "./example-configs/ingestion/example/video.json"
+        }
+      }
     }
   }
 }
