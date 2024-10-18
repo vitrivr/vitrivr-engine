@@ -28,6 +28,9 @@ dependencies {
     implementation group: 'org.bytedeco', name: 'javacv', version: version_javacv
     implementation group: 'org.bytedeco', name: 'ffmpeg', version: version_ffmpeg, classifier: project.ext.javacppPlatform
 
+    /** Jaffree for external ffmpeg*/
+    implementation group: 'com.github.kokorin.jaffree', name: 'jaffree', version: version_jaffree
+
     /** ScrImage (used for image resizing). */
     implementation group: 'com.sksamuel.scrimage', name: 'scrimage-core', version: version_scrimage
 
