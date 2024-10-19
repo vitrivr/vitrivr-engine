@@ -86,7 +86,7 @@ fun main(args: Array<String>) {
     /* Prepare CLI endpoint. */
     val cli = Cli(manager)
     for (schema in manager.listSchemas()) {
-        cli.register(SchemaCommand(schema, executor))
+        cli.register(SchemaCommand(schema, executor, manager))
     }
 
     /* Start the Javalin server. */
