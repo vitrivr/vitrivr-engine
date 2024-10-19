@@ -1,18 +1,16 @@
 package org.vitrivr.engine.index.decode
 
+import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffmpeg.*
-import com.github.kokorin.jaffree.ffprobe.FFprobe
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel.Factory.RENDEZVOUS
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.withContext
 import org.bytedeco.javacv.FrameGrabber
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.relationship.Relationship
@@ -21,12 +19,10 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
-import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.operators.ingest.DecoderFactory
 import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.source.MediaType
-import org.vitrivr.engine.core.source.Source
 import org.vitrivr.engine.core.source.file.FileSource
 import java.awt.image.BufferedImage
 import java.nio.ShortBuffer
@@ -38,16 +34,20 @@ import java.util.concurrent.TimeUnit
 class FFmpegVideoDecoder : DecoderFactory {
 
     override fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder {
+        val maxWidth = context[name, "maxWidth"]?.toIntOrNull() ?: 3840
+        val maxHeight = context[name, "maxHeight"]?.toIntOrNull() ?: 2160
         val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
         val ffmpegPath = context[name, "ffmpegPath"]?.let { Path.of(it) }
 
-        return Instance(input, context, timeWindowMs, name, ffmpegPath)
+        return Instance(input, context, timeWindowMs, maxWidth, maxHeight, name, ffmpegPath)
     }
 
     private class Instance(
         override val input: Enumerator,
         private val context: IndexContext,
         private val timeWindowMs: Long = 500L,
+        private val maxWidth: Int,
+        private val maxHeight: Int,
         private val name: String,
         private val ffmpegPath: Path?
     ) : Decoder {
@@ -61,7 +61,7 @@ class FFmpegVideoDecoder : DecoderFactory {
         private val ffmpeg: FFmpeg
             get() = if (ffmpegPath != null) FFmpeg.atPath(this.ffmpegPath) else FFmpeg.atPath()
 
-        override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = channelFlow<Retrievable> {
+        override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = channelFlow {
             this@Instance.input.toFlow(scope).collect { sourceRetrievable ->
                 /* Extract source. */
                 val source = sourceRetrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@collect
@@ -72,7 +72,7 @@ class FFmpegVideoDecoder : DecoderFactory {
 
                 var windowEnd = TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
 
-                val imageBuffer = LinkedBlockingQueue<Pair<BufferedImage, Long>>()
+                val imageTransferBuffer = LinkedBlockingQueue<Pair<BufferedImage, Long>>(10)
 
                 val ffmpegInstance = ffmpeg.addInput(
                     if (source is FileSource) {
@@ -96,7 +96,7 @@ class FFmpegVideoDecoder : DecoderFactory {
 
                                 when (stream.type) {
                                     Stream.Type.VIDEO -> {
-                                        imageBuffer.add(frame.image!! to (1000 * frame.pts) / stream.timebase)
+                                        imageTransferBuffer.put(frame.image!! to (1000000 * frame.pts) / stream.timebase)
                                     }
 
                                     Stream.Type.AUDIO -> {
@@ -111,29 +111,32 @@ class FFmpegVideoDecoder : DecoderFactory {
 
                         }
                     )
-                )
+                ).setFilter(StreamType.VIDEO, "scale=w='min($maxWidth,iw)':h='min($maxHeight,ih)':force_original_aspect_ratio=decrease")
 
-                //TODO scaling
                 //TODO audio settings
 
                 val future = ffmpegInstance.executeAsync()
 
-                while (!future.isDone || !future.isCancelled) {
+                val localImageBuffer = LinkedList<Pair<BufferedImage, Long>>()
 
-                    if (imageBuffer.isNotEmpty() && imageBuffer.last().second >= windowEnd) {
-                        emit(
-                            imageBuffer, windowEnd, sourceRetrievable, this@channelFlow
-                        )
+                while (!(future.isDone || future.isCancelled) || imageTransferBuffer.isNotEmpty()) {
+
+                    val next = imageTransferBuffer.poll(1, TimeUnit.SECONDS) ?:continue
+                    localImageBuffer.add(next)
+
+                    if (localImageBuffer.last().second >= windowEnd) {
+                        emit(localImageBuffer, windowEnd, sourceRetrievable, this@channelFlow)
                         windowEnd += TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
-                    } else {
-                        Thread.yield()
                     }
 
                 }
 
-                if (imageBuffer.isNotEmpty()) {
-                    emit(imageBuffer, windowEnd, sourceRetrievable, this@channelFlow)
+                while (localImageBuffer.isNotEmpty()) {
+                    emit(localImageBuffer, windowEnd, sourceRetrievable, this@channelFlow)
+                    windowEnd += TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
                 }
+
+                send(sourceRetrievable)
 
             }
         }.buffer(capacity = RENDEZVOUS, onBufferOverflow = BufferOverflow.SUSPEND)
@@ -149,14 +152,14 @@ class FFmpegVideoDecoder : DecoderFactory {
          * @param source The source [Retrievable] the emitted [Retrievable] is part of.
          */
         private suspend fun emit(
-            imageBuffer: LinkedBlockingQueue<Pair<BufferedImage, Long>>,
+            imageBuffer: MutableList<Pair<BufferedImage, Long>>,
             //audioBuffer: LinkedList<Pair<ShortBuffer, Long>>,
             timestampEnd: Long,
             source: Retrievable,
             channel: ProducerScope<Retrievable>
         ) {
             /* Audio samples. */
-            var audioSize = 0
+            //var audioSize = 0
             val emitImage = mutableListOf<BufferedImage>()
             //val emitAudio = mutableListOf<ShortBuffer>()
 
@@ -169,6 +172,7 @@ class FFmpegVideoDecoder : DecoderFactory {
                     false
                 }
             }
+
 //            audioBuffer.removeIf {
 //                if (it.second <= timestampEnd) {
 //                    audioSize += it.first.limit()
