@@ -2,6 +2,7 @@ package org.vitrivr.engine.index.decode
 
 import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffmpeg.*
+import com.github.kokorin.jaffree.ffprobe.FFprobe
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
@@ -25,11 +26,11 @@ import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.file.FileSource
 import java.awt.image.BufferedImage
-import java.nio.ShortBuffer
 import java.nio.file.Path
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
+import org.vitrivr.engine.core.source.Metadata
 
 class FFmpegVideoDecoder : DecoderFactory {
 
@@ -55,8 +56,8 @@ class FFmpegVideoDecoder : DecoderFactory {
         /** [KLogger] instance. */
         private val logger: KLogger = KotlinLogging.logger {}
 
-//        private val ffprobe: FFprobe
-//            get() = if (ffmpegPath != null) FFprobe.atPath(this.ffmpegPath) else FFprobe.atPath()
+        private val ffprobe: FFprobe
+            get() = if (ffmpegPath != null) FFprobe.atPath(this.ffmpegPath) else FFprobe.atPath()
 
         private val ffmpeg: FFmpeg
             get() = if (ffmpegPath != null) FFmpeg.atPath(this.ffmpegPath) else FFmpeg.atPath()
@@ -68,6 +69,31 @@ class FFmpegVideoDecoder : DecoderFactory {
                 if (source.type != MediaType.VIDEO) {
                     logger.debug { "In flow: Skipping source ${source.name} (${source.sourceId}) because it is not of type VIDEO." }
                     return@collect
+                }
+
+                val probeResult = ffprobe.setShowStreams(true).also {
+                    if (source is FileSource) {
+                        it.setInput(source.path)
+                    } else {
+                        it.setInput(source.newInputStream())
+                    }
+                }.execute()
+
+                val videoStreamInfo = probeResult.streams.find { it.codecType == StreamType.VIDEO }
+
+                if (videoStreamInfo != null) {
+                    source.metadata[Metadata.METADATA_KEY_VIDEO_FPS] = videoStreamInfo.avgFrameRate.toDouble()
+                    source.metadata[Metadata.METADATA_KEY_AV_DURATION] = (videoStreamInfo.duration * 1000f).toLong()
+                    source.metadata[Metadata.METADATA_KEY_IMAGE_WIDTH] = videoStreamInfo.width
+                    source.metadata[Metadata.METADATA_KEY_IMAGE_HEIGHT] = videoStreamInfo.height
+                }
+
+                val audioStreamInfo = probeResult.streams.find { it.codecType == StreamType.AUDIO }
+
+                if (audioStreamInfo != null) {
+                    source.metadata[Metadata.METADATA_KEY_AUDIO_CHANNELS] = audioStreamInfo.channels
+                    source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLERATE] = audioStreamInfo.sampleRate
+                    source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLESIZE] = audioStreamInfo.sampleFmt
                 }
 
                 var windowEnd = TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
@@ -111,7 +137,10 @@ class FFmpegVideoDecoder : DecoderFactory {
 
                         }
                     )
-                ).setFilter(StreamType.VIDEO, "scale=w='min($maxWidth,iw)':h='min($maxHeight,ih)':force_original_aspect_ratio=decrease")
+                ).setFilter(
+                    StreamType.VIDEO,
+                    "scale=w='min($maxWidth,iw)':h='min($maxHeight,ih)':force_original_aspect_ratio=decrease"
+                )
 
                 //TODO audio settings
 
@@ -121,7 +150,7 @@ class FFmpegVideoDecoder : DecoderFactory {
 
                 while (!(future.isDone || future.isCancelled) || imageTransferBuffer.isNotEmpty()) {
 
-                    val next = imageTransferBuffer.poll(1, TimeUnit.SECONDS) ?:continue
+                    val next = imageTransferBuffer.poll(1, TimeUnit.SECONDS) ?: continue
                     localImageBuffer.add(next)
 
                     if (localImageBuffer.last().second >= windowEnd) {
@@ -146,24 +175,20 @@ class FFmpegVideoDecoder : DecoderFactory {
          * Emits a single [Retrievable] to the downstream [channel].
          *
          * @param imageBuffer A [LinkedList] containing [BufferedImage] elements to emit (frames).
-         * @param audioBuffer The [LinkedList] containing the [ShortBuffer] elements to emit (audio samples).
          * @param grabber The [FrameGrabber] instance.
          * @param timestampEnd The end timestamp.
          * @param source The source [Retrievable] the emitted [Retrievable] is part of.
          */
         private suspend fun emit(
             imageBuffer: MutableList<Pair<BufferedImage, Long>>,
-            //audioBuffer: LinkedList<Pair<ShortBuffer, Long>>,
             timestampEnd: Long,
             source: Retrievable,
             channel: ProducerScope<Retrievable>
         ) {
-            /* Audio samples. */
-            //var audioSize = 0
-            val emitImage = mutableListOf<BufferedImage>()
-            //val emitAudio = mutableListOf<ShortBuffer>()
 
-            /* Drain buffers. */
+            val emitImage = mutableListOf<BufferedImage>()
+
+            /* Drain buffer. */
             imageBuffer.removeIf {
                 if (it.second <= timestampEnd) {
                     emitImage.add(it.first)
@@ -173,15 +198,6 @@ class FFmpegVideoDecoder : DecoderFactory {
                 }
             }
 
-//            audioBuffer.removeIf {
-//                if (it.second <= timestampEnd) {
-//                    audioSize += it.first.limit()
-//                    emitAudio.add(it.first)
-//                    true
-//                } else {
-//                    false
-//                }
-//            }
 
             /* Prepare ingested with relationship to source. */
             val ingested = Ingested(UUID.randomUUID(), "SEGMENT", false)
@@ -195,23 +211,6 @@ class FFmpegVideoDecoder : DecoderFactory {
                 )
             )
 
-//            /* Prepare and append audio content element. */
-//            if (emitAudio.size > 0) {
-//                val samples = ShortBuffer.allocate(audioSize)
-//                for (frame in emitAudio) {
-//                    frame.clear()
-//                    samples.put(frame)
-//                }
-//                samples.clear()
-//                val audio = this.context.contentFactory.newAudioContent(
-//                    grabber.audioChannels.toShort(),
-//                    grabber.sampleRate,
-//                    samples
-//                )
-//                ingested.addContent(audio)
-//                ingested.addAttribute(ContentAuthorAttribute(audio.id, name))
-//            }
-
             /* Prepare and append image content element. */
             for (image in emitImage) {
                 val imageContent = this.context.contentFactory.newImageContent(image)
@@ -219,7 +218,7 @@ class FFmpegVideoDecoder : DecoderFactory {
                 ingested.addAttribute(ContentAuthorAttribute(imageContent.id, name))
             }
 
-            //logger.debug { "Emitting ingested ${ingested.id} with ${emitImage.size} images and ${emitAudio.size} audio samples: ${ingested.id}" }
+            logger.debug { "Emitting ingested ${ingested.id} with ${emitImage.size} images: ${ingested.id}" }
 
             /* Emit ingested. */
             channel.send(ingested)
