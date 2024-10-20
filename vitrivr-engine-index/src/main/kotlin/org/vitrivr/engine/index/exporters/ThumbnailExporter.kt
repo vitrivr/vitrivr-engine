@@ -58,38 +58,47 @@ class ThumbnailExporter : ExporterFactory {
             require(mimeType in SUPPORTED) { "ThumbnailExporter only support image formats JPEG and PNG." }
         }
 
+        /** [KLogger] instance. */
+        private val logger: KLogger = KotlinLogging.logger {}
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
-            val resolvable = this.context.resolver.resolve(retrievable.id)
+            try {
 
-            val contentIds = this.contentSources?.let {
-                retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it)
-            }
+                val resolvable = this.context.resolver.resolve(retrievable.id)
 
-            val content = retrievable.content.filterIsInstance<ImageContent>().filter { contentIds?.contains(it.id) ?: true }
-            if (resolvable != null && content.isNotEmpty()) {
-                val writer = when (mimeType) {
-                    MimeType.JPEG,
-                    MimeType.JPG -> JpegWriter()
-                    MimeType.PNG -> PngWriter()
-                    else -> throw IllegalArgumentException("Unsupported mime type $mimeType")
+                val contentIds = this.contentSources?.let {
+                    retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it)
                 }
 
-                logger.debug { "Generating thumbnail(s) for ${retrievable.id} with ${retrievable.type} and resolution $maxResolution. Storing it with ${resolvable::class.simpleName}." }
+                val content =
+                    retrievable.content.filterIsInstance<ImageContent>().filter { contentIds?.contains(it.id) ?: true }
+                if (resolvable != null && content.isNotEmpty()) {
+                    val writer = when (mimeType) {
+                        MimeType.JPEG,
+                        MimeType.JPG -> JpegWriter()
 
-                content.forEach { cnt ->
-                    val imgBytes = ImmutableImage.fromAwt(cnt.content).let {
-                        if (it.width > it.height) {
-                            it.scaleToWidth(maxResolution)
-                        } else {
-                            it.scaleToHeight(maxResolution)
+                        MimeType.PNG -> PngWriter()
+                        else -> throw IllegalArgumentException("Unsupported mime type $mimeType")
+                    }
+
+                    logger.debug { "Generating thumbnail(s) for ${retrievable.id} with ${retrievable.type} and resolution $maxResolution. Storing it with ${resolvable::class.simpleName}." }
+
+                    content.forEach { cnt ->
+                        val imgBytes = ImmutableImage.fromAwt(cnt.content).let {
+                            if (it.width > it.height) {
+                                it.scaleToWidth(maxResolution)
+                            } else {
+                                it.scaleToHeight(maxResolution)
+                            }
+                        }.bytes(writer)
+
+                        resolvable.openOutputStream().use {
+                            it.write(imgBytes)
                         }
-                    }.bytes(writer)
-
-                    resolvable.openOutputStream().use {
-                        it.write(imgBytes)
                     }
                 }
+            } catch (e: Exception) {
+                logger.error(e){"Error during thumbnail creation"}
             }
         }
     }
