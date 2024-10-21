@@ -28,14 +28,16 @@ class FileSourceMetadataExtractor :
     constructor(
         input: Operator<Retrievable>,
         analyser: FileSourceMetadata,
+        contentSources : Set<String>?,
         field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>
-    ) : super(input, analyser, field)
+    ) : super(input, analyser, contentSources, field)
 
     constructor(
         input: Operator<Retrievable>,
         analyser: FileSourceMetadata,
+        contentSources : Set<String>?,
         name: String
-    ) : super(input, analyser, name)
+    ) : super(input, analyser, contentSources, name)
 
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.

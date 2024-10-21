@@ -167,7 +167,7 @@ open class CottontailDescriptorWriter<D : Descriptor<*>>(final override val fiel
             Compare(
                 Column(this.entityName.column(DESCRIPTOR_ID_COLUMN_NAME)),
                 Compare.Operator.IN,
-                org.vitrivr.cottontail.client.language.basics.expression.List(ids.toTypedArray())
+                org.vitrivr.cottontail.client.language.basics.expression.ValueList(ids.toTypedArray())
             )
         )
 

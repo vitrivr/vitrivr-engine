@@ -5,8 +5,9 @@ import org.apache.logging.log4j.Logger
 import org.joml.Vector3f
 import org.joml.Vector3fc
 import org.joml.Vector3i
-import org.vitrivr.engine.core.model.mesh.Mesh
-import org.vitrivr.engine.model3d.util.MeshMathUtil
+import org.vitrivr.engine.core.model.mesh.texturemodel.Mesh
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Vec3f
+import org.vitrivr.engine.model3d.lwjglrender.util.MeshMathUtil
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.pow
@@ -138,7 +139,7 @@ class Voxelizer(private val resolution: Float) {
      * @return true if the voxel's center is within the circle, false otherwise.
      */
     private fun vertextTest(vertex: Mesh.Vertex, voxel: Pair<Vector3i, Vector3f>): Boolean {
-        return vertex.position.distanceSquared(voxel.second) > this.rcsq
+        return vertex.position.distanceSquared(Vec3f(voxel.second.x, voxel.second.y, voxel.second.z)) > this.rcsq
     }
 
     /**
@@ -150,8 +151,8 @@ class Voxelizer(private val resolution: Float) {
      * @return true if voxel's center is contained in cylinder, false otherwise.
      */
     private fun edgeTest(a: Mesh.Vertex, b: Mesh.Vertex, voxel: Pair<Vector3i, Vector3f>): Boolean {
-        val line: Vector3f = Vector3f(b.position).sub(a.position)
-        val pd = voxel.second.sub(a.position)
+        val line: Vector3f = Vector3f(b.position.x,b.position.y,b.position.z).sub(Vector3f(a.position.x,a.position.y,a.position.z))
+        val pd = voxel.second.sub(Vector3f(a.position.x,a.position.y,a.position.z))
 
         /* Calculate distance between a and b (Edge). */
         val lsq: Float = a.position.distanceSquared(b.position)
@@ -183,8 +184,8 @@ class Voxelizer(private val resolution: Float) {
         val vcorner = Vector3f(this.rc, this.rc, this.rc).add(vcenter)
 
         /* Calculate the vectors spanning the plane of the facepolyon and its plane-normal. */
-        val ab: Vector3f = Vector3f(b.position).sub(a.position)
-        val ac: Vector3f = Vector3f(c.position).sub(a.position)
+        val ab: Vector3f = Vector3f(b.position.x,b.position.y,b.position.z).sub(Vector3f(a.position.x,a.position.y,a.position.z))
+        val ac: Vector3f = Vector3f(c.position.x,c.position.y,c.position.z).sub(Vector3f(a.position.x,a.position.y,a.position.z))
         val planenorm = Vector3f(ab).cross(ac)
 
         /* Calculate the distance t for enclosing planes. */
@@ -209,7 +210,7 @@ class Voxelizer(private val resolution: Float) {
         /* Calculate bounding box for provided vertices. */
         val positions = ArrayList<Vector3fc>(vertices.size)
         for (vertex in vertices) {
-            positions.add(vertex.position)
+            positions.add(Vector3f(vertex.position.x, vertex.position.y, vertex.position.z))
         }
 
         val bounds: FloatArray = MeshMathUtil.bounds(positions)

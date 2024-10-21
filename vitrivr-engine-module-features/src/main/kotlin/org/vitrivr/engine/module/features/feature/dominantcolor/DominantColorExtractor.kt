@@ -13,8 +13,8 @@ import org.vitrivr.engine.core.source.file.FileSource
 
 class DominantColorExtractor : AbstractExtractor<ImageContent, LabelDescriptor> {
 
-    constructor(input: Operator<Retrievable>, analyser: DominantColor, field: Schema.Field<ImageContent, LabelDescriptor>): super(input, analyser, field)
-    constructor(input: Operator<Retrievable>, analyser: DominantColor, name: String): super(input, analyser, name)
+    constructor(input: Operator<Retrievable>, analyser: DominantColor, contentSources : Set<String>?, field: Schema.Field<ImageContent, LabelDescriptor>): super(input, analyser, contentSources, field)
+    constructor(input: Operator<Retrievable>, analyser: DominantColor, contentSources : Set<String>?, name: String): super(input, analyser, contentSources, name)
 
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
@@ -29,7 +29,7 @@ class DominantColorExtractor : AbstractExtractor<ImageContent, LabelDescriptor> 
 
 
     override fun extract(retrievable: Retrievable): List<LabelDescriptor> {
-        val content = retrievable.content.filterIsInstance<ImageContent>()
+        val content = this.filterContent(retrievable)
         return (this.analyser as DominantColor).analyse(content).map { it.copy(retrievableId = retrievable.id, field = this@DominantColorExtractor.field) }
     }
 

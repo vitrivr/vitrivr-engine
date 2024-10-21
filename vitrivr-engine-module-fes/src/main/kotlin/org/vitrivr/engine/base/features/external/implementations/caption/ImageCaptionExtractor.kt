@@ -101,7 +101,7 @@ class ImageCaptionExtractor : FesExtractor<ImageContent, TextDescriptor> {
                 if (it !is ImageContent) {
                     null
                 } else{
-                flatResults[index++].also { TextDescriptor(it.id, retrievable.id, it.value, it.field) }
+                flatResults[index++].let { TextDescriptor(it.id, retrievable.id, it.value, it.field) }
                 }
             }.filterNotNull()
         }

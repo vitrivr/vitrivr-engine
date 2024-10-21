@@ -3,6 +3,7 @@ package org.vitrivr.engine.plugin.cottontaildb.descriptors
 import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.language.basics.expression.Column
 import org.vitrivr.cottontail.client.language.basics.expression.Literal
+import org.vitrivr.cottontail.client.language.basics.expression.ValueList
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.tuple.Tuple
@@ -111,7 +112,7 @@ abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val fi
      */
     override fun getAll(descriptorIds: Iterable<UUID>): Sequence<D> {
         val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
-            .where(Compare(Column(this.entityName.column(DESCRIPTOR_ID_COLUMN_NAME)), Compare.Operator.IN, org.vitrivr.cottontail.client.language.basics.expression.List(descriptorIds.map { UuidValue(it) }.toTypedArray())))
+            .where(Compare(Column(this.entityName.column(DESCRIPTOR_ID_COLUMN_NAME)), Compare.Operator.IN, ValueList(descriptorIds.map { UuidValue(it) }.toTypedArray())))
         return try {
             val result = this.connection.client.query(query)
             result.asSequence().map { this.tupleToDescriptor(it) }
@@ -129,7 +130,7 @@ abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val fi
      */
     override fun getAllForRetrievable(retrievableIds: Iterable<RetrievableId>): Sequence<D> {
         val query = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
-            .where(Compare(Column(this.entityName.column(RETRIEVABLE_ID_COLUMN_NAME)), Compare.Operator.IN, org.vitrivr.cottontail.client.language.basics.expression.List(retrievableIds.map { UuidValue(it) }.toTypedArray())))
+            .where(Compare(Column(this.entityName.column(RETRIEVABLE_ID_COLUMN_NAME)), Compare.Operator.IN, ValueList(retrievableIds.map { UuidValue(it) }.toTypedArray())))
         return try {
             val result = this.connection.client.query(query)
             result.asSequence().map { this.tupleToDescriptor(it) }
@@ -199,7 +200,7 @@ abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val fi
             Compare(
                 Column(entityName.column(RETRIEVABLE_ID_COLUMN_NAME)),
                 Compare.Operator.IN,
-                org.vitrivr.cottontail.client.language.basics.expression.List(ids.map { UuidValue(it) }.toTypedArray())
+                ValueList(ids.map { UuidValue(it) }.toTypedArray())
             )
         )
 
