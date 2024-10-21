@@ -89,12 +89,10 @@ fun Value<*>.convertToType(type: Type): Value<*>? {
     }
 }
 
-class ExifMetadataExtractor(
-    input: Operator<Retrievable>,
-    analyser: ExifMetadata,
-    field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>?,
-    parameters: Map<String, String>
-) : AbstractExtractor<ContentElement<*>, AnyMapStructDescriptor>(input, analyser, field, parameters) {
+class ExifMetadataExtractor : AbstractExtractor<ContentElement<*>, AnyMapStructDescriptor> {
+
+    constructor(input: Operator<Retrievable>, analyser: ExifMetadata, contentSources : Set<String>?, field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>) : super(input, analyser, contentSources, field)
+    constructor(input: Operator<Retrievable>, analyser: ExifMetadata, contentSources : Set<String>?, name: String): super(input, analyser, contentSources, name)
 
     override fun matches(retrievable: Retrievable): Boolean =
         retrievable.filteredAttribute(SourceAttribute::class.java)?.source is FileSource

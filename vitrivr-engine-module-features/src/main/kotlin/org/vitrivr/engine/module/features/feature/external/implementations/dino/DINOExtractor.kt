@@ -19,7 +19,19 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Rahel Arnold
  * @version 1.2.0
  */
-class DINOExtractor(input: Operator<Retrievable>, analyser: DINO, field: Schema.Field<ImageContent, FloatVectorDescriptor>?, private val host: String, parameters:Map<String,String>) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, analyser, field, parameters) {
+class DINOExtractor : AbstractExtractor<ImageContent, FloatVectorDescriptor> {
+
+    private val host: String
+
+    constructor(input: Operator<Retrievable>, analyser: DINO, contentSources : Set<String>?, field: Schema.Field<ImageContent, FloatVectorDescriptor>, host: String) : super(input, analyser, contentSources, field) {
+        this.host = host
+    }
+
+    constructor(input: Operator<Retrievable>, analyser: DINO, contentSources : Set<String>?, name: String, host: String) : super(input, analyser, contentSources, name) {
+        this.host = host
+    }
+
+
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *

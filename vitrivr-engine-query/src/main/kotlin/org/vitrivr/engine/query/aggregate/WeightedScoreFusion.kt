@@ -16,7 +16,9 @@ import kotlin.math.pow
 class WeightedScoreFusion(
     override val inputs: List<Operator<out Retrievable>>,
     weights: List<Float>,
-    val p: Float
+    private val p: Float,
+    private val normalize: Boolean,
+    override val name: String
 ) : Aggregator {
 
     private val weights: List<Float> = when {
