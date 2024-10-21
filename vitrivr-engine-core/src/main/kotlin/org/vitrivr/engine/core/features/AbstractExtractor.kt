@@ -10,6 +10,7 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -18,33 +19,38 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * An abstract [Extractor] implementation that is suitable for most default [Extractor] implementations.
  *
  * @author Ralph Gasser
- * @version 1.2.0
+ * @version 1.3.0
  */
 abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>> private constructor(
     final override val input: Operator<Retrievable>,
     final override val analyser: Analyser<C, D>,
     final override val field: Schema.Field<C, D>? = null,
+    protected val contentSources : Set<String>? = null,
     final override val name: String
 ) : Extractor<C, D> {
 
-    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, field: Schema.Field<C, D>) : this(
+    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, contentSources : Set<String>?, field: Schema.Field<C, D>) : this(
         input,
         analyser,
         field,
+        contentSources,
         field.fieldName
     )
 
-    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, name: String) : this(
+    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, contentSources : Set<String>?, name: String) : this(
         input,
         analyser,
         null,
+        contentSources,
         name
     )
-    protected val logger: KLogger = KotlinLogging.logger {}
 
     init {
         require(field == null || this.field.analyser == this.analyser) { "Field and analyser do not match! This is a programmer's error!" }
     }
+
+    /** The [KLogger] instance used by this [AbstractExtractor]. */
+    protected val logger: KLogger = KotlinLogging.logger {}
 
     /**
      * A default [Extractor] implementation. It executes the following steps:
@@ -55,7 +61,7 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>> priva
      *
      * @return [Flow] of [Retrievable]
      */
-    final override fun toFlow(scope: CoroutineScope): Flow<Retrievable> =
+    override fun toFlow(scope: CoroutineScope): Flow<Retrievable> =
         this.input.toFlow(scope).onEach { retrievable ->
             if (this.matches(retrievable)) {
                 /* Perform extraction. */
@@ -100,4 +106,24 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>> priva
      * @return List of resulting [Descriptor]s.
      */
     protected abstract fun extract(retrievable: Retrievable): List<D>
+
+    /**
+     * Filters the content of a [Retrievable] based on the [ContentAuthorAttribute] and the [contentSources] parameter.
+     *
+     * @param retrievable [Retrievable] to extract content from.
+     */
+    @Suppress("UNCHECKED_CAST")
+    protected fun filterContent(retrievable: Retrievable): List<C> {
+        val contentIds = this.contentSources?.let {
+            retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it)
+        }
+        return retrievable.content.filter { content ->
+            if (this.analyser.contentClasses.none { it.isInstance(content) }) return@filter false
+            if (contentIds == null) {
+                return@filter true
+            } else {
+                return@filter contentIds.contains(content.id)
+            }
+        }.map { it as C }
+    }
 }

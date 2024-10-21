@@ -3,7 +3,7 @@ package org.vitrivr.engine.model3d.features.sphericalharmonics
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataExtractor
 import org.vitrivr.engine.core.model.content.ContentType
-import org.vitrivr.engine.core.model.content.element.Model3DContent
+import org.vitrivr.engine.core.model.content.element.Model3dContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
@@ -21,7 +21,7 @@ import org.vitrivr.engine.core.source.file.FileSource
  * @version 1.2.0
  */
 class SphericalHarmonicsExtractor :
-    AbstractExtractor<Model3DContent, FloatVectorDescriptor> {
+    AbstractExtractor<Model3dContent, FloatVectorDescriptor> {
 
     private val gridSize: Int
     private val cap: Int
@@ -31,12 +31,13 @@ class SphericalHarmonicsExtractor :
     constructor(
         input: Operator<Retrievable>,
         analyser: SphericalHarmonics,
-        field: Schema.Field<Model3DContent, FloatVectorDescriptor>,
+        contentSources : Set<String>?,
+        field: Schema.Field<Model3dContent, FloatVectorDescriptor>,
         gridSize: Int,
         cap: Int,
         minL: Int,
         maxL: Int
-    ) : super(input, analyser, field) {
+    ) : super(input, analyser, contentSources, field) {
         this.gridSize = gridSize
         this.cap = cap
         this.minL = minL
@@ -49,12 +50,13 @@ class SphericalHarmonicsExtractor :
     constructor(
         input: Operator<Retrievable>,
         analyser: SphericalHarmonics,
+        contentSources : Set<String>?,
         name: String,
         gridSize: Int,
         cap: Int,
         minL: Int,
         maxL: Int
-    ) : super(input, analyser, name) {
+    ) : super(input, analyser, contentSources, name) {
         this.gridSize = gridSize
         this.cap = cap
         this.minL = minL
@@ -81,10 +83,10 @@ class SphericalHarmonicsExtractor :
      * @return List of resulting [FloatVectorDescriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
-        val content = retrievable.content.filterIsInstance<Model3DContent>()
+        val content = this.filterContent(retrievable)
         return content.flatMap { c ->
             c.content.getMaterials().flatMap { mat ->
-                mat.meshes.map { mesh ->
+                mat.materialMeshes.map { mesh ->
                     SphericalHarmonics.analyse(
                         mesh,
                         this.gridSize,

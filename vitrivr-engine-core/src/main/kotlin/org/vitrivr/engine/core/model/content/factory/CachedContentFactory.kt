@@ -4,12 +4,8 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.*
-import org.vitrivr.engine.core.model.content.impl.cache.CachedAudioContent
-import org.vitrivr.engine.core.model.content.impl.cache.CachedContent
-import org.vitrivr.engine.core.model.content.impl.cache.CachedImageContent
-import org.vitrivr.engine.core.model.content.impl.cache.CachedTextContent
-import org.vitrivr.engine.core.model.content.impl.memory.InMemoryMeshContent
-import org.vitrivr.engine.core.model.mesh.Model3D
+import org.vitrivr.engine.core.model.content.impl.cache.*
+import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
 import org.vitrivr.engine.core.model.metamodel.Schema
 import java.awt.image.BufferedImage
 import java.io.IOException
@@ -118,10 +114,10 @@ class CachedContentFactory : ContentFactoriesFactory {
             return content
         }
 
-        override fun newMeshContent(model3D: Model3D): Model3DContent {
+        override fun newMeshContent(model3d: Model3d): Model3dContent {
             check(!this.closed) { "CachedContentFactory has been closed." }
-            val content = InMemoryMeshContent(model3D) /* TODO: Caching. */
-            logger.warn { "Caching of MeshContent is not yet implemented. Using in-memory content instead." }
+            val content = CachedModel3dContent(this.nextPath(), model3d)
+            this.refSet.add(CachedItem(content, this.referenceQueue))
             return content
         }
 

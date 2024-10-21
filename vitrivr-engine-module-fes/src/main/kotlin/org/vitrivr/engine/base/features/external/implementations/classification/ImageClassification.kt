@@ -30,7 +30,7 @@ import java.util.*
  * @author Fynn Faber
  * @version 1.0.0
  */
-class ImageClassification : ExternalFesAnalyser<ContentElement<*>, LabelDescriptor>() {
+class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>() {
     companion object{
         const val CLASSES_PARAMETER_NAME = "classes"
         const val THRESHOLD_PARAMETER_NAME = "threshold"
@@ -68,7 +68,7 @@ class ImageClassification : ExternalFesAnalyser<ContentElement<*>, LabelDescript
      * @param context The [IndexContext] to use with the [ImageClassification].
      * @return [ImageClassification]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, LabelDescriptor>, input: Operator<Retrievable>, context: IndexContext) = ImageClassificationExtractor(input, field, this, merge(field, context))
+    override fun newExtractor(field: Schema.Field<ImageContent, LabelDescriptor>, input: Operator<Retrievable>, context: IndexContext) = ImageClassificationExtractor(input, field, this, merge(field, context))
 
     /**
      * Generates and returns a new [Retriever] instance for this [ImageClassification].
@@ -79,10 +79,10 @@ class ImageClassification : ExternalFesAnalyser<ContentElement<*>, LabelDescript
      *
      * @return A new [Retriever] instance for this [Analyser]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, LabelDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, LabelDescriptor> {
+    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, LabelDescriptor>, query: Query, context: QueryContext): Retriever<ImageContent, LabelDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is SimpleBooleanQuery<*>) { "The query is not a boolean query. This is a programmer's error!" }
-        return object : AbstractRetriever<ContentElement<*>, LabelDescriptor>(field, query, context){}
+        return object : AbstractRetriever<ImageContent, LabelDescriptor>(field, query, context){}
     }
 
     /**
@@ -94,7 +94,7 @@ class ImageClassification : ExternalFesAnalyser<ContentElement<*>, LabelDescript
      * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ContentElement<*>, LabelDescriptor>, descriptors: Collection<LabelDescriptor>, context: QueryContext): Retriever<ContentElement<*>, LabelDescriptor> {
+    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, LabelDescriptor>, descriptors: Collection<LabelDescriptor>, context: QueryContext): Retriever<ImageContent, LabelDescriptor> {
         val descriptor = descriptors.firstOrNull()?.label ?: throw IllegalArgumentException("No label descriptor provided.")
         val query = SimpleBooleanQuery(value = descriptor, attributeName = "label")
         return newRetrieverForQuery(field, query, context)
@@ -111,10 +111,10 @@ class ImageClassification : ExternalFesAnalyser<ContentElement<*>, LabelDescript
      * @param context The [QueryContext] to use with the [Retriever]
      */
     override fun newRetrieverForContent(
-        field: Schema.Field<ContentElement<*>, LabelDescriptor>,
-        content: Collection<ContentElement<*>>,
+        field: Schema.Field<ImageContent, LabelDescriptor>,
+        content: Collection<ImageContent>,
         context: QueryContext
-    ): Retriever<ContentElement<*>, LabelDescriptor> {
+    ): Retriever<ImageContent, LabelDescriptor> {
         val first = content.filterIsInstance<TextContent>().firstOrNull() ?: throw IllegalArgumentException("The content does not contain any text.")
         val query = SimpleBooleanQuery(value = Value.String(first.content), attributeName = "label")
         return newRetrieverForQuery(field, query, context)

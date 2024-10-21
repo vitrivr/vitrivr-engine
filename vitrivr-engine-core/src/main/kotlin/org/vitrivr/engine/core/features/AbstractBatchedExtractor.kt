@@ -3,12 +3,16 @@ package org.vitrivr.engine.core.features
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -25,23 +29,26 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor<*>
         final override val input: Operator<Retrievable>,
         final override val analyser: Analyser<C, D>,
         final override val field: Schema.Field<C, D>? = null,
+        protected val contentSources : Set<String>? = null,
         final override val name: String,
         private val bufferSize: Int
 ) :
     Extractor<C, D> {
 
-    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, field: Schema.Field<C, D>, bufferSize: Int = 100) : this(
+    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, contentSources : Set<String>?, field: Schema.Field<C, D>, bufferSize: Int = 100) : this(
         input,
         analyser,
         field,
+        contentSources,
         field.fieldName,
         bufferSize
     )
 
-    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, name: String, bufferSize: Int = 100) : this(
+    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, contentSources : Set<String>?, name: String, bufferSize: Int = 100) : this(
         input,
         analyser,
         null,
+        contentSources,
         name,
         bufferSize
     )
@@ -49,12 +56,17 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor<*>
 
 
 
-    private val logger: KLogger = KotlinLogging.logger {}
-
+    companion object {
+        const val BATCH_SIZE_KEY = "batchSize"
+    }
 
     init {
         require(field == null || this.field.analyser == this.analyser) { "Field and analyser do not match! This is a programmer's error!" }
     }
+
+    /** The [KLogger] instance used by this [AbstractExtractor]. */
+    protected val logger: KLogger = KotlinLogging.logger {}
+
 
     /**
      * A default [Extractor] implementation for batched extraction. It executes the following steps:
@@ -132,4 +144,23 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor<*>
      */
     protected abstract fun extract(retrievables: List<Retrievable>): List<List<D>>
 
+    /**
+     * Filters the content of a [Retrievable] based on the [ContentAuthorAttribute] and the [contentSources] parameter.
+     *
+     * @param retrievable [Retrievable] to extract content from.
+     */
+    @Suppress("UNCHECKED_CAST")
+    protected fun filterContent(retrievable: Retrievable): List<C> {
+        val contentIds = this.contentSources?.let {
+            retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it)
+        }
+        return retrievable.content.filter { content ->
+            if (this.analyser.contentClasses.none { it.isInstance(content) }) return@filter false
+            if (contentIds == null) {
+                return@filter true
+            } else {
+                return@filter contentIds.contains(content.id)
+            }
+        }.map { it as C }
+    }
 }

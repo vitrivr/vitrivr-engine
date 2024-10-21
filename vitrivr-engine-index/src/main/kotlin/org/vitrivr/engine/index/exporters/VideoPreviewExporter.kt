@@ -8,8 +8,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onEach
+import org.bytedeco.javacpp.PointerScope
 import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.Java2DFrameConverter
+import org.bytedeco.javacv.Java2DFrameUtils
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
@@ -20,6 +22,7 @@ import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.file.MimeType
 import java.awt.image.BufferedImage
 import java.io.InputStream
+
 
 private val logger: KLogger = KotlinLogging.logger {}
 
@@ -81,6 +84,7 @@ class VideoPreviewExporter : ExporterFactory {
                     val writer = when (mimeType) {
                         MimeType.JPEG,
                         MimeType.JPG -> JpegWriter()
+
                         MimeType.PNG -> PngWriter()
                         else -> throw IllegalArgumentException("Unsupported mime type $mimeType")
                     }
@@ -123,9 +127,19 @@ class VideoPreviewExporter : ExporterFactory {
                 val frame = grabber.grabImage()
                 grabber.stop()
 
-                return Java2DFrameConverter().use {
-                    it.convert(frame)
+
+                val img = try {
+                    PointerScope().use { scope ->
+                        Java2DFrameConverter().use {
+                            it.convert(frame)
+                        }
+                    }
+                } catch (e: Exception) {
+                    logger.error(e) { "Error converting frame to BufferedImage" }
+                    null
                 }
+
+                return img!!
             }
         }
     }

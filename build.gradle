@@ -3,8 +3,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
 	id 'org.jetbrains.kotlin.jvm' version "$version_kotlin"
     id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
-    id 'org.openapi.generator' version '7.4.0'
-    id "de.undercouch.download" version "5.4.0"
+    id 'org.openapi.generator' version '7.8.0'
+    id 'de.undercouch.download' version "5.6.0"
     id 'java-library'
     id 'idea'
 }
@@ -14,7 +14,7 @@ allprojects {
     group = 'org.vitrivr'
 
     /* Current version of our artifacts. */
-    version = '0.0.1-SNAPSHOT'
+    version = '0.0.2-SNAPSHOT'
 
     /* Repositories for build script. */
     buildscript {
@@ -103,6 +103,7 @@ subprojects {
         testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: version_junit
         testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: version_junit
         testImplementation group: 'org.junit.platform', name: 'junit-platform-commons', version: version_junit_platform
+        testImplementation(group: "org.jetbrains.kotlinx", "name": "kotlinx-coroutines-test", version: version_kotlinx_coroutines)
     }
 }
 
