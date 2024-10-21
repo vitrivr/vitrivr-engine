@@ -37,10 +37,11 @@ class FFmpegVideoDecoder : DecoderFactory {
     override fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder {
         val maxWidth = context[name, "maxWidth"]?.toIntOrNull() ?: 3840
         val maxHeight = context[name, "maxHeight"]?.toIntOrNull() ?: 2160
+        val framerate = context[name, "framerate"]?.toIntOrNull()
         val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
         val ffmpegPath = context[name, "ffmpegPath"]?.let { Path.of(it) }
 
-        return Instance(input, context, timeWindowMs, maxWidth, maxHeight, name, ffmpegPath)
+        return Instance(input, context, timeWindowMs, maxWidth, maxHeight, framerate, name, ffmpegPath)
     }
 
     private class Instance(
@@ -49,6 +50,7 @@ class FFmpegVideoDecoder : DecoderFactory {
         private val timeWindowMs: Long = 500L,
         private val maxWidth: Int,
         private val maxHeight: Int,
+        private val framerate: Int?,
         private val name: String,
         private val ffmpegPath: Path?
     ) : Decoder {
@@ -139,7 +141,7 @@ class FFmpegVideoDecoder : DecoderFactory {
                     )
                 ).setFilter(
                     StreamType.VIDEO,
-                    "scale=w='min($maxWidth,iw)':h='min($maxHeight,ih)':force_original_aspect_ratio=decrease"
+                    "scale=w='min($maxWidth,iw)':h='min($maxHeight,ih)':force_original_aspect_ratio=decrease${if (framerate != null && framerate > 0) ",fps=$framerate" else ""}'"
                 )
 
                 //TODO audio settings
