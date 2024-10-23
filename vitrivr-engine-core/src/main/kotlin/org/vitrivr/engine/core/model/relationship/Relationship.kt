@@ -21,6 +21,26 @@ sealed interface Relationship: Persistable {
     /** The [RetrievableId] pointing to the object [Retrievable]. */
     val objectId: RetrievableId
 
+    /** Re-maps a relationship to a new [Retrievable] by copy. */
+    fun exchange(oldId: RetrievableId, new: Retrievable): Relationship {
+        if(this.objectId != oldId && this.subjectId != oldId) {
+            throw IllegalArgumentException("Relation does not contain ID '$oldId'")
+        }
+        return if (this.objectId == oldId) {
+            if (this is WithSubject) {
+                ByRef(this.subject, this.predicate, new, this.transient)
+            } else {
+                BySubIdObjRef(this.subjectId, this.predicate, new, this.transient)
+            }
+        } else {
+            if (this is WithObject) {
+                ByRef(new, this.predicate, this.`object`, this.transient)
+            } else {
+                BySubRefObjId(new, this.predicate, this.objectId, this.transient)
+            }
+        }
+    }
+
     sealed interface WithSubject : Relationship {
         val subject: Retrievable
     }
