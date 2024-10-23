@@ -59,7 +59,7 @@ enum class Distance {
             }
             normV1 = sqrt(normV1)
             normV2 = sqrt(normV2)
-            return -(dotProduct / (normV1 * normV2))
+            return 1f - (dotProduct / (normV1 * normV2))
         }
 
         override fun invoke(v1: Value.DoubleVector, v2: Value.DoubleVector): Double {
@@ -73,7 +73,7 @@ enum class Distance {
             }
             normV1 = sqrt(normV1)
             normV2 = sqrt(normV2)
-            return -(dotProduct / (normV1 * normV2))
+            return 1.0 - (dotProduct / (normV1 * normV2))
         }
     },
     HAMMING {
