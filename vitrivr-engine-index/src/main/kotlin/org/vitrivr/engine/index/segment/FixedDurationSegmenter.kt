@@ -125,8 +125,12 @@ class FixedDurationSegmenter : TransformerFactory {
             for (emitted in emit) {
                 emitted.content.forEach { ingested.addContent(it) }
                 emitted.descriptors.forEach { ingested.addDescriptor(it) }
-                emitted.relationships.forEach { ingested.addRelationship(it) }
                 emitted.attributes.forEach { ingested.addAttribute(it) }
+
+                emitted.relationships.forEach { relationship ->
+                    ingested.addRelationship(relationship.exchange(emitted.id, ingested))
+                }
+
             }
 
             /* Send retrievable downstream. */
