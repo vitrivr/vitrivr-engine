@@ -9,6 +9,7 @@ import org.vitrivr.engine.core.model.descriptor.vector.DoubleVectorDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor
 import org.vitrivr.engine.core.model.query.basics.Distance
+import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAuthorAttribute
@@ -112,8 +113,11 @@ class DescriptorDistanceSegmenter : TransformerFactory {
             for (emitted in cache) {
                 emitted.content.forEach { ingested.addContent(it) }
                 emitted.descriptors.forEach { ingested.addDescriptor(it) }
-                emitted.relationships.forEach { ingested.addRelationship(it) }
                 emitted.attributes.forEach { ingested.addAttribute(it) }
+
+                emitted.relationships.forEach { relationship ->
+                    ingested.addRelationship(relationship.exchange(emitted.id, ingested))
+                }
             }
 
             /* Send retrievable downstream. */
