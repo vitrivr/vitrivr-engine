@@ -83,7 +83,7 @@ class VectorDescriptorAggregator : TransformerFactory {
         val authorName =
             context[name, "authorName"] ?: throw IllegalArgumentException("Property 'authorName' must be specified")
         val strategy = AggregationStrategy.valueOf(
-            context[name, "strategy"] ?: throw IllegalArgumentException("Property 'strategy' must be specified")
+            context[name, "strategy"]?.uppercase() ?: throw IllegalArgumentException("Property 'strategy' must be specified")
         )
 
         return Instance(input, name, authorName, strategy)
