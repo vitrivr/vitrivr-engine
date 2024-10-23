@@ -77,7 +77,7 @@ abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>> : Abstract
     override fun matches(retrievable: Retrievable): Boolean {
         val contentIds = this.contentSources?.let { retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it) }
         return retrievable.content.any { content ->
-            this.analyser.contentClasses.any { it.isInstance(content) && (contentIds?.contains(content.id) ?: false) }
+            this.analyser.contentClasses.any { it.isInstance(content) && (contentIds?.contains(content.id) ?: true) }
         }
     }
 

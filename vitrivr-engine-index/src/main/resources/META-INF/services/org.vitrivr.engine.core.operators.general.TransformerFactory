@@ -12,3 +12,5 @@ org.vitrivr.engine.index.aggregators.image.RepresentativeImageContentAggregator
 org.vitrivr.engine.index.aggregators.descriptor.VectorDescriptorAggregator
 
 org.vitrivr.engine.index.segment.FixedDurationSegmenter
+
+org.vitrivr.engine.index.segment.DescriptorDistanceSegmenter
