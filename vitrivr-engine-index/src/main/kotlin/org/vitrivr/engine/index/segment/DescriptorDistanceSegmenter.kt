@@ -75,9 +75,13 @@ class DescriptorDistanceSegmenter : TransformerFactory {
 
             this@Instance.input.toFlow(scope).collect { ingested ->
 
-                /* just pass along anything that isn't a segment */
+
                 if(ingested.type !== "SEGMENT") {
-                    this.send(ingested)
+                    if (cache.isNotEmpty()) {
+                        send(this, cache)
+                        cache.clear()
+                    }
+                    send(ingested)
                     return@collect
                 }
 
