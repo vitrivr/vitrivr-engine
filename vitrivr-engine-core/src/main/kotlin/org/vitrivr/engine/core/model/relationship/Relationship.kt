@@ -58,7 +58,7 @@ sealed interface Relationship: Persistable {
     override val transient: Boolean
 
     /** A [Relationship] by reference to another [Retrievable]. */
-    class ByRef(override val subject: Retrievable, override val predicate: String, override val `object`: Retrievable, override val transient: Boolean) : WithSubject, WithObject {
+    data class ByRef(override val subject: Retrievable, override val predicate: String, override val `object`: Retrievable, override val transient: Boolean) : WithSubject, WithObject {
         override val subjectId: RetrievableId
             get() = this.subject.id
 
