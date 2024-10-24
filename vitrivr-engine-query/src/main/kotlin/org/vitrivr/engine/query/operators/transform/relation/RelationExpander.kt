@@ -23,7 +23,8 @@ class RelationExpander(
     override val input: Operator<out Retrievable>,
     private val incomingRelations: List<String>,
     private val outgoingRelations: List<String>,
-    private val retrievableReader: RetrievableReader
+    private val retrievableReader: RetrievableReader,
+    override val name: String
 ) : Transformer {
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
         /* Collect input into list. */

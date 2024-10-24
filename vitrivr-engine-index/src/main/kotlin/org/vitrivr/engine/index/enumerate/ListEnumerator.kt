@@ -29,7 +29,7 @@ class ListEnumerator : EnumeratorFactory {
      */
     override fun newEnumerator(name: String, context: IndexContext, mediaTypes: List<MediaType>): Enumerator {
         val type = context[name, "type"]
-        return Instance(type)
+        return Instance(type, name)
     }
 
     /**
@@ -46,7 +46,7 @@ class ListEnumerator : EnumeratorFactory {
     /**
      * The [Enumerator] returned by this [FileSystemEnumerator].
      */
-    class Instance(private val typeName: String? = null) : Enumerator {
+    class Instance(private val typeName: String? = null, override val name: String) : Enumerator {
 
         /** List of [Source]s that should be enumerated. */
         private val list: LinkedList<Source> = LinkedList()

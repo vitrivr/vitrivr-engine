@@ -12,7 +12,7 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class ConcatOperator<T : Retrievable>(override val inputs: List<Operator<T>>) : Operator.NAry<T, T> {
+class ConcatOperator<T : Retrievable>(override val inputs: List<Operator<T>>, override val name: String = "concat") : Operator.NAry<T, T> {
 
     /**
      *  Generates a new [channelFlow] that merges the results of multiple incoming [Operator]s into a single [Flow]. Incoming operators are
