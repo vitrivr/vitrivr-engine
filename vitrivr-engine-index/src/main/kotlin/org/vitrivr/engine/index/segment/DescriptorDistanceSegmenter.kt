@@ -13,6 +13,8 @@ import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAuthorAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
@@ -110,14 +112,23 @@ class DescriptorDistanceSegmenter : TransformerFactory {
             cache: List<Retrievable>
         ) {
             val ingested = Ingested(UUID.randomUUID(), cache.first().type, false)
+            val ranges = mutableSetOf<TimeRangeAttribute>()
             for (emitted in cache) {
                 emitted.content.forEach { ingested.addContent(it) }
                 emitted.descriptors.forEach { ingested.addDescriptor(it) }
-                emitted.attributes.forEach { ingested.addAttribute(it) }
-
+                emitted.attributes.forEach {
+                    if (it is TimeRangeAttribute) {
+                        ranges.add(it)
+                    } else {
+                        ingested.addAttribute(it)
+                    }
+                }
                 emitted.relationships.forEach { relationship ->
                     ingested.addRelationship(relationship.exchange(emitted.id, ingested))
                 }
+            }
+            if (ranges.isNotEmpty()) {
+                ingested.addAttribute(TimeRangeAttribute.merge(ranges))
             }
 
             /* Send retrievable downstream. */
