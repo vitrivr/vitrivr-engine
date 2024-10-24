@@ -19,6 +19,7 @@ import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 import org.vitrivr.engine.core.operators.general.TransformerFactory
+import org.vitrivr.engine.core.source.Source
 import java.util.*
 
 /**
@@ -70,8 +71,27 @@ class DescriptorDistanceSegmenter : TransformerFactory {
 
             val cache = mutableListOf<Retrievable>()
             var comparisonAnchor: Value.Vector<*>? = null
+            var lastSource: Source? = null
 
             this@Instance.input.toFlow(scope).collect { ingested ->
+
+                /* just pass along anything that isn't a segment */
+                if(ingested.type !== "SEGMENT") {
+                    this.send(ingested)
+                    return@collect
+                }
+
+                val source = ingested.filteredAttribute(SourceAttribute::class.java)?.source ?: return@collect
+
+                /* Check if source has changed. */
+                if (lastSource != source) {
+                    if (cache.isNotEmpty()) {
+                        send(this, cache)
+                        cache.clear()
+                    }
+                    comparisonAnchor = null
+                    lastSource = source
+                }
 
                 val descriptorIds =
                     ingested.filteredAttribute(DescriptorAuthorAttribute::class.java)?.getDescriptorIds(authorName)
