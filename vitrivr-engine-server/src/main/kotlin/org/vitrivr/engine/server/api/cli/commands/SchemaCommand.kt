@@ -191,15 +191,17 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
                 }
                 return
             }
-            val currentFields = this.schema.fields()
-            val targetFields = targetSchema.fields()
 
             logger.info { "Migrating from ${schema.name} to $targetSchemaName..." }
 
             /** Migrate retrievables */
             val currentRetrievablesReader = this.schema.connection.getRetrievableReader()
             val targetRetrievablesWriter = targetSchema.connection.getRetrievableWriter()
-            targetRetrievablesWriter.addAll(currentRetrievablesReader.getAll().toList())
+            val retrivables = currentRetrievablesReader.getAll().toList()
+            targetRetrievablesWriter.addAll(retrivables)
+            currentRetrievablesReader.getAll().forEach{
+                println(it.id)
+            }
             logger.info { "Migrated ${currentRetrievablesReader.count()} retrievables." }
 
             /** Migrate relationships */
@@ -211,7 +213,8 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
             logger.info { "Migrated ${relations.size} relationships." }
 
             /** Migrate Fields */
-
+            val currentFields = this.schema.fields()
+            val targetFields = targetSchema.fields()
             if (currentFields.size != targetFields.size) {
                 logger.error {
                     "Error trying to migrate from ${schema.name} to $targetSchemaName. Number of fields do not match."
@@ -219,12 +222,12 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
                 return
             }
 
-            /** Migrate all data from the current schema to the target schema*/
             val zippedFields = currentFields.zip(targetFields)
             zippedFields.forEach{ (currField, tarField) ->
                 val oldReader = currField.getReader()
                 val newWriter = tarField.getWriter()
-                newWriter.addAll(oldReader.getAll().toList())
+                val tmp = oldReader.getAll()
+                newWriter.addAll(tmp.toList())
             }
             logger.info{ "Migrated ${currentFields.size} fields." }
             logger.info{ "Migration complete."}

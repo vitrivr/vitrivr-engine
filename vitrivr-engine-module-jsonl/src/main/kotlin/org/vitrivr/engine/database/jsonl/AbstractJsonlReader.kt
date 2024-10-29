@@ -42,6 +42,7 @@ abstract class AbstractJsonlReader<D : Descriptor<*>>(
 
     override fun getAll(): Sequence<D> {
 
+
         return BufferedReader(InputStreamReader(path.inputStream())).lineSequence().mapNotNull {
             try {
                 val list = Json.decodeFromString<AttributeContainerList>(it)
