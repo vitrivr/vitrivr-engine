@@ -226,8 +226,8 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
             zippedFields.forEach{ (currField, tarField) ->
                 val oldReader = currField.getReader()
                 val newWriter = tarField.getWriter()
-                val tmp = oldReader.getAll()
-                newWriter.addAll(tmp.toList())
+                val tmp = oldReader.getAll().toList()
+                newWriter.addAll(tmp)
             }
             logger.info{ "Migrated ${currentFields.size} fields." }
             logger.info{ "Migration complete."}
