@@ -197,17 +197,13 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
             /** Migrate retrievables */
             val currentRetrievablesReader = this.schema.connection.getRetrievableReader()
             val targetRetrievablesWriter = targetSchema.connection.getRetrievableWriter()
-            val retrivables = currentRetrievablesReader.getAll().toList()
-            targetRetrievablesWriter.addAll(retrivables)
-            currentRetrievablesReader.getAll().forEach{
-                println(it.id)
-            }
+            targetRetrievablesWriter.addAll(currentRetrievablesReader.getAll().toList())
             logger.info { "Migrated ${currentRetrievablesReader.count()} retrievables." }
 
             /** Migrate relationships */
             val relations = currentRetrievablesReader.getConnections(emptyList(), emptyList(), emptyList())
-                .map{ (first, second, third) ->
-                    Relationship.ById(first, second, third, false)
+                .map{ (subjectid, predicate, objectid) ->
+                    Relationship.ById(subjectid, predicate, objectid, false)
                 }.toList()
             targetRetrievablesWriter.connectAll(relations)
             logger.info { "Migrated ${relations.size} relationships." }
@@ -221,13 +217,11 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
                 }
                 return
             }
-
             val zippedFields = currentFields.zip(targetFields)
             zippedFields.forEach{ (currField, tarField) ->
                 val oldReader = currField.getReader()
                 val newWriter = tarField.getWriter()
-                val tmp = oldReader.getAll().toList()
-                newWriter.addAll(tmp)
+                newWriter.addAll(oldReader.getAll().toList())
             }
             logger.info{ "Migrated ${currentFields.size} fields." }
             logger.info{ "Migration complete."}
