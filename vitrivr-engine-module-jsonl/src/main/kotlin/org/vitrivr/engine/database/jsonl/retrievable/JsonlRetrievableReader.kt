@@ -67,6 +67,6 @@ class JsonlRetrievableReader(override val connection: JsonlConnection) : Retriev
         }
     }
 
-    override fun count(): Long = BufferedReader(InputStreamReader(retrievablePath.inputStream())).lineSequence().count().toLong()
-
+    override fun count(): Long =
+        BufferedReader(InputStreamReader(retrievablePath.inputStream())).lineSequence().count().toLong()
 }
