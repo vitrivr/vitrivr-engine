@@ -20,8 +20,8 @@ class ScalarJsonlReader(
     override fun toDescriptor(list: AttributeContainerList): ScalarDescriptor<*, *> {
 
         val map = list.list.associateBy { it.attribute.name }
-        val retrievableId = (map[DESCRIPTOR_ID_COLUMN_NAME]?.value!!.toValue() as Value.UUIDValue).value
-        val descriptorId = (map[RETRIEVABLE_ID_COLUMN_NAME]?.value!!.toValue() as Value.UUIDValue).value
+        val retrievableId = (map[RETRIEVABLE_ID_COLUMN_NAME]?.value!!.toValue() as Value.UUIDValue).value
+        val descriptorId = (map[DESCRIPTOR_ID_COLUMN_NAME]?.value!!.toValue() as Value.UUIDValue).value
         val value = map["value"]?.value!!.toValue()
 
         return when (prototype) {
