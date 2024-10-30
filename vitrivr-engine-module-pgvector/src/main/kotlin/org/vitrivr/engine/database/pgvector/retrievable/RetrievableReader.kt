@@ -120,6 +120,9 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
             }
             query.append("$OBJECT_ID_COLUMN_NAME = ANY (?)")
         }
+        if (query.endsWith("WHERE ")) {
+            query.delete(query.length - 7, query.length)
+        }
 
         return sequence {
             try {
