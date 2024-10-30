@@ -41,7 +41,6 @@ abstract class AbstractJsonlReader<D : Descriptor<*>>(
     }
 
     override fun getAll(): Sequence<D> {
-
         return BufferedReader(InputStreamReader(path.inputStream())).lineSequence().mapNotNull {
             try {
                 val list = Json.decodeFromString<AttributeContainerList>(it)
@@ -54,7 +53,6 @@ abstract class AbstractJsonlReader<D : Descriptor<*>>(
                 null
             }
         }
-
     }
 
     override fun queryAndJoin(query: Query): Sequence<Retrieved> {
@@ -71,7 +69,7 @@ abstract class AbstractJsonlReader<D : Descriptor<*>>(
     }
 
     override fun getForRetrievable(retrievableId: RetrievableId): Sequence<D> {
-        return getAll().filter { it.retrievableId == retrievableId}
+        return getAll().filter { it.retrievableId == retrievableId }
     }
 
     override fun getAllForRetrievable(retrievableIds: Iterable<RetrievableId>): Sequence<D> {
