@@ -13,7 +13,8 @@ import java.sql.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-open class PgDescriptorWriter<D : Descriptor<*>>(final override val field: Schema.Field<*, D>, override val connection: PgVectorConnection) : DescriptorWriter<D> {
+open class PgDescriptorWriter<D : Descriptor<*>>(final override val field: Schema.Field<*, D>, override val connection: PgVectorConnection, protected val batchSize: Int = 1000) : DescriptorWriter<D> {
+
     /** The name of the table backing this [PgDescriptorInitializer]. */
     protected val tableName: String = "${DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName}"
 
@@ -56,6 +57,9 @@ open class PgDescriptorWriter<D : Descriptor<*>>(final override val field: Schem
      */
     override fun addAll(items: Iterable<D>): Boolean {
         try {
+            this.connection.jdbc.autoCommit = false
+            var success = true
+            var batched = 0
             this.prepareInsertStatement().use { stmt ->
                 for (item in items) {
                     stmt.setObject(1, item.id)
@@ -70,12 +74,37 @@ open class PgDescriptorWriter<D : Descriptor<*>>(final override val field: Schem
                         }
                     }
                     stmt.addBatch()
+                    batched += 1
+
+                    /* Execute batch if necessary. */
+                    if (batched % this.batchSize == 0) {
+                        val results = stmt.executeBatch()
+                        batched = 0
+                        stmt.clearBatch()
+                        if (results.any { it != 1 }) {
+                            success = false
+                            break
+                        }
+                    }
                 }
-                return stmt.executeBatch().all { it == 1 }
+
+                /* Execute remaining batch and commit. */
+                if (batched > 0) {
+                    success = stmt.executeBatch().all { it == 1 }
+                }
+                if (success) {
+                    this.connection.jdbc.commit()
+                } else {
+                    this.connection.jdbc.rollback()
+                }
+                return success
             }
         } catch (e: SQLException) {
             LOGGER.error(e) { "Failed to INSERT descriptors into \"${tableName.lowercase()}\" due to SQL error." }
+            this.connection.jdbc.rollback()
             return false
+        } finally {
+            this.connection.jdbc.autoCommit = true
         }
     }
 
