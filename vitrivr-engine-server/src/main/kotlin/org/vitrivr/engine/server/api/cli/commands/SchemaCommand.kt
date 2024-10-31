@@ -197,16 +197,15 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
             /** Migrate retrievables */
             val currentRetrievablesReader = this.schema.connection.getRetrievableReader()
             val targetRetrievablesWriter = targetSchema.connection.getRetrievableWriter()
-            targetRetrievablesWriter.addAll(currentRetrievablesReader.getAll().toList())
-            logger.info { "Migrated ${currentRetrievablesReader.count()} retrievables." }
+            targetRetrievablesWriter.addAll(currentRetrievablesReader.getAll().asIterable())
+            logger.info { "Migrated retrievables." }
 
             /** Migrate relationships */
-            val relations = currentRetrievablesReader.getConnections(emptyList(), emptyList(), emptyList())
-                .map{ (subjectid, predicate, objectid) ->
-                    Relationship.ById(subjectid, predicate, objectid, false)
-                }.toList()
+            val relations = currentRetrievablesReader.getConnections(emptyList(), emptyList(), emptyList()).map { (subjectid, predicate, objectid) ->
+                Relationship.ById(subjectid, predicate, objectid, false)
+            }.asIterable()
             targetRetrievablesWriter.connectAll(relations)
-            logger.info { "Migrated ${relations.size} relationships." }
+            logger.info { "Migrated relationships." }
 
             /** Migrate Fields */
             val currentFields = this.schema.fields()
@@ -221,10 +220,10 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
             zippedFields.forEach{ (currField, tarField) ->
                 val oldReader = currField.getReader()
                 val newWriter = tarField.getWriter()
-                newWriter.addAll(oldReader.getAll().toList())
+                newWriter.addAll(oldReader.getAll().asIterable())
+                logger.info { "Migrated field '${currField.fieldName}'." }
             }
-            logger.info{ "Migrated ${currentFields.size} fields." }
-            logger.info{ "Migration complete."}
+            logger.info { "Migration complete (${currentFields.size} migrated)." }
         }
     }
 }
