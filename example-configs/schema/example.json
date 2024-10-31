@@ -2,10 +2,12 @@
   "schemas": {
     "example": {
       "connection": {
-        "database": "CottontailConnectionProvider",
+        "database": "PgVectorConnectionProvider",
         "parameters": {
           "Host": "127.0.0.1",
-          "port": "1865"
+          "port": "5432",
+          "username": "postgres",
+          "password": "vitrivr"
         }
       },
       "fields": {
@@ -18,31 +20,11 @@
         "clip": {
           "factory": "DenseEmbedding",
           "parameters": {
-            "host": "http://127.0.0.1:8888",
+            "host": "http://10.34.64.84:8888/",
             "model": "open-clip-vit-b32",
-            "length": "512"
-          }
-        },
-        "dino": {
-          "factory": "DenseEmbedding",
-          "parameters": {
-            "host": "http://127.0.0.1:8888/",
-            "model": "dino-v2-vits14",
-            "length": "384"
-          }
-        },
-        "whisper": {
-          "factory": "ASR",
-          "parameters": {
-            "host": "http://127.0.0.1:8888/",
-            "model": "whisper"
-          }
-        },
-        "ocr": {
-          "factory": "OCR",
-          "parameters": {
-            "host": "http://127.0.0.1:8888/",
-            "model": "tesseract"
+            "length": "512",
+            "timeoutSeconds": "100",
+            "retries": "1000"
           }
         },
         "time": {
@@ -72,10 +54,7 @@
       },
       "extractionPipelines": {
         "video": {
-          "path": "./example/video.json"
-        },
-        "image": {
-          "path": "./example/image.json"
+          "path": "./example-configs/ingestion/example/video.json"
         }
       }
     }
