@@ -44,13 +44,14 @@ fun main(args: Array<String>) {
         c.jsonMapper(KotlinxJsonMapper)
 
         /* Registers Open API plugin. */
-        c.registerPlugin(OpenApiPlugin{
+        c.registerPlugin(OpenApiPlugin {
             it.withDocumentationPath("/openapi.json")
-                .withDefinitionConfiguration{ _, def ->
-                    def.withInfo{i ->
+                .withDefinitionConfiguration { _, def ->
+                    def.withInfo { i ->
                         i.title = "vitrivr engine API"
                         i.version = "0.1.0"
-                        i.description = "Rest API for the vitrivr engine project. Provides query (runtime) and extraction (ingestion) endpoints"
+                        i.description =
+                            "Rest API for the vitrivr engine project. Provides query (runtime) and extraction (ingestion) endpoints"
                     }
                         .withSecurity(
                             SecurityComponentConfiguration().withSecurityScheme("CookieAuth", CookieAuth("SESSIONID"))
@@ -59,9 +60,9 @@ fun main(args: Array<String>) {
         })
         c.http.maxRequestSize = 1024 * 1024 * 1024 /* 1GB */
 
-        c.bundledPlugins.enableCors{cors ->
+        c.bundledPlugins.enableCors { cors ->
             /* https://javalin.io/plugins/cors#getting-started */
-            cors.addRule{
+            cors.addRule {
                 it.reflectClientOrigin = true // might be a little too loose
                 it.allowCredentials = true
             }
@@ -74,7 +75,7 @@ fun main(args: Array<String>) {
             swaggerConfig.uiPath = "/swagger-ui"
         })
 
-        c.router.apiBuilder{
+        c.router.apiBuilder {
             configureApiRoutes(config.api, manager, executor)
         }
     }.exception(ErrorStatusException::class.java) { e, ctx ->
