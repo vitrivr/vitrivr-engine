@@ -1,5 +1,6 @@
 package org.vitrivr.engine.index.decode
 
+import com.github.kokorin.jaffree.JaffreeException
 import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffmpeg.*
 import com.github.kokorin.jaffree.ffprobe.FFprobe
@@ -124,15 +125,19 @@ class FFmpegVideoDecoder : DecoderFactory {
                 ).addOutput(FrameOutput.withConsumerAlpha(consumer))
 
                 /* Execute. */
-                ffmpegInstance.execute()
+                try {
+                    ffmpegInstance.execute()
+                } catch (e: JaffreeException) {
+                    logger.warn(e) { "Error while decoding source ${source.name} (${source.sourceId})." }
+                } finally {
+                    /* Emit final frames. */
+                    if (!consumer.isEmpty()) {
+                        consumer.emit()
+                    }
 
-                /* Emit final frames. */
-                if (!consumer.isEmpty()) {
-                    consumer.emit()
+                    /* Emit source retrievable. */
+                    send(sourceRetrievable)
                 }
-
-                /* Emit source retrievable. */
-                send(sourceRetrievable)
             }
         }.buffer(capacity = RENDEZVOUS, onBufferOverflow = BufferOverflow.SUSPEND)
 
@@ -165,7 +170,6 @@ class FFmpegVideoDecoder : DecoderFactory {
 
             /** [List] of grabbed [ShortBuffer]s.  */
             val audioBuffer: List<Pair<ShortBuffer,Long>> = LinkedList()
-
 
             /**
              * Returns true if both the image and audio buffer are empty.
