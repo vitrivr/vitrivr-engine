@@ -5,12 +5,15 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.features.metadata.source.exif.logger
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimePointAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 import org.vitrivr.engine.core.operators.general.TransformerFactory
@@ -31,11 +34,13 @@ class FixedDurationSegmenter : TransformerFactory {
      * @param context The [Context] to use.
      */
     override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
-        val duration = Duration.ofSeconds(
-            (context[name, "duration"] ?: throw IllegalArgumentException("Property 'duration' must be specified")).toLong()
+        val duration = Duration.ofMillis(
+            (context[name, "duration"]
+                ?: throw IllegalArgumentException("Property 'duration' must be specified")).toLong()
         )
-        val lookAheadTime = Duration.ofSeconds(
-            (context[name, "lookAheadTime"] ?: throw IllegalArgumentException("Property 'lookAheadTime' must be specified")).toLong()
+        val lookAheadTime = Duration.ofMillis(
+            (context[name, "lookAheadTime"]
+                ?: throw IllegalArgumentException("Property 'lookAheadTime' must be specified")).toLong()
         )
         return Instance(input, name, duration, lookAheadTime)
     }
@@ -75,7 +80,7 @@ class FixedDurationSegmenter : TransformerFactory {
 
             /* Collect upstream flow. */
             this@Instance.input.toFlow(scope).collect { ingested ->
-                val timestamp = ingested.filteredAttribute(TimePointAttribute::class.java) ?: return@collect
+                val timestamp = ingested.filteredAttribute(TimeRangeAttribute::class.java) ?: return@collect
                 val source = ingested.filteredAttribute(SourceAttribute::class.java)?.source ?: return@collect
 
                 /* Check if source has changed. */
@@ -92,7 +97,7 @@ class FixedDurationSegmenter : TransformerFactory {
 
                 /* Check if cut-off time has been exceeded. */
                 val cutOffTime = lastStartTime + this@Instance.lengthNanos + this@Instance.lookAheadNanos
-                if (timestamp.timepointNs >= cutOffTime) {
+                if (timestamp.endNs >= cutOffTime) {
                     sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos)
                     lastStartTime += this@Instance.lengthNanos
                 }
@@ -107,12 +112,16 @@ class FixedDurationSegmenter : TransformerFactory {
         /**
          *
          */
-        private suspend fun sendFromCache(downstream: ProducerScope<Retrievable>, cache: LinkedList<Retrievable>, nextStartTime: Long) {
+        private suspend fun sendFromCache(
+            downstream: ProducerScope<Retrievable>,
+            cache: LinkedList<Retrievable>,
+            nextStartTime: Long
+        ) {
             /* Drain cache. */
             val emit = LinkedList<Retrievable>()
             cache.removeIf {
-                val timestamp = it.filteredAttribute(TimePointAttribute::class.java) ?: return@removeIf true
-                if (timestamp.timepointNs < nextStartTime) {
+                val timestamp = it.filteredAttribute(TimeRangeAttribute::class.java) ?: return@removeIf true
+                if (timestamp.endNs < nextStartTime) {
                     emit.add(it)
                     true
                 } else {
@@ -122,17 +131,25 @@ class FixedDurationSegmenter : TransformerFactory {
 
             /* Prepare new ingested. */
             val ingested = Ingested(UUID.randomUUID(), emit.first().type, false)
+            var (min, max) = Long.MAX_VALUE to Long.MIN_VALUE
+
             for (emitted in emit) {
                 emitted.content.forEach { ingested.addContent(it) }
                 emitted.descriptors.forEach { ingested.addDescriptor(it) }
-                emitted.attributes.forEach { ingested.addAttribute(it) }
-
-                emitted.relationships.forEach { relationship ->
-                    ingested.addRelationship(relationship.exchange(emitted.id, ingested))
+                emitted.relationships.forEach {
+                    ingested.addRelationship(
+                        Relationship.BySubRefObjId(ingested, it.predicate, it.objectId, false)
+                    )
                 }
-
+                emitted.attributes.forEach {
+                    it.takeUnless { it is TimeRangeAttribute }?.let { ingested.addAttribute(it) }
+                    it.takeIf { it is TimeRangeAttribute }?.let {
+                        min = (it as TimeRangeAttribute).takeIf { it.startNs < min }?.startNs ?: min
+                        max = (it as TimeRangeAttribute).takeIf { it.endNs > max }?.startNs ?: max
+                    }
+                }
             }
-
+            ingested.addAttribute(TimeRangeAttribute(min, max))
             /* Send retrievable downstream. */
             downstream.send(ingested)
         }
