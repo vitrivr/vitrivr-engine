@@ -27,7 +27,11 @@
         "depth": "3"
       },
       "decoder": {
-        "timeWindowMs": "6000"
+        "timeWindowMs": "1000"
+      },
+      "segmenter": {
+        "duration": "6000",
+        "lookAheadTime": "1000"
       },
       "filter": {
         "type": "SOURCE:VIDEO"
@@ -46,6 +50,10 @@
     "decoder": {
       "type": "DECODER",
       "factory": "VideoDecoder"
+    },
+    "segmenter": {
+      "type": "TRANSFORMER",
+      "factory": "FixedDurationSegmenter"
     },
     "metadata":{
       "type": "EXTRACTOR",
@@ -87,16 +95,13 @@
   "operations": {
     "enumerator": {"operator": "enumerator"},
     "decoder": {"operator": "decoder", "inputs": ["enumerator"]},
-    "path": {"operator": "path", "inputs": ["decoder"]},
+    "segmenter": {"operator": "decoder", "inputs": ["decoder"]},
+    "path": {"operator": "path", "inputs": ["segmenter"]},
     "metadata": {"operator": "metadata", "inputs": ["path"], "merge": "COMBINE"},
-
     "source": {"operator": "source", "inputs": ["metadata"]},
-
     "time": {"operator": "time", "inputs": ["source"]},
     "selector": {"operator": "selector", "inputs": ["time"]},
-
     "thumbnail": {"operator": "thumbnail", "inputs": ["selector"]},
-
     "clip": {"operator": "clip", "inputs": ["thumbnail"]},
     "filter": {"operator": "filter","inputs": ["clip"],"merge": "MERGE"}
   },
