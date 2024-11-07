@@ -11,3 +11,4 @@ org.vitrivr.engine.index.aggregators.image.AverageImageContentAggregator
 org.vitrivr.engine.index.aggregators.image.RepresentativeImageContentAggregator
 
 org.vitrivr.engine.index.segment.FixedDurationSegmenter
+org.vitrivr.engine.index.segment.ShotBoundarySegmenter
