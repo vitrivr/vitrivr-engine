@@ -12,17 +12,17 @@ import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.EntopyCalculationMethod
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.EntropyOptimizerStrategy
 import org.vitrivr.engine.core.model.mesh.texturemodel.util.entropyoptimizer.OptimizerOptions
+import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Vec3f
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
-import org.vitrivr.engine.core.model.mesh.texturemodel.util.types.Vec3f
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Exporter
 import org.vitrivr.engine.core.operators.general.ExporterFactory
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.file.MimeType
 import org.vitrivr.engine.model3d.lwjglrender.render.RenderOptions
-import org.vitrivr.engine.model3d.lwjglrender.window.WindowOptions
 import org.vitrivr.engine.model3d.lwjglrender.util.texturemodel.entroopyoptimizer.ModelEntropyOptimizer
+import org.vitrivr.engine.model3d.lwjglrender.window.WindowOptions
 import org.vitrivr.engine.model3d.renderer.ExternalRenderer
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
@@ -45,10 +45,10 @@ private val logger: KLogger = KotlinLogging.logger {}
  */
 class ModelPreviewExporter : ExporterFactory {
     companion object {
-        val SUPPORTED = setOf(MimeType.GLTF)
+        val SUPPORTED_INPUT = setOf(MimeType.GLTF)
 
         /** Set of supported output formats. */
-        val OUTPUT_FORMAT = setOf("gif", "jpg")
+        val SUPPORTED_OUTPUT = setOf(MimeType.GIF, MimeType.JPG, MimeType.JPEG)
 
         /**
          * Renders a preview of the given model as a JPEG image.
@@ -186,7 +186,7 @@ class ModelPreviewExporter : ExporterFactory {
                 }
             } ?: MimeType.GLTF
         val distance = context[name, "distance"]?.toFloatOrNull() ?: 1f
-        val format = context[name, "format"] ?: "gif"
+        val format = MimeType.valueOf(context[name, "format"]?.uppercase() ?: "GIF")
         val views = context[name, "views"]?.toIntOrNull() ?: 30
 
         logger.debug {
@@ -202,12 +202,12 @@ class ModelPreviewExporter : ExporterFactory {
         private val maxResolution: Int,
         mimeType: MimeType,
         private val distance: Float,
-        private val format: String,
+        private val format: MimeType,
         private val views: Int
     ) : Exporter {
         init {
-            require(mimeType in SUPPORTED) { "ModelPreviewExporter only supports models of format GLTF." }
-            require(format in OUTPUT_FORMAT) { "ModelPreviewExporter only supports exporting a gif of jpg." }
+            require(mimeType in SUPPORTED_INPUT) { "ModelPreviewExporter only supports models of format GLTF." }
+            require(this.format in SUPPORTED_OUTPUT) { "ModelPreviewExporter only supports exporting a gif of jpg." }
         }
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> {
@@ -216,7 +216,7 @@ class ModelPreviewExporter : ExporterFactory {
                 val source =
                     retrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@onEach
                 if (source.type == MediaType.MESH) {
-                    val resolvable = this.context.resolver.resolve(retrievable.id)
+                    val resolvable = this.context.resolver.resolve(retrievable.id, ".${this.format.fileExtension}")
 
                     val model = retrievable.content[0].content as Model3d
                     if (resolvable != null) {
@@ -225,15 +225,20 @@ class ModelPreviewExporter : ExporterFactory {
                         }
 
                         source.newInputStream().use { input ->
-                            if (format == "jpg") {
-                                val preview: BufferedImage = renderPreviewJPEG(model, renderer, this.distance)
-                                resolvable.openOutputStream().use { output ->
-                                    ImageIO.write(preview, "jpg", output)
+                            when (format) {
+                                MimeType.JPG,
+                                MimeType.JPEG -> {
+                                    val preview: BufferedImage = renderPreviewJPEG(model, renderer, this.distance)
+                                    resolvable.openOutputStream().use { output ->
+                                        ImageIO.write(preview, "jpg", output)
+                                    }
                                 }
-                            } else { // format == "gif"
-                                val frames = createFramesForGif(model, renderer, this.views, this.distance)
-                                val gif = createGif(frames, 50)
-                                resolvable.openOutputStream().use { output -> output.write(gif!!.toByteArray()) }
+                                MimeType.GIF -> {
+                                    val frames = createFramesForGif(model, renderer, this.views, this.distance)
+                                    val gif = createGif(frames, 50)
+                                    resolvable.openOutputStream().use { output -> output.write(gif!!.toByteArray()) }
+                                }
+                                else -> throw IllegalArgumentException("Unsupported mime type $format")
                             }
                         }
                     }

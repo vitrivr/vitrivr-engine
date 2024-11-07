@@ -64,7 +64,7 @@ class ThumbnailExporter : ExporterFactory {
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
             try {
 
-                val resolvable = this.context.resolver.resolve(retrievable.id)
+                val resolvable = this.context.resolver.resolve(retrievable.id, ".${this.mimeType.fileExtension}")
 
                 val contentIds = this.contentSources?.let {
                     retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it)
