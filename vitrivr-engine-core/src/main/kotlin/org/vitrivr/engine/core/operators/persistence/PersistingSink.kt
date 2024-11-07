@@ -61,7 +61,7 @@ class PersistingSink(override val input: Operator<Retrievable>, val context: Ind
         collect(retrievable, Triple(retrievables, relationships, descriptors))
 
         /* Write entities to database. */
-        this.writer.connection.withTransaction {
+        //this.writer.connection.withTransaction {
             this.writer.addAll(retrievables)
             this.writer.connectAll(relationships)
             for ((f, d) in descriptors) {
@@ -70,7 +70,7 @@ class PersistingSink(override val input: Operator<Retrievable>, val context: Ind
                     logger.error { "Failed to persist descriptors for field ${f.fieldName}." }
                 }
             }
-        }
+        //}
 
         logger.debug { "Persisted ${retrievables.size} retrievables, ${relationships.size} relationships and ${descriptors.values.sumBy { it.size }} descriptors." }
     }
