@@ -66,15 +66,14 @@ class PersistingSink(
 
         /* Write entities to database. */
         //this.writer.connection.withTransaction {
-        this.writer.addAll(retrievables)
-        this.writer.connectAll(relationships)
-        for ((f, d) in descriptors) {
-            val writer =
-                f.let { field -> this.descriptorWriters.computeIfAbsent(field) { it.getWriter() } } as? DescriptorWriter<Descriptor<*>>
-            if (writer?.addAll(d) != true) {
-                logger.error { "Failed to persist descriptors for field ${f.fieldName}." }
+            this.writer.addAll(retrievables)
+            this.writer.connectAll(relationships)
+            for ((f, d) in descriptors) {
+                val writer = f.let { field -> this.descriptorWriters.computeIfAbsent(field) { it.getWriter() } } as? DescriptorWriter<Descriptor<*>>
+                if (writer?.addAll(d) != true) {
+                    logger.error { "Failed to persist descriptors for field ${f.fieldName}." }
+                }
             }
-        }
         //}
 
         logger.debug { "Persisted ${retrievables.size} retrievables, ${relationships.size} relationships and ${descriptors.values.sumOf { it.size }} descriptors." }
