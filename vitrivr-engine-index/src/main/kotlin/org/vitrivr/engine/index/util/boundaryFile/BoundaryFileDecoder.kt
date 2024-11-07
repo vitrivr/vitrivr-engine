@@ -2,16 +2,18 @@ package org.vitrivr.engine.index.util.boundaryFile
 
 import org.vitrivr.engine.core.model.types.Type
 import java.io.File
+import java.nio.file.Path
+import java.time.Duration
 import java.util.UUID
 
-class BoundaryFileDecoder() {
-    public fun decode(boundaryFile: String, videoId: String): List<MediaSegmentDescriptor> {
-        assert(boundaryFile.isNotEmpty()) { "Boundary file must not be empty" }
-        assert(videoId.isNotEmpty()) { "Video ID must not be empty" }
+class BoundaryFileDecoder(private val boundaryFilesPath: Path) {
+
+
+    public fun decode(videoFileName: String): List<MediaSegmentDescriptor> {
 
         val mediaSegementDescriptors = mutableListOf<MediaSegmentDescriptor>()
 
-        with(File(boundaryFile).bufferedReader()) {
+        with(this.boundaryFilesPath.resolve("$videoFileName.tsv").toFile().bufferedReader()) {
             var shotCounter = 0
             while (true) {
 
@@ -19,25 +21,25 @@ class BoundaryFileDecoder() {
                 line = line.trim()
 
                 when {
-                    line[0].isDigit() -> {
+                    !line[0].isDigit() -> {
                         continue
                     }
 
-                    line.split(" ").size < 2 -> {
+                    line.split(" ", "\t").size < 2 -> {
                         continue
                     }
 
-                    line.split(" ").size == 2 -> {
-                        val (start, end) = line.split(" ")
+                    line.split(" ", "\t").size == 4 -> {
+                        val (startframe,	starttime,	endframe,	endtime) = line.split(" ", "\t")
                         mediaSegementDescriptors.add(
                             MediaSegmentDescriptor(
-                                videoId,
+                                videoFileName,
                                 UUID.randomUUID().toString(),
                                 shotCounter,
-                                start.toInt(),
-                                end.toInt(),
-                                start.toDouble(),
-                                end.toDouble(),
+                                startframe.toInt(),
+                                endframe.toInt(),
+                                Duration.ofNanos((starttime.toDouble()*1e9).toLong()),
+                                Duration.ofNanos((endtime.toDouble()*1e9).toLong()),
                                 true
                             )
                         )
@@ -46,6 +48,7 @@ class BoundaryFileDecoder() {
                 shotCounter++
             }
         }
+
         return mediaSegementDescriptors
     }
 }
