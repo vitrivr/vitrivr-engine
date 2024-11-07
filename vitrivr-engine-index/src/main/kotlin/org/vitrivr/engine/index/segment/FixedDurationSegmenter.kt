@@ -77,16 +77,32 @@ class FixedDurationSegmenter : TransformerFactory {
             var lastSource: Source? = null
             var lastStartTime = 0L
             val cache = LinkedList<Retrievable>()
+            var srcRetrievable: Retrievable? = null
 
             /* Collect upstream flow. */
             this@Instance.input.toFlow(scope).collect { ingested ->
+
+                if (srcRetrievable == null) {
+                    srcRetrievable = Ingested(UUID.randomUUID(), "SOURCE:VIDEO", false)
+                }
+
+                if (ingested.type == "SOURCE:VIDEO") {
+                    ingested.content.forEach { srcRetrievable!!.addContent(it) }
+                    ingested.descriptors.forEach { srcRetrievable!!.addDescriptor(it) }
+                    ingested.attributes.forEach { srcRetrievable!!.addAttribute(it) }
+                    sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos, srcRetrievable!!)
+                    downstream.send(srcRetrievable!!)
+                    srcRetrievable = Ingested(UUID.randomUUID(), "SOURCE:VIDEO", false)
+                    return@collect
+                }
+
                 val timestamp = ingested.filteredAttribute(TimeRangeAttribute::class.java) ?: return@collect
                 val source = ingested.filteredAttribute(SourceAttribute::class.java)?.source ?: return@collect
 
                 /* Check if source has changed. */
                 if (lastSource != source) {
-                    while (cache.isNotEmpty()) {
-                        sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos)
+                    while (this@Instance.cache.isNotEmpty()) {
+                        sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos, srcRetrievable!!)
                         lastSource = source
                         lastStartTime = 0L
                     }
@@ -98,14 +114,14 @@ class FixedDurationSegmenter : TransformerFactory {
                 /* Check if cut-off time has been exceeded. */
                 val cutOffTime = lastStartTime + this@Instance.lengthNanos + this@Instance.lookAheadNanos
                 if (timestamp.endNs >= cutOffTime) {
-                    sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos)
+                    sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos, srcRetrievable!!)
                     lastStartTime += this@Instance.lengthNanos
                 }
             }
 
             /* Drain remaining items in cache. */
             while (cache.isNotEmpty()) {
-                sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos)
+                sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos, srcRetrievable!!)
             }
         }
 
@@ -115,13 +131,14 @@ class FixedDurationSegmenter : TransformerFactory {
         private suspend fun sendFromCache(
             downstream: ProducerScope<Retrievable>,
             cache: LinkedList<Retrievable>,
-            nextStartTime: Long
+            nextStartTime: Long,
+            srcRetrievable: Retrievable
         ) {
             /* Drain cache. */
             val emit = LinkedList<Retrievable>()
             cache.removeIf {
                 val timestamp = it.filteredAttribute(TimeRangeAttribute::class.java) ?: return@removeIf true
-                if (timestamp.endNs < nextStartTime) {
+                if (timestamp.endNs <= nextStartTime) {
                     emit.add(it)
                     true
                 } else {
@@ -137,9 +154,10 @@ class FixedDurationSegmenter : TransformerFactory {
                 emitted.content.forEach { ingested.addContent(it) }
                 emitted.descriptors.forEach { ingested.addDescriptor(it) }
                 emitted.relationships.forEach {
-                    ingested.addRelationship(
-                        Relationship.BySubRefObjId(ingested, it.predicate, it.objectId, false)
-                    )
+                    Relationship.BySubRefObjId(ingested, it.predicate, srcRetrievable.id, false).let {
+                        ingested.addRelationship(it)
+                        srcRetrievable.addRelationship(it)
+                    }
                 }
                 emitted.attributes.forEach {
                     it.takeUnless { it is TimeRangeAttribute }?.let { ingested.addAttribute(it) }

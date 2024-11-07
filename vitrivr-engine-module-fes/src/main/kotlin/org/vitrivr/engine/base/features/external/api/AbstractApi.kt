@@ -22,7 +22,13 @@ import org.vitrivr.engine.base.features.external.api.model.JobResult
  * @param pollingIntervalMs The interval in milliseconds to poll for the job status.
  * @param retries The number of retries for the job.
  */
-abstract class AbstractApi<I, O>(protected val host: String, protected val model: String, protected val timeoutMs: Long, protected val pollingIntervalMs: Long, protected val retries: Int) {
+abstract class AbstractApi<I, O>(
+    protected val host: String,
+    protected val model: String,
+    protected val timeoutMs: Long,
+    protected val pollingIntervalMs: Long,
+    protected val retries: Int
+) {
     companion object {
         /** The [KLogger] for this class. */
         @JvmStatic
@@ -76,8 +82,8 @@ abstract class AbstractApi<I, O>(protected val host: String, protected val model
             if (result == null) {
                 logger.warn { "$model job on host $host with ID: ${jobStatus.id} returned no result." }
             } else {
+                logger.info { "Extracted vectors from successfully" }
                 logger.trace { "Job result: $result" }
-                logger.info { "Job completed" }
             }
 
             /* Return results. */
@@ -117,8 +123,8 @@ abstract class AbstractApi<I, O>(protected val host: String, protected val model
                 retriesLeft -= 1
                 continue@outer
             } else {
+                logger.info { "Extracted vectors from sucessfully" }
                 logger.trace { "Job result: $result" }
-                logger.info { "Job completed" }
             }
 
             /* Return results. */
@@ -126,7 +132,7 @@ abstract class AbstractApi<I, O>(protected val host: String, protected val model
         }
         throw IllegalStateException("Failed to analyse batched input.")
 
-        }
+    }
 
     /**
      * This method is used to start a job on the API.
