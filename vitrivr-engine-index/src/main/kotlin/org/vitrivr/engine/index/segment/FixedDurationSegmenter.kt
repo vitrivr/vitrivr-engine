@@ -163,7 +163,7 @@ class FixedDurationSegmenter : TransformerFactory {
                     it.takeUnless { it is TimeRangeAttribute }?.let { ingested.addAttribute(it) }
                     it.takeIf { it is TimeRangeAttribute }?.let {
                         min = (it as TimeRangeAttribute).takeIf { it.startNs < min }?.startNs ?: min
-                        max = (it as TimeRangeAttribute).takeIf { it.endNs > max }?.startNs ?: max
+                        max = (it as TimeRangeAttribute).takeIf { it.endNs > max }?. endNs ?: max
                     }
                 }
             }
