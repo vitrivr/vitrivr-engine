@@ -1,6 +1,5 @@
 package org.vitrivr.engine.index.decode
 
-import com.github.kokorin.jaffree.JaffreeException
 import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffmpeg.*
 import com.github.kokorin.jaffree.ffprobe.FFprobe
@@ -116,20 +115,21 @@ class FFmpegVideoDecoder : DecoderFactory {
 
                 /* Create consumer. */
                 val consumer = InFlowFrameConsumer(this, sourceRetrievable)
-                val ffmpegInstance = this@Instance.ffmpeg.addInput(
-                    if (source is FileSource) {
-                        UrlInput.fromPath(source.path)
-                    } else {
-                        PipeInput.pumpFrom(source.newInputStream())
-                    }
-                ).addOutput(FrameOutput.withConsumerAlpha(consumer))
+
 
                 /* Execute. */
                 try {
-                    ffmpegInstance.execute()
-                } catch (e: JaffreeException) {
-                    logger.warn(e) { "Error while decoding source ${source.name} (${source.sourceId})." }
-                } finally {
+                    source.newInputStream().use {
+                        var output = FrameOutput.withConsumerAlpha(consumer).disableStream(StreamType.SUBTITLE).disableStream(StreamType.DATA)
+                        if (!this@Instance.video) {
+                            output = output.disableStream(StreamType.VIDEO)
+                        }
+                        if (!this@Instance.audio) {
+                            output = output.disableStream(StreamType.AUDIO)
+                        }
+                        this@Instance.ffmpeg.addInput(PipeInput.pumpFrom(it)).addOutput(output).execute()
+                    }
+
                     /* Emit final frames. */
                     if (!consumer.isEmpty()) {
                         consumer.emit()
@@ -137,6 +137,8 @@ class FFmpegVideoDecoder : DecoderFactory {
 
                     /* Emit source retrievable. */
                     send(sourceRetrievable)
+                } catch (e: Throwable) {
+                    logger.error(e) { "Error while decoding source ${source.name} (${source.sourceId})." }
                 }
             }
         }.buffer(capacity = RENDEZVOUS, onBufferOverflow = BufferOverflow.SUSPEND)
@@ -191,13 +193,12 @@ class FFmpegVideoDecoder : DecoderFactory {
              *
              * @param frame [Frame] to consume.
              */
-            override fun consume(frame: Frame) = runBlocking {
-                val stream = if (frame.streamId == this@InFlowFrameConsumer.audioStream?.id) {
-                    this@InFlowFrameConsumer.audioStream!!
-                } else if (frame.streamId == this@InFlowFrameConsumer.videoStream?.id) {
-                    this@InFlowFrameConsumer.videoStream!!
-                } else {
-                    return@runBlocking
+            override fun consume(frame: Frame?) = runBlocking {
+                if (frame == null) return@runBlocking
+                val stream = when (frame.streamId) {
+                    this@InFlowFrameConsumer.audioStream?.id -> this@InFlowFrameConsumer.audioStream!!
+                    this@InFlowFrameConsumer.videoStream?.id -> this@InFlowFrameConsumer.videoStream!!
+                    else -> return@runBlocking
                 }
                 val timestamp = ((1000000 * frame.pts) / stream.timebase)
                 when (stream.type) {
