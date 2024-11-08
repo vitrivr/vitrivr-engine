@@ -13,7 +13,7 @@ class TemporalSequenceAggregatorFactory : AggregatorFactory {
         context: Context
     ): Aggregator {
         return TemporalSequenceAggregator(
-            inputs
+            inputs, name
         )
     }
 }

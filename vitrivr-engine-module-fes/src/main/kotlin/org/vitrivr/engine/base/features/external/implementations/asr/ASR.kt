@@ -47,7 +47,7 @@ class ASR : ExternalFesAnalyser<AudioContent, TextDescriptor>() {
      * @param context The [IndexContext] to use with the [ASRExtractor].
      * @return [ASRExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ASRExtractor(input, null, this, context.local[name] ?: emptyMap())
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ASRExtractor(input, name, this, context.local[name] ?: emptyMap())
 
     /**
      * Generates and returns a new [ASRExtractor] instance for this [ASR].

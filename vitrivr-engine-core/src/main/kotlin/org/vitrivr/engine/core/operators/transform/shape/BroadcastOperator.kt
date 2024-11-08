@@ -12,7 +12,7 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class BroadcastOperator<I>(override val input: Operator<I>) : Operator.Unary<I, I> {
+class BroadcastOperator<I>(override val input: Operator<I>, override val name: String = "broadcast") : Operator.Unary<I, I> {
 
     /** Reference to the [SharedFlow] backing this [BroadcastOperator]. */
     private var sharedFlow: SharedFlow<I>? = null

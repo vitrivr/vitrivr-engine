@@ -62,7 +62,7 @@ class FFmpegVideoDecoder : DecoderFactory {
         private val audio: Boolean = true,
         private val timeWindowMs: Long = 500L,
         private val ffmpegPath: Path? = null,
-        private val name: String
+        override val name: String
     ) : Decoder {
 
         /** [KLogger] instance. */

@@ -26,7 +26,7 @@ data class TextDescriptor(
     companion object {
         private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.Text))
     }
-    
+
 
     /**
      * Returns the [Attribute] [List ]of this [StringDescriptor].

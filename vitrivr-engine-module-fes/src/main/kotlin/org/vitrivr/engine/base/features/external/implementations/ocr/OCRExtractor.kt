@@ -17,12 +17,22 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class OCRExtractor(
-    input: Operator<Retrievable>,
-    field: Schema.Field<ImageContent, TextDescriptor>?,
-    analyser: ExternalFesAnalyser<ImageContent, TextDescriptor>,
-    parameters: Map<String, String>
-) : FesExtractor<ImageContent, TextDescriptor>(input, field, analyser, parameters) {
+class OCRExtractor : FesExtractor<ImageContent, TextDescriptor> {
+
+    constructor(
+        input: Operator<Retrievable>,
+        field: Schema.Field<ImageContent, TextDescriptor>,
+        analyser: ExternalFesAnalyser<ImageContent, TextDescriptor>,
+        parameters: Map<String, String>
+    ) : super(input, field, analyser, parameters)
+
+    constructor(
+        input: Operator<Retrievable>,
+        name: String,
+        analyser: ExternalFesAnalyser<ImageContent, TextDescriptor>,
+        parameters: Map<String, String>
+    ) : super(input, name, analyser, parameters)
+
     /** The [OcrApi] used to perform extraction with. */
     private val api = OcrApi(this.host, this.model, this.timeoutMs, this.pollingIntervalMs, this.retries)
 

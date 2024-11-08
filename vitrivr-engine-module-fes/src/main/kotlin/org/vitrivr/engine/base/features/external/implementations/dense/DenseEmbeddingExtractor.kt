@@ -21,12 +21,22 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class DenseEmbeddingExtractor(
-    input: Operator<Retrievable>,
-    field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>?,
-    analyser: ExternalFesAnalyser<ContentElement<*>, FloatVectorDescriptor>,
-    parameters: Map<String, String>
-) : FesExtractor<ContentElement<*>, FloatVectorDescriptor>(input, field, analyser, parameters) {
+class DenseEmbeddingExtractor : FesExtractor<ContentElement<*>, FloatVectorDescriptor> {
+
+    constructor(
+        input: Operator<Retrievable>,
+        field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
+        analyser: ExternalFesAnalyser<ContentElement<*>, FloatVectorDescriptor>,
+        parameters: Map<String, String>
+    ) : super(input, field, analyser, parameters)
+
+    constructor(
+        input: Operator<Retrievable>,
+        name: String,
+        analyser: ExternalFesAnalyser<ContentElement<*>, FloatVectorDescriptor>,
+        parameters: Map<String, String>
+    ) : super(input, name, analyser, parameters)
+
     /** The [AsrApi] used to perform extraction with. */
     private val textApi by lazy { TextEmbeddingApi(this.host, model, this.timeoutMs, this.pollingIntervalMs, this.retries) }
 

@@ -21,7 +21,11 @@ import org.vitrivr.engine.module.features.feature.ehd.EHD
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class HueHistogramExtractor(input: Operator<Retrievable>, analyser: HueHistogram, field: Schema.Field<ImageContent, FloatVectorDescriptor>?, parameters:Map<String,String>) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, analyser, field, parameters) {
+class HueHistogramExtractor : AbstractExtractor<ImageContent, FloatVectorDescriptor> {
+
+    constructor(input: Operator<Retrievable>, analyser: HueHistogram, contentSources : Set<String>?, field: Schema.Field<ImageContent, FloatVectorDescriptor>) : super(input, analyser, contentSources, field)
+    constructor(input: Operator<Retrievable>, analyser: HueHistogram, contentSources : Set<String>?, name: String) : super(input, analyser, contentSources, name)
+
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *

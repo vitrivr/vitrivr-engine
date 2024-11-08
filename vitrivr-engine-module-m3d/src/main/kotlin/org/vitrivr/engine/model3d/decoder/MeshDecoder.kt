@@ -35,7 +35,7 @@ class MeshDecoder : DecoderFactory {
     /**
      * The [Decoder] returned by this [MeshDecoder].
      */
-    private class Instance(override val input: Enumerator, private val context: IndexContext, private val name : String) : Decoder {
+    private class Instance(override val input: Enumerator, private val context: IndexContext, override val name: String) : Decoder {
 
         /** [KLogger] instance. */
         private val logger: KLogger = KotlinLogging.logger {}
