@@ -1,7 +1,7 @@
 {
-  "schema": "example",
+  "schema": "vitrivr-ct",
   "context": {
-    "contentFactory": "CachedContentFactory",
+    "contentFactory": "InMemoryContentFactory",
     "resolverName":"disk",
 
     "local": {
@@ -23,7 +23,7 @@
         "contentSources": "decoder"
       },
       "enumerator": {
-        "path": "D:\\v3c",
+        "path": "./media",
         "depth": "3"
       },
       "decoder": {

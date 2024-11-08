@@ -30,7 +30,7 @@ class VideoSourceMetadataDescriptor(
     val height: Value.Int by this.values
 
     /** The duration of the video source in pixels. */
-    val duration: Value.Double by this.values
+    val duration: Value.Long by this.values
 
     /** The number of visual frames per seconds. */
     val fps: Value.Double by this.values

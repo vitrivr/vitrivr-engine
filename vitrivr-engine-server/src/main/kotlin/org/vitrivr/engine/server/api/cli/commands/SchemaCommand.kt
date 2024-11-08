@@ -14,6 +14,8 @@ import org.vitrivr.engine.core.config.ingest.IngestionPipelineBuilder
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.database.Initializer
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.metamodel.SchemaManager
+import org.vitrivr.engine.core.model.relationship.Relationship
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
@@ -23,7 +25,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0
  */
-class SchemaCommand(private val schema: Schema, private val server: ExecutionServer) : NoOpCliktCommand(
+class SchemaCommand(private val schema: Schema, private val server: ExecutionServer, private val manager: SchemaManager) : NoOpCliktCommand(
     name = schema.name,
     help = "Groups commands related to a specific schema, in this case the schema '${schema.name}'.",
     epilog = "Schema related commands usually have the form: <schema> <command>, e.g., `vitrivr about` Check help for command specific parameters.",
@@ -37,7 +39,8 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
             About(),
             Initialize(),
             Extract(this.schema, this.server),
-            Status(this.schema, this.server)
+            Status(this.schema, this.server),
+            MigrateTo(this.schema, this.manager)
         )
     }
 
@@ -164,6 +167,63 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
 
         override fun run() {
             logger.info { "Status: ${executor.status(jobId)} at ${System.currentTimeMillis()}" }
+        }
+    }
+
+    inner class MigrateTo(private val schema: Schema, private val manager: SchemaManager) :
+        CliktCommand(name = "migrate-to", help = "Export all data from the schema.") {
+
+        private val logger = KotlinLogging.logger {}
+
+        /** Path to the output directory. */
+        private val targetSchemaName: String? by option(
+            "-n",
+            "--name",
+            help = "name of the target schema."
+        )
+
+        override fun run() {
+
+            /** Check if target [Schema] exists. */
+            val targetSchema = manager.getSchema(targetSchemaName!!) ?: run {
+                logger.error {
+                    "Error trying to migrate from ${schema.name} to $targetSchemaName. $targetSchemaName does not exist."
+                }
+                return
+            }
+
+            logger.info { "Migrating from ${schema.name} to $targetSchemaName..." }
+
+            /** Migrate retrievables */
+            val currentRetrievablesReader = this.schema.connection.getRetrievableReader()
+            val targetRetrievablesWriter = targetSchema.connection.getRetrievableWriter()
+            targetRetrievablesWriter.addAll(currentRetrievablesReader.getAll().asIterable())
+            logger.info { "Migrated retrievables." }
+
+            /** Migrate relationships */
+            val relations = currentRetrievablesReader.getConnections(emptyList(), emptyList(), emptyList()).map { (subjectid, predicate, objectid) ->
+                Relationship.ById(subjectid, predicate, objectid, false)
+            }.asIterable()
+            targetRetrievablesWriter.connectAll(relations)
+            logger.info { "Migrated relationships." }
+
+            /** Migrate Fields */
+            val currentFields = this.schema.fields()
+            val targetFields = targetSchema.fields()
+            if (currentFields.size != targetFields.size) {
+                logger.error {
+                    "Error trying to migrate from ${schema.name} to $targetSchemaName. Number of fields do not match."
+                }
+                return
+            }
+            val zippedFields = currentFields.zip(targetFields)
+            zippedFields.forEach{ (currField, tarField) ->
+                val oldReader = currField.getReader()
+                val newWriter = tarField.getWriter()
+                newWriter.addAll(oldReader.getAll().asIterable())
+                logger.info { "Migrated field '${currField.fieldName}'." }
+            }
+            logger.info { "Migration complete (${currentFields.size} migrated)." }
         }
     }
 }

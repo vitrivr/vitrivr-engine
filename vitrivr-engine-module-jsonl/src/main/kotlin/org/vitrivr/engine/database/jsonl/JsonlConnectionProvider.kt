@@ -38,6 +38,7 @@ class JsonlConnectionProvider : AbstractConnectionProvider() {
         this.register(FloatDescriptor::class, ScalarJsonlProvider)
         this.register(DoubleDescriptor::class, ScalarJsonlProvider)
         this.register(StringDescriptor::class, ScalarJsonlProvider)
+        this.register(TextDescriptor::class, ScalarJsonlProvider)
 
         /* Vector descriptors. */
         this.register(BooleanVectorDescriptor::class, VectorJsonlProvider)
