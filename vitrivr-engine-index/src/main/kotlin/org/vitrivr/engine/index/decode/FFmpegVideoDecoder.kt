@@ -209,7 +209,7 @@ class FFmpegVideoDecoder : DecoderFactory {
                         }
                     }
                     Stream.Type.AUDIO -> {
-                        val samples = ShortBuffer.wrap(frame.samples.map { it.toShort() }.toShortArray())
+                        val samples = ShortBuffer.wrap(frame.samples.map { (it shr 16).toShort() }.toShortArray())
                         (this@InFlowFrameConsumer.audioBuffer as LinkedList).add(samples to timestamp)
                         if (timestamp >= this@InFlowFrameConsumer.windowEnd) {
                             this@InFlowFrameConsumer.audioReady = true
