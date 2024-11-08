@@ -12,6 +12,7 @@ dependencies {
     api project(':vitrivr-engine-module-features')       /* TODO: This dependency is not necessary and only here to facilitate easy testing. */
     api project(':vitrivr-engine-module-cottontaildb')   /* TODO: This dependency is not necessary and only here to facilitate easy testing. */
     api project(':vitrivr-engine-module-pgvector')       /* TODO: This dependency is not necessary and only here to facilitate easy testing. */
+    api project(':vitrivr-engine-module-jsonl')          /* TODO: This dependency is not necessary and only here to facilitate easy testing. */
     api project(':vitrivr-engine-module-fes')            /* TODO: This dependency is not necessary and only here to facilitate easy testing. */
 
     /** Clikt & JLine */
