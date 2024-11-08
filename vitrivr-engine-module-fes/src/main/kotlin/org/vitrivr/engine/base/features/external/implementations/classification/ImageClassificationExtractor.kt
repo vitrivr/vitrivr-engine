@@ -6,7 +6,6 @@ import org.vitrivr.engine.base.features.external.common.FesExtractor
 import org.vitrivr.engine.base.features.external.implementations.classification.ImageClassification.Companion.CLASSES_PARAMETER_NAME
 import org.vitrivr.engine.base.features.external.implementations.classification.ImageClassification.Companion.THRESHOLD_PARAMETER_NAME
 import org.vitrivr.engine.base.features.external.implementations.classification.ImageClassification.Companion.TOPK_PARAMETER_NAME
-import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -20,13 +19,21 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0
  */
-class ImageClassificationExtractor(
-    input: Operator<Retrievable>,
-    field: Schema.Field<ContentElement<*>, LabelDescriptor>?,
-    analyser: ExternalFesAnalyser<ContentElement<*>, LabelDescriptor>,
-    parameters: Map<String, String>
-) : FesExtractor<ContentElement<*>, LabelDescriptor>(input, field, analyser, parameters) {
+class ImageClassificationExtractor : FesExtractor<ImageContent, LabelDescriptor> {
 
+    constructor(
+        input: Operator<Retrievable>,
+        field: Schema.Field<ImageContent, LabelDescriptor>,
+        analyser: ExternalFesAnalyser<ImageContent, LabelDescriptor>,
+        parameters: Map<String, String>
+    ) : super(input, field, analyser, parameters)
+
+    constructor(
+        input: Operator<Retrievable>,
+        name: String,
+        analyser: ExternalFesAnalyser<ImageContent, LabelDescriptor>,
+        parameters: Map<String, String>
+    ) : super(input, name, analyser, parameters)
 
     /** The [ZeroShotClassificationApi] used to perform extraction with. */
     private val api by lazy {

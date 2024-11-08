@@ -26,7 +26,7 @@ class MapRelationshipTransformer : TransformerFactory {
     /**
      * [Transformer] that extracts [Ingested] objects from a [Flow] of [Ingested] objects based on a given [Relationship].
      */
-    private class Instance(override val input: Operator<out Retrievable>, val name: String) : Transformer {
+    private class Instance(override val input: Operator<out Retrievable>, override val name: String) : Transformer {
         override fun toFlow(scope: CoroutineScope): Flow<Ingested> = channelFlow {
             this@Instance.input.toFlow(scope).collect { ingested ->
                 ingested.relationships.filter { it.predicate == this@Instance.name }.forEach { relationship ->

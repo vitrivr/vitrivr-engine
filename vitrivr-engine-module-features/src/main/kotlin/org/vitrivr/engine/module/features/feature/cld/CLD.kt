@@ -16,6 +16,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -70,7 +71,7 @@ class CLD : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = CLDExtractor(input, this, null, context.local[name] ?: emptyMap())
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = CLDExtractor(input, this, context[name, CONTENT_AUTHORS_KEY]?.split(",")?.toSet(), name)
 
     /**
      * Generates and returns a new [CLDExtractor] instance for this [CLD].
@@ -82,7 +83,7 @@ class CLD : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext) = CLDExtractor(input, this, field, merge(field, context))
+    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext) = CLDExtractor(input, this, context[field.fieldName, CONTENT_AUTHORS_KEY]?.split(",")?.toSet(), field)
 
     /**
      * Generates and returns a new [DenseRetriever] instance for this [CLD].

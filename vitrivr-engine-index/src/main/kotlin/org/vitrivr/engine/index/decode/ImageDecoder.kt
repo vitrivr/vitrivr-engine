@@ -18,9 +18,6 @@ import org.vitrivr.engine.core.source.Source
 import java.io.IOException
 import javax.imageio.ImageIO
 
-/** [KLogger] instance. */
-private val logger: KLogger = KotlinLogging.logger {}
-
 /**
  * A [Decoder] that can decode [ImageContent] from a [Source] of [MediaType.IMAGE].
  *
@@ -41,7 +38,11 @@ class ImageDecoder : DecoderFactory {
     /**
      * The [Decoder] returned by this [ImageDecoder].
      */
-    private class Instance(override val input: Enumerator, private val context: IndexContext, private val name: String) : Decoder {
+    private class Instance(override val input: Enumerator, private val context: IndexContext, override val name: String) : Decoder {
+
+        /** [KLogger] instance. */
+        private val logger: KLogger = KotlinLogging.logger {}
+
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).mapNotNull { sourceRetrievable ->
             val source = sourceRetrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@mapNotNull null
             if (source.type != MediaType.IMAGE) {

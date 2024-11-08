@@ -24,7 +24,8 @@ import javax.management.Descriptor
 class FieldLookup(
     override val input: Operator<out Retrievable>,
     private val reader: DescriptorReader<*>,
-    val keys: List<String>
+    val keys: List<String>,
+    override val name: String
 ) : Transformer {
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
         /* Parse input IDs.*/

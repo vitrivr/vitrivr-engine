@@ -12,7 +12,8 @@ import org.vitrivr.engine.core.operators.general.Transformer
 class ScoreAggregator(
     override val input: Operator<out Retrievable>,
     private val aggregationMode: AggregationMode = AggregationMode.MAX,
-    private val relations: Set<String> = setOf("partOf")
+    private val relations: Set<String> = setOf("partOf"),
+    override val name: String
 ) : Transformer {
     enum class AggregationMode {
         MAX,

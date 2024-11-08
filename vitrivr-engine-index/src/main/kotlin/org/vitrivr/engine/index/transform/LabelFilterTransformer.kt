@@ -24,10 +24,16 @@ class LabelFilterTransformer : TransformerFactory {
         val confidenceThreshold = context[name, "confidenceThreshold"]?.toFloat()
         val label = context[name, "label"]
         val field = context[name, "field"]
-        return Instance(input, confidenceThreshold, label, field)
+        return Instance(input, name, confidenceThreshold, label, field)
     }
 
-    class Instance(input: Operator<out Retrievable>, val confidenceThreshold: Float?, val label: String?, val field: String?) : AbstractFilterTransformer(input, { retrievable ->
+    class Instance(
+        input: Operator<out Retrievable>,
+        override val name: String,
+        val confidenceThreshold: Float?,
+        val label: String?,
+        val field: String?
+    ) : AbstractFilterTransformer(input, { retrievable ->
         val isFiltered = retrievable.descriptors.any { descriptor ->
             if (descriptor is LabelDescriptor) {
                 val labelMatches = label?.let { descriptor.label.value == it } ?: true

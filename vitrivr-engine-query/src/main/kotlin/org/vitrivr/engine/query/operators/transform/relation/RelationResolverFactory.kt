@@ -25,6 +25,6 @@ class RelationResolverFactory: TransformerFactory {
         val retrievableReader = context.schema.connection.getRetrievableReader()
         val predicate = context[name, "predicate"]
         require(predicate?.isNotBlank() == true){"Requires a non-blank predicate!"}
-        return RelationResolver(input, predicate!! , retrievableReader)
+        return RelationResolver(input, predicate!! , retrievableReader, name)
     }
 }

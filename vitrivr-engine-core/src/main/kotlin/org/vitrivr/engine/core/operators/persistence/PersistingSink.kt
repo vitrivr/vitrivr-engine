@@ -20,7 +20,7 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class PersistingSink(override val input: Operator<Retrievable>, val context: IndexContext) : Operator.Sink<Retrievable> {
+class PersistingSink(override val input: Operator<Retrievable>, val context: IndexContext, override val name: String = "output") : Operator.Sink<Retrievable> {
 
     /** Logger instance. */
     private val logger = KotlinLogging.logger {}
@@ -72,7 +72,7 @@ class PersistingSink(override val input: Operator<Retrievable>, val context: Ind
             }
         }
 
-        logger.debug { "Persisted ${retrievables.size} retrievables, ${relationships.size} relationships and ${descriptors.values.sumBy { it.size }} descriptors." }
+        logger.debug { "Persisted ${retrievables.size} retrievables, ${relationships.size} relationships and ${descriptors.values.sumOf { it.size }} descriptors." }
     }
 
     /**

@@ -37,7 +37,7 @@ class FixedDurationSegmenter : TransformerFactory {
         val lookAheadTime = Duration.ofSeconds(
             (context[name, "lookAheadTime"] ?: throw IllegalArgumentException("Property 'lookAheadTime' must be specified")).toLong()
         )
-        return Instance(input, duration, lookAheadTime)
+        return Instance(input, name, duration, lookAheadTime)
     }
 
     /**
@@ -46,6 +46,8 @@ class FixedDurationSegmenter : TransformerFactory {
     private class Instance(
         /** The input [Operator]. */
         override val input: Operator<out Retrievable>,
+
+        override val name: String,
 
         /** The target duration of the segments to be created */
         length: Duration,
@@ -59,8 +61,6 @@ class FixedDurationSegmenter : TransformerFactory {
         /** The look-ahead time. */
         private val lookAheadNanos = lookAheadTime.toNanos()
 
-        /** Cache of [SourcedContent.Temporal] elements. */
-        private val cache = LinkedList<ContentElement<*>>()
 
         /**
          *
@@ -80,7 +80,7 @@ class FixedDurationSegmenter : TransformerFactory {
 
                 /* Check if source has changed. */
                 if (lastSource != source) {
-                    while (this@Instance.cache.isNotEmpty()) {
+                    while (cache.isNotEmpty()) {
                         sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos)
                         lastSource = source
                         lastStartTime = 0L
@@ -125,8 +125,12 @@ class FixedDurationSegmenter : TransformerFactory {
             for (emitted in emit) {
                 emitted.content.forEach { ingested.addContent(it) }
                 emitted.descriptors.forEach { ingested.addDescriptor(it) }
-                emitted.relationships.forEach { ingested.addRelationship(it) }
                 emitted.attributes.forEach { ingested.addAttribute(it) }
+
+                emitted.relationships.forEach { relationship ->
+                    ingested.addRelationship(relationship.exchange(emitted.id, ingested))
+                }
+
             }
 
             /* Send retrievable downstream. */

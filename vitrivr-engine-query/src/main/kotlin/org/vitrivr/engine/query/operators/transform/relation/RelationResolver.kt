@@ -19,7 +19,8 @@ import org.vitrivr.engine.core.operators.general.Transformer
 class RelationResolver(
     override val input: Operator<out Retrievable>,
     private val relationPredicate: String,
-    private val retrievableReader: RetrievableReader
+    private val retrievableReader: RetrievableReader,
+    override val name: String
 ): Transformer {
     /**
      * Converts this [Operator] to a [Flow] of type [O].

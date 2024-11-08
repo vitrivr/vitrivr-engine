@@ -49,7 +49,7 @@ class FileSystemEnumerator : EnumeratorFactory {
         val type = context[name, "type"]
         val regex = context[name, "regex"]
         logger.info { "Enumerator: FileSystemEnumerator with path: $path, depth: $depth, mediaTypes: $mediaTypes, skip: $skip, limit: ${if (limit == Long.MAX_VALUE) "none" else limit} and type: $type, regex: $regex" }
-        return Instance(path, depth, mediaTypes, skip, limit, type, regex)
+        return Instance(path, depth, mediaTypes, skip, limit, type, regex, name)
     }
 
     /**
@@ -77,7 +77,8 @@ class FileSystemEnumerator : EnumeratorFactory {
         private val skip: Long = 0,
         private val limit: Long = Long.MAX_VALUE,
         private val typeName: String? = null,
-        private val regex: String? = null
+        private val regex: String? = null,
+        override val name: String
     ) : Enumerator {
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {

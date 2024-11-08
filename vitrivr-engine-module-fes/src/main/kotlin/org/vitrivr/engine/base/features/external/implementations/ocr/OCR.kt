@@ -48,7 +48,7 @@ class OCR : ExternalFesAnalyser<ImageContent, TextDescriptor>() {
      * @param context The [IndexContext] to use with the [FesExtractor].
      * @return [ASRExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = OCRExtractor(input, null, this, context.local[name] ?: emptyMap())
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = OCRExtractor(input, name, this, context.local[name] ?: emptyMap())
 
     /**
      * Generates and returns a new [ASRExtractor] instance for this [ASR].
