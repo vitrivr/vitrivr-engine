@@ -47,15 +47,12 @@ import java.util.concurrent.TimeUnit
 class FFmpegVideoDecoder : DecoderFactory {
 
     override fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder {
-        val maxWidth = context[name, "maxWidth"]?.toIntOrNull() ?: 3840
-        val maxHeight = context[name, "maxHeight"]?.toIntOrNull() ?: 2160
-        val framerate = context[name, "framerate"]?.toIntOrNull()
-        val video = context[name, "video"]?.let { it.lowercase() == "true" } ?: true
-        val audio = context[name, "audio"]?.let { it.lowercase() == "true" } ?: true
+        val video = context[name, "video"]?.let { it.lowercase() == "true" } != false
+        val audio = context[name, "audio"]?.let { it.lowercase() == "true" } != false
         val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
         val ffmpegPath = context[name, "ffmpegPath"]?.let { Path.of(it) }
 
-        return Instance(input, context, video, audio, timeWindowMs, maxWidth, maxHeight, framerate, name, ffmpegPath)
+        return Instance(input, context, video, audio, timeWindowMs, ffmpegPath, name)
     }
 
     private class Instance(
@@ -64,21 +61,18 @@ class FFmpegVideoDecoder : DecoderFactory {
         private val video: Boolean = true,
         private val audio: Boolean = true,
         private val timeWindowMs: Long = 500L,
-        private val maxWidth: Int,
-        private val maxHeight: Int,
-        private val framerate: Int?,
-        private val name: String,
-        private val ffmpegPath: Path?
+        private val ffmpegPath: Path? = null,
+        private val name: String
     ) : Decoder {
 
         /** [KLogger] instance. */
         private val logger: KLogger = KotlinLogging.logger {}
 
         private val ffprobe: FFprobe
-            get() = if (ffmpegPath != null) FFprobe.atPath(this.ffmpegPath) else FFprobe.atPath()
+            get() = if (this.ffmpegPath != null) FFprobe.atPath(this.ffmpegPath) else FFprobe.atPath()
 
         private val ffmpeg: FFmpeg
-            get() = if (ffmpegPath != null) FFmpeg.atPath(this.ffmpegPath) else FFmpeg.atPath()
+            get() = if (this.ffmpegPath != null) FFmpeg.atPath(this.ffmpegPath) else FFmpeg.atPath()
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = channelFlow {
             this@Instance.input.toFlow(scope).collect { sourceRetrievable ->
@@ -116,19 +110,23 @@ class FFmpegVideoDecoder : DecoderFactory {
                 /* Create consumer. */
                 val consumer = InFlowFrameConsumer(this, sourceRetrievable)
 
-
                 /* Execute. */
                 try {
-                    source.newInputStream().use {
-                        var output = FrameOutput.withConsumerAlpha(consumer).disableStream(StreamType.SUBTITLE).disableStream(StreamType.DATA)
-                        if (!this@Instance.video) {
-                            output = output.disableStream(StreamType.VIDEO)
-                        }
-                        if (!this@Instance.audio) {
-                            output = output.disableStream(StreamType.AUDIO)
-                        }
-                        this@Instance.ffmpeg.addInput(PipeInput.pumpFrom(it)).addOutput(output).execute()
+                    var output = FrameOutput.withConsumerAlpha(consumer).disableStream(StreamType.SUBTITLE).disableStream(StreamType.DATA)
+                    if (!this@Instance.video) {
+                        output = output.disableStream(StreamType.VIDEO)
                     }
+                    if (!this@Instance.audio) {
+                        output = output.disableStream(StreamType.AUDIO)
+                    }
+                    if (source is FileSource) {
+                        this@Instance.ffmpeg.addInput(UrlInput.fromPath(source.path)).addOutput(output).execute()
+                    } else {
+                        source.newInputStream().use {
+                            this@Instance.ffmpeg.addInput(PipeInput.pumpFrom(it)).addOutput(output).execute()
+                        }
+                    }
+
 
                     /* Emit final frames. */
                     if (!consumer.isEmpty()) {
@@ -200,7 +198,7 @@ class FFmpegVideoDecoder : DecoderFactory {
                     this@InFlowFrameConsumer.videoStream?.id -> this@InFlowFrameConsumer.videoStream!!
                     else -> return@runBlocking
                 }
-                val timestamp = ((1000000 * frame.pts) / stream.timebase)
+                val timestamp = ((1_000_000 * frame.pts) / stream.timebase)
                 when (stream.type) {
                     Stream.Type.VIDEO -> {
                         (this@InFlowFrameConsumer.imageBuffer as LinkedList).add(frame.image!! to timestamp)
@@ -272,7 +270,7 @@ class FFmpegVideoDecoder : DecoderFactory {
                 )
 
                 /* Prepare and append audio content element. */
-                if (emitAudio.size > 0) {
+                if (emitAudio.isNotEmpty()) {
                     val samples = ShortBuffer.allocate(audioSize)
                     for (frame in emitAudio) {
                         frame.clear()
