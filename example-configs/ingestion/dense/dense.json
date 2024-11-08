@@ -8,7 +8,7 @@
         "path": "../cache"
       },
       "enumerator": {
-        "path": "../objects_dense",,
+        "path": "../objects_dense",
         "depth": "5"
       },
       "selector":{

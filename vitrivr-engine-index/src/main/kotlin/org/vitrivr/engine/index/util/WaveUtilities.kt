@@ -1,9 +1,10 @@
 package org.vitrivr.engine.index.util
 
 import org.vitrivr.engine.core.model.content.element.AudioContent
+import java.io.ByteArrayOutputStream
+import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.nio.channels.ByteChannel
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
@@ -12,7 +13,7 @@ import java.nio.file.StandardOpenOption
  * A collection of utilities for handling WAVE files.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 object WaveUtilities {
     /**
@@ -22,22 +23,36 @@ object WaveUtilities {
      * @param path The path to the file.
      *
      */
-    fun export(content: List<AudioContent>, path: Path) {
-        if (content.isEmpty()) return
-        Files.newByteChannel(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW).use { channel ->
-            /* Write audio data. */
-            var bytes = 0
-            channel.position(44)
-            content.forEach { audio ->
-                val buffer = ByteBuffer.allocate(audio.size).order(ByteOrder.LITTLE_ENDIAN)
-                buffer.asShortBuffer().put(audio.content)
-                bytes += channel.write(buffer)
-            }
+    fun export(content: List<AudioContent>, path: Path) = Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING).use {
+        export(content, it)
+    }
 
-            /* Write header. */
-            channel.position(0)
-            writeWaveHeader(channel, content.first().channels, content.first().samplingRate, bytes)
+    /**
+     * Exports a list of [AudioContent] as WAVE file (.wav).
+     *
+     * @param content List of [AudioContent] to export.
+     * @param stream The [OutputStream] to write to.
+     *
+     */
+    fun export(content: List<AudioContent>, stream: OutputStream) {
+        if (content.isEmpty()) return
+
+        /* Write samples. */
+        val samples = ByteArrayOutputStream()
+        var bytes = 0
+        content.forEach { audio ->
+            val buffer = ByteBuffer.allocate(audio.size).order(ByteOrder.LITTLE_ENDIAN)
+            buffer.asShortBuffer().put(audio.content)
+            samples.write(buffer.array())
+            bytes += buffer.array().size
         }
+
+        /* Write header. */
+        val header = ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN)
+        writeWaveHeader(header, content.first().channels, content.first().samplingRate, bytes)
+
+        stream.write(header.array())
+        samples.writeTo(stream)
     }
 
     /**
@@ -49,16 +64,24 @@ object WaveUtilities {
     fun export(content: AudioContent, path: Path) = export(listOf(content), path)
 
     /**
+     * Exports a single [AudioContent] as WAVE file (.wav).
+     *
+     * @param content [AudioContent] to export.
+     * @param stream The [OutputStream] to export to
+     */
+    fun export(content: AudioContent, stream: OutputStream) = export(listOf(content), stream)
+
+    /**
      * Writes the WAV header to the ByteBuffer.
      *
+     * @param buffer       The ByteBuffer to write the header to.
      * @param channels     The number of channels in the WAV file.
      * @param sampleRate   Sample rate of the output file.
      * @param length       Length in bytes of the frames data
      */
-    private fun writeWaveHeader(channel: ByteChannel, channels: Short, sampleRate: Int, length: Int) {
+    private fun writeWaveHeader(buffer: ByteBuffer, channels: Short, sampleRate: Int, length: Int) {
         /* Length of the subChunk2. */
         val subChunk2Length: Int = length * channels * Short.SIZE_BYTES  /* Number of bytes for audio data: NumSamples * NumChannels * BytesPerSample. */
-        val buffer = ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN)
 
         /* RIFF Chunk. */
         buffer.put("RIFF".toByteArray(Charsets.US_ASCII))
@@ -78,6 +101,5 @@ object WaveUtilities {
         /* Data chunk */
         buffer.put("data".toByteArray(Charsets.US_ASCII)) /* Begin of the data chunk. */
         buffer.putInt(subChunk2Length) /* Length of the data chunk. */
-        channel.write(buffer.flip())
     }
 }

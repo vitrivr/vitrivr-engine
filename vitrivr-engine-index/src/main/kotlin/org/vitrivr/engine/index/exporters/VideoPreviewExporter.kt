@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.onEach
 import org.bytedeco.javacpp.PointerScope
 import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.Java2DFrameConverter
-import org.bytedeco.javacv.Java2DFrameUtils
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
@@ -79,7 +78,7 @@ class VideoPreviewExporter : ExporterFactory {
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
             val source = retrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@onEach
             if (source.type == MediaType.VIDEO) {
-                val resolvable = this.context.resolver.resolve(retrievable.id)
+                val resolvable = this.context.resolver.resolve(retrievable.id, ".${this.mimeType.fileExtension}")
                 if (resolvable != null) {
                     val writer = when (mimeType) {
                         MimeType.JPEG,
