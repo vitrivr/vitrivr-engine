@@ -20,7 +20,11 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class PersistingSink(override val input: Operator<Retrievable>, val context: IndexContext, override val name: String = "output") : Operator.Sink<Retrievable> {
+class PersistingSink(
+    override val input: Operator<Retrievable>,
+    val context: IndexContext,
+    override val name: String = "output"
+) : Operator.Sink<Retrievable> {
 
     /** Logger instance. */
     private val logger = KotlinLogging.logger {}
@@ -61,16 +65,17 @@ class PersistingSink(override val input: Operator<Retrievable>, val context: Ind
         collect(retrievable, Triple(retrievables, relationships, descriptors))
 
         /* Write entities to database. */
-        this.writer.connection.withTransaction {
-            this.writer.addAll(retrievables)
-            this.writer.connectAll(relationships)
-            for ((f, d) in descriptors) {
-                val writer = f.let { field -> this.descriptorWriters.computeIfAbsent(field) { it.getWriter() } } as? DescriptorWriter<Descriptor<*>>
-                if (writer?.addAll(d) != true) {
-                    logger.error { "Failed to persist descriptors for field ${f.fieldName}." }
-                }
+        //this.writer.connection.withTransaction {
+        this.writer.addAll(retrievables)
+        this.writer.connectAll(relationships)
+        for ((f, d) in descriptors) {
+            val writer =
+                f.let { field -> this.descriptorWriters.computeIfAbsent(field) { it.getWriter() } } as? DescriptorWriter<Descriptor<*>>
+            if (writer?.addAll(d) != true) {
+                logger.error { "Failed to persist descriptors for field ${f.fieldName}." }
             }
         }
+        //}
 
         logger.debug { "Persisted ${retrievables.size} retrievables, ${relationships.size} relationships and ${descriptors.values.sumOf { it.size }} descriptors." }
     }
@@ -78,7 +83,10 @@ class PersistingSink(override val input: Operator<Retrievable>, val context: Ind
     /**
      * Collects all [Retrievable]s, [Relationship]s and [Descriptor]s that are reachable from the given [Retrievable] and should be persisted.s
      */
-    private fun collect(retrievable: Retrievable, into: Triple<MutableSet<Retrievable>, MutableSet<Relationship>, MutableMap<Schema.Field<*, *>, MutableSet<Descriptor<*>>>>) {
+    private fun collect(
+        retrievable: Retrievable,
+        into: Triple<MutableSet<Retrievable>, MutableSet<Relationship>, MutableMap<Schema.Field<*, *>, MutableSet<Descriptor<*>>>>
+    ) {
         if (retrievable.transient) return
 
         /* Add retrievable. */
@@ -88,9 +96,15 @@ class PersistingSink(override val input: Operator<Retrievable>, val context: Ind
         for (relationship in retrievable.relationships) {
             if (!relationship.transient) {
                 into.second.add(relationship)
-                if (relationship.subjectId == retrievable.id && relationship is Relationship.WithObject && !into.first.contains(relationship.`object`)) {
+                if (relationship.subjectId == retrievable.id && relationship is Relationship.WithObject && !into.first.contains(
+                        relationship.`object`
+                    )
+                ) {
                     collect(relationship.`object`, into)
-                } else if (relationship.objectId == retrievable.id && relationship is Relationship.WithSubject && !into.first.contains(relationship.subject)) {
+                } else if (relationship.objectId == retrievable.id && relationship is Relationship.WithSubject && !into.first.contains(
+                        relationship.subject
+                    )
+                ) {
                     collect(relationship.subject, into)
                 }
             }
@@ -101,7 +115,7 @@ class PersistingSink(override val input: Operator<Retrievable>, val context: Ind
             val field = descriptor.field
             if (field != null) {
                 into.third.compute(field) { _, v -> (v ?: mutableSetOf()).apply { add(descriptor) } }
-            }else{
+            } else {
                 logger.debug { "Descriptor $descriptor has no field and will not be persisted." }
             }
         }
