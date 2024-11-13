@@ -51,8 +51,8 @@ class OCRExtractor : FesExtractor<ImageContent, TextDescriptor> {
         var index = 0
 
         return retrievables.map { retrievable ->
-            this.filterContent(retrievable).map {
-                flatResults[index++].also { TextDescriptor(it.id, retrievable.id, it.value, it.field) }
+            this.filterContent(retrievable).map { filtered ->
+                flatResults[index++].let { TextDescriptor(it.id, retrievable.id, it.value, it.field) }
             }
         }
     }
