@@ -76,7 +76,8 @@ abstract class AbstractApi<I, O>(protected val host: String, protected val model
             if (result == null) {
                 logger.warn { "$model job on host $host with ID: ${jobStatus.id} returned no result." }
             } else {
-                logger.info { "Job result: $result" }
+                logger.trace { "Job result: $result" }
+                logger.info { "Job completed" }
             }
 
             /* Return results. */
@@ -116,7 +117,8 @@ abstract class AbstractApi<I, O>(protected val host: String, protected val model
                 retriesLeft -= 1
                 continue@outer
             } else {
-                logger.info { "Job result: $result" }
+                logger.trace { "Job result: $result" }
+                logger.info { "Job completed" }
             }
 
             /* Return results. */
