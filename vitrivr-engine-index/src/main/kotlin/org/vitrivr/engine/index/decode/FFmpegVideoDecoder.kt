@@ -217,7 +217,8 @@ class FFmpegVideoDecoder : DecoderFactory {
                 }
 
                 /* If enough frames have been collected, emit them. */
-                if (this@InFlowFrameConsumer.videoReady && this@InFlowFrameConsumer.audioReady) {
+                if ((this@Instance.audio && this@InFlowFrameConsumer.videoReady && this@InFlowFrameConsumer.audioReady) ||
+                    (!this@Instance.audio && this@InFlowFrameConsumer.videoReady)) {
                     emit()
 
                     /* Reset counters and flags. */
