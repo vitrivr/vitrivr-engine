@@ -184,6 +184,10 @@ class FFmpegVideoDecoder : DecoderFactory {
             override fun consumeStreams(streams: MutableList<Stream>) {
                 this.videoStream = streams.firstOrNull { it.type == Stream.Type.VIDEO }
                 this.audioStream = streams.firstOrNull { it.type == Stream.Type.AUDIO }
+
+                /* Reset counters and flags. */
+                this@InFlowFrameConsumer.videoReady = !(this@InFlowFrameConsumer.videoStream != null && this@Instance.video)
+                this@InFlowFrameConsumer.audioReady = !(this@InFlowFrameConsumer.audioStream != null && this@Instance.audio)
             }
 
             /**
@@ -217,8 +221,7 @@ class FFmpegVideoDecoder : DecoderFactory {
                 }
 
                 /* If enough frames have been collected, emit them. */
-                if ((this@Instance.audio && this@InFlowFrameConsumer.videoReady && this@InFlowFrameConsumer.audioReady) ||
-                    (!this@Instance.audio && this@InFlowFrameConsumer.videoReady)) {
+                if (this@InFlowFrameConsumer.videoReady && this@InFlowFrameConsumer.audioReady) {
                     emit()
 
                     /* Reset counters and flags. */

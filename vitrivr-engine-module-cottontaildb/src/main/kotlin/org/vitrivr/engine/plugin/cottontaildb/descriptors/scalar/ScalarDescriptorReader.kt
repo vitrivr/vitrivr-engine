@@ -68,9 +68,10 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, con
      * @return [Sequence] of [ScalarDescriptor]s.
      */
     private fun queryFulltext(query: SimpleFulltextQuery): Sequence<ScalarDescriptor<*, *>> {
+        val queryValue = query.value.value.split(" ").joinToString(" OR ", "(", ")") { "$it*" }
         val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
             .select("*")
-            .fulltext(VALUE_ATTRIBUTE_NAME, query.value.value, "score")
+            .fulltext(VALUE_ATTRIBUTE_NAME, queryValue, "score")
 
         if (query.limit < Long.MAX_VALUE) {
             cottontailQuery.limit(query.limit)
