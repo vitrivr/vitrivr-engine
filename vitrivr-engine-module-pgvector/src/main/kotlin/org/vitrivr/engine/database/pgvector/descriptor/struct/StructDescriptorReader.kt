@@ -86,10 +86,11 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor<*>>, connec
      */
     private fun queryFulltext(query: SimpleFulltextQuery): Sequence<StructDescriptor<*>> {
         require(query.attributeName != null) { "Query attribute must not be null for a fulltext query on a struct descriptor." }
-        val statement = "SELECT * FROM \"${tableName.lowercase()}\" WHERE ${query.attributeName} @@ plainto_tsquery(?)"
+        val queryString = query.value.value.split(" ").map { "$it:*" }.joinToString(" | ") { it }
+        val statement = "SELECT * FROM \"${tableName.lowercase()}\" WHERE ${query.attributeName} @@ to_tsquery(?)"
         return sequence {
             this@StructDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
-                stmt.setString(1, query.value.value)
+                stmt.setString(1, queryString)
                 stmt.executeQuery().use { result ->
                     while (result.next()) {
                         yield(rowToDescriptor(result))
