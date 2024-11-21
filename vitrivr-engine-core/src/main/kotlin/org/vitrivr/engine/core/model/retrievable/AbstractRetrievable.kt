@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.retrievable
 
+import org.vitrivr.engine.core.database.blackhole.LOGGER
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.relationship.Relationship
@@ -159,7 +160,7 @@ abstract class AbstractRetrievable(override val id: UUID, override val type: Str
     @Synchronized
     override fun addRelationship(relationship: Relationship): Boolean {
         check(relationship.subjectId == this.id || relationship.objectId == this.id) {
-            "Relationship is not related to current retrievable and therefore cannot be added."
+            LOGGER.error { "Relationship is not related to current retrievable and therefore cannot be added." }
         }
         if (this.relationshipSet.add(relationship)) {
             if (relationship.subjectId == this.id && relationship is Relationship.WithObject) {
