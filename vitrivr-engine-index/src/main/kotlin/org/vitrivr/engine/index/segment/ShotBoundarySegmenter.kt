@@ -41,7 +41,7 @@ class ShotBoundarySegmenter : TransformerFactory {
     override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
         /** Path to folder of shotBoundary Files **/
         val sbPath = Path(
-            (context[name, "sbpath"]
+            (context[name, "sbPath"]
                 ?: throw IllegalArgumentException("Property 'duration' must be specified"))
         )
         val tolerance = Duration.ofMillis(
@@ -56,7 +56,7 @@ class ShotBoundarySegmenter : TransformerFactory {
             (context[name, "lookAheadTime"]
                 ?: throw IllegalArgumentException("Property 'lookAheadTime' must be specified")).toLong()
         )
-        return Instance(input, sbPath, tolerance, duration, lookAheadTime)
+        return Instance(input, name, sbPath, tolerance, duration, lookAheadTime)
     }
 
     /**
@@ -65,6 +65,8 @@ class ShotBoundarySegmenter : TransformerFactory {
     private class Instance(
         /** The input [Operator]. */
         override val input: Operator<out Retrievable>,
+
+        override val name: String,
 
         /** Path to folder of shotBoundary Files **/
         sbPath: Path,

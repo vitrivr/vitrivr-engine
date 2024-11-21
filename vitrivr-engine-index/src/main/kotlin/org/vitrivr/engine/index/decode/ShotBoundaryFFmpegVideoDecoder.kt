@@ -53,7 +53,7 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
         val audio = context[name, "audio"]?.let { it.lowercase() == "true" } != false
         val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
         val ffmpegPath = context[name, "ffmpegPath"]?.let { Path.of(it) }
-        val sbPath = context[name, "sbFile"]?.let { Path.of(it) }
+        val sbPath = context[name, "sbPath"]?.let { Path.of(it) }
 
         return Instance(input, context, video, audio, timeWindowMs, ffmpegPath, sbPath, name)
     }

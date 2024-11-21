@@ -101,7 +101,7 @@ class FixedDurationSegmenter : TransformerFactory {
 
                 /* Check if source has changed. */
                 if (lastSource != source) {
-                    while (this@Instance.cache.isNotEmpty()) {
+                    while (cache.isNotEmpty()) {
                         sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos, srcRetrievable!!)
                         lastSource = source
                         lastStartTime = 0L
