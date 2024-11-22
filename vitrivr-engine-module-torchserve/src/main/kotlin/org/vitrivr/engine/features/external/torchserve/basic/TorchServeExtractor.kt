@@ -16,7 +16,7 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class TorchServeExtractor<C : ContentElement<*>, D : Descriptor<*>>(
+open class TorchServeExtractor<C : ContentElement<*>, D : Descriptor<*>>(
     val host: String,
     val port: Int,
     val token: String?,
@@ -29,6 +29,8 @@ class TorchServeExtractor<C : ContentElement<*>, D : Descriptor<*>>(
 ) : AbstractExtractor<C, D>(input, analyser, field, contentSources, name) {
 
     /**
+     * Extracts [Descriptor]s from the provided [Retrievable].
+     *
      * @param retrievable [Retrievable] to extract [Descriptor]s from.
      */
     override fun extract(retrievable: Retrievable): List<D> {
