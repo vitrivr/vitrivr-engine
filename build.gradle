@@ -96,7 +96,7 @@ subprojects {
         implementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: version_kotlin
         implementation group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: version_kotlin
 		implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: version_kotlinx_coroutines
-        implementation group: 'org.jetbrains.kotlinx', name:'kotlinx-serialization-json', version: version_kotlinx_serialization
+        implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-json', version: version_kotlinx_serialization
 
         /* JUnit 5 */
         testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: version_junit
