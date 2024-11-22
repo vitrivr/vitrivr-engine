@@ -60,20 +60,40 @@ class BooleanFilter(
                 val values = descriptor.values().toMap()
                 val attribute = keys.map {
                     (when (values[it]) {
-                        is Value.String -> Pair((values[it] as Value.String), Value.of(value.toString()) as Value.String)
-                        is Value.Boolean -> Pair((values[it] as Value.Boolean), Value.of(value.toBoolean()) as Value.Boolean)
+                        is Value.String -> Pair(
+                            (values[it] as Value.String),
+                            Value.of(value.toString()) as Value.String
+                        )
+
+                        is Value.Boolean -> Pair(
+                            (values[it] as Value.Boolean),
+                            Value.of(value.toBoolean()) as Value.Boolean
+                        )
+
                         is Value.Int -> Pair((values[it] as Value.Int), Value.of(value.toInt()) as Value.Int)
                         is Value.Long -> Pair((values[it] as Value.Long), Value.of(value.toLong()) as Value.Long)
                         is Value.Float -> Pair((values[it] as Value.Float), Value.of(value.toFloat()) as Value.Float)
-                        is Value.Double -> Pair((values[it] as Value.Double), Value.of(value.toDouble()) as Value.Double)
+                        is Value.Double -> Pair(
+                            (values[it] as Value.Double),
+                            Value.of(value.toDouble()) as Value.Double
+                        )
+
                         is Value.Byte -> Pair((values[it] as Value.Byte), Value.of(value.toByte()) as Value.Byte)
                         is Value.Short -> Pair((values[it] as Value.Short), Value.of(value.toShort()) as Value.Short)
-                        is Value.DateTime -> Pair((values[it] as Value.DateTime), Value.of(Date.valueOf(value)) as Value.DateTime)
+                        is Value.DateTime -> Pair(
+                            (values[it] as Value.DateTime),
+                            Value.of(Date.valueOf(value)) as Value.DateTime
+                        )
+
                         else -> Pair(null, null)
                     })
                 }
 
-                if (comparison.compare(attribute[0].first!!,attribute[0].second!!)) {
+                if (attribute[0].first != null && attribute[0].second != null && comparison.compare(
+                        attribute[0].first!!,
+                        attribute[0].second!!
+                    )
+                ) {
                     emit(retrieved)
                 }
             }
