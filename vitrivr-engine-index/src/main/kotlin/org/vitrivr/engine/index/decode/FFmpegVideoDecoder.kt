@@ -112,7 +112,7 @@ class FFmpegVideoDecoder : DecoderFactory {
 
                 /* Execute. */
                 try {
-                    var output = FrameOutput.withConsumerAlpha(consumer).disableStream(StreamType.SUBTITLE).disableStream(StreamType.DATA)
+                    var output = FrameOutput.withConsumer(consumer).disableStream(StreamType.SUBTITLE).disableStream(StreamType.DATA)
                     if (!this@Instance.video) {
                         output = output.disableStream(StreamType.VIDEO)
                     }
