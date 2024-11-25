@@ -1,15 +1,8 @@
 package org.vitrivr.engine.module.torchserve.client
 
-import com.google.auth.oauth2.AccessToken
-import com.google.auth.oauth2.OAuth2Credentials
 import com.google.protobuf.ByteString
-import io.grpc.Grpc
-import io.grpc.InsecureChannelCredentials
-import io.grpc.auth.MoreCallCredentials
 import org.pytorch.serve.grpc.inference.InferenceAPIsServiceGrpc
 import org.pytorch.serve.grpc.inference.predictionsRequest
-import java.io.Closeable
-import java.util.*
 
 
 /**
@@ -17,17 +10,9 @@ import java.util.*
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.0.03
+ * @version 1.0.3
  */
-class InferenceClient(val host: String, val port: Int = 8080, private val token: String? = null) : Closeable {
-
-    /** Credentials used for connecting to TorchServe. */
-    private val credentials = this.token?.let {
-        MoreCallCredentials.from(OAuth2Credentials.create(AccessToken(it, Date(Long.MAX_VALUE))))
-    }
-
-    /** */
-    private val channel by lazy { Grpc.newChannelBuilderForAddress(this.host, this.port, InsecureChannelCredentials.create()).build() }
+class InferenceClient(host: String, port: Int = 8080, token: String? = null) : AbstractTorchServeClient(host, port, token) {
 
     /** The stub used to communicate with TorchServe. */
     private val blockingStub by lazy { InferenceAPIsServiceGrpc.newBlockingStub(this.channel) }
@@ -54,12 +39,5 @@ class InferenceClient(val host: String, val port: Int = 8080, private val token:
             }
         )
         return response.prediction
-    }
-
-    /**
-     * Closes this [InferenceClient].
-     */
-    override fun close() {
-        this.channel.shutdownNow()
     }
 }

@@ -1,38 +1,24 @@
 package org.vitrivr.engine.module.torchserve.client
 
-import com.google.auth.oauth2.AccessToken
-import com.google.auth.oauth2.OAuth2Credentials
-import io.grpc.Grpc
-import io.grpc.InsecureChannelCredentials
-import io.grpc.ManagedChannel
-import io.grpc.auth.MoreCallCredentials
 import org.pytorch.serve.grpc.management.ManagementAPIsServiceGrpc
 import org.pytorch.serve.grpc.management.describeModelRequest
 import org.pytorch.serve.grpc.management.listModelsRequest
-import java.util.*
 
-class ManagementClient(private val host: String, private val port: Int = 7071, private val token: String? = null) {
+/**
+ * A client for connecting to a TorchServe instance and sending management requests via gRPC.
+ *
+ * @author Luca Rossetto
+ * @author Ralph Gasser
+ * @version 1.0.3
+ */
+class ManagementClient(host: String, port: Int = 7071, token: String? = null) : AbstractTorchServeClient(host, port, token) {
 
-    private val credentials = token?.let {
-        MoreCallCredentials.from(
-            OAuth2Credentials.create(
-                AccessToken(
-                    "Bearer: $it",
-                    Date(Long.MAX_VALUE)
-                )
-            )
-        )
-    }
-    private lateinit var channel: ManagedChannel
     private lateinit var stub: ManagementAPIsServiceGrpc.ManagementAPIsServiceBlockingStub
-    fun connect() {
-
-        this.channel = Grpc.newChannelBuilderForAddress(host, port, InsecureChannelCredentials.create()).build()
-        this.stub = ManagementAPIsServiceGrpc.newBlockingStub(channel)
-
-    }
 
 
+    /**
+     *
+     */
     fun listModels(): String { //TODO do some parsing?
 
         val response = this.stub.let {
@@ -48,6 +34,9 @@ class ManagementClient(private val host: String, private val port: Int = 7071, p
 
     }
 
+    /**
+     *
+     */
     fun describeModel(name: String, version: String? = null): String {
 
         return this.stub.let {
