@@ -1,5 +1,7 @@
 package org.vitrivr.engine.query.operators.transform.filter
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -23,7 +25,7 @@ import javax.management.Descriptor
  * @author Luca Rossetto
  * @author Ralph Gasser
  */
-class BooleanFilter(
+class LateFilter(
     override val input: Operator<out Retrievable>,
     /* The reader for a given field. */
     private val reader: DescriptorReader<*>,
@@ -33,9 +35,12 @@ class BooleanFilter(
     val comparison: ComparisonOperator = ComparisonOperator.EQ,
     /* value to compare to */
     val value: String,
-
+    /* append field*/
+    val append: Boolean,
     override val name: String
 ) : Transformer {
+    private val logger: KLogger = KotlinLogging.logger {}
+
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
         /* Parse input IDs.*/
         val inputRetrieved = input.toFlow(scope).toList()
@@ -45,7 +50,7 @@ class BooleanFilter(
         val descriptors = if (ids.isEmpty()) {
             emptyMap()
         } else {
-            this@BooleanFilter.reader.getAllForRetrievable(ids).associateBy { it.retrievableId!! }
+            this@LateFilter.reader.getAllForRetrievable(ids).associateBy { it.retrievableId!! }
         }
 
         // Multi keys for
@@ -61,25 +66,27 @@ class BooleanFilter(
                 val values = descriptor.values().toMap()
                 val attribute = keys.map {
                     (when (values[it]) {
-                        is Value.String -> Pair((values[it] as Value.String), Value.of(value.toString()) as Value.String)
-                        is Value.Boolean -> Pair((values[it] as Value.Boolean),Value.of(value.toBoolean()) as Value.Boolean)
-                        is Value.Int -> Pair((values[it] as Value.Int), Value.of(value.toInt()) as Value.Int)
-                        is Value.Long -> Pair((values[it] as Value.Long), Value.of(value.toLong()) as Value.Long)
-                        is Value.Float -> Pair((values[it] as Value.Float), Value.of(value.toFloat()) as Value.Float)
-                        is Value.Double -> Pair((values[it] as Value.Double),Value.of(value.toDouble()) as Value.Double)
-                        is Value.Byte -> Pair((values[it] as Value.Byte), Value.of(value.toByte()) as Value.Byte)
-                        is Value.Short -> Pair((values[it] as Value.Short), Value.of(value.toShort()) as Value.Short)
-                        is Value.DateTime -> Pair((values[it] as Value.DateTime),Value.of(Date.valueOf(value)) as Value.DateTime)
-                        else -> Pair(null, null)
+                        is Value.String -> Pair(it to (values[it] as Value.String), Value.of(value.toString()))
+                        is Value.Boolean -> Pair(it to (values[it] as Value.Boolean), Value.of(value.toBoolean()))
+                        is Value.Int -> Pair(it to (values[it] as Value.Int), Value.of(value.toInt()))
+                        is Value.Long -> Pair(it to (values[it] as Value.Long), Value.of(value.toLong()))
+                        is Value.Float -> Pair(it to (values[it] as Value.Float), Value.of(value.toFloat()))
+                        is Value.Double -> Pair(it to (values[it] as Value.Double), Value.of(value.toDouble()))
+                        is Value.Byte -> Pair(it to (values[it] as Value.Byte), Value.of(value.toByte()))
+                        is Value.Short -> Pair(it to (values[it] as Value.Short), Value.of(value.toShort()))
+                        is Value.DateTime -> Pair(it to (values[it] as Value.DateTime), Value.of(Date.valueOf(value)))
+                        else -> Pair(it to null, null)
                     })
                 }
 
-                if (attribute[0].first != null && attribute[0].second != null && comparison.compare(
-                        attribute[0].first!!,
-                        attribute[0].second!!
-                    )
-                ) {
-                    emit(retrieved)
+                retrieved.takeIf { append == true }?.let {
+                    retrieved.addAttribute(PropertyAttribute(attribute.map { it.first.first.toString() to it.first.second!!.value.toString() }.toMap()))
+                }
+
+                attribute[0].takeIf { it.first.second != null && it.second != null }?.let {
+                    it.takeIf { comparison.compare(it.first.second!!, it.second!!) }?.let {
+                        emit(retrieved)
+                    }
                 }
             }
         }

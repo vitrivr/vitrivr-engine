@@ -7,13 +7,14 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.TransformerFactory
 
-class BooleanFilterFactory() : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): BooleanFilter {
+class LateFilterFactory() : TransformerFactory {
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): LateFilter {
         require(context is QueryContext)
         val field = context[name, "field"] ?: throw IllegalArgumentException("expected 'field' to be defined in properties")
         val comparison = context[name, "comparison"] ?: throw IllegalArgumentException("expected 'comparison' to be defined in properties")
         val value = context[name, "value"] ?: throw IllegalArgumentException("expected 'value' to be defined in properties")
         val schemaField = context.schema[field] ?: throw IllegalArgumentException("Field '$field' not defined in schema")
+        val append = context[name, "append"].toBoolean()
         val reader = schemaField.getReader()
         val providedKeys = context[name, "keys"]
         val keys = if(providedKeys?.isNotBlank() == true){
@@ -25,6 +26,6 @@ class BooleanFilterFactory() : TransformerFactory {
         }else{
             emptyList()
         }
-        return BooleanFilter(input, reader, keys, ComparisonOperator.fromString(comparison), value, name)
+        return LateFilter(input, reader, keys, ComparisonOperator.fromString(comparison), value, append, name)
     }
 }
