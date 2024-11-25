@@ -80,7 +80,8 @@ class LateFilter(
                 }
 
                 retrieved.takeIf { append == true }?.let {
-                    retrieved.addAttribute(PropertyAttribute(attribute.map { it.first.first.toString() to it.first.second!!.value.toString() }.toMap()))
+                    retrieved.addAttribute(PropertyAttribute(attribute.map { it.first.first.toString() to it.first.second!!.value.toString() }
+                        .toMap()))
                 }
 
                 attribute[0].takeIf { it.first.second != null && it.second != null }?.let {
