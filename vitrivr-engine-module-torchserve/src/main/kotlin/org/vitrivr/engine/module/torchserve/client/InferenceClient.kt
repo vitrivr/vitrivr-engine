@@ -23,11 +23,11 @@ class InferenceClient(val host: String, val port: Int = 8080, private val token:
 
     /** Credentials used for connecting to TorchServe. */
     private val credentials = this.token?.let {
-        MoreCallCredentials.from(OAuth2Credentials.create(AccessToken("Bearer: $it", Date(Long.MAX_VALUE))))
+        MoreCallCredentials.from(OAuth2Credentials.create(AccessToken(it, Date(Long.MAX_VALUE))))
     }
 
     /** */
-    private val channel by lazy { Grpc.newChannelBuilderForAddress(host, port, InsecureChannelCredentials.create()).build() }
+    private val channel by lazy { Grpc.newChannelBuilderForAddress(this.host, this.port, InsecureChannelCredentials.create()).build() }
 
     /** The stub used to communicate with TorchServe. */
     private val blockingStub by lazy { InferenceAPIsServiceGrpc.newBlockingStub(this.channel) }
