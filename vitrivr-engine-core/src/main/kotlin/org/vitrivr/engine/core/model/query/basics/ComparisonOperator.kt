@@ -112,10 +112,9 @@ enum class ComparisonOperator(val value: String) {
             when (v1) {
                 is Value.String,
                 is Value.Text -> {
-                    (v1.value as String).replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]")
-                        .replace("*", "\\*").replace("%", "*").toRegex().matches(v2.value as String)
+                    (v2.value as String).replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]")
+                        .replace("*", "\\*").replace("%", ".*").replace("_", ".?").toRegex().matches(v1.value as String)
                 }
-
                 else -> false
             }
 
