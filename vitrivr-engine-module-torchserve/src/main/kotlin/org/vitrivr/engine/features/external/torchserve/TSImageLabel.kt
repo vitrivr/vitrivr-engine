@@ -15,6 +15,7 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.features.external.torchserve.basic.TorchServe
 import org.vitrivr.engine.features.external.torchserve.basic.TorchServeExtractor
+import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.util.*
 import javax.imageio.ImageIO
@@ -120,8 +121,21 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      * @return Map containing the [ByteString] representation of the [ImageContent].
      */
     override fun toByteString(content: ImageContent): ByteString {
+        /* Convert image if necessary. */
+        val originalImage = content.content
+        val imageWithoutAlpha = if (originalImage.type == BufferedImage.TYPE_INT_RGB) {
+            originalImage
+        } else {
+            val newImage = BufferedImage(originalImage.width, originalImage.height, BufferedImage.TYPE_INT_RGB)
+            val graphics = newImage.createGraphics()
+            graphics.drawImage(originalImage, 0, 0, null)
+            graphics.dispose()
+            newImage
+        }
+
+        /* Write image to byte array. */
         val output = ByteArrayOutputStream()
-        ImageIO.write(content.content, "JPEG", output)
+        ImageIO.write(imageWithoutAlpha, "JPEG", output)
         return ByteString.copyFrom(output.toByteArray())
     }
 
