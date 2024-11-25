@@ -37,6 +37,8 @@ class LateFilter(
     val value: String,
     /* append field*/
     val append: Boolean,
+    /* appends late filter */
+    val limit : Int = Int.MAX_VALUE,
     override val name: String
 ) : Transformer {
     private val logger: KLogger = KotlinLogging.logger {}
@@ -57,6 +59,7 @@ class LateFilter(
         if (keys.size > 1)
             throw IllegalArgumentException("only one key is supported yet")
 
+        var emitted = 0
         /* Emit retrievable with added attribute. */
         inputRetrieved.forEach { retrieved ->
             val descriptor = descriptors[retrieved.id]
@@ -85,7 +88,7 @@ class LateFilter(
                 }
 
                 attribute[0].takeIf { it.first.second != null && it.second != null }?.let {
-                    it.takeIf { comparison.compare(it.first.second!!, it.second!!) }?.let {
+                    it.takeIf {++emitted<= limit && comparison.compare(it.first.second!!, it.second!!) }?.let {
                         emit(retrieved)
                     }
                 }
