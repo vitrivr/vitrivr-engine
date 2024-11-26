@@ -70,7 +70,7 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      */
     override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, LabelDescriptor>, descriptors: Collection<LabelDescriptor>, context: QueryContext): StructBooleanRetriever<ImageContent, LabelDescriptor> {
         val values = descriptors.map { it.label }
-        val query = SimpleBooleanQuery(values.first(), ComparisonOperator.EQ, LabelDescriptor.LABEL_FIELD_NAME)
+        val query = SimpleBooleanQuery(values.first(), ComparisonOperator.EQ, LabelDescriptor.LABEL_FIELD_NAME) /* TODO: An IN query would make more sense here. */
         return this.newRetrieverForQuery(field, query, context)
     }
 
