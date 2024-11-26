@@ -4,12 +4,15 @@ import com.google.protobuf.ByteString
 import kotlinx.serialization.json.Json
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.features.bool.StructBooleanRetriever
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
+import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Retriever
@@ -44,20 +47,31 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      */
     override fun prototype(field: Schema.Field<*, *>) = LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), "", 0.0f, null)
 
-
     /**
+     * Generates and returns a new [StructBooleanRetriever] instance for this [TSImageLabel].
      *
+     * @param field The [Schema.Field] to create an [Retriever] for.
+     * @param query The [Query] to use with the [Retriever].
+     * @param context The [QueryContext] to use with the [Retriever].
+     *
+     * @return A new [StructBooleanRetriever] instance for this [TSImageLabel]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, LabelDescriptor>, query: Query, context: QueryContext): Retriever<ImageContent, LabelDescriptor> {
-        TODO()
+    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, LabelDescriptor>, query: Query, context: QueryContext): StructBooleanRetriever<ImageContent, LabelDescriptor> {
+        require(query is SimpleBooleanQuery<*>) { "TSImageLabel only supports boolean queries." }
+        return StructBooleanRetriever(field, query, context)
     }
 
-
     /**
+     * Generates and returns a new [StructBooleanRetriever] instance for this [TSImageLabel].
      *
+     * @param field The [Schema.Field] to create an [Retriever] for.
+     * @param descriptors An array of [LabelDescriptor] elements to use with the [Retriever]
+     * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, LabelDescriptor>, descriptors: Collection<LabelDescriptor>, context: QueryContext): Retriever<ImageContent, LabelDescriptor> {
-        TODO()
+    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, LabelDescriptor>, descriptors: Collection<LabelDescriptor>, context: QueryContext): StructBooleanRetriever<ImageContent, LabelDescriptor> {
+        val values = descriptors.map { it.label }
+        val query = SimpleBooleanQuery(values.first(), ComparisonOperator.EQ, LabelDescriptor.LABEL_FIELD_NAME)
+        return this.newRetrieverForQuery(field, query, context)
     }
 
     /**
