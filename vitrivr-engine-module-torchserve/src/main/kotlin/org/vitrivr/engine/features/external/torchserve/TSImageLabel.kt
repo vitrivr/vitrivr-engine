@@ -132,9 +132,9 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      * Converts the [ImageContent] to a [ByteString].
      *
      * @param content [ImageContent] to convert.
-     * @return Map containing the [ByteString] representation of the [ImageContent].
+     * @return [Map] containing the [ByteString] representation of the [ImageContent].
      */
-    override fun toByteString(content: ImageContent): ByteString {
+    override fun toByteString(content: ImageContent): Map<String, ByteString> {
         /* Convert image if necessary. */
         val originalImage = content.content
         val imageWithoutAlpha = if (originalImage.type == BufferedImage.TYPE_INT_RGB) {
@@ -150,7 +150,7 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
         /* Write image to byte array. */
         val output = ByteArrayOutputStream()
         ImageIO.write(imageWithoutAlpha, "JPEG", output)
-        return ByteString.copyFrom(output.toByteArray())
+        return mapOf("data" to ByteString.copyFrom(output.toByteArray()))
     }
 
     /**
