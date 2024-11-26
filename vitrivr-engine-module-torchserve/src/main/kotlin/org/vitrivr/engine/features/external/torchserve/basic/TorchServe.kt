@@ -66,12 +66,9 @@ abstract class TorchServe<C : ContentElement<*>, D : Descriptor<*>> : Analyser<C
 
         val descriptors = mutableListOf<D>()
         for (c in content) {
-            /* Convert the content to a ByteString. */
-            val data = this.toByteString(c)
-
             /* Perform the prediction. */
             val result = try {
-                client.predict(model, mapOf("data" to data))
+                client.predict(model, this.toByteString(c))
             } catch (e: Throwable) {
                 continue
             }
@@ -123,9 +120,9 @@ abstract class TorchServe<C : ContentElement<*>, D : Descriptor<*>> : Analyser<C
      * The form of the input data is model dependent.
      *
      * @param content The [ContentElement] [C] to convert to [ByteString].
-     * @return [ByteString].
+     * @return  [Map] of [String] to [ByteString].
      */
-    protected abstract fun toByteString(content: C): ByteString
+    protected abstract fun toByteString(content: C): Map<String, ByteString>
 
     /**
      * Generates and returns a [List] of [Descriptor]s [D] from a [ByteString] returned by a [TorchServe] model.
