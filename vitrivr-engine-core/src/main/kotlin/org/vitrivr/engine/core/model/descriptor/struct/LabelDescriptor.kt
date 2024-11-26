@@ -21,9 +21,13 @@ class LabelDescriptor(
     override val field: Schema.Field<*, LabelDescriptor>? = null
 ) : StructDescriptor<LabelDescriptor>(id, retrievableId, SCHEMA, values, field) {
     companion object {
+
+        const val LABEL_FIELD_NAME = "label"
+        const val CONFIDENCE_FIELD_NAME = "label"
+
         private val SCHEMA = listOf(
-            Attribute("label", Type.String),
-            Attribute("confidence", Type.Float),
+            Attribute(LABEL_FIELD_NAME, Type.String),
+            Attribute(CONFIDENCE_FIELD_NAME, Type.Float),
         )
     }
 
@@ -33,7 +37,7 @@ class LabelDescriptor(
         label: String,
         confidence: Float = 1f,
         field: Schema.Field<*, LabelDescriptor>? = null
-    ) : this(id, retrievableId, mapOf("label" to Value.String(label), "confidence" to Value.Float(confidence)), field)
+    ) : this(id, retrievableId, mapOf(LABEL_FIELD_NAME to Value.String(label), CONFIDENCE_FIELD_NAME to Value.Float(confidence)), field)
 
     /** The stored label. */
     val label: Value.String by this.values
