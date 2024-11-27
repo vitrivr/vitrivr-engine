@@ -8,6 +8,7 @@ import org.vitrivr.engine.core.database.AbstractDatabaseTest
 import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.Comparison
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextPredicate
 import org.vitrivr.engine.core.model.retrievable.Ingested
@@ -76,7 +77,8 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
         val d = descriptors[random.nextInt(0, descriptors.size)]
 
         /* Prepare and execute query. */
-        val query = Comparison.Equals(this.field, "path", d.path)
+        val predicate = Comparison.Equals(this.field, "path", d.path)
+        val query = Query(predicate)
 
         /* Check results. */
         val result = reader.query(query).toList()
@@ -99,7 +101,8 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
         this.initialize(writer, random)
 
         /* Prepare and execute query. */
-        val query = Comparison.Like(this.field, "size", Value.String("%.jpg"))
+        val predicate = Comparison.Like(this.field, "size", Value.String("%.jpg"))
+        val query = Query(predicate)
 
         /* Check results. */
         val result = reader.query(query).toList()
@@ -122,7 +125,8 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
 
         /* Prepare and execute query. */
         val size = Value.Long(random.nextLong(0, 100_000_000L))
-        val query = Comparison.Greater(this.field, "size", size)
+        val predicate = Comparison.Greater(this.field, "size", size)
+        val query = Query(predicate)
 
         /* Check results. */
         val result = reader.query(query).toList()
@@ -145,7 +149,8 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
 
         /* Prepare and execute query. */
         val size = Value.Long(random.nextLong(0, 100_000_000L))
-        val query = Comparison.Less(this.field, "size", size)
+        val predicate = Comparison.Less(this.field, "size", size)
+        val query = Query(predicate)
 
         /* Check results. */
         val result = reader.query(query).toList()
@@ -167,10 +172,10 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
         this.initialize(writer, random)
 
         /* Prepare and execute query. */
-        val query = SimpleFulltextPredicate(
-            Value.Text("var"),
-            "path"
+        val predicate = SimpleFulltextPredicate(
+            this.field, Value.Text("var"), "path"
         )
+        val query = Query(predicate)
 
         /* Check results. */
         val result = reader.query(query).toList()

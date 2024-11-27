@@ -10,6 +10,7 @@ import org.vitrivr.engine.core.database.AbstractDatabaseTest
 import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.query.basics.SortOrder
 import org.vitrivr.engine.core.model.query.proximity.ProximityPredicate
@@ -22,7 +23,7 @@ import java.util.*
  * A series of test cases the test the functionality of the [VectorDescriptorReader].
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.0.1
  */
 @Suppress("UNCHECKED_CAST")
 abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : AbstractDatabaseTest(schemaPath) {
@@ -80,17 +81,19 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
         val descriptors = this.initialize(writer, random)
 
         /* Perform nearest neighbour search. */
-        val query = ProximityPredicate(
+        val predicate = ProximityPredicate(
+            this.field,
             Value.FloatVector(FloatArray(3) { random.nextFloat() }),
             distance,
             SortOrder.ASC,
             100,
             fetchVector = true
         )
+        val query = Query(predicate)
         val result = reader.queryAndJoin(query).toList()
 
         /* Make manual query and compare. */
-        val manual = descriptors.sortedBy { distance(it.vector, query.value) }.take(100)
+        val manual = descriptors.sortedBy { distance(it.vector, predicate.value) }.take(100)
         result.zip(manual).forEach {
             Assertions.assertEquals(it.first.id, it.second.retrievableId)
             Assertions.assertTrue(it.first.hasAttribute(DistanceAttribute::class.java))
@@ -111,19 +114,21 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
         val descriptors = this.initialize(writer, random)
 
         /* Perform nearest neighbour search. */
-        val query = ProximityPredicate(
+        val predicate = ProximityPredicate(
+            this.field,
             Value.FloatVector(FloatArray(3) { random.nextFloat() }),
             distance,
             SortOrder.ASC,
             100,
             fetchVector = true
         )
+        val query = Query(predicate)
         val result = reader.query(query).toList()
 
         /* Make manual query and compare. */
-        val manual = descriptors.sortedBy { distance(it.vector, query.value) }.take(100)
+        val manual = descriptors.sortedBy { distance(it.vector, predicate.value) }.take(100)
         result.zip(manual).forEach {
-            Assertions.assertEquals(distance(it.first.vector, query.value), distance(it.second.vector, query.value), 0.00005f)
+            Assertions.assertEquals(distance(it.first.vector, predicate.value), distance(it.second.vector, predicate.value), 0.00005f)
         }
     }
 
@@ -141,19 +146,21 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
         val descriptors = this.initialize(writer, random)
 
         /* Perform nearest neighbour search. */
-        val query = ProximityPredicate(
+        val predicate = ProximityPredicate(
+            this.field,
             Value.FloatVector(FloatArray(3) { random.nextFloat() }),
             distance,
             SortOrder.DESC,
             100,
             fetchVector = true
         )
+        val query = Query(predicate)
         val result = reader.query(query).toList()
 
         /* Make manual query and compare. */
-        val manual = descriptors.sortedByDescending { distance(it.vector, query.value) }.take(100)
+        val manual = descriptors.sortedByDescending { distance(it.vector, predicate.value) }.take(100)
         result.zip(manual).forEach {
-            Assertions.assertEquals(distance(it.first.vector, query.value), distance(it.second.vector, query.value), 0.00005f)
+            Assertions.assertEquals(distance(it.first.vector, predicate.value), distance(it.second.vector, predicate.value), 0.00005f)
         }
     }
 
