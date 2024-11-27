@@ -12,7 +12,7 @@ import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.query.basics.SortOrder
-import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
+import org.vitrivr.engine.core.model.query.proximity.ProximityPredicate
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
 import org.vitrivr.engine.core.model.types.Value
@@ -80,7 +80,7 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
         val descriptors = this.initialize(writer, random)
 
         /* Perform nearest neighbour search. */
-        val query = ProximityQuery(
+        val query = ProximityPredicate(
             Value.FloatVector(FloatArray(3) { random.nextFloat() }),
             distance,
             SortOrder.ASC,
@@ -111,7 +111,7 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
         val descriptors = this.initialize(writer, random)
 
         /* Perform nearest neighbour search. */
-        val query = ProximityQuery(
+        val query = ProximityPredicate(
             Value.FloatVector(FloatArray(3) { random.nextFloat() }),
             distance,
             SortOrder.ASC,
@@ -141,7 +141,7 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
         val descriptors = this.initialize(writer, random)
 
         /* Perform nearest neighbour search. */
-        val query = ProximityQuery(
+        val query = ProximityPredicate(
             Value.FloatVector(FloatArray(3) { random.nextFloat() }),
             distance,
             SortOrder.DESC,

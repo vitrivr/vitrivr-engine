@@ -9,10 +9,8 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
-import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.bool.BooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
 import org.vitrivr.engine.core.operators.Operator
@@ -66,11 +64,7 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
      *
      * @return [TemporalMetadataRetriever]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, query: Query, context: QueryContext): TemporalMetadataRetriever {
-        require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
-        require(query is BooleanQuery) { "Query is not a Boolean query." }
-        return TemporalMetadataRetriever(field, query, context)
-    }
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, query: Query, context: QueryContext) = TemporalMetadataRetriever(field, query, context)
 
     /**
      * [TemporalMetadata] cannot derive a [TemporalMetadataRetriever] from content.

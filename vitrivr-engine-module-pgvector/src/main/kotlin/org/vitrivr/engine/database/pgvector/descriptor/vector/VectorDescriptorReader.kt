@@ -4,8 +4,9 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor.Companion.VECTOR_ATTRIBUTE_NAME
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.Predicate
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
+import org.vitrivr.engine.core.model.query.proximity.ProximityPredicate
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
 import org.vitrivr.engine.database.pgvector.*
@@ -27,21 +28,21 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, con
      *
      * @param query The [Query] to execute.
      */
-    override fun query(query: Query): Sequence<VectorDescriptor<*, *>> = when (query) {
-        is ProximityQuery<*> -> queryProximity(query)
+    override fun query(query: Query): Sequence<VectorDescriptor<*, *>> = when (val predicate = query.predicate) {
+        is ProximityPredicate<*> -> queryProximity(predicate)
         else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by VectorDescriptorReader.")
     }
 
     /**
-     * Returns a [Sequence] of all [Retrieved]s that match the given [Query].
+     * Returns a [Sequence] of all [Retrieved]s that match the given [Predicate].
      *
      * Implicitly, this methods executes a [query] and then JOINS the result with the [Retrieved]s.
      *
      * @param query The [Query] that should be executed.
      * @return [Sequence] of [Retrieved].
      */
-    override fun queryAndJoin(query: Query): Sequence<Retrieved> = when (query) {
-        is ProximityQuery<*> -> queryAndJoinProximity(query)
+    override fun queryAndJoin(query: Query): Sequence<Retrieved> = when (val predicate = query.predicate) {
+        is ProximityPredicate<*> -> queryAndJoinProximity(predicate)
         else -> super.queryAndJoin(query)
     }
 
@@ -90,12 +91,12 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, con
     }
 
     /**
-     * Executes a [ProximityQuery] and returns a [Sequence] of [VectorDescriptor]s.
+     * Executes a [ProximityPredicate] and returns a [Sequence] of [VectorDescriptor]s.
      *
-     * @param query The [ProximityQuery] to execute.
+     * @param query The [ProximityPredicate] to execute.
      * @return [Sequence] of [VectorDescriptor]s.
      */
-    private fun queryProximity(query: ProximityQuery<*>): Sequence<VectorDescriptor<*, *>> = sequence {
+    private fun queryProximity(query: ProximityPredicate<*>): Sequence<VectorDescriptor<*, *>> = sequence {
         val statement =
             "SELECT $DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $VECTOR_ATTRIBUTE_NAME, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME FROM \"${tableName.lowercase()}\" ORDER BY $DISTANCE_COLUMN_NAME ${query.order} LIMIT ${query.k}"
         this@VectorDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
@@ -109,12 +110,12 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, con
     }
 
     /**
-     * Executes a [ProximityQuery] and returns a [Sequence] of [VectorDescriptor]s.
+     * Executes a [ProximityPredicate] and returns a [Sequence] of [VectorDescriptor]s.
      *
-     * @param query The [ProximityQuery] to execute.
+     * @param query The [ProximityPredicate] to execute.
      * @return [Sequence] of [VectorDescriptor]s.
      */
-    private fun queryAndJoinProximity(query: ProximityQuery<*>): Sequence<Retrieved> {
+    private fun queryAndJoinProximity(query: ProximityPredicate<*>): Sequence<Retrieved> {
         val descriptors = mutableListOf<Pair<VectorDescriptor<*, *>, Float>>()
         val statement =
             "SELECT $DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $VECTOR_ATTRIBUTE_NAME, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME FROM \"${tableName.lowercase()}\" ORDER BY $DISTANCE_COLUMN_NAME ${query.order} LIMIT ${query.k}"

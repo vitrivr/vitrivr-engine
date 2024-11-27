@@ -3,8 +3,10 @@ package org.vitrivr.engine.query.parsing
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
-import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
+import org.vitrivr.engine.core.model.query.basics.ComparisonOperator.*
+import org.vitrivr.engine.core.model.query.bool.Comparison
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
@@ -95,7 +97,7 @@ class QueryParser(val schema: Schema) {
             is VectorInputData -> field.getRetrieverForDescriptor(FloatVectorDescriptor(vector = Value.FloatVector(input.data.toFloatArray())), description.context)
             else -> {
                 /* Is this a boolean sub-field query ? */
-                if(fieldAndAttributeName.second != null && input.comparison != null){
+                if (fieldAndAttributeName.second != null && input.comparison != null) {
                     /* yes */
                     val subfield =
                         field.analyser.prototype(field).layout().find { it.name == fieldAndAttributeName.second } ?: throw IllegalArgumentException("Field '${field.fieldName}' does not have a subfield with name '${fieldAndAttributeName.second}'")
@@ -127,10 +129,23 @@ class QueryParser(val schema: Schema) {
                         else -> throw UnsupportedOperationException("Subfield query for $input is currently not supported")
                     }
                     val limit = description.context.getProperty(operatorName, "limit")?.toLong() ?: Long.MAX_VALUE
-                    field.getRetrieverForQuery(
-                        SimpleBooleanQuery(value, ComparisonOperator.fromString(input.comparison!!), fieldAndAttributeName.second, limit),
-                        description.context)
-                }else{
+                    val operator = when (ComparisonOperator.fromString(input.comparison?.uppercase()!!)) {
+                        EQ -> Comparison.Equals(field, fieldAndAttributeName.second, value)
+                        NEQ -> Comparison.NotEquals(field, fieldAndAttributeName.second, value)
+                        LE -> Comparison.Less(field, fieldAndAttributeName.second, value)
+                        GR -> Comparison.Greater(field, fieldAndAttributeName.second, value)
+                        LEQ -> Comparison.LessEquals(field, fieldAndAttributeName.second, value)
+                        GEQ -> Comparison.GreaterEquals(field, fieldAndAttributeName.second, value)
+                        LIKE -> {
+                            if (value is Value.String) {
+                                Comparison.Like(field, fieldAndAttributeName.second, value)
+                            } else {
+                                throw IllegalArgumentException("LIKE operator can only be used with String or Text values.")
+                            }
+                        }
+                    }
+                    field.getRetrieverForQuery(Query(operator, limit), description.context)
+                } else {
                     /* no */
                     field.getRetrieverForContent(content.computeIfAbsent(operation.input) { input.toContent() }, description.context)
                 }

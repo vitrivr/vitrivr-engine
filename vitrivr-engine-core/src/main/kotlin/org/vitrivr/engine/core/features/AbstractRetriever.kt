@@ -10,6 +10,7 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.Predicate
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 
@@ -22,7 +23,7 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
  * @see [AbstractRetriever]
  *
  * @author Rahel Arnold
- * @version 1.0.1
+ * @version 1.1.0
  */
 abstract class AbstractRetriever<C : ContentElement<*>, D : Descriptor<*>>(override val field: Schema.Field<C, D>, val query: Query, val context: QueryContext) : Retriever<C, D> {
 
@@ -33,7 +34,7 @@ abstract class AbstractRetriever<C : ContentElement<*>, D : Descriptor<*>>(overr
     protected val logger: KLogger = KotlinLogging.logger {}
 
     /**
-     * Simplest implementation of the retrieval logic simply hand the [Query] to the [DescriptorReader] and emit the results.
+     * Simplest implementation of the retrieval logic simply hand the [Predicate] to the [DescriptorReader] and emit the results.
      *
      * @param scope The [CoroutineScope] to execute the resulting [Flow] in.
      */

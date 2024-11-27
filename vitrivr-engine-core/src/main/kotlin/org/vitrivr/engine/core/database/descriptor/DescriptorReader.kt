@@ -5,13 +5,14 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.Predicate
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 
 /**
- * A [DescriptorReader] is an extension of a [Reader], that allows the execution of [Descriptor] specific [Query] objects.
+ * A [DescriptorReader] is an extension of a [Reader], that allows the execution of [Descriptor] specific [Predicate] objects.
  *
  * The [DescriptorReader] acts as a shim between the data base layer and vitrivr's data- and query model.
  *
@@ -65,7 +66,7 @@ interface DescriptorReader<D : Descriptor<*>> : Reader<D> {
     fun getAllForRetrievable(retrievableIds: Iterable<RetrievableId>): Sequence<D>
 
     /**
-     * Returns a [Sequence] of all [Descriptor]s [D]s that match the given [Query].
+     * Returns a [Sequence] of all [Descriptor]s [D]s that match the given [Predicate].
      *
      * @param query The [Query] that should be executed.
      * @return [Sequence] of [D].
@@ -73,7 +74,7 @@ interface DescriptorReader<D : Descriptor<*>> : Reader<D> {
     fun query(query: Query): Sequence<D>
 
     /**
-     * Returns a [Sequence] of all [Retrieved]s that match the given [Query].
+     * Returns a [Sequence] of all [Retrieved]s that match the given [Predicate].
      *
      * Implicitly, this methods executes a [query] and then JOINS the result with the [Retrieved]s.
      *

@@ -4,7 +4,7 @@ import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.basics.SortOrder
-import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
+import org.vitrivr.engine.core.model.query.proximity.ProximityPredicate
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
 import org.vitrivr.engine.core.model.types.Value
@@ -60,18 +60,18 @@ class VectorJsonlReader(
         }
     }
 
-    override fun query(query: Query): Sequence<VectorDescriptor<*, *>> = when (query) {
-        is ProximityQuery<*> -> queryProximity(query)
-        else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by this reader.")
+    override fun query(query: Query): Sequence<VectorDescriptor<*, *>> = when (val predicate = query.predicate) {
+        is ProximityPredicate<*> -> queryProximity(predicate)
+        else -> throw UnsupportedOperationException("Query of type ${query::class} is not supported by this reader.")
     }
 
-    override fun queryAndJoin(query: Query): Sequence<Retrieved> = when (query) {
-        is ProximityQuery<*> -> queryAndJoinProximity(query)
-        else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by this reader.")
+    override fun queryAndJoin(query: Query): Sequence<Retrieved> = when (val predicate = query.predicate) {
+        is ProximityPredicate<*> -> queryAndJoinProximity(predicate)
+        else -> throw UnsupportedOperationException("Query of type ${query::class} is not supported by this reader.")
     }
 
 
-    private fun queryAndJoinProximity(query: ProximityQuery<*>): Sequence<Retrieved> {
+    private fun queryAndJoinProximity(query: ProximityPredicate<*>): Sequence<Retrieved> {
         val queue = knn(query)
 
         val ids = queue.mapNotNull { it.first.retrievableId }
@@ -87,11 +87,11 @@ class VectorJsonlReader(
 
     }
 
-    private fun queryProximity(query: ProximityQuery<*>): Sequence<VectorDescriptor<*, *>> =
+    private fun queryProximity(query: ProximityPredicate<*>): Sequence<VectorDescriptor<*, *>> =
         knn(query).asSequence().map { it.first }
 
 
-    private fun knn(query: ProximityQuery<*>): FixedSizePriorityQueue<Pair<VectorDescriptor<*, *>, Float>> {
+    private fun knn(query: ProximityPredicate<*>): FixedSizePriorityQueue<Pair<VectorDescriptor<*, *>, Float>> {
 
         val queue = FixedSizePriorityQueue(query.k.toInt(),
             when (query.order) {
@@ -114,7 +114,7 @@ class VectorJsonlReader(
 
     }
 
-    private fun distance(query: ProximityQuery<*>, vector: Value.Vector<*>): Float {
+    private fun distance(query: ProximityPredicate<*>, vector: Value.Vector<*>): Float {
         return when (query.value) {
             is Value.FloatVector -> query.distance(query.value as Value.FloatVector, vector as Value.FloatVector)
             is Value.DoubleVector -> query.distance(

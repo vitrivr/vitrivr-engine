@@ -18,7 +18,7 @@ import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
+import org.vitrivr.engine.core.model.query.proximity.ProximityPredicate
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
@@ -80,12 +80,7 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
      *
      * @return A new [DenseRetriever] instance for this [DenseEmbedding]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, FloatVectorDescriptor> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
-        @Suppress("UNCHECKED_CAST")
-        return DenseRetriever(field, query as ProximityQuery<Value.FloatVector>, context, BoundedCorrespondence(0.0f, 2.0f))
-    }
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, query: Query, context: QueryContext) = DenseRetriever(field, query, context, BoundedCorrespondence(0.0f, 2.0f))
 
     /**
      * Generates and returns a new [DenseRetriever] instance for this [DenseEmbedding].
@@ -114,8 +109,9 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
         if (vector == null) {
             throw IllegalStateException("Failed to embed provided content.")
         }
+        val predicate = ProximityPredicate(field = field, value = vector, k = k, fetchVector = fetchVector)
 
         /* Return retriever. */
-        return this.newRetrieverForQuery(field, ProximityQuery(value = vector, k = k, fetchVector = fetchVector), context)
+        return this.newRetrieverForQuery(field, Query(predicate), context)
     }
 }

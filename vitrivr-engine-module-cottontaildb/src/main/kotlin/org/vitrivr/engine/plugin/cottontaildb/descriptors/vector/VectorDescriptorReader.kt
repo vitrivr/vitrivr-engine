@@ -7,7 +7,7 @@ import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor.Companion.VECTOR_ATTRIBUTE_NAME
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
+import org.vitrivr.engine.core.model.query.proximity.ProximityPredicate
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
 import org.vitrivr.engine.core.model.types.Value
@@ -30,8 +30,8 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*,
      *
      * @param query The [Query] to execute.
      */
-    override fun query(query: Query): Sequence<VectorDescriptor<*, *>> = when (query) {
-        is ProximityQuery<*> -> queryProximity(query)
+    override fun query(query: Query): Sequence<VectorDescriptor<*, *>> = when (val predicate = query.predicate) {
+        is ProximityPredicate<*> -> queryProximity(predicate)
         else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by FloatVectorDescriptorReader.")
     }
 
@@ -43,8 +43,8 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*,
      * @param query The [Query] that should be executed.
      * @return [Sequence] of [Retrieved].
      */
-    override fun queryAndJoin(query: Query): Sequence<Retrieved> = when (query) {
-        is ProximityQuery<*> -> queryAndJoinProximity(query)
+    override fun queryAndJoin(query: Query): Sequence<Retrieved> = when (val predicate = query.predicate) {
+        is ProximityPredicate<*> -> queryAndJoinProximity(predicate)
         else -> super.queryAndJoin(query)
     }
 
@@ -93,12 +93,12 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*,
     }
 
     /**
-     * Executes a [ProximityQuery] and returns a [Sequence] of [VectorDescriptor]s.
+     * Executes a [ProximityPredicate] and returns a [Sequence] of [VectorDescriptor]s.
      *
-     * @param query The [ProximityQuery] to execute.
+     * @param query The [ProximityPredicate] to execute.
      * @return [Sequence] of [VectorDescriptor]s.
      */
-    private fun queryAndJoinProximity(query: ProximityQuery<*>): Sequence<Retrieved> {
+    private fun queryAndJoinProximity(query: ProximityPredicate<*>): Sequence<Retrieved> {
         val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
             .select(VECTOR_ATTRIBUTE_NAME)
             .select(DESCRIPTOR_ID_COLUMN_NAME)
@@ -136,12 +136,12 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*,
     }
 
     /**
-     * Executes a [ProximityQuery] and returns a [Sequence] of [VectorDescriptor]s.
+     * Executes a [ProximityPredicate] and returns a [Sequence] of [VectorDescriptor]s.
      *
-     * @param query The [ProximityQuery] to execute.
+     * @param query The [ProximityPredicate] to execute.
      * @return [Sequence] of [VectorDescriptor]s.
      */
-    private fun queryProximity(query: ProximityQuery<*>): Sequence<VectorDescriptor<*, *>> {
+    private fun queryProximity(query: ProximityPredicate<*>): Sequence<VectorDescriptor<*, *>> {
         val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
             .select(RETRIEVABLE_ID_COLUMN_NAME)
             .distance(

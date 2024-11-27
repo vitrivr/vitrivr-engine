@@ -6,8 +6,8 @@ import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
-import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
+import org.vitrivr.engine.core.model.query.bool.Comparison
+import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextPredicate
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.database.pgvector.*
@@ -29,9 +29,9 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, con
      * @param query The [Query] to execute.
      * @return [Sequence] of [StructDescriptor]s that match the query.
      */
-    override fun query(query: Query): Sequence<ScalarDescriptor<*, *>> = when (query) {
-        is SimpleFulltextQuery -> queryFulltext(query)
-        is SimpleBooleanQuery<*> -> queryBoolean(query)
+    override fun query(query: Query): Sequence<ScalarDescriptor<*, *>> = when (val predicate = query.predicate) {
+        is SimpleFulltextPredicate -> queryFulltext(predicate)
+        is Comparison<*> -> queryBoolean(predicate)
         else -> throw IllegalArgumentException("Query of type ${query::class} is not supported by ScalarDescriptorReader.")
     }
 
@@ -58,12 +58,12 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, con
     }
 
     /**
-     * Executes a [SimpleFulltextQuery] and returns a [Sequence] of [ScalarDescriptor]s.
+     * Executes a [SimpleFulltextPredicate] and returns a [Sequence] of [ScalarDescriptor]s.
      *
-     * @param query The [SimpleFulltextQuery] to execute.
+     * @param query The [SimpleFulltextPredicate] to execute.
      * @return [Sequence] of [ScalarDescriptor]s.
      */
-    private fun queryFulltext(query: SimpleFulltextQuery): Sequence<ScalarDescriptor<*, *>> {
+    private fun queryFulltext(query: SimpleFulltextPredicate): Sequence<ScalarDescriptor<*, *>> {
         val queryString = query.value.value.split(" ").map { "$it:*" }.joinToString(" | ") { it }
         val statement = "SELECT * FROM \"${tableName.lowercase()}\" WHERE ${query.attributeName} @@ to_tsquery(?)"
         return sequence {
@@ -79,16 +79,16 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, con
     }
 
     /**
-     * Executes a [SimpleBooleanQuery] and returns a [Sequence] of [ScalarDescriptor]s.
+     * Executes a [Comparison] and returns a [Sequence] of [ScalarDescriptor]s.
      *
-     * @param query The [SimpleBooleanQuery] to execute.
+     * @param query The [Comparison] to execute.
      * @return [Sequence] of [ScalarDescriptor]s.
      */
-    private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<ScalarDescriptor<*, *>> {
-        val statement = "SELECT * FROM \"$tableName\" WHERE $VALUE_ATTRIBUTE_NAME ${query.comparison.toSql()} ?"
+    private fun queryBoolean(query: Comparison<*>): Sequence<ScalarDescriptor<*, *>> {
+        val statement = "SELECT * FROM \"$tableName\" WHERE ${query.toWhere()}"
         return sequence {
             this@ScalarDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
-                stmt.setValue(1, query.value)
+                stmt.setValueForComparison(1, query)
                 stmt.executeQuery().use { result ->
                     while (result.next()) {
                         yield(rowToDescriptor(result))

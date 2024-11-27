@@ -5,14 +5,11 @@ import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
-import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.retrieve.Retriever
 
 /**
  * Implementation of the [FileSourceMetadata] [Analyser], which derives metadata information from file-based retrievables
@@ -63,11 +60,7 @@ class FileSourceMetadata : Analyser<ContentElement<*>, FileSourceMetadataDescrip
      *
      * @return [FileSourceMetadataRetriever]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, FileSourceMetadataDescriptor> {
-        require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
-        require(query is SimpleBooleanQuery<*>) { "Query is not a Query." }
-        return FileSourceMetadataRetriever(field, query, context)
-    }
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, query: Query, context: QueryContext) = FileSourceMetadataRetriever(field, query, context)
 
     /**
      * [FileSourceMetadataRetriever] Cannot derive a [FileSourceMetadataRetriever] from content.

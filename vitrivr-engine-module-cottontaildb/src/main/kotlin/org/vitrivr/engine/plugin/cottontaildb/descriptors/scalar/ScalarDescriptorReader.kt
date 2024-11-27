@@ -2,6 +2,7 @@ package org.vitrivr.engine.plugin.cottontaildb.descriptors.scalar
 
 import org.vitrivr.cottontail.client.language.basics.expression.Column
 import org.vitrivr.cottontail.client.language.basics.expression.Literal
+import org.vitrivr.cottontail.client.language.basics.expression.ValueList
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.core.tuple.Tuple
 import org.vitrivr.engine.core.model.descriptor.scalar.*
@@ -9,8 +10,8 @@ import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor.Companio
 import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor.Companion.VECTOR_ATTRIBUTE_NAME
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
-import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
+import org.vitrivr.engine.core.model.query.bool.Comparison
+import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextPredicate
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.model.types.toValue
@@ -21,7 +22,7 @@ import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorRead
  * An [AbstractDescriptorReader] for [ScalarDescriptor]s.
  *
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.2.0
  */
 class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, connection: CottontailConnection) : AbstractDescriptorReader<ScalarDescriptor<*, *>>(field, connection) {
 
@@ -32,11 +33,24 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, con
      * Executes the provided [Query] and returns a [Sequence] of [Retrieved]s that match it.
      *
      * @param query The [Query] to execute.
+     * @return [Sequence] of [ScalarDescriptor]s that match the query.
      */
-    override fun query(query: Query): Sequence<ScalarDescriptor<*, *>> = when (query) {
-        is SimpleFulltextQuery -> this.queryFulltext(query)
-        is SimpleBooleanQuery<*> -> this.queryBoolean(query)
-        else -> throw UnsupportedOperationException("The provided query type ${query::class.simpleName} is not supported by this reader.")
+    override fun query(query: Query): Sequence<ScalarDescriptor<*, *>> {
+        val cottontailQuery = when (val predicate = query.predicate) {
+            is SimpleFulltextPredicate -> this.queryFulltext(predicate)
+            is Comparison<*> -> this.queryBoolean(predicate)
+            else -> throw UnsupportedOperationException("The provided query type ${query::class.simpleName} is not supported by this reader.")
+        }
+
+        /* Apply limit (if defined). */
+        if (query.limit < Long.MAX_VALUE) {
+            cottontailQuery.limit(query.limit)
+        }
+
+        /* Execute query. */
+        return this.connection.client.query(cottontailQuery).asSequence().map {
+            this.tupleToDescriptor(it)
+        }
     }
 
     /**
@@ -62,44 +76,36 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, con
     }
 
     /**
-     * Executes a [SimpleFulltextQuery] and returns a [Sequence] of [ScalarDescriptor]s.
+     * Prepares a [SimpleFulltextPredicate] and returns a [org.vitrivr.cottontail.client.language.dql.Query].
      *
-     * @param query The [SimpleFulltextQuery] to execute.
-     * @return [Sequence] of [ScalarDescriptor]s.
+     * @param query The [SimpleFulltextPredicate] to execute.
+     * @return  [org.vitrivr.cottontail.client.language.dql.Query]
      */
-    private fun queryFulltext(query: SimpleFulltextQuery): Sequence<ScalarDescriptor<*, *>> {
+    private fun queryFulltext(query: SimpleFulltextPredicate): org.vitrivr.cottontail.client.language.dql.Query {
         val queryValue = query.value.value.split(" ").joinToString(" OR ", "(", ")") { "$it*" }
-        val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
+        return org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
             .select("*")
             .fulltext(VALUE_ATTRIBUTE_NAME, queryValue, "score")
-
-        if (query.limit < Long.MAX_VALUE) {
-            cottontailQuery.limit(query.limit)
-        }
-
-        /* Execute query. */
-        return this.connection.client.query(cottontailQuery).asSequence().map {
-            this.tupleToDescriptor(it)
-        }
     }
 
     /**
-     * Executes a [SimpleBooleanQuery] and returns a [Sequence] of [ScalarDescriptor]s.
+     * Prepares a [Comparison] and returns a [org.vitrivr.cottontail.client.language.dql.Query].
      *
-     * @param query The [SimpleBooleanQuery] to execute.
-     * @return [Sequence] of [ScalarDescriptor]s.
+     * @param query The [Comparison] to execute.
+     * @return [org.vitrivr.cottontail.client.language.dql.Query]
      */
-    private fun queryBoolean(query: SimpleBooleanQuery<*>): Sequence<ScalarDescriptor<*, *>> {
+    private fun queryBoolean(query: Comparison<*>): org.vitrivr.cottontail.client.language.dql.Query {
         /* Prepare query. */
         val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(this.entityName)
             .select(RETRIEVABLE_ID_COLUMN_NAME)
             .select(DESCRIPTOR_ID_COLUMN_NAME)
             .select(VALUE_ATTRIBUTE_NAME)
-            .where(Compare(Column(this.entityName.column(VALUE_ATTRIBUTE_NAME)), query.operator(), Literal(query.value.toCottontailValue())))
 
-        /* Execute query. */
-        return this.connection.client.query(cottontailQuery).asSequence().map {
-            this.tupleToDescriptor(it)
+        /* Apply where-clause. */
+        return if (query is Comparison.In<*>) {
+            cottontailQuery.where(Compare(Column(this.entityName.column(VALUE_ATTRIBUTE_NAME)), Compare.Operator.IN, ValueList(query.values.map { it.toCottontailValue() }.toTypedArray())))
+        } else {
+            cottontailQuery.where(Compare(Column(this.entityName.column(VALUE_ATTRIBUTE_NAME)), query.operator(), Literal(query.toCottontailValue())))
         }
     }
 }

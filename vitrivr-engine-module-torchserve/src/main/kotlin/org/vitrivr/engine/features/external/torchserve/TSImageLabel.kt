@@ -11,8 +11,7 @@ import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
-import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
+import org.vitrivr.engine.core.model.query.bool.Comparison
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Retriever
@@ -28,7 +27,7 @@ import kotlin.reflect.KClass
  * A [TorchServe] implementation for image labelling.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
 
@@ -56,10 +55,7 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      *
      * @return A new [StructBooleanRetriever] instance for this [TSImageLabel]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, LabelDescriptor>, query: Query, context: QueryContext): StructBooleanRetriever<ImageContent, LabelDescriptor> {
-        require(query is SimpleBooleanQuery<*>) { "TSImageLabel only supports boolean queries." }
-        return StructBooleanRetriever(field, query, context)
-    }
+    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, LabelDescriptor>, query: Query, context: QueryContext) = StructBooleanRetriever(field, query, context)
 
     /**
      * Generates and returns a new [StructBooleanRetriever] instance for this [TSImageLabel].
@@ -69,8 +65,7 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      * @param context The [QueryContext] to use with the [Retriever]
      */
     override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, LabelDescriptor>, descriptors: Collection<LabelDescriptor>, context: QueryContext): StructBooleanRetriever<ImageContent, LabelDescriptor> {
-        val values = descriptors.map { it.label }
-        val query = SimpleBooleanQuery(values.first(), ComparisonOperator.EQ, LabelDescriptor.LABEL_FIELD_NAME) /* TODO: An IN query would make more sense here. */
+        val query = Query(Comparison.In(field, LabelDescriptor.LABEL_FIELD_NAME, descriptors.map { it.label }))
         return this.newRetrieverForQuery(field, query, context)
     }
 

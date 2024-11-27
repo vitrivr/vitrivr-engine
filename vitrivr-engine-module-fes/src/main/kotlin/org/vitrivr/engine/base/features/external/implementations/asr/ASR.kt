@@ -11,7 +11,7 @@ import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
+import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextPredicate
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
@@ -23,7 +23,7 @@ import java.util.*
  *
  * @author Ralph Gasser
  * @author Fynn Faber
- * @version 1.1.0
+ * @version 1.2.0
  */
 class ASR : ExternalFesAnalyser<AudioContent, TextDescriptor>() {
     override val contentClasses = setOf(AudioContent::class)
@@ -68,11 +68,7 @@ class ASR : ExternalFesAnalyser<AudioContent, TextDescriptor>() {
      *
      * @return A new [FulltextRetriever] instance for this [ExternalFesAnalyser]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<AudioContent, TextDescriptor>, query: Query, context: QueryContext): Retriever<AudioContent, TextDescriptor> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        require(query is SimpleFulltextQuery) { "The query is not a fulltext query. This is a programmer's error!" }
-        return FulltextRetriever(field, query, context)
-    }
+    override fun newRetrieverForQuery(field: Schema.Field<AudioContent, TextDescriptor>, query: Query, context: QueryContext) = FulltextRetriever(field, query, context)
 
     /**
      * Generates and returns a new [FulltextRetriever] instance for this [ASR].
@@ -83,11 +79,10 @@ class ASR : ExternalFesAnalyser<AudioContent, TextDescriptor>() {
      * @return [FulltextRetriever]
      */
     override fun newRetrieverForDescriptors(field: Schema.Field<AudioContent, TextDescriptor>, descriptors: Collection<TextDescriptor>, context: QueryContext): Retriever<AudioContent, TextDescriptor> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-
         /* Prepare query parameters and return retriever. */
         val limit = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        return this.newRetrieverForQuery(field, SimpleFulltextQuery(value = descriptors.first().value, limit = limit), context)
+        val predicate = SimpleFulltextPredicate(field = field, value = descriptors.first().value)
+        return this.newRetrieverForQuery(field, Query(predicate, limit), context)
     }
 
     /**
@@ -99,11 +94,10 @@ class ASR : ExternalFesAnalyser<AudioContent, TextDescriptor>() {
      * @return [FulltextRetriever]
      */
     override fun newRetrieverForContent(field: Schema.Field<AudioContent, TextDescriptor>, content: Collection<AudioContent>, context: QueryContext): Retriever<AudioContent, TextDescriptor> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-
         /* Prepare query parameters and return retriever. */
         val text = content.filterIsInstance<TextContent>().firstOrNull() ?: throw IllegalArgumentException("No text content found in the provided content.")
         val limit = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        return this.newRetrieverForQuery(field, SimpleFulltextQuery(value = Value.Text(text.content), limit = limit), context)
+        val predicate = SimpleFulltextPredicate(field = field, value = Value.Text(text.content))
+        return this.newRetrieverForQuery(field, Query(predicate, limit), context)
     }
 }

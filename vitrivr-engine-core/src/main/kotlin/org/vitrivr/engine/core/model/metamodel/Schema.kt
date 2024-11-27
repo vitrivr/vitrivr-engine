@@ -13,6 +13,7 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.query.Predicate
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
@@ -184,9 +185,9 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
         fun getExtractor(input: Operator<Retrievable>, context: IndexContext): Extractor<C, D> = this.analyser.newExtractor(this, input, context)
 
         /**
-         * Returns a [Retriever] instance for this [Schema.Field] and the provided [Query].
+         * Returns a [Retriever] instance for this [Schema.Field] and the provided [Predicate].
          *
-         * @param query The [Query](s) that should be used with the [Retriever].
+         * @param query The [Query] that should be used with the [Retriever].
          * @param context The [QueryContext] to use with the [Retriever].
          * @return [Retriever] instance.
          */

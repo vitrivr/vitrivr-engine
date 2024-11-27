@@ -4,6 +4,7 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.Predicate
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
@@ -15,16 +16,16 @@ import java.util.*
  * An abstract implementation of a [DescriptorReader] for Cottontail DB.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val field: Schema.Field<*, D>, override val connection: PgVectorConnection) : DescriptorReader<D> {
 
     /** The name of the table backing this [AbstractDescriptorReader]. */
-    protected val tableName: String = "${DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName}"
+    val tableName: String = "${DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName}"
 
 
     /** The [Descriptor] prototype handled by this [AbstractDescriptorReader]. */
-    protected val prototype: D= this.field.analyser.prototype(this.field)
+    protected val prototype: D = this.field.analyser.prototype(this.field)
 
     /**
      * Returns a single [Descriptor]s of type [D] that has the provided [DescriptorId].
@@ -60,7 +61,7 @@ abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val fi
         try {
             this@AbstractDescriptorReader.connection.jdbc.prepareStatement("SELECT * FROM $tableName WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?").use { stmt ->
                 stmt.setObject(1, retrievableId)
-                val result = stmt.executeQuery().use { result ->
+                stmt.executeQuery().use { result ->
                     while (result.next()) {
                         yield(this@AbstractDescriptorReader.rowToDescriptor(result))
                     }
@@ -175,7 +176,7 @@ abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val fi
     }
 
     /**
-     * Returns a [Sequence] of all [Retrieved]s that match the given [Query].
+     * Returns a [Sequence] of all [Retrieved]s that match the given [Predicate].
      *
      * Implicitly, this methods executes a [query] and then JOINS the result with the [Retrieved]s.
      *

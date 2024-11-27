@@ -6,10 +6,8 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.struct.AnyMapStructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
-import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
 import org.vitrivr.engine.core.model.types.Type
@@ -55,13 +53,15 @@ class ExifMetadata : Analyser<ContentElement<*>, AnyMapStructDescriptor> {
     override fun newExtractor(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, input: Operator<Retrievable>, context: IndexContext) = ExifMetadataExtractor(input, this, context[field.fieldName, CONTENT_AUTHORS_KEY]?.split(",")?.toSet(), field)
 
     /**
+     * Generates and returns a new [ExifMetadataExtractor] instance for this [ExifMetadata].
      *
+     * @param field The [Schema.Field] to create an [Retriever] for.
+     * @param query The [Query] that acts as input to the new [Retriever].
+     * @param context The [QueryContext] to use with the [Retriever].
+     *
+     * @return A new [ExifMetadataRetriever] instance for this [Analyser]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, AnyMapStructDescriptor> {
-        require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
-        require(query is SimpleBooleanQuery<*>) { "Query is not a Query." }
-        return ExifMetadataRetriever(field, query, context)
-    }
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, query: Query, context: QueryContext) = ExifMetadataRetriever(field, query, context)
 
     /**
      *

@@ -9,10 +9,8 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
-import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.bool.BooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
 import org.vitrivr.engine.core.operators.Operator
@@ -67,11 +65,7 @@ class VideoSourceMetadata : Analyser<ContentElement<*>, VideoSourceMetadataDescr
      *
      * @return [VideoSourceMetadataRetriever]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>, query: Query, context: QueryContext): VideoSourceMetadataRetriever {
-        require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
-        require(query is BooleanQuery) { "Query is not a Boolean query." }
-        return VideoSourceMetadataRetriever(field, query, context)
-    }
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>, query: Query, context: QueryContext) = VideoSourceMetadataRetriever(field, query, context)
 
     /**
      * [FileSourceMetadataRetriever] Cannot derive a [VideoSourceMetadataRetriever] from content.
