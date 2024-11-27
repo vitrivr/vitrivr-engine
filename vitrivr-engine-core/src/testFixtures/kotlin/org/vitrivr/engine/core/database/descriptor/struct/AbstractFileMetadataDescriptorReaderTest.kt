@@ -126,7 +126,7 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
         this.initialize(writer, random)
 
         /* Prepare and execute query. */
-        val predicate = Comparison.Like(this.field, "size", Value.String("%.jpg"))
+        val predicate = Comparison.Like(this.field, "path", Value.String("%.jpg"))
         val query = Query(predicate)
 
         /* Check results. */

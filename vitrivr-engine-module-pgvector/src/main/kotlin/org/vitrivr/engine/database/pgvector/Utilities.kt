@@ -20,7 +20,7 @@ import java.sql.SQLType
 /**
  * Converts a [Type] to a [SQLType].
  */
-internal fun Type.toSql(): Int = when (this) {
+internal fun Type.toSql(): JDBCType = when (this) {
     Type.Boolean -> JDBCType.BOOLEAN
     Type.Byte -> JDBCType.TINYINT
     Type.Short -> JDBCType.SMALLINT
@@ -37,7 +37,7 @@ internal fun Type.toSql(): Int = when (this) {
     is Type.FloatVector -> JDBCType.ARRAY
     is Type.IntVector -> JDBCType.ARRAY
     is Type.LongVector -> JDBCType.ARRAY
-}.vendorTypeNumber
+}
 
 /**
  * Converts a [Distance] to a pgVector distance operator.
@@ -120,6 +120,6 @@ internal fun Comparison<*>.toTerm(): String {
         is Comparison.Less<*> -> "$tableName.$fieldName < ?"
         is Comparison.LessEquals<*> -> "$tableName.$fieldName <= ?"
         is Comparison.Like<*> -> "$tableName.$fieldName LIKE ?"
-        is Comparison.In<*> -> "$tableName.$fieldName ANY(?)"
+        is Comparison.In<*> -> "$tableName.$fieldName = ANY(?)"
     }
 }
