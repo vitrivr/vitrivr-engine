@@ -7,7 +7,6 @@ import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.core.tuple.Tuple
 import org.vitrivr.cottontail.core.types.Types
 import org.vitrivr.engine.core.model.descriptor.AttributeName
-import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor.Companion.VALUE_ATTRIBUTE_NAME
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -136,9 +135,9 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor<*>>, connec
 
         /* Apply where-clause. */
         return if (query is Comparison.In<*>) {
-            cottontailQuery.where(Compare(Column(this.entityName.column(VALUE_ATTRIBUTE_NAME)), Compare.Operator.IN, ValueList(query.values.map { it.toCottontailValue() }.toTypedArray())))
+            cottontailQuery.where(Compare(Column(this.entityName.column(query.attributeName!!)), Compare.Operator.IN, ValueList(query.values.map { it.toCottontailValue() }.toTypedArray())))
         } else {
-            cottontailQuery.where(Compare(Column(this.entityName.column(VALUE_ATTRIBUTE_NAME)), query.operator(), Literal(query.toCottontailValue())))
+            cottontailQuery.where(Compare(Column(this.entityName.column(query.attributeName!!)), query.operator(), Literal(query.toCottontailValue())))
         }
     }
 }
