@@ -89,6 +89,31 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
     }
 
     /**
+     * Tests for equals comparison.
+     */
+    @Test
+    fun testBooleanQueryIn() {
+        val writer = this.testConnection.getDescriptorWriter(this.field)
+        val reader = this.testConnection.getDescriptorReader(this.field)
+        val random = SplittableRandom()
+
+        /* Generate and store test data. */
+        val descriptors = this.initialize(writer, random)
+        val d = descriptors.filter { random.nextBoolean() }.map { it.path }
+
+        /* Prepare and execute query. */
+        val predicate = Comparison.In(this.field, "path", d)
+        val query = Query(predicate)
+
+        /* Check results. */
+        val result = reader.query(query).toList()
+        Assertions.assertTrue(result.isNotEmpty())
+        for (r in result) {
+            Assertions.assertTrue(d.contains(r.path))
+        }
+    }
+
+    /**
      * Tests for LIKE comparison.
      */
     @Test
