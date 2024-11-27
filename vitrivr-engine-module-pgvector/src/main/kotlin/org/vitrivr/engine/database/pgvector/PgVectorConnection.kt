@@ -111,7 +111,7 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
     /**
      * Returns the human-readable description of this [PgVectorConnection].
      */
-    override fun description(): String = this.jdbc.toString()
+    override fun description(): String = this.jdbc.metaData.url
 
     /**
      * Closes this [PgVectorConnection]

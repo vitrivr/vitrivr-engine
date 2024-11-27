@@ -50,7 +50,7 @@ class ASRExtractor : FesExtractor<AudioContent, TextDescriptor> {
 
         return retrievables.map { retrievable ->
             this.filterContent(retrievable).map {
-                flatResults[index++].also { TextDescriptor(it.id, retrievable.id, it.value, it.field) }
+                flatResults[index++].let { TextDescriptor(it.id, retrievable.id, it.value, it.field) }
             }
         }
     }

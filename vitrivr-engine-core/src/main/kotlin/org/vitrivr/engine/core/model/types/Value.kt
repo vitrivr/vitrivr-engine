@@ -10,7 +10,7 @@ import java.util.*
  * Part of the vitrivr-engine's internal type system.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 @Serializable()
 sealed interface Value<T> {
@@ -49,13 +49,14 @@ sealed interface Value<T> {
     val type: Type
 
 
-    sealed interface ScalarValue<T>: Value<T>
+    sealed interface ScalarValue<T> : Value<T>, Comparable<ScalarValue<T>>
 
     @JvmInline
     @Serializable
     value class String(override val value: kotlin.String) : ScalarValue<kotlin.String> {
         override val type: Type
             get() = Type.String
+        override fun compareTo(other: ScalarValue<kotlin.String>) = this.value.compareTo(other.value)
     }
 
     @JvmInline
@@ -63,6 +64,7 @@ sealed interface Value<T> {
     value class Text(override val value: kotlin.String) : ScalarValue<kotlin.String> {
         override val type: Type
             get() = Type.Text
+        override fun compareTo(other: ScalarValue<kotlin.String>) = this.value.compareTo(other.value)
     }
 
     @JvmInline
@@ -70,6 +72,7 @@ sealed interface Value<T> {
     value class Boolean(override val value: kotlin.Boolean) : ScalarValue<kotlin.Boolean> {
         override val type: Type
             get() = Type.Boolean
+        override fun compareTo(other: ScalarValue<kotlin.Boolean>) = this.value.compareTo(other.value)
     }
 
     @JvmInline
@@ -77,6 +80,7 @@ sealed interface Value<T> {
     value class Byte(override val value: kotlin.Byte) : ScalarValue<kotlin.Byte> {
         override val type: Type
             get() = Type.Byte
+        override fun compareTo(other: ScalarValue<kotlin.Byte>) = this.value.compareTo(other.value)
     }
 
     @JvmInline
@@ -84,6 +88,7 @@ sealed interface Value<T> {
     value class Short(override val value: kotlin.Short) : ScalarValue<kotlin.Short> {
         override val type: Type
             get() = Type.Short
+        override fun compareTo(other: ScalarValue<kotlin.Short>) = this.value.compareTo(other.value)
     }
 
     @JvmInline
@@ -91,6 +96,7 @@ sealed interface Value<T> {
     value class Int(override val value: kotlin.Int) : ScalarValue<kotlin.Int> {
         override val type: Type
             get() = Type.Int
+        override fun compareTo(other: ScalarValue<kotlin.Int>) = this.value.compareTo(other.value)
     }
 
     @JvmInline
@@ -98,6 +104,7 @@ sealed interface Value<T> {
     value class Long(override val value: kotlin.Long) : ScalarValue<kotlin.Long> {
         override val type: Type
             get() = Type.Long
+        override fun compareTo(other: ScalarValue<kotlin.Long>) = this.value.compareTo(other.value)
     }
 
     @JvmInline
@@ -105,6 +112,7 @@ sealed interface Value<T> {
     value class Float(override val value: kotlin.Float) : ScalarValue<kotlin.Float> {
         override val type: Type
             get() = Type.Float
+        override fun compareTo(other: ScalarValue<kotlin.Float>) = this.value.compareTo(other.value)
     }
 
     @JvmInline
@@ -112,6 +120,7 @@ sealed interface Value<T> {
     value class Double(override val value: kotlin.Double) : ScalarValue<kotlin.Double> {
         override val type: Type
             get() = Type.Double
+        override fun compareTo(other: ScalarValue<kotlin.Double>) = this.value.compareTo(other.value)
     }
 
     @JvmInline
@@ -119,12 +128,14 @@ sealed interface Value<T> {
     value class DateTime(override val value: Date) : ScalarValue<Date> {
         override val type: Type
             get() = Type.Datetime
+        override fun compareTo(other: ScalarValue<Date>) = this.value.compareTo(other.value)
     }
 
     @JvmInline
     value class UUIDValue(override val value: UUID) : ScalarValue<UUID> {
         override val type: Type
             get() = Type.UUID
+        override fun compareTo(other: ScalarValue<UUID>) = this.value.compareTo(other.value)
     }
 
     /**

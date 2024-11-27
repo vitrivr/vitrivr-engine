@@ -21,7 +21,7 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Ralph Gasser
  * @version 1.3.0
  */
-abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>> private constructor(
+abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>> constructor(
     final override val input: Operator<Retrievable>,
     final override val analyser: Analyser<C, D>,
     final override val field: Schema.Field<C, D>? = null,

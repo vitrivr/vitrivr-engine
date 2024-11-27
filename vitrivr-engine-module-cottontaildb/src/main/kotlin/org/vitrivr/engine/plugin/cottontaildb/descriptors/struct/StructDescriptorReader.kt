@@ -102,7 +102,9 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor<*>>, connec
         for ((name, _) in this.fieldMap) {
             cottontailQuery.select(name)
         }
-        cottontailQuery.fulltext(query.attributeName!!, query.value.value, SCORE_COLUMN_NAME)
+
+        val queryValue = query.value.value.split(" ").joinToString(" OR ", "(", ")") { "$it*" }
+        cottontailQuery.fulltext(query.attributeName!!, queryValue, SCORE_COLUMN_NAME)
         if (query.limit < Long.MAX_VALUE) {
             cottontailQuery.limit(query.limit)
         }
