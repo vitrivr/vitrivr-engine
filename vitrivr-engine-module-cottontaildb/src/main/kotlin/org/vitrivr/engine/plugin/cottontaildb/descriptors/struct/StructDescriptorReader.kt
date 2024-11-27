@@ -135,9 +135,9 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor<*>>, connec
 
         /* Apply where-clause. */
         return if (query is Comparison.In<*>) {
-            cottontailQuery.where(Compare(Column(this.entityName.column(query.attributeName!!)), Compare.Operator.IN, ValueList(query.values.map { it.toCottontailValue() }.toTypedArray())))
+            cottontailQuery.where(Compare(Column(query.attributeName!!), Compare.Operator.IN, ValueList(query.values.map { it.toCottontailValue() }.toTypedArray())))
         } else {
-            cottontailQuery.where(Compare(Column(this.entityName.column(query.attributeName!!)), query.operator(), Literal(query.toCottontailValue())))
+            cottontailQuery.where(Compare(Column(query.attributeName!!), query.operator(), Literal(query.toCottontailValue())))
         }
     }
 }
