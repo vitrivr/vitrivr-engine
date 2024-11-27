@@ -7,9 +7,7 @@ import org.vitrivr.engine.base.features.external.implementations.asr.ASRExtracto
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.fulltext.FulltextRetriever
-import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ImageContent
-import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -80,25 +78,8 @@ class OCR : ExternalFesAnalyser<ImageContent, TextDescriptor>() {
      * @return [FulltextRetriever]
      */
     override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, TextDescriptor>, descriptors: Collection<TextDescriptor>, context: QueryContext): Retriever<ImageContent, TextDescriptor> {
-        /* Prepare query parameters and return retriever. */
-        val limit = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        val predicate = SimpleFulltextPredicate(field = field, value = descriptors.first().value)
-        return this.newRetrieverForQuery(field, Query(predicate, limit), context)
-    }
-
-    /**
-     * Generates and returns a new [FulltextRetriever] instance for this [OCR].
-     *
-     * @param field The [Schema.Field] to create an [Retriever] for.
-     * @param content An array of [Content] elements to use with the [Retriever]
-     * @param context The [QueryContext] to use with the [Retriever]
-     * @return [FulltextRetriever]
-     */
-    override fun newRetrieverForContent(field: Schema.Field<ImageContent, TextDescriptor>, content: Collection<ImageContent>, context: QueryContext): FulltextRetriever<ImageContent> {
-        /* Prepare query parameters. */
-        val text = content.filterIsInstance<TextContent>().firstOrNull() ?: throw IllegalArgumentException("No text content found in the provided content.")
-        val limit = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        val predicate = SimpleFulltextPredicate(field = field, value = Value.Text(text.content))
+        val limit = context.getProperty(field.fieldName, QueryContext.LIMIT_KEY)?.toLongOrNull() ?: QueryContext.LIMIT_DEFAULT
+        val predicate = SimpleFulltextPredicate(field = field, value = descriptors.first().value) /* TODO: More complex predicates? */
         return this.newRetrieverForQuery(field, Query(predicate, limit), context)
     }
 }

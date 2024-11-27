@@ -97,8 +97,8 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
         val pollingIntervalMs = field.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull() ?: POLLINGINTERVAL_MS_PARAMETER_DEFAULT
         val retries = field.parameters[RETRIES_PARAMETER_NAME]?.toIntOrNull() ?: RETRIES_PARAMETER_DEFAULT
         val model =  field.parameters[MODEL_PARAMETER_NAME] ?: throw IllegalStateException("Model parameter not set.")
-        val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+        val k = context.getProperty(field.fieldName, QueryContext.LIMIT_KEY)?.toLongOrNull() ?: QueryContext.LIMIT_DEFAULT
+        val fetchVector = context.getProperty(field.fieldName, QueryContext.FETCH_DESCRIPTOR_KEY)?.toBooleanStrictOrNull() == true
 
         /* Generate vector for content element. */
         val vector = when (val c = content.first { it is ImageContent || it is TextContent }) {

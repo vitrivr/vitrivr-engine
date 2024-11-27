@@ -172,8 +172,8 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
 
     override fun newRetrieverForDescriptors(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): Retriever<Model3dContent, FloatVectorDescriptor> {
         /* Extract parameters from field and context. */
-        val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        val returnDescriptor = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+        val k = context.getProperty(field.fieldName, QueryContext.LIMIT_KEY)?.toLongOrNull() ?: QueryContext.LIMIT_DEFAULT
+        val returnDescriptor = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() == false
 
         /* Construct query and return retriever. */
         val predicate = ProximityPredicate(field = field, value = descriptors.first().vector, k = k, distance = Distance.EUCLIDEAN, fetchVector = returnDescriptor)

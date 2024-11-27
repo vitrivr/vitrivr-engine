@@ -46,7 +46,7 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
      * @return [LabelDescriptor]
      */
     override fun prototype(field: Schema.Field<*,*>): LabelDescriptor {
-        return LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), mapOf("label" to Value.String(""), "confidence" to Value.Float(0.0f)))
+        return LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), mapOf(LabelDescriptor.LABEL_FIELD_NAME to Value.String(""), LabelDescriptor.CONFIDENCE_FIELD_NAME to Value.Float(0.0f)))
     }
 
     /**
@@ -91,7 +91,7 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
      */
     override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, LabelDescriptor>, descriptors: Collection<LabelDescriptor>, context: QueryContext): Retriever<ImageContent, LabelDescriptor> {
         val predicate = Comparison.In(field, LabelDescriptor.LABEL_FIELD_NAME, descriptors.map { it.label })
-        val limit = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
+        val limit = context.getProperty(field.fieldName, QueryContext.LIMIT_KEY)?.toLongOrNull() ?: QueryContext.LIMIT_DEFAULT
         return newRetrieverForQuery(field, Query(predicate, limit), context)
     }
 
@@ -108,7 +108,7 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
     override fun newRetrieverForContent(field: Schema.Field<ImageContent, LabelDescriptor>, content: Collection<ImageContent>, context: QueryContext): Retriever<ImageContent, LabelDescriptor> {
         val text = content.filterIsInstance<TextContent>()
         val predicate = Comparison.In(field, LabelDescriptor.LABEL_FIELD_NAME, text.map { Value.String(it.content) })
-        val limit = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
+        val limit = context.getProperty(field.fieldName, QueryContext.LIMIT_KEY)?.toLongOrNull() ?: QueryContext.LIMIT_DEFAULT
         return newRetrieverForQuery(field, Query(predicate, limit), context)
     }
 }

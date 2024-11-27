@@ -1,5 +1,6 @@
 package org.vitrivr.engine.query.parsing
 
+import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -128,7 +129,7 @@ class QueryParser(val schema: Schema) {
                         }
                         else -> throw UnsupportedOperationException("Subfield query for $input is currently not supported")
                     }
-                    val limit = description.context.getProperty(operatorName, "limit")?.toLong() ?: Long.MAX_VALUE
+                    val limit = description.context.getProperty(operatorName, QueryContext.LIMIT_KEY)?.toLong() ?: QueryContext.LIMIT_DEFAULT
                     val operator = when (ComparisonOperator.fromString(input.comparison?.uppercase()!!)) {
                         EQ -> Comparison.Equals(field, fieldAndAttributeName.second, value)
                         NEQ -> Comparison.NotEquals(field, fieldAndAttributeName.second, value)

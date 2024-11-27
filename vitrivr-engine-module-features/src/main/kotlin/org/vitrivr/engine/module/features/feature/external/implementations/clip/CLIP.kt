@@ -121,8 +121,8 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
      */
     override fun newRetrieverForDescriptors(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): DenseRetriever<ContentElement<*>> {
         /* Prepare query parameters. */
-        val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+        val k = context.getProperty(field.fieldName, QueryContext.LIMIT_KEY)?.toLongOrNull() ?: QueryContext.LIMIT_DEFAULT
+        val fetchVector = context.getProperty(field.fieldName, QueryContext.FETCH_DESCRIPTOR_KEY)?.toBooleanStrictOrNull() == true
 
         /* Return retriever. */
         val predicate = ProximityPredicate(field = field, value = descriptors.first().vector, k = k, distance = Distance.COSINE, fetchVector = fetchVector)
