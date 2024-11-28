@@ -32,15 +32,15 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, con
      */
     override fun query(query: Query): Sequence<VectorDescriptor<*, *>> = sequence {
         when (val predicate = query.predicate) {
-            is ProximityPredicate<*> -> prepareProximity(predicate).use { stmt ->
-                stmt.executeQuery().use { result ->
-                    while (result.next()) {
-                        yield(rowToDescriptor(result))
-                    }
-                }
-            }
+            is ProximityPredicate<*> -> prepareProximity(predicate)
             is BooleanPredicate -> prepareBoolean(predicate)
             else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by VectorDescriptorReader.")
+        }.use { stmt ->
+            stmt.executeQuery().use { result ->
+                while (result.next()) {
+                    yield(rowToDescriptor(result))
+                }
+            }
         }
     }
 
