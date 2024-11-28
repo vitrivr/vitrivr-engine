@@ -119,19 +119,19 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, con
      * @return [PreparedStatement] for [ProximityPredicate].
      */
     private fun prepareProximity(query: ProximityPredicate<*>): PreparedStatement {
-        val tableName = this.tableName.lowercase()
+        val tableName = "\"${this.tableName.lowercase()}\""
         val filter = query.filter
         if (filter == null) {
-            val sql = "SELECT $DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $VECTOR_ATTRIBUTE_NAME, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME " +
-                    "FROM \"$tableName\" " +
+            val sql = "SELECT *, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME " +
+                    "FROM $tableName " +
                     "ORDER BY $DISTANCE_COLUMN_NAME ${query.order} " +
                     "LIMIT ${query.k}"
             val stmt = this@VectorDescriptorReader.connection.jdbc.prepareStatement(sql)
             stmt.setValue(1, query.value)
             return stmt
         } else {
-            val sql = "SELECT $DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $VECTOR_ATTRIBUTE_NAME, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME " +
-                    "FROM \"$tableName\" " +
+            val sql = "SELECT *, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME " +
+                    "FROM $tableName " +
                     "WHERE  $RETRIEVABLE_ID_COLUMN_NAME = ANY(?) " +
                     "ORDER BY $DISTANCE_COLUMN_NAME ${query.order} " +
                     "LIMIT ${query.k}"
@@ -156,26 +156,26 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, con
         val filter = query.filter
         if (filter == null) {
             val sql = "WITH $cteTable AS (" +
-                    "SELECT \"$DESCRIPTOR_ID_COLUMN_NAME\",\"$RETRIEVABLE_ID_COLUMN_NAME\",\"$VECTOR_ATTRIBUTE_NAME\",\"$VECTOR_ATTRIBUTE_NAME\" ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME " +
+                    "SELECT *, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME " +
                     "FROM $tableName " +
-                    "ORDER BY \"$DISTANCE_COLUMN_NAME\" ${query.order} " +
+                    "ORDER BY $DISTANCE_COLUMN_NAME ${query.order} " +
                     "LIMIT ${query.k}" +
-                    ") SELECT $cteTable.\"$DESCRIPTOR_ID_COLUMN_NAME\",$cteTable.\"$RETRIEVABLE_ID_COLUMN_NAME\",$cteTable.\"$VECTOR_ATTRIBUTE_NAME\",$cteTable.\"$DISTANCE_COLUMN_NAME\",\"$RETRIEVABLE_TYPE_COLUMN_NAME\" " +
-                    "FROM $cteTable INNER JOIN \"$RETRIEVABLE_ENTITY_NAME\" ON (\"$RETRIEVABLE_ENTITY_NAME\".\"$RETRIEVABLE_ID_COLUMN_NAME\" = $cteTable.\"$RETRIEVABLE_ID_COLUMN_NAME\")" +
-                    "ORDER BY $cteTable.\"$DISTANCE_COLUMN_NAME\" ${query.order}"
+                    ") SELECT $cteTable.$DESCRIPTOR_ID_COLUMN_NAME,$cteTable.$RETRIEVABLE_ID_COLUMN_NAME,$cteTable.$VECTOR_ATTRIBUTE_NAME,$cteTable.$DISTANCE_COLUMN_NAME,$RETRIEVABLE_TYPE_COLUMN_NAME " +
+                    "FROM $cteTable INNER JOIN $RETRIEVABLE_ENTITY_NAME ON ($RETRIEVABLE_ENTITY_NAME.$RETRIEVABLE_ID_COLUMN_NAME = $cteTable.$RETRIEVABLE_ID_COLUMN_NAME)" +
+                    "ORDER BY $cteTable.$DISTANCE_COLUMN_NAME ${query.order}"
             val stmt = this@VectorDescriptorReader.connection.jdbc.prepareStatement(sql)
             stmt.setValue(1, query.value)
             return stmt
         } else {
             val sql = "WITH $cteTable AS (" +
-                    "SELECT \"$DESCRIPTOR_ID_COLUMN_NAME\",\"$RETRIEVABLE_ID_COLUMN_NAME\",\"$VECTOR_ATTRIBUTE_NAME\",\"$VECTOR_ATTRIBUTE_NAME\" ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME " +
+                    "SELECT *, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME " +
                     "FROM $tableName " +
                     "WHERE  $RETRIEVABLE_ID_COLUMN_NAME = ANY(?) " +
-                    "ORDER BY \"$DISTANCE_COLUMN_NAME\" ${query.order} " +
+                    "ORDER BY $DISTANCE_COLUMN_NAME ${query.order} " +
                     "LIMIT ${query.k}" +
-                    ") SELECT $cteTable.\"$DESCRIPTOR_ID_COLUMN_NAME\",$cteTable.\"$RETRIEVABLE_ID_COLUMN_NAME\",$cteTable.\"$VECTOR_ATTRIBUTE_NAME\",$cteTable.\"$DISTANCE_COLUMN_NAME\",\"$RETRIEVABLE_TYPE_COLUMN_NAME\" " +
-                    "FROM $cteTable INNER JOIN \"$RETRIEVABLE_ENTITY_NAME\" ON (\"$RETRIEVABLE_ENTITY_NAME\".\"$RETRIEVABLE_ID_COLUMN_NAME\" = $cteTable.\"$RETRIEVABLE_ID_COLUMN_NAME\")" +
-                    "ORDER BY $cteTable.\"$DISTANCE_COLUMN_NAME\" ${query.order}"
+                    ") SELECT $cteTable.$DESCRIPTOR_ID_COLUMN_NAME,$cteTable.$RETRIEVABLE_ID_COLUMN_NAME,$cteTable.$VECTOR_ATTRIBUTE_NAME,$cteTable.$DISTANCE_COLUMN_NAME,$RETRIEVABLE_TYPE_COLUMN_NAME " +
+                    "FROM $cteTable INNER JOIN $RETRIEVABLE_ENTITY_NAME ON ($RETRIEVABLE_ENTITY_NAME.$RETRIEVABLE_ID_COLUMN_NAME = $cteTable.$RETRIEVABLE_ID_COLUMN_NAME)" +
+                    "ORDER BY $cteTable.$DISTANCE_COLUMN_NAME ${query.order}"
 
             val retrievableIds = this.resolveBooleanPredicate(filter)
             val stmt = this@VectorDescriptorReader.connection.jdbc.prepareStatement(sql)
