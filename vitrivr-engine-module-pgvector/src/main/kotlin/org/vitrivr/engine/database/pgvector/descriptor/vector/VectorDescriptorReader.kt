@@ -152,7 +152,7 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, con
      */
     private fun queryAndJoinProximity(query: ProximityPredicate<*>): PreparedStatement {
         val tableName = "\"${this@VectorDescriptorReader.tableName.lowercase()}\""
-        val cteTable = "\"${tableName}_nns\""
+        val cteTable = "\"${this@VectorDescriptorReader.tableName.lowercase()}_nns\""
         val filter = query.filter
         if (filter == null) {
             val sql = "WITH $cteTable AS (" +
