@@ -100,7 +100,6 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, con
      */
     private fun prepareComparison(query: Comparison<*>, limit: Long? = null): PreparedStatement {
         val tableName = "\"${this.tableName.lowercase()}\""
-        val limitClause = if (limit != null) "LIMIT ${limit.toLimitClause()}" else ""
         val sql = "SELECT * FROM $tableName WHERE ${query.toWhereClause()} ${limit.toLimitClause()}"
         val stmt = this@ScalarDescriptorReader.connection.jdbc.prepareStatement(sql)
         stmt.setValueForComparison(1, query)
