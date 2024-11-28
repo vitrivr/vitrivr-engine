@@ -92,11 +92,16 @@ internal fun PreparedStatement.setValueForComparison(index: Int, comparison: Com
 /**
  * Converts a [BooleanPredicate] to an SQL WHERE-clause
  */
-internal fun BooleanPredicate.toWhere(): String = when (this) {
+internal fun BooleanPredicate.toWhereClause(): String = when (this) {
     is Comparison<*> -> this.toTerm()
-    is Logical.And -> this.predicates.joinToString(" AND ", "(", ")") { it.toWhere() }
-    is Logical.Or -> this.predicates.joinToString(" OR ", "(", ")") { it.toWhere() }
+    is Logical.And -> this.predicates.joinToString(" AND ", "(", ")") { it.toWhereClause() }
+    is Logical.Or -> this.predicates.joinToString(" OR ", "(", ")") { it.toWhereClause() }
 }
+
+/**
+ * Converts a [Long] to a LIMIT clause.
+ */
+internal fun Long?.toLimitClause(): String = if (this != null) "LIMIT $this" else ""
 
 /**
  * Converts a [Comparison] to an SQL comparison term.
