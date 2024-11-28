@@ -1,6 +1,7 @@
 package org.vitrivr.engine.database.pgvector.descriptor.struct
 
 import org.vitrivr.engine.core.model.descriptor.AttributeName
+import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
@@ -13,6 +14,7 @@ import org.vitrivr.engine.database.pgvector.*
 import org.vitrivr.engine.database.pgvector.descriptor.AbstractDescriptorReader
 import org.vitrivr.engine.database.pgvector.descriptor.model.PgBitVector
 import org.vitrivr.engine.database.pgvector.descriptor.model.PgVector
+import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.util.*
 import kotlin.reflect.full.primaryConstructor
@@ -21,19 +23,28 @@ import kotlin.reflect.full.primaryConstructor
  * An [AbstractDescriptorReader] for [StructDescriptor]s.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 class StructDescriptorReader(field: Schema.Field<*, StructDescriptor<*>>, connection: PgVectorConnection) : AbstractDescriptorReader<StructDescriptor<*>>(field, connection) {
+
     /**
      * Executes the provided [Query] and returns a [Sequence] of [Retrieved]s that match it.
      *
      * @param query The [Query] to execute.
      * @return [Sequence] of [StructDescriptor]s that match the query.
      */
-    override fun query(query: Query): Sequence<StructDescriptor<*>> = when (val predicate = query.predicate) {
-        is SimpleFulltextPredicate -> queryFulltext(predicate)
-        is Comparison<*> -> queryComparison(predicate)
-        else -> throw IllegalArgumentException("Query of typ ${query::class} is not supported by StructDescriptorReader.")
+    override fun query(query: Query): Sequence<StructDescriptor<*>> = sequence {
+        when (val predicate = query.predicate) {
+            is SimpleFulltextPredicate -> prepareFulltext(predicate)
+            is Comparison<*> -> prepareComparison(predicate)
+            else -> throw IllegalArgumentException("Query of type ${query::class} is not supported by StructDescriptorReader.")
+        }.use { stmt ->
+            stmt.executeQuery().use { result ->
+                while (result.next()) {
+                    yield(rowToDescriptor(result))
+                }
+            }
+        }
     }
 
     /**
@@ -78,46 +89,47 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor<*>>, connec
         return constructor.call(*parameters.toTypedArray())
     }
 
+
     /**
-     * Executes a [SimpleFulltextPredicate] and returns a [Sequence] of [StructDescriptor]s.
+     * Prepares a [SimpleFulltextPredicate] and returns a [Sequence] of [ScalarDescriptor]s.
      *
      * @param query The [SimpleFulltextPredicate] to execute.
-     * @return [Sequence] of [StructDescriptor]s.
+     * @return [PreparedStatement]s.
      */
-    private fun queryFulltext(query: SimpleFulltextPredicate): Sequence<StructDescriptor<*>> {
-        require(query.attributeName != null) { "Query attribute must not be null for a fulltext query on a struct descriptor." }
-        val queryString = query.value.value.split(" ").map { "$it:*" }.joinToString(" | ") { it }
-        val statement = "SELECT * FROM \"${tableName.lowercase()}\" WHERE ${query.attributeName} @@ to_tsquery(?)"
-        return sequence {
-            this@StructDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
-                stmt.setString(1, queryString)
-                stmt.executeQuery().use { result ->
-                    while (result.next()) {
-                        yield(rowToDescriptor(result))
-                    }
-                }
-            }
+    private fun prepareFulltext(query: SimpleFulltextPredicate): PreparedStatement {
+        require(query.field == this.field) { "Query field must match the field of the descriptor reader." }
+        require(query.attributeName != null) { "Query attribute must not be null for a fulltext predicate on a struct descriptor." }
+        val tableName = "\"${tableName.lowercase()}\""
+        val fulltextQueryString = query.value.value.split(" ").map { "$it:*" }.joinToString(" | ") { it }
+        val filter = query.filter
+        if (filter == null) {
+            val sql = "SELECT * FROM $tableName WHERE ${query.attributeName} @@ to_tsquery(?)"
+            val stmt = this.connection.jdbc.prepareStatement(sql)
+            stmt.setString(1, fulltextQueryString)
+            return stmt
+        } else {
+            val sql = "SELECT * FROM $tableName WHERE ${query.attributeName} @@ to_tsquery(?) AND $RETRIEVABLE_ID_COLUMN_NAME = ANY(?)"
+            val retrievableIds = this.resolveBooleanPredicate(filter)
+            val stmt = this.connection.jdbc.prepareStatement(sql)
+            stmt.setString(1, fulltextQueryString)
+            stmt.setArray(2, this.connection.jdbc.createArrayOf("OTHER", retrievableIds.toTypedArray()))
+            return stmt
         }
     }
 
     /**
-     * Executes a [Comparison] and returns a [Sequence] of [StructDescriptor]s.
+     * [PreparedStatement] a [Comparison] predicate and returns a [PreparedStatement].
      *
      * @param query The [Comparison] to execute.
-     * @return [Sequence] of [StructDescriptor]s.
+     * @return [PreparedStatement]s.
      */
-    internal fun queryComparison(query: Comparison<*>): Sequence<StructDescriptor<*>> {
-        require(query.attributeName != null) { "Query attribute must not be null for a fulltext query on a struct descriptor." }
-        val statement = "SELECT * FROM \"${tableName.lowercase()}\" WHERE ${query.toWhere()}"
-        return sequence {
-            this@StructDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
-                stmt.setValueForComparison(1, query)
-                stmt.executeQuery().use { result ->
-                    while (result.next()) {
-                        yield(rowToDescriptor(result))
-                    }
-                }
-            }
-        }
+    private fun prepareComparison(query: Comparison<*>): PreparedStatement {
+        require(query.field == this.field) { "Query field must match the field of the descriptor reader." }
+        require(query.attributeName != null) { "Query attribute must not be null for a comparison predicate on a struct descriptor." }
+        val tableName = "\"${this.tableName.lowercase()}\""
+        val sql = "SELECT * FROM $tableName WHERE ${query.toWhere()}"
+        val stmt = this.connection.jdbc.prepareStatement(sql)
+        stmt.setValueForComparison(1, query)
+        return stmt
     }
 }

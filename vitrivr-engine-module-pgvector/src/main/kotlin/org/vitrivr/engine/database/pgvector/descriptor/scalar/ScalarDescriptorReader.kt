@@ -12,6 +12,7 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.database.pgvector.*
 import org.vitrivr.engine.database.pgvector.descriptor.AbstractDescriptorReader
+import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.util.*
 
@@ -19,7 +20,7 @@ import java.util.*
  * A [AbstractDescriptorReader] for [ScalarDescriptor]s.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, connection: PgVectorConnection) : AbstractDescriptorReader<ScalarDescriptor<*, *>>(field, connection) {
 
@@ -29,10 +30,18 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, con
      * @param query The [Query] to execute.
      * @return [Sequence] of [StructDescriptor]s that match the query.
      */
-    override fun query(query: Query): Sequence<ScalarDescriptor<*, *>> = when (val predicate = query.predicate) {
-        is SimpleFulltextPredicate -> queryFulltext(predicate)
-        is Comparison<*> -> queryComparison(predicate)
-        else -> throw IllegalArgumentException("Query of type ${query::class} is not supported by ScalarDescriptorReader.")
+    override fun query(query: Query): Sequence<ScalarDescriptor<*, *>> = sequence {
+        when (val predicate = query.predicate) {
+            is SimpleFulltextPredicate -> prepareFulltext(predicate)
+            is Comparison<*> -> prepareComparison(predicate)
+            else -> throw IllegalArgumentException("Query of type ${query::class} is not supported by ScalarDescriptorReader.")
+        }.use { stmt ->
+            stmt.executeQuery().use { result ->
+                while (result.next()) {
+                    yield(rowToDescriptor(result))
+                }
+            }
+        }
     }
 
     /**
@@ -58,43 +67,41 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, con
     }
 
     /**
-     * Executes a [SimpleFulltextPredicate] and returns a [Sequence] of [ScalarDescriptor]s.
+     * Prepares a [SimpleFulltextPredicate] and returns a [Sequence] of [ScalarDescriptor]s.
      *
      * @param query The [SimpleFulltextPredicate] to execute.
-     * @return [Sequence] of [ScalarDescriptor]s.
+     * @return [PreparedStatement]s.
      */
-    private fun queryFulltext(query: SimpleFulltextPredicate): Sequence<ScalarDescriptor<*, *>> {
-        val queryString = query.value.value.split(" ").map { "$it:*" }.joinToString(" | ") { it }
-        val statement = "SELECT * FROM \"${tableName.lowercase()}\" WHERE ${query.attributeName} @@ to_tsquery(?)"
-        return sequence {
-            this@ScalarDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
-                stmt.setString(1, queryString)
-                stmt.executeQuery().use { result ->
-                    while (result.next()) {
-                        yield(rowToDescriptor(result))
-                    }
-                }
-            }
+    private fun prepareFulltext(query: SimpleFulltextPredicate): PreparedStatement {
+        val tableName = "\"${tableName.lowercase()}\""
+        val fulltextQueryString = query.value.value.split(" ").map { "$it:*" }.joinToString(" | ") { it }
+        val filter = query.filter
+        if (filter == null) {
+            val sql = "SELECT * FROM $tableName WHERE $VALUE_ATTRIBUTE_NAME @@ to_tsquery(?)"
+            val stmt = this.connection.jdbc.prepareStatement(sql)
+            stmt.setString(1, fulltextQueryString)
+            return stmt
+        } else {
+            val sql = "SELECT * FROM $tableName WHERE $VALUE_ATTRIBUTE_NAME @@ to_tsquery(?) AND $RETRIEVABLE_ID_COLUMN_NAME = ANY(?)"
+            val retrievableIds = this.resolveBooleanPredicate(filter)
+            val stmt = this.connection.jdbc.prepareStatement(sql)
+            stmt.setString(1, fulltextQueryString)
+            stmt.setArray(2, this.connection.jdbc.createArrayOf("OTHER", retrievableIds.toTypedArray()))
+            return stmt
         }
     }
 
     /**
-     * Executes a [Comparison] and returns a [Sequence] of [ScalarDescriptor]s.
+     * [PreparedStatement] a [Comparison] predicate and returns a [PreparedStatement].
      *
      * @param query The [Comparison] to execute.
-     * @return [Sequence] of [ScalarDescriptor]s.
+     * @return [PreparedStatement]s.
      */
-    internal fun queryComparison(query: Comparison<*>): Sequence<ScalarDescriptor<*, *>> {
-        val statement = "SELECT * FROM \"$tableName\" WHERE ${query.toWhere()}"
-        return sequence {
-            this@ScalarDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
-                stmt.setValueForComparison(1, query)
-                stmt.executeQuery().use { result ->
-                    while (result.next()) {
-                        yield(rowToDescriptor(result))
-                    }
-                }
-            }
-        }
+    private fun prepareComparison(query: Comparison<*>): PreparedStatement {
+        val tableName = "\"${this.tableName.lowercase()}\""
+        val sql = "SELECT * FROM $tableName WHERE ${query.toWhere()}"
+        val stmt = this@ScalarDescriptorReader.connection.jdbc.prepareStatement(sql)
+        stmt.setValueForComparison(1, query)
+        return stmt
     }
 }

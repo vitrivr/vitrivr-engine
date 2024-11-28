@@ -216,8 +216,8 @@ abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val fi
             val field = predicate.field
             val reader = field.getReader()
             when (reader) {
-                is ScalarDescriptorReader -> reader.queryComparison(predicate).map { it.id }.toSet()
-                is StructDescriptorReader -> reader.queryComparison(predicate).map { it.id }.toSet()
+                is ScalarDescriptorReader -> reader.query(Query(predicate)).map { it.id }.toSet()
+                is StructDescriptorReader -> reader.query(Query(predicate)).map { it.id }.toSet()
                 else -> throw IllegalArgumentException("Cannot resolve predicate $predicate.")
             }
         }
