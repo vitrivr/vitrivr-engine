@@ -5,6 +5,7 @@ import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.bool.BooleanPredicate
 import org.vitrivr.engine.core.model.query.bool.Comparison
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextPredicate
 import org.vitrivr.engine.core.model.retrievable.Retrieved
@@ -37,6 +38,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor<*>>, connec
         when (val predicate = query.predicate) {
             is SimpleFulltextPredicate -> prepareFulltext(predicate)
             is Comparison<*> -> prepareComparison(predicate)
+            is BooleanPredicate -> prepareBoolean(predicate)
             else -> throw IllegalArgumentException("Query of type ${query::class} is not supported by StructDescriptorReader.")
         }.use { stmt ->
             stmt.executeQuery().use { result ->
@@ -110,7 +112,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor<*>>, connec
             return stmt
         } else {
             val sql = "SELECT * FROM $tableName WHERE ${query.attributeName} @@ to_tsquery(?) AND $RETRIEVABLE_ID_COLUMN_NAME = ANY(?) ${limit.toLimitClause()}"
-            val retrievableIds = this.resolveBooleanPredicate(filter)
+            val retrievableIds = this.getMatches(filter)
             val stmt = this.connection.jdbc.prepareStatement(sql)
             stmt.setString(1, fulltextQueryString)
             stmt.setArray(2, this.connection.jdbc.createArrayOf("OTHER", retrievableIds.toTypedArray()))

@@ -6,6 +6,7 @@ import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.bool.BooleanPredicate
 import org.vitrivr.engine.core.model.query.bool.Comparison
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextPredicate
 import org.vitrivr.engine.core.model.retrievable.Retrieved
@@ -34,6 +35,7 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, con
         when (val predicate = query.predicate) {
             is SimpleFulltextPredicate -> prepareFulltext(predicate, query.limit)
             is Comparison<*> -> prepareComparison(predicate, query.limit)
+            is BooleanPredicate -> prepareBoolean(predicate, query.limit)
             else -> throw IllegalArgumentException("Query of type ${query::class} is not supported by ScalarDescriptorReader.")
         }.use { stmt ->
             stmt.executeQuery().use { result ->
@@ -69,7 +71,7 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, con
     /**
      * Prepares a [SimpleFulltextPredicate] and returns a [Sequence] of [ScalarDescriptor]s.
      *
-     * @param query The [SimpleFulltextPredicate] to execute.
+     * @param query The [SimpleFulltextPredicate] to prepare.
      * @param limit The maximum number of results to return.
      * @return [PreparedStatement]s.
      */
@@ -84,7 +86,7 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, con
             return stmt
         } else {
             val sql = "SELECT * FROM $tableName WHERE $VALUE_ATTRIBUTE_NAME @@ to_tsquery(?) AND $RETRIEVABLE_ID_COLUMN_NAME = ANY(?) ${limit.toLimitClause()}"
-            val retrievableIds = this.resolveBooleanPredicate(filter)
+            val retrievableIds = this.getMatches(filter)
             val stmt = this.connection.jdbc.prepareStatement(sql)
             stmt.setString(1, fulltextQueryString)
             stmt.setArray(2, this.connection.jdbc.createArrayOf("OTHER", retrievableIds.toTypedArray()))
@@ -95,7 +97,7 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, con
     /**
      * [PreparedStatement] a [Comparison] predicate and returns a [PreparedStatement].
      *
-     * @param query The [Comparison] to execute.
+     * @param query The [Comparison] to prepare.
      * @return [PreparedStatement]s.
      */
     private fun prepareComparison(query: Comparison<*>, limit: Long? = null): PreparedStatement {

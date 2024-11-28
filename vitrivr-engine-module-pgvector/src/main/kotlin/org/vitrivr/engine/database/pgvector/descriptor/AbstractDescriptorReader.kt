@@ -14,6 +14,7 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.database.pgvector.*
 import org.vitrivr.engine.database.pgvector.descriptor.scalar.ScalarDescriptorReader
 import org.vitrivr.engine.database.pgvector.descriptor.struct.StructDescriptorReader
+import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.util.*
 
@@ -211,7 +212,7 @@ abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val fi
      * @param predicate [BooleanPredicate] to resolve.
      * @return Set of [RetrievableId]s that match the [BooleanPredicate].
      */
-    internal fun resolveBooleanPredicate(predicate: BooleanPredicate): Set<RetrievableId> = when (predicate) {
+    protected fun getMatches(predicate: BooleanPredicate): Set<RetrievableId> = when (predicate) {
         is Comparison<*> -> {
             val field = predicate.field
             val reader = field.getReader()
@@ -226,9 +227,9 @@ abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val fi
             val intersection = mutableSetOf<RetrievableId>()
             for ((index, child) in predicate.predicates.withIndex()) {
                 if (index == 0) {
-                    intersection.addAll(resolveBooleanPredicate(child))
+                    intersection.addAll(getMatches(child))
                 } else {
-                    intersection.intersect(resolveBooleanPredicate(child))
+                    intersection.intersect(getMatches(child))
                 }
             }
             intersection
@@ -237,10 +238,25 @@ abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val fi
         is Logical.Or -> {
             val union = mutableSetOf<RetrievableId>()
             for (child in predicate.predicates) {
-                union.addAll(resolveBooleanPredicate(child))
+                union.addAll(getMatches(child))
             }
             union
         }
+    }
+
+    /**
+     * [PreparedStatement] a [BooleanPredicate] predicate and returns a [PreparedStatement].
+     *
+     * @param query The [BooleanPredicate] to prepare.
+     * @return [PreparedStatement]s.
+     */
+    protected fun prepareBoolean(query: BooleanPredicate, limit: Long? = null): PreparedStatement {
+        val tableName = "\"${this.tableName.lowercase()}\""
+        val retrievableIds = this.getMatches(query)
+        val sql = "SELECT * FROM $tableName WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY(?) ${limit.toLimitClause()}"
+        val stmt = this.connection.jdbc.prepareStatement(sql)
+        stmt.setArray(1, this.connection.jdbc.createArrayOf("OTHER", retrievableIds.toTypedArray()))
+        return stmt
     }
 
     /**

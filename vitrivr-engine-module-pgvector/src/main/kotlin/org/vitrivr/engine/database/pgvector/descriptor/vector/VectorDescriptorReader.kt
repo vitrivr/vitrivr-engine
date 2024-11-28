@@ -6,6 +6,7 @@ import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor.Companio
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Predicate
 import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.bool.BooleanPredicate
 import org.vitrivr.engine.core.model.query.proximity.ProximityPredicate
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
@@ -38,7 +39,7 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, con
                     }
                 }
             }
-
+            is BooleanPredicate -> prepareBoolean(predicate)
             else -> throw UnsupportedOperationException("Query of typ ${query::class} is not supported by VectorDescriptorReader.")
         }
     }
@@ -136,7 +137,7 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, con
                     "ORDER BY $DISTANCE_COLUMN_NAME ${query.order} " +
                     "LIMIT ${query.k}"
 
-            val retrievableIds = this.resolveBooleanPredicate(filter)
+            val retrievableIds = this.getMatches(filter)
             val stmt = this@VectorDescriptorReader.connection.jdbc.prepareStatement(sql)
             stmt.setValue(1, query.value)
             stmt.setArray(2, this.connection.jdbc.createArrayOf("OTHER", retrievableIds.toTypedArray()))
@@ -177,7 +178,7 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, con
                     "FROM $cteTable INNER JOIN $RETRIEVABLE_ENTITY_NAME ON ($RETRIEVABLE_ENTITY_NAME.$RETRIEVABLE_ID_COLUMN_NAME = $cteTable.$RETRIEVABLE_ID_COLUMN_NAME)" +
                     "ORDER BY $cteTable.$DISTANCE_COLUMN_NAME ${query.order}"
 
-            val retrievableIds = this.resolveBooleanPredicate(filter)
+            val retrievableIds = this.getMatches(filter)
             val stmt = this@VectorDescriptorReader.connection.jdbc.prepareStatement(sql)
             stmt.setValue(1, query.value)
             stmt.setArray(2, this.connection.jdbc.createArrayOf("OTHER", retrievableIds.toTypedArray()))
