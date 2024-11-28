@@ -6,9 +6,14 @@ import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Predicate
 import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.bool.BooleanPredicate
+import org.vitrivr.engine.core.model.query.bool.Comparison
+import org.vitrivr.engine.core.model.query.bool.Logical
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.database.pgvector.*
+import org.vitrivr.engine.database.pgvector.descriptor.scalar.ScalarDescriptorReader
+import org.vitrivr.engine.database.pgvector.descriptor.struct.StructDescriptorReader
 import java.sql.ResultSet
 import java.util.*
 
@@ -197,6 +202,44 @@ abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val fi
             } else {
                 null
             }
+        }
+    }
+
+    /**
+     * Resolves a complex [BooleanPredicate] into a set of [RetrievableId]s that match it.
+     *
+     * @param predicate [BooleanPredicate] to resolve.
+     * @return Set of [RetrievableId]s that match the [BooleanPredicate].
+     */
+    internal fun resolveBooleanPredicate(predicate: BooleanPredicate): Set<RetrievableId> = when (predicate) {
+        is Comparison<*> -> {
+            val field = predicate.field
+            val reader = field.getReader()
+            when (reader) {
+                is ScalarDescriptorReader -> reader.queryComparison(predicate).map { it.id }.toSet()
+                is StructDescriptorReader -> reader.queryComparison(predicate).map { it.id }.toSet()
+                else -> throw IllegalArgumentException("Cannot resolve predicate $predicate.")
+            }
+        }
+
+        is Logical.And -> {
+            val intersection = mutableSetOf<RetrievableId>()
+            for ((index, child) in predicate.predicates.withIndex()) {
+                if (index == 0) {
+                    intersection.addAll(resolveBooleanPredicate(child))
+                } else {
+                    intersection.intersect(resolveBooleanPredicate(child))
+                }
+            }
+            intersection
+        }
+
+        is Logical.Or -> {
+            val union = mutableSetOf<RetrievableId>()
+            for (child in predicate.predicates) {
+                union.addAll(resolveBooleanPredicate(child))
+            }
+            union
         }
     }
 

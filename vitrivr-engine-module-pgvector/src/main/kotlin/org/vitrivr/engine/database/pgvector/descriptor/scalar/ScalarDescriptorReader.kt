@@ -31,7 +31,7 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, con
      */
     override fun query(query: Query): Sequence<ScalarDescriptor<*, *>> = when (val predicate = query.predicate) {
         is SimpleFulltextPredicate -> queryFulltext(predicate)
-        is Comparison<*> -> queryBoolean(predicate)
+        is Comparison<*> -> queryComparison(predicate)
         else -> throw IllegalArgumentException("Query of type ${query::class} is not supported by ScalarDescriptorReader.")
     }
 
@@ -84,7 +84,7 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, con
      * @param query The [Comparison] to execute.
      * @return [Sequence] of [ScalarDescriptor]s.
      */
-    private fun queryBoolean(query: Comparison<*>): Sequence<ScalarDescriptor<*, *>> {
+    internal fun queryComparison(query: Comparison<*>): Sequence<ScalarDescriptor<*, *>> {
         val statement = "SELECT * FROM \"$tableName\" WHERE ${query.toWhere()}"
         return sequence {
             this@ScalarDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->

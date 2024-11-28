@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.model.query.fulltext
 
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Predicate
+import org.vitrivr.engine.core.model.query.bool.BooleanPredicate
 import org.vitrivr.engine.core.model.types.Value
 
 
@@ -23,5 +24,8 @@ data class SimpleFulltextPredicate(
      *
      * Typically, this is pre-determined by the analyser. However, in some cases, this must be specified (e.g., when querying struct fields).
      */
-    val attributeName: String? = null
+    val attributeName: String? = null,
+
+    /** Optional filter query for this [SimpleFulltextPredicate]. */
+    val filter: BooleanPredicate? = null
 ) : Predicate

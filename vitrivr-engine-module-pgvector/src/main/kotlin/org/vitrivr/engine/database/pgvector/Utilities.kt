@@ -96,7 +96,6 @@ internal fun BooleanPredicate.toWhere(): String = when (this) {
     is Comparison<*> -> this.toTerm()
     is Logical.And -> this.predicates.joinToString(" AND ", "(", ")") { it.toWhere() }
     is Logical.Or -> this.predicates.joinToString(" OR ", "(", ")") { it.toWhere() }
-    is Logical.Not -> "NOT (${this.predicate.toWhere()})"
 }
 
 /**

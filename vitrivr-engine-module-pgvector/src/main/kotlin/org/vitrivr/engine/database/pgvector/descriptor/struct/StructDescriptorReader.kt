@@ -32,7 +32,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor<*>>, connec
      */
     override fun query(query: Query): Sequence<StructDescriptor<*>> = when (val predicate = query.predicate) {
         is SimpleFulltextPredicate -> queryFulltext(predicate)
-        is Comparison<*> -> queryBoolean(predicate)
+        is Comparison<*> -> queryComparison(predicate)
         else -> throw IllegalArgumentException("Query of typ ${query::class} is not supported by StructDescriptorReader.")
     }
 
@@ -106,7 +106,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor<*>>, connec
      * @param query The [Comparison] to execute.
      * @return [Sequence] of [StructDescriptor]s.
      */
-    private fun queryBoolean(query: Comparison<*>): Sequence<StructDescriptor<*>> {
+    internal fun queryComparison(query: Comparison<*>): Sequence<StructDescriptor<*>> {
         require(query.attributeName != null) { "Query attribute must not be null for a fulltext query on a struct descriptor." }
         val statement = "SELECT * FROM \"${tableName.lowercase()}\" WHERE ${query.toWhere()}"
         return sequence {
