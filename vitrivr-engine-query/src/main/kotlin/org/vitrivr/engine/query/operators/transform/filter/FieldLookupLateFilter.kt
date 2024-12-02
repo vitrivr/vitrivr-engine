@@ -25,7 +25,7 @@ import javax.management.Descriptor
  * @author Luca Rossetto
  * @author Ralph Gasser
  */
-class LateFilter(
+class FieldLookupLateFilter(
     override val input: Operator<out Retrievable>,
     /* The reader for a given field. */
     private val reader: DescriptorReader<*>,
@@ -52,7 +52,7 @@ class LateFilter(
         val descriptors = if (ids.isEmpty()) {
             emptyMap()
         } else {
-            this@LateFilter.reader.getAllForRetrievable(ids).associateBy { it.retrievableId!! }
+            this@FieldLookupLateFilter.reader.getAllForRetrievable(ids).associateBy { it.retrievableId!! }
         }
 
         // Multi keys for
