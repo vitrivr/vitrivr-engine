@@ -7,8 +7,8 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.TransformerFactory
 
-class LateFilterFactory() : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): LateFilter {
+class FieldLookupLateFilterFactory() : TransformerFactory {
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): FieldLookupLateFilter {
         require(context is QueryContext)
         val field = context[name, "field"] ?: throw IllegalArgumentException("expected 'field' to be defined in properties")
         val comparison = context[name, "comparison"] ?: throw IllegalArgumentException("expected 'comparison' to be defined in properties")
@@ -27,6 +27,6 @@ class LateFilterFactory() : TransformerFactory {
         }else{
             emptyList()
         }
-        return LateFilter(input, reader, keys, ComparisonOperator.fromString(comparison), value, append, limit,  name)
+        return FieldLookupLateFilter(input, reader, keys, ComparisonOperator.fromString(comparison), value, append, limit,  name)
     }
 }
