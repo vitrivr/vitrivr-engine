@@ -6,16 +6,17 @@ import org.apache.commons.math3.complex.Complex
 import org.apache.commons.math3.util.FastMath
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.features.dense.DenseRetriever
+import org.vitrivr.engine.core.math.correspondence.LinearCorrespondence
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.Model3dContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.mesh.texturemodel.Mesh
 import org.vitrivr.engine.core.model.metamodel.Analyser
-import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.basics.Distance
-import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
+import org.vitrivr.engine.core.model.query.proximity.ProximityPredicate
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
 import org.vitrivr.engine.core.model.types.Value
@@ -167,23 +168,16 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
         return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(FloatArray(vectorSize)))
     }
 
-    override fun newRetrieverForQuery(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, query: Query, context: QueryContext): Retriever<Model3dContent, FloatVectorDescriptor> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        require(query is ProximityQuery<*> && query.value is Value.FloatVector) { }
-
-        /* Construct query. */
-        @Suppress("UNCHECKED_CAST")
-        return SphericalHarmonicsRetriever(field, query as ProximityQuery<Value.FloatVector>, context)
-    }
+    override fun newRetrieverForQuery(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, query: Query, context: QueryContext) = DenseRetriever(field, query, context, LinearCorrespondence(1f))
 
     override fun newRetrieverForDescriptors(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): Retriever<Model3dContent, FloatVectorDescriptor> {
         /* Extract parameters from field and context. */
-        val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        val returnDescriptor = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+        val k = context.getProperty(field.fieldName, QueryContext.LIMIT_KEY)?.toLongOrNull() ?: QueryContext.LIMIT_DEFAULT
+        val returnDescriptor = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() == false
 
         /* Construct query and return retriever. */
-        val query = ProximityQuery(value = descriptors.first().vector, k = k, distance = Distance.EUCLIDEAN, fetchVector = returnDescriptor)
-        return this.newRetrieverForQuery(field, query, context)
+        val predicate = ProximityPredicate(field = field, value = descriptors.first().vector, k = k, distance = Distance.EUCLIDEAN, fetchVector = returnDescriptor)
+        return this.newRetrieverForQuery(field, Query(predicate), context)
     }
 
     override fun newRetrieverForContent(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, content: Collection<Model3dContent>, context: QueryContext): Retriever<Model3dContent, FloatVectorDescriptor> {

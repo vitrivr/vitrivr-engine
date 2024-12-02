@@ -4,10 +4,17 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.Predicate
 import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.bool.BooleanPredicate
+import org.vitrivr.engine.core.model.query.bool.Comparison
+import org.vitrivr.engine.core.model.query.bool.Logical
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.database.pgvector.*
+import org.vitrivr.engine.database.pgvector.descriptor.scalar.ScalarDescriptorReader
+import org.vitrivr.engine.database.pgvector.descriptor.struct.StructDescriptorReader
+import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.util.*
 
@@ -15,16 +22,16 @@ import java.util.*
  * An abstract implementation of a [DescriptorReader] for Cottontail DB.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val field: Schema.Field<*, D>, override val connection: PgVectorConnection) : DescriptorReader<D> {
 
     /** The name of the table backing this [AbstractDescriptorReader]. */
-    protected val tableName: String = "${DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName}"
+    val tableName: String = "${DESCRIPTOR_ENTITY_PREFIX}_${this.field.fieldName}"
 
 
     /** The [Descriptor] prototype handled by this [AbstractDescriptorReader]. */
-    protected val prototype: D= this.field.analyser.prototype(this.field)
+    protected val prototype: D = this.field.analyser.prototype(this.field)
 
     /**
      * Returns a single [Descriptor]s of type [D] that has the provided [DescriptorId].
@@ -60,7 +67,7 @@ abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val fi
         try {
             this@AbstractDescriptorReader.connection.jdbc.prepareStatement("SELECT * FROM $tableName WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?").use { stmt ->
                 stmt.setObject(1, retrievableId)
-                val result = stmt.executeQuery().use { result ->
+                stmt.executeQuery().use { result ->
                     while (result.next()) {
                         yield(this@AbstractDescriptorReader.rowToDescriptor(result))
                     }
@@ -175,7 +182,7 @@ abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val fi
     }
 
     /**
-     * Returns a [Sequence] of all [Retrieved]s that match the given [Query].
+     * Returns a [Sequence] of all [Retrieved]s that match the given [Predicate].
      *
      * Implicitly, this methods executes a [query] and then JOINS the result with the [Retrieved]s.
      *
@@ -197,6 +204,59 @@ abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val fi
                 null
             }
         }
+    }
+
+    /**
+     * Resolves a complex [BooleanPredicate] into a set of [RetrievableId]s that match it.
+     *
+     * @param predicate [BooleanPredicate] to resolve.
+     * @return Set of [RetrievableId]s that match the [BooleanPredicate].
+     */
+    protected fun getMatches(predicate: BooleanPredicate): Set<RetrievableId> = when (predicate) {
+        is Comparison<*> -> {
+            val field = predicate.field
+            val reader = field.getReader()
+            when (reader) {
+                is ScalarDescriptorReader -> reader.query(Query(predicate)).map { it.id }.toSet()
+                is StructDescriptorReader -> reader.query(Query(predicate)).map { it.id }.toSet()
+                else -> throw IllegalArgumentException("Cannot resolve predicate $predicate.")
+            }
+        }
+
+        is Logical.And -> {
+            val intersection = mutableSetOf<RetrievableId>()
+            for ((index, child) in predicate.predicates.withIndex()) {
+                if (index == 0) {
+                    intersection.addAll(getMatches(child))
+                } else {
+                    intersection.intersect(getMatches(child))
+                }
+            }
+            intersection
+        }
+
+        is Logical.Or -> {
+            val union = mutableSetOf<RetrievableId>()
+            for (child in predicate.predicates) {
+                union.addAll(getMatches(child))
+            }
+            union
+        }
+    }
+
+    /**
+     * [PreparedStatement] a [BooleanPredicate] predicate and returns a [PreparedStatement].
+     *
+     * @param query The [BooleanPredicate] to prepare.
+     * @return [PreparedStatement]s.
+     */
+    protected fun prepareBoolean(query: BooleanPredicate, limit: Long? = null): PreparedStatement {
+        val tableName = "\"${this.tableName.lowercase()}\""
+        val retrievableIds = this.getMatches(query)
+        val sql = "SELECT * FROM $tableName WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY(?) ${limit.toLimitClause()}"
+        val stmt = this.connection.jdbc.prepareStatement(sql)
+        stmt.setArray(1, this.connection.jdbc.createArrayOf("OTHER", retrievableIds.toTypedArray()))
+        return stmt
     }
 
     /**

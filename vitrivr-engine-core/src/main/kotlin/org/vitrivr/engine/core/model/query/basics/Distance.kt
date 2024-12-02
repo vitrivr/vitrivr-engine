@@ -1,13 +1,13 @@
 package org.vitrivr.engine.core.model.query.basics
 
-import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
+import org.vitrivr.engine.core.model.query.proximity.ProximityPredicate
 import org.vitrivr.engine.core.model.types.Value
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
 
 /**
- * Enumeration of [Distance] functions supported by [ProximityQuery].
+ * Enumeration of [Distance] functions supported by [ProximityPredicate].
  *
  * @author Ralph Gasser
  * @version 1.0.0

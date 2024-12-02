@@ -6,8 +6,7 @@ import org.vitrivr.cottontail.core.values.*
 import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.scalar.*
 import org.vitrivr.engine.core.model.descriptor.vector.*
-import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
-import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
+import org.vitrivr.engine.core.model.query.bool.Comparison
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 import java.util.*
@@ -48,7 +47,7 @@ const val SCORE_COLUMN_NAME = "score"
 /**
  * Converts a vitrivr-engine [Attribute] to a Cottontail DB [Types].
  *
- * @return [Compare.Operator] used for this [SimpleBooleanQuery]
+ * @return [Compare.Operator] used for this [Comparison]
  */
 internal fun Type.toCottontailType(): Types<*> = when (this) {
     Type.String -> Types.String
@@ -70,18 +69,35 @@ internal fun Type.toCottontailType(): Types<*> = when (this) {
 }
 
 /**
- * Extracts the [Compare.Operator] from this [SimpleBooleanQuery].
+ * Extracts the [Compare.Operator] from this [Comparison].
  *
- * @return [Compare.Operator] used for this [SimpleBooleanQuery]
+ * @return [Compare.Operator] used for this [Comparison]
  */
-internal fun SimpleBooleanQuery<*>.operator() = when (this.comparison) {
-    ComparisonOperator.EQ -> Compare.Operator.EQUAL
-    ComparisonOperator.NEQ -> Compare.Operator.NOTEQUAL
-    ComparisonOperator.LE -> Compare.Operator.LESS
-    ComparisonOperator.GR -> Compare.Operator.GREATER
-    ComparisonOperator.LEQ -> Compare.Operator.LEQUAL
-    ComparisonOperator.GEQ -> Compare.Operator.GEQUAL
-    ComparisonOperator.LIKE -> Compare.Operator.LIKE
+internal fun Comparison<*>.operator() = when (this) {
+    is Comparison.Equals<*> -> Compare.Operator.EQUAL
+    is Comparison.Greater<*> -> Compare.Operator.GREATER
+    is Comparison.GreaterEquals<*> -> Compare.Operator.GEQUAL
+    is Comparison.In<*> -> Compare.Operator.IN
+    is Comparison.Less<*> -> Compare.Operator.LESS
+    is Comparison.LessEquals<*> -> Compare.Operator.LEQUAL
+    is Comparison.Like<*> -> Compare.Operator.LIKE
+    is Comparison.NotEquals<*> -> Compare.Operator.NOTEQUAL
+}
+
+/**
+ * Extracts the [Compare.Operator] from this [Comparison].
+ *
+ * @return [Compare.Operator] used for this [Comparison]
+ */
+internal fun Comparison<*>.toCottontailValue() = when (this) {
+    is Comparison.Equals<*> -> this.value.toCottontailValue()
+    is Comparison.Greater<*> -> this.value.toCottontailValue()
+    is Comparison.GreaterEquals<*> -> this.value.toCottontailValue()
+    is Comparison.Less<*> -> this.value.toCottontailValue()
+    is Comparison.LessEquals<*> -> this.value.toCottontailValue()
+    is Comparison.Like<*> -> this.value.toCottontailValue()
+    is Comparison.NotEquals<*> -> this.value.toCottontailValue()
+    is Comparison.In<*> -> throw IllegalArgumentException("IN operator cannot be converted to a Cottontail DB value.")
 }
 
 /**

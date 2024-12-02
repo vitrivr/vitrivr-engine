@@ -2,6 +2,7 @@ package org.vitrivr.engine.module.features.feature.dominantcolor
 
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.features.bool.StructBooleanRetriever
 import org.vitrivr.engine.core.model.color.RGBColorContainer
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
@@ -9,8 +10,7 @@ import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.bool.BooleanQuery
-import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
+import org.vitrivr.engine.core.model.query.bool.Comparison
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
 import org.vitrivr.engine.core.model.types.Value
@@ -46,18 +46,8 @@ class DominantColor : Analyser<ImageContent, LabelDescriptor> {
      */
     override fun prototype(field: Schema.Field<*, *>) = LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), "")
 
-    override fun newRetrieverForQuery(
-        field: Schema.Field<ImageContent, LabelDescriptor>,
-        query: Query,
-        context: QueryContext
-    ): Retriever<ImageContent, LabelDescriptor> {
+    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, LabelDescriptor>, query: Query, context: QueryContext) = StructBooleanRetriever(field, query, context)
 
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        require(query is BooleanQuery) { "The query is not a BooleanQuery." }
-
-        return DominantColorRetriever(field, query, context)
-
-    }
 
     override fun newRetrieverForDescriptors(
         field: Schema.Field<ImageContent, LabelDescriptor>,
@@ -73,9 +63,8 @@ class DominantColor : Analyser<ImageContent, LabelDescriptor> {
             }
         }.toSet().map { it.name }
 
-        val query = SimpleBooleanQuery(Value.String(labels.first()), attributeName = "label")
-
-        return newRetrieverForQuery(field, query, context)
+        val predicate = Comparison.In(field, "label", labels.map { Value.String(it) })
+        return newRetrieverForQuery(field, Query(predicate), context)
     }
 
     override fun newRetrieverForContent(

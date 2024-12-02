@@ -8,9 +8,9 @@ import org.vitrivr.engine.core.database.AbstractDatabaseTest
 import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
-import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
-import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
+import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.bool.Comparison
+import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextPredicate
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.types.Value
 import java.nio.file.Paths
@@ -77,17 +77,39 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
         val d = descriptors[random.nextInt(0, descriptors.size)]
 
         /* Prepare and execute query. */
-        val query = SimpleBooleanQuery(
-            d.path,
-            ComparisonOperator.EQ,
-            "path"
-        )
+        val predicate = Comparison.Equals(this.field, "path", d.path)
+        val query = Query(predicate)
 
         /* Check results. */
         val result = reader.query(query).toList()
         Assertions.assertTrue(result.isNotEmpty())
         for (r in result) {
             Assertions.assertEquals(d.path, r.path)
+        }
+    }
+
+    /**
+     * Tests for equals comparison.
+     */
+    @Test
+    fun testBooleanQueryIn() {
+        val writer = this.testConnection.getDescriptorWriter(this.field)
+        val reader = this.testConnection.getDescriptorReader(this.field)
+        val random = SplittableRandom()
+
+        /* Generate and store test data. */
+        val descriptors = this.initialize(writer, random)
+        val d = descriptors.filter { random.nextBoolean() }.map { it.path }
+
+        /* Prepare and execute query. */
+        val predicate = Comparison.In(this.field, "path", d)
+        val query = Query(predicate)
+
+        /* Check results. */
+        val result = reader.query(query).toList()
+        Assertions.assertTrue(result.isNotEmpty())
+        for (r in result) {
+            Assertions.assertTrue(d.contains(r.path))
         }
     }
 
@@ -104,11 +126,8 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
         this.initialize(writer, random)
 
         /* Prepare and execute query. */
-        val query = SimpleBooleanQuery(
-            Value.String("%.jpg"),
-            ComparisonOperator.LIKE,
-            "path"
-        )
+        val predicate = Comparison.Like(this.field, "path", Value.String("%.jpg"))
+        val query = Query(predicate)
 
         /* Check results. */
         val result = reader.query(query).toList()
@@ -131,11 +150,8 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
 
         /* Prepare and execute query. */
         val size = Value.Long(random.nextLong(0, 100_000_000L))
-        val query = SimpleBooleanQuery(
-            size,
-            ComparisonOperator.GR,
-            "size"
-        )
+        val predicate = Comparison.Greater(this.field, "size", size)
+        val query = Query(predicate)
 
         /* Check results. */
         val result = reader.query(query).toList()
@@ -158,11 +174,8 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
 
         /* Prepare and execute query. */
         val size = Value.Long(random.nextLong(0, 100_000_000L))
-        val query = SimpleBooleanQuery(
-            size,
-            ComparisonOperator.LE,
-            "size"
-        )
+        val predicate = Comparison.Less(this.field, "size", size)
+        val query = Query(predicate)
 
         /* Check results. */
         val result = reader.query(query).toList()
@@ -184,10 +197,10 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
         this.initialize(writer, random)
 
         /* Prepare and execute query. */
-        val query = SimpleFulltextQuery(
-            Value.Text("var"),
-            "path"
+        val predicate = SimpleFulltextPredicate(
+            this.field, Value.Text("var"), "path"
         )
+        val query = Query(predicate)
 
         /* Check results. */
         val result = reader.query(query).toList()

@@ -5,7 +5,8 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.database.pgvector.*
-import java.sql.*
+import java.sql.PreparedStatement
+import java.sql.SQLException
 
 /**
  * An abstract implementation of a [DescriptorWriter] for PostgreSQL with pgVector.
@@ -38,7 +39,7 @@ open class PgDescriptorWriter<D : Descriptor<*>>(final override val field: Schem
                     if (value != null) {
                         stmt.setValue(i++, value)
                     } else {
-                        stmt.setNull(i++, attribute.type.toSql())
+                        stmt.setNull(i++, attribute.type.toSql().vendorTypeNumber)
                     }
                 }
                 return stmt.executeUpdate() == 1
@@ -70,7 +71,7 @@ open class PgDescriptorWriter<D : Descriptor<*>>(final override val field: Schem
                         if (value != null) {
                             stmt.setValue(i++, value)
                         } else {
-                            stmt.setNull(i++, attribute.type.toSql())
+                            stmt.setNull(i++, attribute.type.toSql().vendorTypeNumber)
                         }
                     }
                     stmt.addBatch()
@@ -124,7 +125,7 @@ open class PgDescriptorWriter<D : Descriptor<*>>(final override val field: Schem
                     if (value != null) {
                         stmt.setValue(i++, value)
                     } else {
-                        stmt.setNull(i++, attribute.type.toSql())
+                        stmt.setNull(i++, attribute.type.toSql().vendorTypeNumber)
                     }
                 }
                 stmt.setObject(i, item.id)

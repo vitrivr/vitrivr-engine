@@ -12,6 +12,7 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorReader
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.Predicate
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
@@ -22,7 +23,7 @@ import java.util.*
  * An abstract implementation of a [DescriptorReader] for Cottontail DB.
  *
  * @author Ralph Gasser
- * @version 1.0.1
+ * @version 1.2.0
  */
 abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val field: Schema.Field<*, D>, override val connection: CottontailConnection) : DescriptorReader<D> {
 
@@ -163,7 +164,7 @@ abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val fi
     }
 
     /**
-     * Returns a [Sequence] of all [Retrieved]s that match the given [Query].
+     * Returns a [Sequence] of all [Retrieved]s that match the given [Predicate].
      *
      * Implicitly, this methods executes a [query] and then JOINS the result with the [Retrieved]s.
      *

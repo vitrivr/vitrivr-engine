@@ -11,10 +11,9 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
-import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
+import org.vitrivr.engine.core.model.query.proximity.ProximityPredicate
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
 import org.vitrivr.engine.core.model.types.Value
@@ -114,16 +113,12 @@ class EHD : Analyser<ImageContent, FloatVectorDescriptor> {
      *
      * @return A new [DenseRetriever] instance for this [EHD]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, context: QueryContext): DenseRetriever<ImageContent> {
-        require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
-        @Suppress("UNCHECKED_CAST")
-        return DenseRetriever(field, query as ProximityQuery<Value.FloatVector>, context, LinearCorrespondence(4f))
-    }
+    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, context: QueryContext) = DenseRetriever(field, query, context, LinearCorrespondence(4f))
 
     /**
      * Generates and returns a new [DenseRetriever] instance for this [EHD].
      *
-     * Invoking this method involves converting the provided [FloatVectorDescriptor] into a [ProximityQuery] that can be used to retrieve similar [ImageContent] elements.
+     * Invoking this method involves converting the provided [FloatVectorDescriptor] into a [ProximityPredicate] that can be used to retrieve similar [ImageContent] elements.
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
@@ -131,11 +126,12 @@ class EHD : Analyser<ImageContent, FloatVectorDescriptor> {
      */
     override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): DenseRetriever<ImageContent> {
         /* Prepare query parameters. */
-        val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+        val k = context.getProperty(field.fieldName, QueryContext.LIMIT_KEY)?.toLongOrNull() ?: QueryContext.LIMIT_DEFAULT
+        val fetchVector = context.getProperty(field.fieldName, QueryContext.FETCH_DESCRIPTOR_KEY)?.toBooleanStrictOrNull() == true
 
         /* Return retriever. */
-        return this.newRetrieverForQuery(field, ProximityQuery(value = descriptors.first().vector, k = k, fetchVector = fetchVector), context)
+        val predicate = ProximityPredicate(field = field, value = descriptors.first().vector, k = k, fetchVector = fetchVector)
+        return this.newRetrieverForQuery(field, Query(predicate), context)
     }
 
     /**

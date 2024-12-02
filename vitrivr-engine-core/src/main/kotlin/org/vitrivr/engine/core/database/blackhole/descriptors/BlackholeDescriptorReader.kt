@@ -13,7 +13,7 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
  * A [DescriptorReader] for the [BlackholeConnection].
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 class BlackholeDescriptorReader<T : Descriptor<*>>(override val connection: BlackholeConnection, override val field: Schema.Field<*, T>) : DescriptorReader<T> {
     override fun exists(descriptorId: DescriptorId): Boolean = false
