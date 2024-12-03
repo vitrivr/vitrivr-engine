@@ -38,7 +38,7 @@ class FieldLookupLateFilter(
     /* append field*/
     val append: Boolean,
     /* appends late filter */
-    val limit : Int = Int.MAX_VALUE,
+    val limit: Int = Int.MAX_VALUE,
     override val name: String
 ) : Transformer {
     private val logger: KLogger = KotlinLogging.logger {}
@@ -83,12 +83,13 @@ class FieldLookupLateFilter(
                 }
 
                 retrieved.takeIf { append == true }?.let {
+                    retrieved.addDescriptor(descriptor)
                     retrieved.addAttribute(PropertyAttribute(attribute.map { it.first.first.toString() to it.first.second!!.value.toString() }
                         .toMap()))
                 }
 
                 attribute[0].takeIf { it.first.second != null && it.second != null }?.let {
-                    it.takeIf {++emitted<= limit && comparison.compare(it.first.second!!, it.second!!) }?.let {
+                    it.takeIf { ++emitted <= limit && comparison.compare(it.first.second!!, it.second!!) }?.let {
                         emit(retrieved)
                     }
                 }
