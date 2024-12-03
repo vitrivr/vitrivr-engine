@@ -37,7 +37,7 @@ class LateFilter(
     /* appends late filter */
     val limit: Int = Int.MAX_VALUE,
     /* on missing key skip */
-    val skip: Skip = Skip.valueOf("ignore"),
+    val skip: Skip = Skip fromString  "warn",
 
     override val name: String
 ) : Transformer {
