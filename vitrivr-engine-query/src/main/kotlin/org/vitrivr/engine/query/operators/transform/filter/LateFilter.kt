@@ -59,9 +59,9 @@ class LateFilter(
             if (descriptors.isEmpty() || descriptors.first().values().containsKey(keys[0]).not()) {
                 when (skip) {
                     Skip.ERROR -> throw IllegalArgumentException("no descriptor found for field $fieldName")
-                    Skip.WARN -> logger.warn { "no descriptor found for field $fieldName" }
+                    Skip.WARN -> logger.warn { "no descriptor found for field $fieldName" }.also { return@forEach }
                     Skip.IGNORE -> return@forEach
-                    Skip.FORWARD -> emit(retrieved)
+                    Skip.FORWARD -> emit(retrieved).also { return@forEach }
                 }
             }
 
@@ -109,7 +109,7 @@ enum class Skip(val strategy: String) {
                 WARN.strategy -> WARN
                 IGNORE.strategy -> IGNORE
                 FORWARD.strategy -> FORWARD
-                else -> throw IllegalArgumentException("Cannot parse '$str")
+                else -> ERROR
             }
         }
     }
