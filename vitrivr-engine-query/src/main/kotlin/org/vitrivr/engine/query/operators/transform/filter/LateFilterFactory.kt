@@ -24,6 +24,6 @@ class LateFilterFactory() : TransformerFactory {
         } else {
             emptyList()
         }
-        return LateFilter(input, field, keys, ComparisonOperator.fromString(comparison), value, limit, Skip.fromString(skip), name)
+        return LateFilter(input, field, keys, ComparisonOperator fromString comparison, value, limit, Skip fromString skip, name)
     }
 }

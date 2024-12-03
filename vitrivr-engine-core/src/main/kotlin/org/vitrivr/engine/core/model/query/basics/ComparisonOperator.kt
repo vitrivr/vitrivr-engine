@@ -127,7 +127,7 @@ enum class ComparisonOperator(val value: String) {
          * @param str The [String] which should be one of the [ComparisonOperator]
          * @throws IllegalArgumentException In case the given string is not one of the defined ones.
          */
-        fun fromString(str: String): ComparisonOperator {
+        infix fun fromString(str: String): ComparisonOperator {
             return when (str.trim()) {
                 EQ.value -> EQ
                 NEQ.value -> NEQ
