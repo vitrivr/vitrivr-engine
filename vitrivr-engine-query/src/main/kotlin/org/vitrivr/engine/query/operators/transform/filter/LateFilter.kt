@@ -97,12 +97,6 @@ enum class Skip(val strategy: String) {
     FORWARD("forward");
 
     companion object {
-        /**
-         * Resolves a [ComparisonOperator] from the given [String].
-         *
-         * @param str The [String] which should be one of the [ComparisonOperator]
-         * @throws IllegalArgumentException In case the given string is not one of the defined ones.
-         */
         infix fun fromString(str: String): Skip {
             return when (str.trim()) {
                 ERROR.strategy -> ERROR
