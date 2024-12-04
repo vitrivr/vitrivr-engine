@@ -6,3 +6,4 @@ org.vitrivr.engine.query.operators.transform.lookup.ObjectFieldLookupFactory
 org.vitrivr.engine.query.operators.transform.filter.FieldLookupLateFilterFactory
 org.vitrivr.engine.query.operators.transform.filter.LateFilterFactory
 org.vitrivr.engine.query.operators.transform.scoring.ScoreExaggeratorFactory
+org.vitrivr.engine.query.operators.transform.benchmark.TimeBenchmarkFactory

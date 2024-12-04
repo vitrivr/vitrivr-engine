@@ -49,6 +49,7 @@ class FieldLookup(
                 retrieved.addAttribute(PropertyAttribute(keys.map{
                     it to (when(values[it]){
                         is Value.String -> (values[it] as Value.String).value
+                        is Value.Text -> (values[it] as Value.Text).value
                         is Value.Boolean -> (values[it] as Value.Boolean).value
                         is Value.Int -> (values[it] as Value.Int).value
                         is Value.Long -> (values[it] as Value.Long).value
