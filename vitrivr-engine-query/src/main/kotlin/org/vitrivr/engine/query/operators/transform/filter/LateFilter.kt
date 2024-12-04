@@ -18,11 +18,14 @@ import java.sql.Date
 import javax.management.Descriptor
 
 /**
- * Appends [Descriptor] to a [Retrieved] based on the values of a [Schema.Field], if available.
+ * Checks if a retrieved has a descriptor for a given field and key.
+ * On missing key, the filter follows the skip strategy.
+ * If the key is found, the value is compared to the provided value and the retrieved is filtered accordingly to the comparison operator.
  *
- * @version 1.1.2
+ * @version 1.1.3
  * @author Luca Rossetto
  * @author Ralph Gasser
+ * @author Raphael Waltenspuel
  */
 class LateFilter(
     override val input: Operator<out Retrievable>,
@@ -37,7 +40,7 @@ class LateFilter(
     /* appends late filter */
     val limit: Int = Int.MAX_VALUE,
     /* on missing key skip */
-    val skip: Skip = Skip fromString  "error",
+    val skip: Skip = Skip fromString "error",
 
     override val name: String
 ) : Transformer {
@@ -55,8 +58,8 @@ class LateFilter(
         /* Emit retrievable with added attribute. */
         inputRetrieved.forEach { retrieved ->
 
-            val descriptors = retrieved.findDescriptor { it.field?.fieldName == fieldName }
-            if (descriptors.isEmpty() || descriptors.first().values().containsKey(keys[0]).not()) {
+            val descriptors = retrieved.findDescriptor() { it.field?.fieldName == fieldName }
+            if (descriptors.isEmpty()) {
                 when (skip) {
                     Skip.ERROR -> throw IllegalArgumentException("no descriptor found for field $fieldName")
                     Skip.WARN -> logger.warn { "no descriptor found for field $fieldName" }.also { return@forEach }
@@ -69,6 +72,7 @@ class LateFilter(
             val attribute = keys.map {
                 (when (values[it]) {
                     is Value.String -> Pair(it to (values[it] as Value.String), Value.of(value.toString()))
+                    is Value.Text -> Pair(it to (values[it] as Value.Text), Value.of(value.toString()))
                     is Value.Boolean -> Pair(it to (values[it] as Value.Boolean), Value.of(value.toBoolean()))
                     is Value.Int -> Pair(it to (values[it] as Value.Int), Value.of(value.toInt()))
                     is Value.Long -> Pair(it to (values[it] as Value.Long), Value.of(value.toLong()))
