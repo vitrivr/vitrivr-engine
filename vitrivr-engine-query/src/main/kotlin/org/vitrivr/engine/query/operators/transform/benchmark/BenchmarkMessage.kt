@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 data class BenchmarkMessage (
     val name: String,
     val source: String,
-    val timestamp: String
+    val timestamp: String,
+    val inputSize: Int,
 )

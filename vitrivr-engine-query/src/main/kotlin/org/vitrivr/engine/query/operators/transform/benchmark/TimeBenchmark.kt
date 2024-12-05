@@ -14,6 +14,8 @@ import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 import java.nio.file.Path
+import java.time.LocalDateTime
+import java.util.Timer
 import javax.management.Descriptor
 
 /**
@@ -42,10 +44,10 @@ class TimeBenchmark(
         }
     }
 
-
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
-        bl!! log BenchmarkMessage(name, pretty, System.currentTimeMillis().toString())
-        emitAll(input.toFlow(scope))
+        val inputRetrieved = input.toFlow(scope).toList()
+        bl!! log BenchmarkMessage(name, pretty, LocalDateTime.now().toString(), inputRetrieved.size)
+        inputRetrieved.forEach { emit(it) }
     }
 }
 
