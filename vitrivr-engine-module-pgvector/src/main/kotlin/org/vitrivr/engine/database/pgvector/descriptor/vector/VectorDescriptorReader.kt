@@ -117,9 +117,10 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, con
     private fun queryAndJoinProximity(query: ProximityQuery<*>): Sequence<Retrieved> {
         val descriptors = mutableListOf<Pair<VectorDescriptor<*, *>, Float>>()
         val statement =
-            "SELECT $DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $VECTOR_ATTRIBUTE_NAME, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME FROM \"${tableName.lowercase()}\" ORDER BY $DISTANCE_COLUMN_NAME ${query.order} LIMIT ${query.k}"
+            "SELECT $DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $VECTOR_ATTRIBUTE_NAME, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME FROM \"${tableName.lowercase()}\" ORDER BY $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? ${query.order} LIMIT ${query.k}"
         this@VectorDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
             stmt.setValue(1, query.value)
+            stmt.setValue(2, query.value)
             stmt.executeQuery().use { result ->
                 while (result.next()) {
                     descriptors.add(this@VectorDescriptorReader.rowToDescriptor(result) to result.getFloat(DISTANCE_COLUMN_NAME))
