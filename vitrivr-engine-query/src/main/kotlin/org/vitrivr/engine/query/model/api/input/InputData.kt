@@ -10,7 +10,6 @@ import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryImageContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryTextContent
 import org.vitrivr.engine.core.util.extension.BufferedImage
-import java.awt.image.BufferedImage
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -65,7 +64,6 @@ sealed class InputData() {
 @Serializable
 data class TextInputData(val data: String, override val comparison: String? = "==") : InputData() {
     override val type = InputType.TEXT
-
     override fun toContent(): TextContent = InMemoryTextContent(data)
 }
 
@@ -76,11 +74,9 @@ data class TextInputData(val data: String, override val comparison: String? = "=
 @Serializable
 data class VectorInputData(val data: List<Float>, override val comparison: String? = "==") : InputData(){
     override val type = InputType.VECTOR
-
     override fun toContent(): ContentElement<*> {
         throw UnsupportedOperationException("Cannot derive content from VectorInputData")
     }
-
 }
 
 /**
@@ -90,13 +86,7 @@ data class VectorInputData(val data: List<Float>, override val comparison: Strin
 @Serializable
 data class ImageInputData(val data: String, override val comparison: String? = "==") : InputData() {
     override val type = InputType.VECTOR
-    override fun toContent(): ImageContent = InMemoryImageContent(image)
-
-    /**
-     * [BufferedImage] representation of the base64 input.
-     */
-    private val image: BufferedImage by lazy { BufferedImage(data) }
-
+    override fun toContent(): ImageContent = InMemoryImageContent(BufferedImage(data))
 }
 
 /**
@@ -150,7 +140,7 @@ data class DateInputData(val data: String, override val comparison: String? = "=
     /**
      * Parses the input in YYYY-mm-dd format.
      */
-    fun parseDate():Date{
+    fun parseDate(): Date {
         val formatter = SimpleDateFormat("YYYY-mm-dd", Locale.ENGLISH)
         return formatter.parse(data)
     }
