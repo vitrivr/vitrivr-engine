@@ -2,8 +2,8 @@
   "openapi" : "3.0.3",
   "info" : {
     "title" : "vitrivr engine API",
-    "version" : "1.0.0",
-    "description" : "API for the vitrivr engine."
+    "version": "0.1.0",
+    "description": "Rest API for the vitrivr engine project. Provides query (runtime) and extraction (ingestion) endpoints"
   },
   "paths" : {
     "/api/schema/list" : {
@@ -18,10 +18,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "type" : "string"
-                  }
+                  "$ref": "#/components/schemas/SchemaList"
                 }
               }
             }
@@ -46,7 +43,41 @@
         "tags" : [ "Content" ],
         "summary" : "Fetch previously exported data.",
         "operationId" : "getPreview",
-        "parameters" : [ ],
+        "parameters": [
+          {
+            "name": "schema",
+            "in": "path",
+            "description": "The schema this operation is for.",
+            "required": true,
+            "deprecated": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "exporter",
+            "in": "path",
+            "description": "The exporter of the schema to use.",
+            "required": true,
+            "deprecated": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "retrievableId",
+            "in": "path",
+            "description": "The ID of the retrievable.",
+            "required": true,
+            "deprecated": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -114,8 +145,8 @@
     "/api/{schema}/index/{jobId}" : {
       "get" : {
         "tags" : [ "Ingest" ],
-        "summary" : "Indexes an item, adding it to the defined schema.",
-        "operationId" : "postExecuteIngest",
+        "summary": "Queries the status of a given ingest job.",
+        "operationId": "getIngestStatus",
         "parameters" : [ {
           "name" : "schema",
           "in" : "path",
@@ -129,7 +160,7 @@
         }, {
           "name" : "jobId",
           "in" : "path",
-          "description" : "The id querying the state.",
+          "description": "The id of the job to query the status for.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -226,10 +257,30 @@
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
-          "property" : {
+          "propertyOrDefault": {
             "type" : "string"
+          },
+          "local": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "global": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
           }
-        }
+        },
+        "required": [
+          "propertyOrDefault",
+          "local",
+          "global"
+        ]
       },
       "InformationNeedDescription" : {
         "type" : "object",
@@ -262,13 +313,25 @@
         "properties" : {
           "type" : {
             "$ref" : "#/components/schemas/InputType"
+          },
+          "comparison": {
+            "type": "string",
+            "nullable": true
           }
         },
         "required" : [ "type" ]
       },
       "InputType" : {
         "type" : "string",
-        "enum" : [ "TEXT", "IMAGE", "VECTOR", "ID" ]
+        "enum": [
+          "TEXT",
+          "IMAGE",
+          "VECTOR",
+          "ID",
+          "BOOLEAN",
+          "NUMERIC",
+          "DATE"
+        ]
       },
       "OperatorDescription" : {
         "type" : "object",
@@ -325,6 +388,21 @@
           }
         },
         "required" : [ "id", "score", "type", "parts", "properties" ]
+      },
+      "SchemaList": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schemas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "schemas"
+        ]
       },
       "ErrorStatus" : {
         "type" : "object",
