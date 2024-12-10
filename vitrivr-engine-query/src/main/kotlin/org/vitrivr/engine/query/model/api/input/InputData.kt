@@ -1,5 +1,8 @@
 package org.vitrivr.engine.query.model.api.input
 
+import io.javalin.openapi.Discriminator
+import io.javalin.openapi.DiscriminatorProperty
+import io.javalin.openapi.OneOf
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -15,6 +18,18 @@ import java.util.*
  * The abstract [InputData], essentially a query's input value.
  */
 @Serializable(with = InputDataSerializer::class)
+@OneOf(
+    discriminator = Discriminator(DiscriminatorProperty("type", type = InputType::class)),
+    value = [
+        TextInputData::class,
+        ImageInputData::class,
+        VectorInputData::class,
+        RetrievableIdInputData::class,
+        BooleanInputData::class,
+        NumericInputData::class,
+        DateInputData::class
+    ]
+)
 sealed class InputData() {
     /**
      * The [InputType] of this [InputType]. Required for polymorphic deserialisation.

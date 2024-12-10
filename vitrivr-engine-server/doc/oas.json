@@ -249,6 +249,1732 @@
   },
   "components" : {
     "schemas" : {
+      "Color": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "red": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "green": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "blue": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "alpha": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rGB": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rGBComponents": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          "rGBColorComponents": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          "colorComponents": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          "colorSpace": {
+            "$ref": "#/components/schemas/ColorSpace"
+          },
+          "transparency": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "red",
+          "green",
+          "blue",
+          "alpha",
+          "rGB",
+          "transparency"
+        ]
+      },
+      "Dimension": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "width": {
+            "type": "number",
+            "format": "double"
+          },
+          "height": {
+            "type": "number",
+            "format": "double"
+          },
+          "size": {
+            "$ref": "#/components/schemas/Dimension"
+          }
+        },
+        "required": [
+          "width",
+          "height"
+        ]
+      },
+      "Font": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "fontPeer": {
+            "$ref": "#/components/schemas/FontPeer"
+          },
+          "attributeValues": {
+            "$ref": "#/components/schemas/AttributeValues"
+          },
+          "font2D": {
+            "$ref": "#/components/schemas/Font2D"
+          },
+          "transform": {
+            "$ref": "#/components/schemas/AffineTransform"
+          },
+          "family": {
+            "type": "string"
+          },
+          "family_NoClientCode": {
+            "type": "string"
+          },
+          "pSName": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "fontName": {
+            "type": "string"
+          },
+          "style": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size2D": {
+            "type": "number",
+            "format": "float"
+          },
+          "plain": {
+            "type": "boolean"
+          },
+          "bold": {
+            "type": "boolean"
+          },
+          "italic": {
+            "type": "boolean"
+          },
+          "transformed": {
+            "type": "boolean"
+          },
+          "numGlyphs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "missingGlyphCode": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baselineFor": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "availableAttributes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Attribute"
+            }
+          },
+          "italicAngle": {
+            "type": "number",
+            "format": "float"
+          },
+          "lineMetrics": {
+            "$ref": "#/components/schemas/LineMetrics"
+          },
+          "stringBounds": {
+            "$ref": "#/components/schemas/Rectangle2D"
+          },
+          "maxCharBounds": {
+            "$ref": "#/components/schemas/Rectangle2D"
+          }
+        },
+        "required": [
+          "style",
+          "size",
+          "size2D",
+          "plain",
+          "bold",
+          "italic",
+          "transformed",
+          "numGlyphs",
+          "missingGlyphCode",
+          "baselineFor",
+          "italicAngle",
+          "italicAngle"
+        ]
+      },
+      "FontMetrics": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "font": {
+            "$ref": "#/components/schemas/Font"
+          },
+          "fontRenderContext": {
+            "$ref": "#/components/schemas/FontRenderContext"
+          },
+          "leading": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ascent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "descent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "height": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxAscent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxDescent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxDecent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxAdvance": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "widths": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "lineMetrics": {
+            "$ref": "#/components/schemas/LineMetrics"
+          },
+          "stringBounds": {
+            "$ref": "#/components/schemas/Rectangle2D"
+          },
+          "maxCharBounds": {
+            "$ref": "#/components/schemas/Rectangle2D"
+          }
+        },
+        "required": [
+          "leading",
+          "ascent",
+          "descent",
+          "height",
+          "maxAscent",
+          "maxDescent",
+          "maxDecent",
+          "maxAdvance"
+        ]
+      },
+      "Graphics": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "color": {
+            "$ref": "#/components/schemas/Color"
+          },
+          "font": {
+            "$ref": "#/components/schemas/Font"
+          },
+          "fontMetrics": {
+            "$ref": "#/components/schemas/FontMetrics"
+          },
+          "clipBounds": {
+            "$ref": "#/components/schemas/Rectangle"
+          },
+          "clip": {
+            "$ref": "#/components/schemas/Shape"
+          },
+          "clipRect": {
+            "$ref": "#/components/schemas/Rectangle"
+          }
+        }
+      },
+      "Image": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "width": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "height": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ImageProducer"
+          },
+          "graphics": {
+            "$ref": "#/components/schemas/Graphics"
+          },
+          "property": {
+            "type": "object"
+          },
+          "scaledInstance": {
+            "$ref": "#/components/schemas/Image"
+          },
+          "capabilities": {
+            "$ref": "#/components/schemas/ImageCapabilities"
+          },
+          "accelerationPriority": {
+            "type": "number",
+            "format": "float"
+          }
+        },
+        "required": [
+          "width",
+          "height",
+          "accelerationPriority"
+        ]
+      },
+      "ImageCapabilities": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "accelerated": {
+            "type": "boolean"
+          },
+          "trueVolatile": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "accelerated",
+          "trueVolatile"
+        ]
+      },
+      "Paint": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "transparency": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "transparency"
+        ]
+      },
+      "Point": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "x": {
+            "type": "number",
+            "format": "double"
+          },
+          "y": {
+            "type": "number",
+            "format": "double"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Point"
+          }
+        },
+        "required": [
+          "x",
+          "y"
+        ]
+      },
+      "Rectangle": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "minX": {
+            "type": "number",
+            "format": "double"
+          },
+          "minY": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxX": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxY": {
+            "type": "number",
+            "format": "double"
+          },
+          "centerX": {
+            "type": "number",
+            "format": "double"
+          },
+          "centerY": {
+            "type": "number",
+            "format": "double"
+          },
+          "frame": {
+            "$ref": "#/components/schemas/Rectangle2D"
+          },
+          "pathIterator": {
+            "$ref": "#/components/schemas/PathIterator"
+          },
+          "x": {
+            "type": "number",
+            "format": "double"
+          },
+          "y": {
+            "type": "number",
+            "format": "double"
+          },
+          "width": {
+            "type": "number",
+            "format": "double"
+          },
+          "height": {
+            "type": "number",
+            "format": "double"
+          },
+          "bounds": {
+            "$ref": "#/components/schemas/Rectangle"
+          },
+          "bounds2D": {
+            "$ref": "#/components/schemas/Rectangle2D"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Point"
+          },
+          "size": {
+            "$ref": "#/components/schemas/Dimension"
+          },
+          "empty": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "minX",
+          "minY",
+          "maxX",
+          "maxY",
+          "centerX",
+          "centerY",
+          "x",
+          "y",
+          "width",
+          "height",
+          "empty"
+        ]
+      },
+      "Shape": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "bounds": {
+            "$ref": "#/components/schemas/Rectangle"
+          },
+          "bounds2D": {
+            "$ref": "#/components/schemas/Rectangle2D"
+          },
+          "pathIterator": {
+            "$ref": "#/components/schemas/PathIterator"
+          }
+        }
+      },
+      "ColorSpace": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "cS_sRGB": {
+            "type": "boolean"
+          },
+          "type": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numComponents": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "minValue": {
+            "type": "number",
+            "format": "float"
+          },
+          "maxValue": {
+            "type": "number",
+            "format": "float"
+          }
+        },
+        "required": [
+          "cS_sRGB",
+          "type",
+          "numComponents",
+          "minValue",
+          "maxValue"
+        ]
+      },
+      "FontRenderContext": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "transformed": {
+            "type": "boolean"
+          },
+          "transformType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "transform": {
+            "$ref": "#/components/schemas/AffineTransform"
+          },
+          "antiAliased": {
+            "type": "boolean"
+          },
+          "antiAliasingHint": {
+            "type": "object"
+          },
+          "fractionalMetricsHint": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "transformed",
+          "transformType",
+          "antiAliased"
+        ]
+      },
+      "GlyphJustificationInfo": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {}
+      },
+      "GraphicAttribute": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ascent": {
+            "type": "number",
+            "format": "float"
+          },
+          "descent": {
+            "type": "number",
+            "format": "float"
+          },
+          "advance": {
+            "type": "number",
+            "format": "float"
+          },
+          "bounds": {
+            "$ref": "#/components/schemas/Rectangle2D"
+          },
+          "outline": {
+            "$ref": "#/components/schemas/Shape"
+          },
+          "alignment": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "justificationInfo": {
+            "$ref": "#/components/schemas/GlyphJustificationInfo"
+          }
+        },
+        "required": [
+          "ascent",
+          "descent",
+          "advance",
+          "alignment"
+        ]
+      },
+      "LineMetrics": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "numChars": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ascent": {
+            "type": "number",
+            "format": "float"
+          },
+          "descent": {
+            "type": "number",
+            "format": "float"
+          },
+          "leading": {
+            "type": "number",
+            "format": "float"
+          },
+          "height": {
+            "type": "number",
+            "format": "float"
+          },
+          "baselineIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baselineOffsets": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          "strikethroughOffset": {
+            "type": "number",
+            "format": "float"
+          },
+          "strikethroughThickness": {
+            "type": "number",
+            "format": "float"
+          },
+          "underlineOffset": {
+            "type": "number",
+            "format": "float"
+          },
+          "underlineThickness": {
+            "type": "number",
+            "format": "float"
+          }
+        },
+        "required": [
+          "numChars",
+          "ascent",
+          "descent",
+          "leading",
+          "height",
+          "baselineIndex",
+          "strikethroughOffset",
+          "strikethroughThickness",
+          "underlineOffset",
+          "underlineThickness"
+        ]
+      },
+      "NumericShaper": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "strongDirectional": {
+            "type": "boolean"
+          },
+          "contextual": {
+            "type": "boolean"
+          },
+          "ranges": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rangeSet": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Range"
+            }
+          }
+        },
+        "required": [
+          "strongDirectional",
+          "contextual",
+          "ranges"
+        ]
+      },
+      "Range": {
+        "type": "string",
+        "enum": [
+          "EUROPEAN",
+          "ARABIC",
+          "EASTERN_ARABIC",
+          "DEVANAGARI",
+          "BENGALI",
+          "GURMUKHI",
+          "GUJARATI",
+          "ORIYA",
+          "TAMIL",
+          "TELUGU",
+          "KANNADA",
+          "MALAYALAM",
+          "THAI",
+          "LAO",
+          "TIBETAN",
+          "MYANMAR",
+          "ETHIOPIC",
+          "KHMER",
+          "MONGOLIAN",
+          "NKO",
+          "MYANMAR_SHAN",
+          "LIMBU",
+          "NEW_TAI_LUE",
+          "BALINESE",
+          "SUNDANESE",
+          "LEPCHA",
+          "OL_CHIKI",
+          "VAI",
+          "SAURASHTRA",
+          "KAYAH_LI",
+          "CHAM",
+          "TAI_THAM_HORA",
+          "TAI_THAM_THAM",
+          "JAVANESE",
+          "MEETEI_MAYEK",
+          "SINHALA",
+          "MYANMAR_TAI_LAING"
+        ]
+      },
+      "AffineTransform": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "determinant": {
+            "type": "number",
+            "format": "double"
+          },
+          "matrix": {
+            "type": "object"
+          },
+          "scaleX": {
+            "type": "number",
+            "format": "double"
+          },
+          "scaleY": {
+            "type": "number",
+            "format": "double"
+          },
+          "shearX": {
+            "type": "number",
+            "format": "double"
+          },
+          "shearY": {
+            "type": "number",
+            "format": "double"
+          },
+          "translateX": {
+            "type": "number",
+            "format": "double"
+          },
+          "translateY": {
+            "type": "number",
+            "format": "double"
+          },
+          "identity": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "type",
+          "determinant",
+          "scaleX",
+          "scaleY",
+          "shearX",
+          "shearY",
+          "translateX",
+          "translateY",
+          "identity"
+        ]
+      },
+      "GeneralPath": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "windingRule": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "currentPoint": {
+            "$ref": "#/components/schemas/Point2D"
+          },
+          "bounds": {
+            "$ref": "#/components/schemas/Rectangle"
+          },
+          "pathIterator": {
+            "$ref": "#/components/schemas/PathIterator"
+          },
+          "point": {
+            "$ref": "#/components/schemas/Point2D"
+          },
+          "bounds2D": {
+            "$ref": "#/components/schemas/Rectangle2D"
+          }
+        },
+        "required": [
+          "windingRule"
+        ]
+      },
+      "PathIterator": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "windingRule": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "done": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "windingRule",
+          "done"
+        ]
+      },
+      "Point2D": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "x": {
+            "type": "number",
+            "format": "double"
+          },
+          "y": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "required": [
+          "x",
+          "y"
+        ]
+      },
+      "Float": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "minX": {
+            "type": "number",
+            "format": "double"
+          },
+          "minY": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxX": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxY": {
+            "type": "number",
+            "format": "double"
+          },
+          "centerX": {
+            "type": "number",
+            "format": "double"
+          },
+          "centerY": {
+            "type": "number",
+            "format": "double"
+          },
+          "frame": {
+            "$ref": "#/components/schemas/Rectangle2D"
+          },
+          "bounds": {
+            "$ref": "#/components/schemas/Rectangle"
+          },
+          "pathIterator": {
+            "$ref": "#/components/schemas/PathIterator"
+          },
+          "x": {
+            "type": "number",
+            "format": "double"
+          },
+          "y": {
+            "type": "number",
+            "format": "double"
+          },
+          "width": {
+            "type": "number",
+            "format": "double"
+          },
+          "height": {
+            "type": "number",
+            "format": "double"
+          },
+          "empty": {
+            "type": "boolean"
+          },
+          "bounds2D": {
+            "$ref": "#/components/schemas/Rectangle2D"
+          }
+        },
+        "required": [
+          "minX",
+          "minY",
+          "maxX",
+          "maxY",
+          "centerX",
+          "centerY",
+          "x",
+          "y",
+          "width",
+          "height",
+          "empty"
+        ]
+      },
+      "Rectangle2D": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "x": {
+            "type": "number",
+            "format": "double"
+          },
+          "y": {
+            "type": "number",
+            "format": "double"
+          },
+          "width": {
+            "type": "number",
+            "format": "double"
+          },
+          "height": {
+            "type": "number",
+            "format": "double"
+          },
+          "minX": {
+            "type": "number",
+            "format": "double"
+          },
+          "minY": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxX": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxY": {
+            "type": "number",
+            "format": "double"
+          },
+          "centerX": {
+            "type": "number",
+            "format": "double"
+          },
+          "centerY": {
+            "type": "number",
+            "format": "double"
+          },
+          "frame": {
+            "$ref": "#/components/schemas/Rectangle2D"
+          },
+          "empty": {
+            "type": "boolean"
+          },
+          "bounds": {
+            "$ref": "#/components/schemas/Rectangle"
+          },
+          "bounds2D": {
+            "$ref": "#/components/schemas/Rectangle2D"
+          },
+          "pathIterator": {
+            "$ref": "#/components/schemas/PathIterator"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "width",
+          "height",
+          "minX",
+          "minY",
+          "maxX",
+          "maxY",
+          "centerX",
+          "centerY",
+          "empty"
+        ]
+      },
+      "BufferedImage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "scaledInstance": {
+            "$ref": "#/components/schemas/Image"
+          },
+          "capabilities": {
+            "$ref": "#/components/schemas/ImageCapabilities"
+          },
+          "accelerationPriority": {
+            "type": "number",
+            "format": "float"
+          },
+          "type": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "colorModel": {
+            "$ref": "#/components/schemas/ColorModel"
+          },
+          "raster": {
+            "$ref": "#/components/schemas/WritableRaster"
+          },
+          "alphaRaster": {
+            "$ref": "#/components/schemas/WritableRaster"
+          },
+          "rGB": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "width": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "height": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ImageProducer"
+          },
+          "property": {
+            "type": "object"
+          },
+          "graphics": {
+            "$ref": "#/components/schemas/Graphics"
+          },
+          "subimage": {
+            "$ref": "#/components/schemas/BufferedImage"
+          },
+          "alphaPremultiplied": {
+            "type": "boolean"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RenderedImage"
+            }
+          },
+          "propertyNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "minX": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minY": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sampleModel": {
+            "$ref": "#/components/schemas/SampleModel"
+          },
+          "numXTiles": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numYTiles": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minTileX": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minTileY": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tileWidth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tileHeight": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tileGridXOffset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tileGridYOffset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tile": {
+            "$ref": "#/components/schemas/Raster"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Raster"
+          },
+          "tileWritable": {
+            "type": "boolean"
+          },
+          "writableTileIndices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Point"
+            }
+          },
+          "writableTile": {
+            "$ref": "#/components/schemas/WritableRaster"
+          },
+          "transparency": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "accelerationPriority",
+          "type",
+          "rGB",
+          "width",
+          "height",
+          "width",
+          "height",
+          "alphaPremultiplied",
+          "minX",
+          "minY",
+          "numXTiles",
+          "numYTiles",
+          "minTileX",
+          "minTileY",
+          "tileWidth",
+          "tileHeight",
+          "tileGridXOffset",
+          "tileGridYOffset",
+          "tileWritable",
+          "transparency"
+        ]
+      },
+      "ColorModel": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "alphaPremultiplied": {
+            "type": "boolean"
+          },
+          "transferType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pixelSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "componentSize": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "transparency": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numComponents": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numColorComponents": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "red": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "green": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "blue": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "alpha": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rGB": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dataElements": {
+            "type": "object"
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "unnormalizedComponents": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "normalizedComponents": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          "dataElement": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "colorSpace": {
+            "$ref": "#/components/schemas/ColorSpace"
+          },
+          "compatibleRaster": {
+            "type": "boolean"
+          },
+          "compatibleSampleModel": {
+            "type": "boolean"
+          },
+          "alphaRaster": {
+            "$ref": "#/components/schemas/WritableRaster"
+          }
+        },
+        "required": [
+          "alphaPremultiplied",
+          "transferType",
+          "pixelSize",
+          "componentSize",
+          "transparency",
+          "numComponents",
+          "numColorComponents",
+          "red",
+          "green",
+          "blue",
+          "alpha",
+          "rGB",
+          "red",
+          "green",
+          "blue",
+          "alpha",
+          "rGB",
+          "dataElement",
+          "dataElement",
+          "compatibleRaster",
+          "compatibleSampleModel"
+        ]
+      },
+      "DataBuffer": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "dataType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "offsets": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "numBanks": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "elem": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "elemFloat": {
+            "type": "number",
+            "format": "float"
+          },
+          "elemDouble": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "required": [
+          "dataType",
+          "size",
+          "offset",
+          "numBanks",
+          "elem",
+          "elem",
+          "elemFloat",
+          "elemFloat",
+          "elemDouble",
+          "elemDouble"
+        ]
+      },
+      "ImageProducer": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "consumer": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "consumer"
+        ]
+      },
+      "Raster": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "parent": {
+            "$ref": "#/components/schemas/Raster"
+          },
+          "sampleModelTranslateX": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sampleModelTranslateY": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bounds": {
+            "$ref": "#/components/schemas/Rectangle"
+          },
+          "minX": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minY": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "width": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "height": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numBands": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numDataElements": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "transferType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dataBuffer": {
+            "$ref": "#/components/schemas/DataBuffer"
+          },
+          "sampleModel": {
+            "$ref": "#/components/schemas/SampleModel"
+          },
+          "dataElements": {
+            "type": "object"
+          },
+          "pixel": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "pixels": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "sample": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sampleFloat": {
+            "type": "number",
+            "format": "float"
+          },
+          "sampleDouble": {
+            "type": "number",
+            "format": "double"
+          },
+          "samples": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        },
+        "required": [
+          "sampleModelTranslateX",
+          "sampleModelTranslateY",
+          "minX",
+          "minY",
+          "width",
+          "height",
+          "numBands",
+          "numDataElements",
+          "transferType",
+          "sample",
+          "sampleFloat",
+          "sampleDouble"
+        ]
+      },
+      "RenderedImage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RenderedImage"
+            }
+          },
+          "property": {
+            "type": "object"
+          },
+          "propertyNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "colorModel": {
+            "$ref": "#/components/schemas/ColorModel"
+          },
+          "sampleModel": {
+            "$ref": "#/components/schemas/SampleModel"
+          },
+          "width": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "height": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minX": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minY": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numXTiles": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numYTiles": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minTileX": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minTileY": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tileWidth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tileHeight": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tileGridXOffset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tileGridYOffset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tile": {
+            "$ref": "#/components/schemas/Raster"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Raster"
+          }
+        },
+        "required": [
+          "width",
+          "height",
+          "minX",
+          "minY",
+          "numXTiles",
+          "numYTiles",
+          "minTileX",
+          "minTileY",
+          "tileWidth",
+          "tileHeight",
+          "tileGridXOffset",
+          "tileGridYOffset"
+        ]
+      },
+      "SampleModel": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "width": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "height": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numBands": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numDataElements": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dataType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "transferType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pixel": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "dataElements": {
+            "type": "object"
+          },
+          "pixels": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "sample": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sampleFloat": {
+            "type": "number",
+            "format": "float"
+          },
+          "sampleDouble": {
+            "type": "number",
+            "format": "double"
+          },
+          "samples": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "sampleSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "width",
+          "height",
+          "numBands",
+          "numDataElements",
+          "dataType",
+          "transferType",
+          "sample",
+          "sampleFloat",
+          "sampleDouble",
+          "sampleSize"
+        ]
+      },
+      "WritableRaster": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "parent": {
+            "$ref": "#/components/schemas/Raster"
+          },
+          "sampleModelTranslateX": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sampleModelTranslateY": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bounds": {
+            "$ref": "#/components/schemas/Rectangle"
+          },
+          "minX": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minY": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "width": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "height": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numBands": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numDataElements": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "transferType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dataBuffer": {
+            "$ref": "#/components/schemas/DataBuffer"
+          },
+          "sampleModel": {
+            "$ref": "#/components/schemas/SampleModel"
+          },
+          "dataElements": {
+            "type": "object"
+          },
+          "pixel": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "pixels": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "sample": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sampleFloat": {
+            "type": "number",
+            "format": "float"
+          },
+          "sampleDouble": {
+            "type": "number",
+            "format": "double"
+          },
+          "samples": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "writableParent": {
+            "$ref": "#/components/schemas/WritableRaster"
+          }
+        },
+        "required": [
+          "sampleModelTranslateX",
+          "sampleModelTranslateY",
+          "minX",
+          "minY",
+          "width",
+          "height",
+          "numBands",
+          "numDataElements",
+          "transferType",
+          "sample",
+          "sampleFloat",
+          "sampleDouble"
+        ]
+      },
+      "FontPeer": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {}
+      },
+      "Attribute": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "ExecutionStatus" : {
         "type" : "string",
         "enum" : [ "UNKNOWN", "RUNNING", "FAILED", "COMPLETED" ]
@@ -307,19 +2033,96 @@
         },
         "required" : [ "inputs", "operations", "output", "context" ]
       },
-      "InputData" : {
+      "BooleanInputData": {
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
-          "type" : {
-            "$ref" : "#/components/schemas/InputType"
+          "data": {
+            "type": "boolean"
           },
           "comparison": {
             "type": "string",
             "nullable": true
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/InputType"
           }
         },
-        "required" : [ "type" ]
+        "required": [
+          "data",
+          "type"
+        ]
+      },
+      "DateInputData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "string"
+          },
+          "comparison": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "$ref": "#/components/schemas/InputType"
+          }
+        },
+        "required": [
+          "data",
+          "type"
+        ]
+      },
+      "ImageInputData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "string"
+          },
+          "comparison": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "$ref": "#/components/schemas/InputType"
+          },
+          "image": {
+            "$ref": "#/components/schemas/BufferedImage"
+          }
+        },
+        "required": [
+          "data",
+          "type"
+        ]
+      },
+      "InputData": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/TextInputData"
+          },
+          {
+            "$ref": "#/components/schemas/ImageInputData"
+          },
+          {
+            "$ref": "#/components/schemas/VectorInputData"
+          },
+          {
+            "$ref": "#/components/schemas/RetrievableIdInputData"
+          },
+          {
+            "$ref": "#/components/schemas/BooleanInputData"
+          },
+          {
+            "$ref": "#/components/schemas/NumericInputData"
+          },
+          {
+            "$ref": "#/components/schemas/DateInputData"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type"
+        }
       },
       "InputType" : {
         "type" : "string",
@@ -331,6 +2134,91 @@
           "BOOLEAN",
           "NUMERIC",
           "DATE"
+        ]
+      },
+      "NumericInputData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "number",
+            "format": "double"
+          },
+          "comparison": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "$ref": "#/components/schemas/InputType"
+          }
+        },
+        "required": [
+          "data",
+          "type"
+        ]
+      },
+      "RetrievableIdInputData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "comparison": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "$ref": "#/components/schemas/InputType"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ]
+      },
+      "TextInputData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "string"
+          },
+          "comparison": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "$ref": "#/components/schemas/InputType"
+          }
+        },
+        "required": [
+          "data",
+          "type"
+        ]
+      },
+      "VectorInputData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            }
+          },
+          "comparison": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "$ref": "#/components/schemas/InputType"
+          }
+        },
+        "required": [
+          "data",
+          "type"
         ]
       },
       "OperatorDescription" : {
@@ -430,6 +2318,314 @@
           }
         },
         "required" : [ "jobId", "executionStatus", "timestamp" ]
+      },
+      "AttributeValues": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "family": {
+            "type": "string"
+          },
+          "weight": {
+            "type": "number",
+            "format": "float"
+          },
+          "width": {
+            "type": "number",
+            "format": "float"
+          },
+          "posture": {
+            "type": "number",
+            "format": "float"
+          },
+          "size": {
+            "type": "number",
+            "format": "float"
+          },
+          "transform": {
+            "$ref": "#/components/schemas/AffineTransform"
+          },
+          "superscript": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "font": {
+            "$ref": "#/components/schemas/Font"
+          },
+          "charReplacement": {
+            "$ref": "#/components/schemas/GraphicAttribute"
+          },
+          "foreground": {
+            "$ref": "#/components/schemas/Paint"
+          },
+          "background": {
+            "$ref": "#/components/schemas/Paint"
+          },
+          "underline": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "strikethrough": {
+            "type": "boolean"
+          },
+          "runDirection": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bidiEmbedding": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "justification": {
+            "type": "number",
+            "format": "float"
+          },
+          "inputMethodHighlight": {
+            "type": "object"
+          },
+          "inputMethodUnderline": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "swapColors": {
+            "type": "boolean"
+          },
+          "numericShaping": {
+            "$ref": "#/components/schemas/NumericShaper"
+          },
+          "kerning": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tracking": {
+            "type": "number",
+            "format": "float"
+          },
+          "ligatures": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baselineTransform": {
+            "$ref": "#/components/schemas/AffineTransform"
+          },
+          "charTransform": {
+            "$ref": "#/components/schemas/AffineTransform"
+          },
+          "defined": {
+            "type": "boolean"
+          },
+          "nonDefault": {
+            "type": "boolean"
+          },
+          "": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "weight",
+          "width",
+          "posture",
+          "size",
+          "superscript",
+          "underline",
+          "strikethrough",
+          "runDirection",
+          "bidiEmbedding",
+          "justification",
+          "inputMethodUnderline",
+          "swapColors",
+          "kerning",
+          "tracking",
+          "ligatures",
+          "defined",
+          "nonDefault"
+        ]
+      },
+      "CharToGlyphMapper": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "missingGlyphCode": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numGlyphs": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "missingGlyphCode",
+          "numGlyphs"
+        ]
+      },
+      "Font2D": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "style": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "width": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "weight": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rank": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mapper": {
+            "$ref": "#/components/schemas/CharToGlyphMapper"
+          },
+          "validatedGlyphCode": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "strike": {
+            "$ref": "#/components/schemas/FontStrike"
+          },
+          "fontMetrics": {
+            "type": "object"
+          },
+          "styleMetrics": {
+            "type": "object"
+          },
+          "tableBytes": {
+            "type": "string",
+            "format": "binary"
+          },
+          "platformNativeFontPtr": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "unitsPerEm": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "postscriptName": {
+            "type": "string"
+          },
+          "fontName": {
+            "type": "string"
+          },
+          "familyName": {
+            "type": "string"
+          },
+          "numGlyphs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "missingGlyphCode": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baselineFor": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "italicAngle": {
+            "type": "number",
+            "format": "float"
+          }
+        },
+        "required": [
+          "style",
+          "width",
+          "weight",
+          "rank",
+          "validatedGlyphCode",
+          "platformNativeFontPtr",
+          "unitsPerEm",
+          "numGlyphs",
+          "missingGlyphCode",
+          "baselineFor",
+          "italicAngle"
+        ]
+      },
+      "FontStrike": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "numGlyphs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fontMetrics": {
+            "$ref": "#/components/schemas/StrikeMetrics"
+          },
+          "glyphImagePtrs": {
+            "type": "object"
+          },
+          "glyphImagePtr": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "glyphImageBounds": {
+            "type": "object"
+          },
+          "glyphMetrics": {
+            "$ref": "#/components/schemas/Float"
+          },
+          "charMetrics": {
+            "$ref": "#/components/schemas/Float"
+          },
+          "glyphAdvance": {
+            "type": "number",
+            "format": "float"
+          },
+          "codePointAdvance": {
+            "type": "number",
+            "format": "float"
+          },
+          "glyphOutlineBounds": {
+            "$ref": "#/components/schemas/Float"
+          },
+          "glyphOutline": {
+            "$ref": "#/components/schemas/GeneralPath"
+          },
+          "glyphVectorOutline": {
+            "$ref": "#/components/schemas/GeneralPath"
+          }
+        },
+        "required": [
+          "numGlyphs",
+          "glyphImagePtr",
+          "glyphAdvance",
+          "codePointAdvance"
+        ]
+      },
+      "StrikeMetrics": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ascent": {
+            "type": "number",
+            "format": "float"
+          },
+          "descent": {
+            "type": "number",
+            "format": "float"
+          },
+          "leading": {
+            "type": "number",
+            "format": "float"
+          },
+          "maxAdvance": {
+            "type": "number",
+            "format": "float"
+          }
+        },
+        "required": [
+          "ascent",
+          "descent",
+          "leading",
+          "maxAdvance"
+        ]
       }
     },
     "securitySchemes" : {
