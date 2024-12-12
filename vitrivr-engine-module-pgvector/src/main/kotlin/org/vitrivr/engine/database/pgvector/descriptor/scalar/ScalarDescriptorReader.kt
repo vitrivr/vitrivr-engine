@@ -65,7 +65,7 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, con
      */
     private fun queryFulltext(query: SimpleFulltextQuery): Sequence<ScalarDescriptor<*, *>> {
         val queryString = query.value.value.split(" ").map { "$it:*" }.joinToString(" | ") { it }
-        val statement = "SELECT * FROM v3c.\"${tableName.lowercase()}\" WHERE ${query.attributeName} @@ to_tsquery(?)"
+        val statement = "SELECT * FROM \"${tableName.lowercase()}\" WHERE $VALUE_ATTRIBUTE_NAME @@ to_tsquery(?)"
         return sequence {
             this@ScalarDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
                 stmt.setString(1, queryString)

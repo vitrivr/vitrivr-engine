@@ -17,10 +17,10 @@ const val FETCH_ROUTE_FROM_SCHEMA = "fetch/{exporter}/{retrievableId}"
     operationId = "getPreview",
     tags = ["Content"],
     pathParams = [
-        OpenApiParam("schema", String::class, "The schema this operation is for."),
-    OpenApiParam("exporter", String::class, "The exporter of the schema to use."),
-    OpenApiParam("retrievableId", String::class, "The ID of the retrievable.")
-                 ],
+        OpenApiParam("schema", type = String::class, description = "The schema this operation is for.", required = true),
+        OpenApiParam("exporter", type = String::class, description = "The exporter of the schema to use.", required = true),
+        OpenApiParam("retrievableId", type = String::class, description = "The ID of the retrievable.", required = true)
+    ],
     responses = [
         OpenApiResponse("200", [OpenApiContent(type = "image/jpeg")]),
         OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)])
