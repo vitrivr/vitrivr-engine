@@ -112,10 +112,9 @@ enum class ComparisonOperator(val value: String) {
             when (v1) {
                 is Value.String,
                 is Value.Text -> {
-                    (v1.value as String).replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]")
-                        .replace("*", "\\*").replace("%", "*").toRegex().matches(v2.value as String)
+                    (v2.value as String).replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]")
+                        .replace("*", "\\*").replace("%", ".*").replace("_", ".?").toRegex().matches(v1.value as String)
                 }
-
                 else -> false
             }
 
@@ -128,7 +127,7 @@ enum class ComparisonOperator(val value: String) {
          * @param str The [String] which should be one of the [ComparisonOperator]
          * @throws IllegalArgumentException In case the given string is not one of the defined ones.
          */
-        fun fromString(str: String): ComparisonOperator {
+        infix fun fromString(str: String): ComparisonOperator {
             return when (str.trim()) {
                 EQ.value -> EQ
                 NEQ.value -> NEQ
