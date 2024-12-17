@@ -14,7 +14,8 @@ import org.vitrivr.engine.core.model.types.Value
  */
 sealed interface VectorDescriptor<T : VectorDescriptor<T, V>, V : Value.Vector<*>> : Descriptor<T> {
     companion object {
-        const val VECTOR_ATTRIBUTE_NAME = "vector"
+        //const val VECTOR_ATTRIBUTE_NAME = "vector"
+        const val VECTOR_ATTRIBUTE_NAME = "descriptor"
     }
 
     /** The size of this [VectorDescriptor]. */

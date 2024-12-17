@@ -4,3 +4,4 @@ org.vitrivr.engine.query.operators.transform.scoring.ScoreAggregatorFactory
 org.vitrivr.engine.query.operators.transform.lookup.FieldLookupFactory
 org.vitrivr.engine.query.operators.transform.lookup.ObjectFieldLookupFactory
 org.vitrivr.engine.query.operators.transform.scoring.ScoreExaggeratorFactory
+org.vitrivr.engine.query.operators.transform.benchmark.TimeBenchmarkFactory
