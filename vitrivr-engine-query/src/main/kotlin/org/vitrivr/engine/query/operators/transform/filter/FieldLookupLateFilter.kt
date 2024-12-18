@@ -70,6 +70,7 @@ class FieldLookupLateFilter(
                 val attribute = keys.map {
                     (when (values[it]) {
                         is Value.String -> Pair(it to (values[it] as Value.String), Value.of(value.toString()))
+                        is Value.Text ->  Pair(it to (values[it] as Value.Text), Value.of(value.toString()))
                         is Value.Boolean -> Pair(it to (values[it] as Value.Boolean), Value.of(value.toBoolean()))
                         is Value.Int -> Pair(it to (values[it] as Value.Int), Value.of(value.toInt()))
                         is Value.Long -> Pair(it to (values[it] as Value.Long), Value.of(value.toLong()))
