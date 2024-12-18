@@ -98,18 +98,6 @@ enum class Distance {
         override fun invoke(v1: Value.DoubleVector, v2: Value.DoubleVector): Double = throw UnsupportedOperationException("Jaccard distance is not supported for float vectors.")
     };
 
-    companion object {
-        infix fun fromString(value: String): Distance {
-            return when (value) {
-                "manhattan" -> MANHATTAN
-                "euclidean" -> EUCLIDEAN
-                "cosine" -> COSINE
-                "hamming" -> HAMMING
-                "jaccard" -> JACCARD
-                else -> throw IllegalArgumentException("Distance function $value is not supported.")
-            }
-        }
-    }
 
     /**
      * Calculates this [Distance] between two [Value.FloatVector].
