@@ -139,7 +139,7 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
                     }
                     stmt.executeQuery().use { result ->
                         while (result.next()) {
-                            yield(Triple(result.getObject(OBJECT_ID_COLUMN_NAME, UUID::class.java), result.getString(PREDICATE_COLUMN_NAME), result.getObject(SUBJECT_ID_COLUMN_NAME, UUID::class.java)))
+                            yield(Triple(result.getObject(SUBJECT_ID_COLUMN_NAME, UUID::class.java), result.getString(PREDICATE_COLUMN_NAME), result.getObject(OBJECT_ID_COLUMN_NAME, UUID::class.java)))
                         }
                     }
                 }

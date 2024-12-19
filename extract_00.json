@@ -1,0 +1,179 @@
+{
+  "schema": "v3c",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverName": "disk",
+    "local": {
+      "enumerator": {
+        "path": "/srv/scratch_ddis/datasets/V3C/preview/batches/00",
+        "depth": "1"
+      },
+      "decoder": {
+        "maxWidth": "640",
+        "maxHeight": "480",
+        "framerate": "2"
+      },
+      "thumbs": {
+        "maxSideResolution": "350",
+        "mimeType": "JPG",
+        "contentSources": "selector2"
+      },
+      "filter": {
+        "type": "SOURCE:VIDEO"
+      },
+      "clip": {
+        "host": "http://127.0.0.1:6000",
+        "contentSources": "selector"
+      },
+      "ocr": {
+        "contentSources": "selector2"
+      },
+      "distance_segmenter": {
+        "distance": "COSINE",
+        "authorName": "clip",
+        "atMost": "0.2"
+      },
+      "vector_aggregator": {
+        "authorName": "clip",
+        "strategy": "first"
+      }
+    }
+  },
+  "operators": {
+    "enumerator": {
+      "type": "ENUMERATOR",
+      "factory": "FileSystemEnumerator",
+      "mediaTypes": [
+        "VIDEO"
+      ]
+    },
+    "decoder": {
+      "type": "DECODER",
+      "factory": "FFmpegVideoDecoder"
+    },
+    "selector": {
+      "type": "TRANSFORMER",
+      "factory": "LastContentAggregator"
+    },
+    "clip": {
+      "type": "EXTRACTOR",
+      "factory": "CLIP"
+    },
+    "distance_segmenter": {
+      "type": "TRANSFORMER",
+      "factory": "DescriptorDistanceSegmenter"
+    },
+    "vector_aggregator": {
+      "type": "TRANSFORMER",
+      "factory": "VectorDescriptorAggregator"
+    },
+    "clipMap": {
+      "type": "EXTRACTOR",
+      "fieldName": "clipmap"
+    },
+    "thumbs": {
+      "type": "EXPORTER",
+      "exporterName": "thumbnail"
+    },
+    "time_metadata": {
+      "type": "EXTRACTOR",
+      "fieldName": "time"
+    },
+    "selector2": {
+      "type": "TRANSFORMER",
+      "factory": "MiddleContentAggregator"
+    },
+    "filter": {
+      "type": "TRANSFORMER",
+      "factory": "TypeFilterTransformer"
+    },
+    "file_metadata": {
+      "type": "EXTRACTOR",
+      "fieldName": "file"
+    },
+    "video_metadata": {
+      "type": "EXTRACTOR",
+      "fieldName": "video"
+    }
+  },
+  "operations": {
+    "enumerator": {
+      "operator": "enumerator"
+    },
+    "decoder": {
+      "operator": "decoder",
+      "inputs": [
+        "enumerator"
+      ]
+    },
+    "selector": {
+      "operator": "selector",
+      "inputs": [
+        "decoder"
+      ]
+    },
+    "clip": {
+      "operator": "clip",
+      "inputs": [
+        "selector"
+      ]
+    },
+    "distance_segmenter": {
+      "operator": "distance_segmenter",
+      "inputs": [
+        "clip"
+      ]
+    },
+    "vector_aggregator": {
+      "operator": "vector_aggregator",
+      "inputs": [
+        "distance_segmenter"
+      ]
+    },
+    "clipMap": {
+      "operator": "clipMap",
+      "inputs": [
+        "vector_aggregator"
+      ]
+    },
+    "selector2": {
+      "operator": "selector2",
+      "inputs": [
+        "clipMap"
+      ]
+    },
+    "thumbnails": {
+      "operator": "thumbs",
+      "inputs": [
+        "selector2"
+      ]
+    },
+    "time_metadata": {
+      "operator": "time_metadata",
+      "inputs": [
+        "thumbnails"
+      ]
+    },
+    "filter": {
+      "operator": "filter",
+      "inputs": [
+        "time_metadata"
+      ]
+    },
+    "file_metadata" : {
+      "operator": "file_metadata",
+      "inputs": [
+        "filter"
+      ]
+    },
+    "video_metadata": {
+      "operator": "video_metadata",
+      "inputs": [
+        "file_metadata"
+      ]
+    }
+  },
+  "output": [
+    "video_metadata"
+  ]
+}

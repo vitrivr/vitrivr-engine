@@ -1,0 +1,61 @@
+{
+  "schema": "v3c",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverName": "disk",
+    "local": {
+      "enumerator": {
+        "path": "",
+        "depth": "1"
+      }
+    }
+  },
+  "operators": {
+    "enumerator": {
+      "type": "ENUMERATOR",
+      "factory": "FileSystemEnumerator",
+      "mediaTypes": [
+        "IMAGE"
+      ]
+    },
+    "decoder": {
+      "type": "DECODER",
+      "factory": "ImageDecoder"
+    },
+    "clip": {
+      "type": "EXTRACTOR",
+      "fieldName": "clip"
+    },
+    "file": {
+      "type": "EXTRACTOR",
+      "fieldName": "file"
+    }
+  },
+  "operations": {
+    "enumerator": {
+      "operator": "enumerator"
+    },
+    "decoder": {
+      "operator": "decoder",
+      "inputs": [
+        "enumerator"
+      ]
+    },
+    "clip": {
+      "operator": "clip",
+      "inputs": [
+        "decoder"
+      ]
+    },
+    "file": {
+      "operator": "file",
+      "inputs": [
+        "clip"
+      ]
+    }
+  },
+  "output": [
+    "file"
+  ]
+}
+

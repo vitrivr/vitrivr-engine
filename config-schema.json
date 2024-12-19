@@ -1,0 +1,305 @@
+{
+  "schemas": {
+    "v3c": {
+      "connection": {
+        "database": "PgVectorConnectionProvider",
+        "parameters": {
+          "password": "postgres",
+          "username": "postgres"
+        }
+      },
+      "fields": {
+        "clipmap": {
+          "factory": "CLIP",
+          "parameters": {
+            "host": "http://127.0.0.1:8888"
+          }
+        },
+        "file": {
+          "factory": "FileSourceMetadata"
+        },
+        "time": {
+          "factory": "TemporalMetadata"
+        },
+        "video": {
+          "factory": "VideoSourceMetadata"
+        }
+      },
+      "resolvers": {
+        "disk": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "./thumbnails",
+            "mimeType": "JPG"
+          }
+        }
+      },
+      "exporters": {
+        "thumbnail": {
+          "factory": "ThumbnailExporter",
+          "resolverName": "disk",
+          "parameters": {
+            "maxSideResolution": "400",
+            "mimeType": "JPG"
+          }
+        }
+      }
+    },
+    "v3c-json": {
+      "connection": {
+        "database": "JsonlConnectionProvider",
+        "parameters": {
+          "root": "/home/lucaro/Documents/v3c"
+        }
+      },
+      "fields": {
+        "clipmap": {
+          "factory": "FloatVectorDescriptorFieldMapper",
+          "parameters": {
+            "length": "512",
+            "authorName": "clip"
+          }
+        },
+        "file": {
+          "factory": "FileSourceMetadata"
+        },
+        "time": {
+          "factory": "TemporalMetadata"
+        },
+        "video": {
+          "factory": "VideoSourceMetadata"
+        }
+      },
+      "resolvers": {
+        "disk": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "./thumbnails",
+            "mimeType": "JPG"
+          }
+        }
+      },
+      "exporters": {
+        "thumbnail": {
+          "factory": "ThumbnailExporter",
+          "resolverName": "disk",
+          "parameters": {
+            "maxSideResolution": "400",
+            "mimeType": "JPG"
+          }
+        }
+      }
+    },
+    "vbslhe": {
+      "connection": {
+        "database": "PgVectorConnectionProvider",
+        "parameters": {
+          "password": "postgres",
+          "username": "postgres"
+        }
+      },
+      "fields": {
+        "clipmap": {
+          "factory": "CLIP",
+          "parameters": {
+            "host": "http://127.0.0.1:8888"
+          }
+        },
+        "file": {
+          "factory": "FileSourceMetadata"
+        },
+        "time": {
+          "factory": "TemporalMetadata"
+        },
+        "video": {
+          "factory": "VideoSourceMetadata"
+        }
+      },
+      "resolvers": {
+        "disk": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "./vbslhe/thumbnails",
+            "mimeType": "JPG"
+          }
+        }
+      },
+      "exporters": {
+        "thumbnail": {
+          "factory": "ThumbnailExporter",
+          "resolverName": "disk",
+          "parameters": {
+            "maxSideResolution": "400",
+            "mimeType": "JPG"
+          }
+        }
+      }
+    },
+    "vbslhe-json": {
+      "connection": {
+        "database": "JsonlConnectionProvider",
+        "parameters": {
+          "root": "vbslhe"
+        }
+      },
+      "fields": {
+        "clipmap": {
+          "factory": "FloatVectorDescriptorFieldMapper",
+          "parameters": {
+            "length": "512",
+            "authorName": "clip"
+          }
+        },
+        "file": {
+          "factory": "FileSourceMetadata"
+        },
+        "time": {
+          "factory": "TemporalMetadata"
+        },
+        "video": {
+          "factory": "VideoSourceMetadata"
+        }
+      },
+      "resolvers": {
+        "disk": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "./vbslhe/thumbnails",
+            "mimeType": "JPG"
+          }
+        }
+      },
+      "exporters": {
+        "thumbnail": {
+          "factory": "ThumbnailExporter",
+          "resolverName": "disk",
+          "parameters": {
+            "maxSideResolution": "400",
+            "mimeType": "JPG"
+          }
+        }
+      }
+    },
+    "mvk": {
+      "connection": {
+        "database": "PgVectorConnectionProvider",
+        "parameters": {
+          "password": "postgres",
+          "username": "postgres"
+        }
+      },
+      "fields": {
+        "clipmap": {
+          "factory": "CLIP",
+          "parameters": {
+            "host": "http://127.0.0.1:8888"
+          }
+        },
+        "file": {
+          "factory": "FileSourceMetadata"
+        },
+        "time": {
+          "factory": "TemporalMetadata"
+        },
+        "video": {
+          "factory": "VideoSourceMetadata"
+        }
+      },
+      "resolvers": {
+        "disk": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "./mvk/thumbnails",
+            "mimeType": "JPG"
+          }
+        }
+      },
+      "exporters": {
+        "thumbnail": {
+          "factory": "ThumbnailExporter",
+          "resolverName": "disk",
+          "parameters": {
+            "maxSideResolution": "400",
+            "mimeType": "JPG"
+          }
+        }
+      }
+    },
+    "mvk-json": {
+      "connection": {
+        "database": "JsonlConnectionProvider",
+        "parameters": {
+          "root": "mvk"
+        }
+      },
+      "fields": {
+        "clipmap": {
+          "factory": "FloatVectorDescriptorFieldMapper",
+          "parameters": {
+            "length": "512",
+            "authorName": "clip"
+          }
+        },
+        "file": {
+          "factory": "FileSourceMetadata"
+        },
+        "time": {
+          "factory": "TemporalMetadata"
+        },
+        "video": {
+          "factory": "VideoSourceMetadata"
+        }
+      },
+      "resolvers": {
+        "disk": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "./mvk/thumbnails",
+            "mimeType": "JPG"
+          }
+        }
+      },
+      "exporters": {
+        "thumbnail": {
+          "factory": "ThumbnailExporter",
+          "resolverName": "disk",
+          "parameters": {
+            "maxSideResolution": "400",
+            "mimeType": "JPG"
+          }
+        }
+      }
+    },
+    "lsc": {
+      "connection": {
+        "database": "JsonlConnectionProvider",
+        "parameters": {
+          "root": "lsc"
+        }
+      },
+      "fields": {
+        "file": {
+          "factory": "FileSourceMetadata"
+        },
+        "clip": {
+          "factory": "CLIP",
+          "parameters": {
+            "host": "http://127.0.0.1:8888"
+          }
+        },
+        "dino": {
+          "factory": "DINO",
+          "parameters": {
+            "host": "http://127.0.0.1:8888"
+          }
+        }
+      },
+      "resolvers": {
+        "disk": {
+          "factory": "DiskResolver"
+        }
+      }
+    }
+  }
+}
+

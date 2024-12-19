@@ -32,24 +32,26 @@ class RelationExpander(
 
         /* Fetch relation entries for the provided IDs. */
         val ids = inputRetrieved.map { it.id }.toSet()
-        val (objects, subjects) = if (ids.isNotEmpty()) {
-            (if (this@RelationExpander.incomingRelations.isNotEmpty()) {
+        val objects = if (ids.isNotEmpty()) {
+            if (this@RelationExpander.incomingRelations.isNotEmpty()) {
                 this@RelationExpander.retrievableReader.getConnections(emptyList(), this@RelationExpander.incomingRelations, ids)
             } else {
                 emptySequence()
             }.groupBy { it.third }
+        } else {
+            emptyMap()
+        }
 
-            to
-
+        val subjects = if (ids.isNotEmpty()) {
             if (this@RelationExpander.outgoingRelations.isNotEmpty()) {
                 this@RelationExpander.retrievableReader.getConnections(ids, this@RelationExpander.outgoingRelations, emptyList())
             } else {
                 emptySequence()
-            }.groupBy { it.first })
+            }.groupBy { it.first }
         } else {
-            emptyMap<RetrievableId, List<Triple<RetrievableId,String,RetrievableId>>>() to emptyMap()
+            emptyMap()
         }
-
+        
         /* Collection IDs that are new and fetch corresponding retrievable. */
         val fetchIds = (objects.values.flatMap { o -> o.map { s -> s.first } }.toSet() + subjects.values.flatMap { s -> s.map { o -> o.third } }.toSet())
         val fetched = if (fetchIds.isNotEmpty()) {
