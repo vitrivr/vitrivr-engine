@@ -23,7 +23,7 @@ class LabelDescriptor(
     companion object {
 
         const val LABEL_FIELD_NAME = "label"
-        const val CONFIDENCE_FIELD_NAME = "label"
+        const val CONFIDENCE_FIELD_NAME = "confidence"
 
         private val SCHEMA = listOf(
             Attribute(LABEL_FIELD_NAME, Type.String),
