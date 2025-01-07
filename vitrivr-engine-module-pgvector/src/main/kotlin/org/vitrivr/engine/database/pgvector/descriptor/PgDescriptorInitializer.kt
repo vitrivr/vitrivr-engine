@@ -24,13 +24,13 @@ open class PgDescriptorInitializer<D : Descriptor<*>>(
 
     companion object {
         /** Set of scalar index structures supported by PostgreSQL. */
-        private val INDEXES_SCALAR = setOf("btree", "brin", "hash")
+        val INDEXES_SCALAR = setOf("btree", "brin", "hash")
 
         /** Set of NNS index structures supported by PostgreSQL. */
-        private val INDEXES_NNS = setOf("hnsw", "ivfflat")
+        val INDEXES_NNS = setOf("hnsw", "ivfflat")
 
         /** Set of FULLTEXT index structures supported by PostgreSQL. */
-        private val INDEXES_FULLTEXT = setOf("ts")
+        val INDEXES_FULLTEXT = setOf("gin")
     }
 
     /** The name of the table backing this [PgDescriptorInitializer]. */
@@ -100,13 +100,14 @@ open class PgDescriptorInitializer<D : Descriptor<*>>(
                         val type = index.parameters[INDEX_TYPE_PARAMETER_NAME]?.lowercase() ?: "hnsw"
                         require(type in INDEXES_FULLTEXT) { "Index type '$type' is not supported by PostgreSQL." }
                         when (type) {
-                            "ts" -> {
+                            "gin" -> {
                                 "ALTER TABLE $tableName " +
                                         "ADD COLUMN search_vector tsvector " +
                                         "GENERATED ALWAYS AS (" +
                                         "to_tsvector('${index.parameters["language"] ?: "english"}', ${index.attributes.joinToString(" || ' ' || ") { it }})" +
                                         ") STORED;"
                             }
+
                             else -> ""
                         }
                     }
