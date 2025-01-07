@@ -17,8 +17,16 @@ class LateFilterTest {
     @BeforeEach
     fun setUp() {
         val context = QueryContext()
-        val retriever = MockRetrievedLookup()
+        val retriever = MockRetrievedLookup(
+            name = "retriever",
+            type = "test",
+            size = 10,
+            descriptors = listOf("vector" to { null }),
+            contents = listOf("text" to { null }),
+            attributes = listOf("property" to { null })
+        )
         this.filter = LateFilterFactory().newTransformer("filter", retriever, context)
+
     }
 
 
