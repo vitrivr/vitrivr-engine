@@ -15,7 +15,7 @@ import org.vitrivr.engine.core.operators.general.Transformer
 /**
  * Appends [Relationship] to a [Retrieved] by expanding the specified incoming and outgoing relationships.
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @author Luca Rossetto
  * @author Ralph Gasser
  */
@@ -56,8 +56,6 @@ class RelationExpander(
             this@RelationExpander.retrievableReader.getAll(fetchIds.toList())
         } else {
             emptySequence()
-        }.map {
-            Retrieved(it)
         }.associateBy {
             it.id
         }
@@ -65,10 +63,11 @@ class RelationExpander(
         /* Iterate over input and emit each retrievable with expanded relationships. */
         inputRetrieved.forEach {
             /* Expand incoming relationships. */
+            var copy = it
             for (obj in (objects[it.id] ?: emptyList())) {
                 val subject = fetched[obj.first]
                 if (subject != null) {
-                    it.addRelationship(Relationship.ByRef(subject, obj.second, it, false))
+                    copy = copy.copy(relationships = copy.relationships + Relationship.ByRef(subject, obj.second, it, false))
                 }
             }
 
@@ -76,13 +75,12 @@ class RelationExpander(
             for (sub in (subjects[it.id] ?: emptyList())) {
                 val `object` = fetched[sub.third]
                 if (`object` != null) {
-                    it.addRelationship(Relationship.ByRef(it, sub.second, `object`, false))
-
+                    copy = copy.copy(relationships = copy.relationships + Relationship.ByRef(it, sub.second, `object`, false))
                 }
             }
 
             /* Emit. */
-            emit(it)
+            emit(copy)
         }
     }
 }

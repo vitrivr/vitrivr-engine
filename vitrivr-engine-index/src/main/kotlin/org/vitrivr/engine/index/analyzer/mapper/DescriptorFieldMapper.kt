@@ -1,25 +1,16 @@
 package org.vitrivr.engine.index.analyzer.mapper
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.map
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
-import org.vitrivr.engine.core.model.descriptor.scalar.DoubleDescriptor
-import org.vitrivr.engine.core.model.descriptor.scalar.FloatDescriptor
-import org.vitrivr.engine.core.model.descriptor.scalar.IntDescriptor
-import org.vitrivr.engine.core.model.descriptor.scalar.LongDescriptor
-import org.vitrivr.engine.core.model.descriptor.vector.DoubleVectorDescriptor
-import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.descriptor.vector.IntVectorDescriptor
-import org.vitrivr.engine.core.model.descriptor.vector.LongVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAuthorAttribute
-import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
@@ -56,34 +47,22 @@ abstract class DescriptorFieldMapper<D : Descriptor<*>> : Analyser<ContentElemen
         override val name = field.fieldName
         override val persisting = true
 
-        override fun toFlow(scope: CoroutineScope) = this.input.toFlow(scope).onEach { retrievable ->
-
-            val ids = retrievable.filteredAttribute(DescriptorAuthorAttribute::class.java)?.getDescriptorIds(authorName) ?: return@onEach
+        override fun toFlow(scope: CoroutineScope) = this.input.toFlow(scope).map { retrievable ->
+            val ids = retrievable.filteredAttribute(DescriptorAuthorAttribute::class.java)?.getDescriptorIds(authorName) ?: return@map retrievable
             val descriptors = retrievable.descriptors.filter { it.id in ids }
+            if (descriptors.isEmpty()) return@map retrievable
 
-            if (descriptors.isEmpty()) {
-                return@onEach
-            }
-
+            /* Cast descriptors to the correct type. */
             val typeChecked = descriptors.map {
                 cast(it, field)
             }
 
-            descriptors.forEach {
-                retrievable.removeDescriptor(it)
-            }
-
-            val authorAttribute = DescriptorAuthorAttribute()
-
-            typeChecked.forEach {
-                retrievable.addDescriptor(it)
-                authorAttribute.add(it, this.name)
-            }
-
-            retrievable.addAttribute(authorAttribute)
-
+            /* Prepare and emit new descriptors. */
+            val newDescriptors = HashSet(retrievable.descriptors)
+            descriptors.forEach { newDescriptors.remove(it) }
+            typeChecked.forEach { newDescriptors.add(it) }
+            retrievable.copy(descriptors = newDescriptors)
         }
-
     }
 
     override fun newExtractor(

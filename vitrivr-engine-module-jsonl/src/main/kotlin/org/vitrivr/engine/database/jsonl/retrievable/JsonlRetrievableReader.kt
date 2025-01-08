@@ -3,8 +3,8 @@ package org.vitrivr.engine.database.jsonl.retrievable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
-import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.database.jsonl.JsonlConnection
 import org.vitrivr.engine.database.jsonl.LOGGER
 import org.vitrivr.engine.database.jsonl.model.JsonlRelationship
@@ -18,11 +18,11 @@ class JsonlRetrievableReader(override val connection: JsonlConnection) : Retriev
     private val retrievablePath = connection.schemaRoot.resolve("retrievables.jsonl")
     private val connectionPath = connection.schemaRoot.resolve("retrievable_connections.jsonl")
 
-    override fun get(id: RetrievableId): Retrievable? = getAll().firstOrNull { it.id == id }
+    override fun get(id: RetrievableId): Retrieved? = getAll().firstOrNull { it.id == id }
 
     override fun exists(id: RetrievableId): Boolean = get(id) != null
 
-    override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrievable> {
+    override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrieved> {
         val idSet = ids.toSet()
         return getAll().filter { idSet.contains(it.id) }
     }
@@ -53,7 +53,7 @@ class JsonlRetrievableReader(override val connection: JsonlConnection) : Retriev
         }.map { it.toTriple() }
     }
 
-    override fun getAll(): Sequence<Retrievable> {
+    override fun getAll(): Sequence<Retrieved> {
         return BufferedReader(InputStreamReader(retrievablePath.inputStream())).lineSequence().mapNotNull {
             try {
                 Json.decodeFromString<JsonlRetrievable>(it).toRetrieved()

@@ -5,14 +5,14 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.features.metadata.source.exif.logger
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
-import org.vitrivr.engine.core.model.retrievable.attributes.time.TimePointAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
@@ -68,7 +68,10 @@ class FixedDurationSegmenter : TransformerFactory {
 
 
         /**
+         * Converts this [FixedDurationSegmenter] into a [Flow] of [Retrievable] objects.
          *
+         * @param scope [CoroutineScope] to use for the [Flow].
+         * @return [Flow] of [Retrievable] objects.
          */
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = channelFlow {
             val downstream = this
@@ -77,22 +80,14 @@ class FixedDurationSegmenter : TransformerFactory {
             var lastSource: Source? = null
             var lastStartTime = 0L
             val cache = LinkedList<Retrievable>()
-            var srcRetrievable: Retrievable? = null
 
             /* Collect upstream flow. */
             this@Instance.input.toFlow(scope).collect { ingested ->
 
-                if (srcRetrievable == null) {
-                    srcRetrievable = Ingested(UUID.randomUUID(), "SOURCE:VIDEO", false)
-                }
-
+                /* Check if content is of type SOURCE:VIDEO; if so - empty cache end mit. */
                 if (ingested.type == "SOURCE:VIDEO") {
-                    ingested.content.forEach { srcRetrievable!!.addContent(it) }
-                    ingested.descriptors.forEach { srcRetrievable!!.addDescriptor(it) }
-                    ingested.attributes.forEach { srcRetrievable!!.addAttribute(it) }
-                    sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos, srcRetrievable!!)
-                    downstream.send(srcRetrievable!!)
-                    srcRetrievable = Ingested(UUID.randomUUID(), "SOURCE:VIDEO", false)
+                    sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos)
+                    send(ingested)
                     return@collect
                 }
 
@@ -102,7 +97,7 @@ class FixedDurationSegmenter : TransformerFactory {
                 /* Check if source has changed. */
                 if (lastSource != source) {
                     while (cache.isNotEmpty()) {
-                        sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos, srcRetrievable!!)
+                        sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos)
                         lastSource = source
                         lastStartTime = 0L
                     }
@@ -114,62 +109,53 @@ class FixedDurationSegmenter : TransformerFactory {
                 /* Check if cut-off time has been exceeded. */
                 val cutOffTime = lastStartTime + this@Instance.lengthNanos + this@Instance.lookAheadNanos
                 if (timestamp.endNs >= cutOffTime) {
-                    sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos, srcRetrievable!!)
+                    sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos)
                     lastStartTime += this@Instance.lengthNanos
                 }
             }
 
             /* Drain remaining items in cache. */
             while (cache.isNotEmpty()) {
-                sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos, srcRetrievable!!)
+                sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos)
             }
         }
 
         /**
+         * Sends a new [Retrievable] object downstream based on the content in the cache.
          *
+         * @param downstream [ProducerScope] to use for sending the [Retrievable] object.
+         * @param cache The [LinkedList] cache of [Retrievable]
+         * @param nextStartTime The start time of the next segment.
          */
-        private suspend fun sendFromCache(
-            downstream: ProducerScope<Retrievable>,
-            cache: LinkedList<Retrievable>,
-            nextStartTime: Long,
-            srcRetrievable: Retrievable
-        ) {
+        private suspend fun sendFromCache(downstream: ProducerScope<Retrievable>, cache: LinkedList<Retrievable>, nextStartTime: Long) {
+            /* Sanity check for early abort. */
+            if (cache.isEmpty()) return
+
             /* Drain cache. */
-            val emit = LinkedList<Retrievable>()
+            val emittedTypes = LinkedHashSet<String>()
+            val emittedContent = LinkedList<ContentElement<*>>()
+            val emittedDescriptors = HashSet<Descriptor<*>>()
+            val emittedAttribute = HashSet<RetrievableAttribute>()
+            val emittedRelationships = HashSet<Relationship>()
+            var (min, max) = Long.MAX_VALUE to Long.MIN_VALUE
             cache.removeIf {
                 val timestamp = it.filteredAttribute(TimeRangeAttribute::class.java) ?: return@removeIf true
                 if (timestamp.endNs <= nextStartTime) {
-                    emit.add(it)
+                    min = timestamp.takeIf { it.startNs < min }?.startNs ?: min
+                    max = timestamp.takeIf { it.endNs > max }?.endNs ?: max
+                    emittedTypes.add(it.type)
+                    emittedContent.addAll(it.content)
+                    emittedDescriptors.addAll(it.descriptors)
+                    emittedAttribute.addAll(it.attributes)
+                    emittedRelationships.addAll(it.relationships)
                     true
                 } else {
                     false
                 }
             }
 
-            /* Prepare new ingested. */
-            val ingested = Ingested(UUID.randomUUID(), emit.first().type, false)
-            var (min, max) = Long.MAX_VALUE to Long.MIN_VALUE
-
-            for (emitted in emit) {
-                emitted.content.forEach { ingested.addContent(it) }
-                emitted.descriptors.forEach { ingested.addDescriptor(it) }
-                emitted.relationships.forEach {
-                    Relationship.BySubRefObjId(ingested, it.predicate, srcRetrievable.id, false).let {
-                        ingested.addRelationship(it)
-                        srcRetrievable.addRelationship(it)
-                    }
-                }
-                emitted.attributes.forEach {
-                    it.takeUnless { it is TimeRangeAttribute }?.let { ingested.addAttribute(it) }
-                    it.takeIf { it is TimeRangeAttribute }?.let {
-                        min = (it as TimeRangeAttribute).takeIf { it.startNs < min }?.startNs ?: min
-                        max = (it as TimeRangeAttribute).takeIf { it.endNs > max }?. endNs ?: max
-                    }
-                }
-            }
-            ingested.addAttribute(TimeRangeAttribute(min, max))
-            /* Send retrievable downstream. */
-            downstream.send(ingested)
+            /* Emit new ingested. */
+            downstream.send(Ingested(UUID.randomUUID(), emittedTypes.first, emittedContent, emittedDescriptors, emittedAttribute, emittedRelationships, transient = false))
         }
     }
 }

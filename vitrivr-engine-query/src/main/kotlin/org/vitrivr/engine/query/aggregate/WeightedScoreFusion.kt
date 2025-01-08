@@ -10,7 +10,6 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Aggregator
-import java.util.*
 import kotlin.math.pow
 
 class WeightedScoreFusion(
@@ -79,11 +78,7 @@ class WeightedScoreFusion(
                 }
 
                 // Create a copy and override the score
-                val retrieved = first.copy()
-                retrieved.filteredAttribute(ScoreAttribute::class.java)
-                retrieved.addAttribute(ScoreAttribute.Unbound(score))
-
-                emit(retrieved)
+                emit(first.copy(attributes = first.attributes + ScoreAttribute.Unbound(score)))
             }
         }
     }

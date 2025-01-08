@@ -23,11 +23,11 @@ class DINOExtractor : AbstractExtractor<ImageContent, FloatVectorDescriptor> {
 
     private val host: String
 
-    constructor(input: Operator<Retrievable>, analyser: DINO, contentSources : Set<String>?, field: Schema.Field<ImageContent, FloatVectorDescriptor>, host: String) : super(input, analyser, contentSources, field) {
+    constructor(input: Operator<Retrievable>, analyser: DINO, field: Schema.Field<ImageContent, FloatVectorDescriptor>, host: String) : super(input, analyser, field) {
         this.host = host
     }
 
-    constructor(input: Operator<Retrievable>, analyser: DINO, contentSources : Set<String>?, name: String, host: String) : super(input, analyser, contentSources, name) {
+    constructor(input: Operator<Retrievable>, analyser: DINO, name: String, host: String) : super(input, analyser, name) {
         this.host = host
     }
 
@@ -47,10 +47,7 @@ class DINOExtractor : AbstractExtractor<ImageContent, FloatVectorDescriptor> {
      * @param retrievable The [Retrievable] to process.
      * @return List of resulting [Descriptor]s.
      */
-    override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
-        val content = this.filterContent(retrievable)
-        return content.map { c ->
-            DINO.analyse(c, this.host).copy(retrievableId = retrievable.id, field = this@DINOExtractor.field)
-        }
+    override fun extract(retrievable: Retrievable) = retrievable.content.filterIsInstance<ImageContent>().map { c ->
+        DINO.analyse(c, this.host).copy(retrievableId = retrievable.id, field = this@DINOExtractor.field)
     }
 }

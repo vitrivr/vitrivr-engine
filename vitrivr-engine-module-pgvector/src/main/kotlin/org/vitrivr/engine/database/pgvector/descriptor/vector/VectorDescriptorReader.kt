@@ -19,7 +19,7 @@ import java.util.*
  * An abstract implementation of a [DescriptorReader] for Cottontail DB.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, connection: PgVectorConnection) : AbstractDescriptorReader<VectorDescriptor<*, *>>(field, connection) {
     /**
@@ -133,10 +133,11 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, con
                 val retrievable = retrievables[descriptor.retrievableId]
                 if (retrievable != null) {
                     if (query.fetchVector) {
-                        retrievable.addDescriptor(descriptor)
+                        retrievable.copy(descriptors = retrievable.descriptors + descriptor, attributes = retrievable.attributes + DistanceAttribute(distance))
+
+                    } else {
+                        retrievable.copy(attributes = retrievable.attributes + DistanceAttribute(distance))
                     }
-                    retrievable.addAttribute(DistanceAttribute(distance))
-                    retrievable as Retrieved
                 } else {
                     null
                 }

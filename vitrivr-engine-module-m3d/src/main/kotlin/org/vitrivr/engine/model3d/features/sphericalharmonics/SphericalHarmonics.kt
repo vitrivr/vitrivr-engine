@@ -6,18 +6,18 @@ import org.apache.commons.math3.complex.Complex
 import org.apache.commons.math3.util.FastMath
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.features.dense.DenseRetriever
+import org.vitrivr.engine.core.math.correspondence.LinearCorrespondence
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.Model3dContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.mesh.texturemodel.Mesh
 import org.vitrivr.engine.core.model.metamodel.Analyser
-import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -168,12 +168,8 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
     }
 
     override fun newRetrieverForQuery(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, query: Query, context: QueryContext): Retriever<Model3dContent, FloatVectorDescriptor> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { }
-
-        /* Construct query. */
-        @Suppress("UNCHECKED_CAST")
-        return SphericalHarmonicsRetriever(field, query as ProximityQuery<Value.FloatVector>, context)
+        return  DenseRetriever(field, query, context, LinearCorrespondence(1.0f))
     }
 
     override fun newRetrieverForDescriptors(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): Retriever<Model3dContent, FloatVectorDescriptor> {
@@ -214,7 +210,7 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
         val minL = field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: context.getProperty("", "")?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
         val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: context.getProperty("", "")?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
         logger.debug { "Creating new SphericalHarmonicsExtract for field '${field.fieldName}' with parameters ($gridSize, $cap, $minL, $maxL)." }
-        return SphericalHarmonicsExtractor(input, this, context[field.fieldName, CONTENT_AUTHORS_KEY]?.split(",")?.toSet(), field, gridSize, cap, minL, maxL)
+        return SphericalHarmonicsExtractor(input, this, field, gridSize, cap, minL, maxL)
     }
 
     /**
@@ -231,6 +227,6 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
         val minL = context.getProperty(name, MINL_PARAMETER_NAME)?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
         val maxL = context.getProperty(name, MAXL_PARAMETER_NAME)?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
         logger.debug { "Creating new SphericalHarmonicsExtract with parameters ($gridSize, $cap, $minL, $maxL)." }
-        return SphericalHarmonicsExtractor(input, this, context[name, CONTENT_AUTHORS_KEY]?.split(",")?.toSet(), name, gridSize, cap, minL, maxL)
+        return SphericalHarmonicsExtractor(input, this,  name, gridSize, cap, minL, maxL)
     }
 }

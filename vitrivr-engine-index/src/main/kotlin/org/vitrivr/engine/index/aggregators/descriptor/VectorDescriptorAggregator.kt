@@ -79,13 +79,10 @@ class VectorDescriptorAggregator : TransformerFactory {
     }
 
     override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
-
-        val authorName =
-            context[name, "authorName"] ?: throw IllegalArgumentException("Property 'authorName' must be specified")
+        val authorName = context[name, "authorName"] ?: throw IllegalArgumentException("Property 'authorName' must be specified")
         val strategy = AggregationStrategy.valueOf(
             context[name, "strategy"]?.uppercase() ?: throw IllegalArgumentException("Property 'strategy' must be specified")
         )
-
         return Instance(input, name, authorName, strategy)
     }
 
@@ -95,15 +92,9 @@ class VectorDescriptorAggregator : TransformerFactory {
         private val authorName: String,
         private val strategy: AggregationStrategy
     ) : Transformer {
-
-
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).map { ingested ->
-
-            val descriptorIds =
-                ingested.filteredAttribute(DescriptorAuthorAttribute::class.java)?.getDescriptorIds(authorName)
-                    ?: emptySet()
-            val descriptors =
-                ingested.descriptors.filter { it.id in descriptorIds }.filterIsInstance<VectorDescriptor<*, *>>()
+            val descriptorIds = ingested.filteredAttribute(DescriptorAuthorAttribute::class.java)?.getDescriptorIds(authorName) ?: emptySet()
+            val descriptors = ingested.descriptors.filter { it.id in descriptorIds }.filterIsInstance<VectorDescriptor<*, *>>()
 
             if (descriptors.isEmpty()) {
                 return@map ingested //nothing to do
@@ -115,16 +106,11 @@ class VectorDescriptorAggregator : TransformerFactory {
                 strategy.aggregate(descriptors)
             }
 
-            descriptors.forEach {
-                ingested.removeDescriptor(it)
-            }
-
-            ingested.addDescriptor(aggregated)
-            ingested.addAttribute(DescriptorAuthorAttribute(aggregated.id, this.name))
-
-            ingested
+            /* Prepare and emit new descriptors. */
+            val newDescriptors = HashSet(ingested.descriptors)
+            descriptors.forEach { newDescriptors.remove(it) }
+            newDescriptors.add(aggregated)
+            ingested.copy(descriptors = newDescriptors)
         }
-
     }
-
 }

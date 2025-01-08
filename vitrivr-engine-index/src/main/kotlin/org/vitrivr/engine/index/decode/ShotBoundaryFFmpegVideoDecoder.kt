@@ -19,7 +19,7 @@ import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
 import org.vitrivr.engine.core.operators.ingest.Decoder
@@ -329,18 +329,14 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
                 }
 
                 /* Prepare ingested with relationship to source. */
-                val ingested = Ingested(UUID.randomUUID(), "SEGMENT", false)
-                this.source.filteredAttribute(SourceAttribute::class.java)?.let { ingested.addAttribute(it) }
-                ingested.addRelationship(Relationship.ByRef(ingested, "partOf", source, false))
-                ingested.addAttribute(
-                    TimeRangeAttribute(
-                        windowStartEnd.first,
-                        this.windowStartEnd.second,
-                        TimeUnit.MICROSECONDS
-                    )
-                )
+                val retrievableId = UUID.randomUUID()
+                val relationships = setOf(Relationship.ById(retrievableId, "partOf", source.id, false))
+                val attributes = mutableSetOf<RetrievableAttribute>()
+                this.source.filteredAttribute(SourceAttribute::class.java)?.let { attributes.add(it) }
+                attributes.add(TimeRangeAttribute(windowStartEnd.first, this.windowStartEnd.second, TimeUnit.MICROSECONDS))
 
                 /* Prepare and append audio content element. */
+                val audioContent = mutableListOf<AudioContent>()
                 if (emitAudio.isNotEmpty()) {
                     val samples = ShortBuffer.allocate(audioSize)
                     for (frame in emitAudio) {
@@ -348,26 +344,24 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
                         samples.put(frame)
                     }
                     samples.clear()
-                    val audio = this@Instance.context.contentFactory.newAudioContent(
+                    audioContent.add(
+                        this@Instance.context.contentFactory.newAudioContent(
                         this.audioStream!!.channels.toShort(),
                         this.audioStream!!.sampleRate.toInt(),
                         samples
+                        )
                     )
-                    ingested.addContent(audio)
-                    ingested.addAttribute(ContentAuthorAttribute(audio.id, name))
                 }
 
                 /* Prepare and append image content element. */
+                val imageContent = mutableListOf<ImageContent>()
                 for (image in emitImage) {
-                    val imageContent = this@Instance.context.contentFactory.newImageContent(image)
-                    ingested.addContent(imageContent)
-                    ingested.addAttribute(ContentAuthorAttribute(imageContent.id, name))
+                    imageContent.add(this@Instance.context.contentFactory.newImageContent(image))
                 }
 
-                logger.debug { "Emitting ingested ${ingested.id} with ${emitImage.size} images and ${emitAudio.size} audio samples: ${ingested.id}" }
-
                 /* Emit ingested. */
-                this.channel.send(ingested)
+                logger.debug { "Emitting ingested $retrievableId with ${imageContent.size} images and ${audioContent.size} audio samples." }
+                this.channel.send(Ingested(UUID.randomUUID(), "SEGMENT", content = audioContent + imageContent, attributes = attributes, relationships = relationships, transient = false))
             }
         }
     }

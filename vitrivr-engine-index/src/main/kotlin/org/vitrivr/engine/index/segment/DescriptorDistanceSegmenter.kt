@@ -5,6 +5,8 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.vector.DoubleVectorDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor
@@ -13,6 +15,7 @@ import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAuthorAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
 import org.vitrivr.engine.core.model.types.Value
@@ -131,33 +134,37 @@ class DescriptorDistanceSegmenter : TransformerFactory {
             }
         }
 
-        private suspend fun send(
-            downstream: ProducerScope<Retrievable>,
-            cache: List<Retrievable>
-        ) {
-            val ingested = Ingested(UUID.randomUUID(), cache.first().type, false)
+        private suspend fun send(downstream: ProducerScope<Retrievable>, cache: List<Retrievable>) {
+            /* Sanity check for early abort. */
+            if (cache.isEmpty()) return
+
+            /* Drain cache. */
+            val emittedTypes = LinkedHashSet<String>()
+            val emittedContent = LinkedList<ContentElement<*>>()
+            val emittedDescriptors = HashSet<Descriptor<*>>()
+            val emittedAttributes = HashSet<RetrievableAttribute>()
+            val emittedRelationships = HashSet<Relationship>()
             val ranges = mutableSetOf<TimeRangeAttribute>()
             for (emitted in cache) {
-                emitted.content.forEach { ingested.addContent(it) }
-                emitted.descriptors.forEach { ingested.addDescriptor(it) }
-                emitted.attributes.forEach {
-                    if (it is TimeRangeAttribute) {
-                        ranges.add(it)
+                emittedTypes.add(emitted.type)
+                emittedContent.addAll(emitted.content)
+                emittedDescriptors.addAll(emitted.descriptors)
+                emittedAttributes.addAll(emitted.attributes)
+                emittedRelationships.addAll(emitted.relationships)
+                for (attribute in emitted.attributes) {
+                    if (attribute is TimeRangeAttribute) {
+                        ranges.add(attribute)
                     } else {
-                        ingested.addAttribute(it)
+                        emittedAttributes.add(attribute)
                     }
-                }
-                emitted.relationships.forEach { relationship ->
-                    ingested.addRelationship(relationship.exchange(emitted.id, ingested))
                 }
             }
             if (ranges.isNotEmpty()) {
-                ingested.addAttribute(TimeRangeAttribute.merge(ranges))
+                emittedAttributes.add(TimeRangeAttribute.merge(ranges))
             }
 
             /* Send retrievable downstream. */
-            downstream.send(ingested)
+            downstream.send(Ingested(UUID.randomUUID(), cache.first().type, emittedContent, emittedDescriptors, emittedAttributes, emittedRelationships, false))
         }
-
     }
 }

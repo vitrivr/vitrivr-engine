@@ -31,13 +31,12 @@ class SphericalHarmonicsExtractor :
     constructor(
         input: Operator<Retrievable>,
         analyser: SphericalHarmonics,
-        contentSources : Set<String>?,
         field: Schema.Field<Model3dContent, FloatVectorDescriptor>,
         gridSize: Int,
         cap: Int,
         minL: Int,
         maxL: Int
-    ) : super(input, analyser, contentSources, field) {
+    ) : super(input, analyser, field) {
         this.gridSize = gridSize
         this.cap = cap
         this.minL = minL
@@ -50,13 +49,12 @@ class SphericalHarmonicsExtractor :
     constructor(
         input: Operator<Retrievable>,
         analyser: SphericalHarmonics,
-        contentSources : Set<String>?,
         name: String,
         gridSize: Int,
         cap: Int,
         minL: Int,
         maxL: Int
-    ) : super(input, analyser, contentSources, name) {
+    ) : super(input, analyser, name) {
         this.gridSize = gridSize
         this.cap = cap
         this.minL = minL
@@ -82,19 +80,16 @@ class SphericalHarmonicsExtractor :
      * @param retrievable The [Retrievable] to process.
      * @return List of resulting [FloatVectorDescriptor]s.
      */
-    override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
-        val content = this.filterContent(retrievable)
-        return content.flatMap { c ->
-            c.content.getMaterials().flatMap { mat ->
-                mat.materialMeshes.map { mesh ->
-                    SphericalHarmonics.analyse(
-                        mesh,
-                        this.gridSize,
-                        this.minL,
-                        this.maxL,
-                        this.cap
-                    ).copy(field = this.field)
-                }
+    override fun extract(retrievable: Retrievable) = retrievable.content.filterIsInstance<Model3dContent>().flatMap { c ->
+        c.content.getMaterials().flatMap { mat ->
+            mat.materialMeshes.map { mesh ->
+                SphericalHarmonics.analyse(
+                    mesh,
+                    this.gridSize,
+                    this.minL,
+                    this.maxL,
+                    this.cap
+                ).copy(field = this.field)
             }
         }
     }

@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.onEach
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Exporter
 import org.vitrivr.engine.core.operators.general.ExporterFactory
@@ -70,22 +69,16 @@ class ThumbnailExporter : ExporterFactory {
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
             try {
-
                 val resolvable = this.context.resolver.resolve(retrievable.id, ".${this.mimeType.fileExtension}")
+                val content = retrievable.content.filterIsInstance<ImageContent>()
+                if (resolvable != null && content.isNotEmpty()) {
+                    val writer = when (mimeType) {
+                        MimeType.JPEG,
+                        MimeType.JPG -> JpegWriter()
 
-                val contentIds = this.contentSources?.let {
-                    retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it)
-                }
-
-            val content =
-                retrievable.content.filterIsInstance<ImageContent>().filter { contentIds?.contains(it.id) ?: true }
-            if (resolvable != null && content.isNotEmpty()) {
-                val writer = when (mimeType) {
-                    MimeType.JPEG,
-                    MimeType.JPG -> JpegWriter()
-                    MimeType.PNG -> PngWriter()
-                    else -> throw IllegalArgumentException("Unsupported mime type $mimeType")
-                }
+                        MimeType.PNG -> PngWriter()
+                        else -> throw IllegalArgumentException("Unsupported mime type $mimeType")
+                    }
 
                     logger.debug { "Generating thumbnail(s) for ${retrievable.id} with ${retrievable.type} and resolution $maxResolution. Storing it with ${resolvable::class.simpleName}." }
 
