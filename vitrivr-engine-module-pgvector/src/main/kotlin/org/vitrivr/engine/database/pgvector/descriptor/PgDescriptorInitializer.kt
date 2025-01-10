@@ -120,7 +120,7 @@ open class PgDescriptorInitializer<D : Descriptor<*>>(
                         when (type) {
                             "hnsw" -> {
                                 hyperparameters =
-                                    "WITH (m = ${index.parameters["m"] ?: "16"}, ef_construction = ${index.parameters["efConstruction "] ?: "200"}); SET hnsw.ef_search = ${index.parameters["efSearch"] ?: "200"}"
+                                    "WITH (m = ${index.parameters["m"] ?: "16"}, ef_construction = ${index.parameters["efConstruction "] ?: "64"}); SET hnsw.ef_search = ${index.parameters["efSearch"] ?: "200"}"
                             }
                         }
                         val distance =
