@@ -5,6 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
@@ -20,21 +21,23 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Ralph Gasser
  * @version 1.4.0
  */
-abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>>(
+abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>> private constructor(
     final override val input: Operator<Retrievable>,
     final override val analyser: Analyser<C, D>,
     final override val field: Schema.Field<C, D>? = null,
-    final override val name: String
+    final override val name: String,
+    val transient: Boolean
 ) : Extractor<C, D> {
 
-    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, field: Schema.Field<C, D>) : this(
+    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, field: Schema.Field<C, D>, transient: Boolean = false) : this(
         input,
         analyser,
         field,
-        field.fieldName
+        field.fieldName,
+        transient
     )
 
-    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, name: String) : this(input, analyser, null, name)
+    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, name: String) : this(input, analyser, null, name, true)
 
     init {
         require(this.field == null || this.field.analyser == this.analyser) { "Field and analyser do not match! This is a programmer's error!" }
@@ -42,6 +45,9 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>>(
 
     /** The [KLogger] instance used by this [AbstractExtractor]. */
     protected val logger: KLogger = KotlinLogging.logger {}
+
+    /** The [DescriptorWriter] instance used by this [AbstractExtractor]. */
+    protected val writer: DescriptorWriter<D>? by lazy { this.field?.getWriter() }
 
     /**
      * A default [Extractor] implementation. It executes the following steps:
@@ -65,6 +71,11 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>>(
                 }
 
                 if (descriptors.isNotEmpty()) {
+                    /* Persist descriptors. */
+                    if (this.field != null && this.transient == false) {
+                        this.writer?.addAll(descriptors)
+                    }
+
                     /* Append descriptor. */
                     logger.trace { "Extracted descriptors for retrievable ($retrievable): $descriptors" }
                     val authorAttribute = DescriptorAuthorAttribute()

@@ -46,11 +46,12 @@ import java.util.concurrent.TimeUnit
 class VideoDecoder : DecoderFactory {
 
     override fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder {
-        val video = context[name, "video"]?.let { it.lowercase() == "true" } ?: true
-        val audio = context[name, "audio"]?.let { it.lowercase() == "true" } ?: true
-        val keyFrames = context[name, "keyFrames"]?.let { it.lowercase() == "true" } ?: false
+        val video = context[name, "video"]?.toBoolean() == true
+        val audio = context[name, "audio"]?.toBoolean() == true
+        val keyFrames = context[name, "keyFrames"]?.toBoolean() == true
         val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
-        return Instance(input, context, name, video, audio, keyFrames, timeWindowMs)
+        val transient = context[name, "transient"]?.toBoolean() == true
+        return Instance(input, context, name, video, audio, keyFrames, timeWindowMs, transient)
     }
 
     /**
@@ -63,7 +64,8 @@ class VideoDecoder : DecoderFactory {
         private val video: Boolean = true,
         private val audio: Boolean = true,
         private val keyFrames: Boolean = false,
-        private val timeWindowMs: Long = 500L
+        private val timeWindowMs: Long = 500L,
+        private val transient: Boolean = false
     ) : Decoder {
 
         /** [KLogger] instance. */
@@ -86,6 +88,9 @@ class VideoDecoder : DecoderFactory {
                     logger.debug { "In flow: Skipping source ${source.name} (${source.sourceId}) because it is not of type VIDEO." }
                     return@collect
                 }
+
+                /* First send source retrievable. */
+                send(sourceRetrievable)
 
                 /* Decode video and audio; make distinction between FileSource and other types of sources. */
                 if (source is FileSource) {
@@ -118,8 +123,6 @@ class VideoDecoder : DecoderFactory {
         ) {
             /* Determine end of time window. */
             var windowEnd = TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
-            var error = false
-
 
             /* Configure FFmpegFrameGrabber. */
             grabber.imageMode = FrameGrabber.ImageMode.COLOR
@@ -131,8 +134,7 @@ class VideoDecoder : DecoderFactory {
 
                 /* Extract and enrich source metadata. */
                 source.metadata[Metadata.METADATA_KEY_VIDEO_FPS] = grabber.videoFrameRate
-                source.metadata[Metadata.METADATA_KEY_AV_DURATION] =
-                    TimeUnit.MICROSECONDS.toMillis(grabber.lengthInTime)
+                source.metadata[Metadata.METADATA_KEY_AV_DURATION] = TimeUnit.MICROSECONDS.toMillis(grabber.lengthInTime)
                 source.metadata[Metadata.METADATA_KEY_IMAGE_WIDTH] = grabber.imageWidth
                 source.metadata[Metadata.METADATA_KEY_IMAGE_HEIGHT] = grabber.imageHeight
                 source.metadata[Metadata.METADATA_KEY_AUDIO_CHANNELS] = grabber.audioChannels
@@ -148,9 +150,7 @@ class VideoDecoder : DecoderFactory {
                 var audioReady = !(grabber.hasAudio() && this@Instance.audio)
 
                 do {
-                    val frame =
-                        grabber.grabFrame(this@Instance.audio, this@Instance.video, true, this@Instance.keyFrames, true)
-                            ?: break
+                    val frame = grabber.grabFrame(this@Instance.audio, this@Instance.video, true, this@Instance.keyFrames, true) ?: break
                     when (frame.type) {
                         Frame.Type.VIDEO -> {
                             imageBuffer.add(
@@ -200,16 +200,9 @@ class VideoDecoder : DecoderFactory {
 
                 logger.info { "Finished decoding video from source '${source.name}' (${source.sourceId}): ${sourceRetrievable.id}" }
             } catch (exception: Exception) {
-                error = true
                 logger.error(exception) { "Failed to decode video from source '${source.name}' (${source.sourceId})." }
             } finally {
                 grabber.stop()
-            }
-
-            /* Send source retrievable downstream as a signal that file has been decoded. */
-            if (!error) {
-                logger.debug { "Emitting source ${sourceRetrievable.id} as signal that video has been decoded." }
-                channel.send(sourceRetrievable)
             }
         }
 
@@ -257,7 +250,7 @@ class VideoDecoder : DecoderFactory {
             /* Prepare ingested with relationship to source. */
             val retrievableId = UUID.randomUUID()
             val source = source.filteredAttribute(SourceAttribute::class.java)
-            val relationship = source?.let { Relationship.ById(retrievableId, "partOf", it.source.sourceId, false) }
+            val relationship = source?.let { Relationship.ById(retrievableId, "partOf", it.source.sourceId, transient = this.transient) }
 
             /* Prepare attributes and content lists. */
             val attributes = mutableSetOf<RetrievableAttribute>()
@@ -293,11 +286,10 @@ class VideoDecoder : DecoderFactory {
                 val imageContent = this@Instance.context.contentFactory.newImageContent(image)
                 content.add(imageContent)
             }
-
             logger.debug { "Emitting ingested $retrievableId with ${emitImage.size} images and ${emitAudio.size} audio samples." }
 
             /* Emit ingested. */
-            channel.send(Ingested(retrievableId, "SEGMENT", content = content, attributes = attributes, relationships = relationship?.let { setOf(it) } ?: emptySet(), transient = false))
+            channel.send(Ingested(retrievableId, "SEGMENT", content = content, attributes = attributes, relationships = relationship?.let { setOf(it) } ?: emptySet(), transient = this.transient))
         }
     }
 }

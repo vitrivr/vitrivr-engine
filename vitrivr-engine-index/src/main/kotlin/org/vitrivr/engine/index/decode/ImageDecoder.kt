@@ -21,7 +21,7 @@ import javax.imageio.ImageIO
  * A [Decoder] that can decode [ImageContent] from a [Source] of [MediaType.IMAGE].
  *
  * @author Luca Rossetto
- * @version 1.2.0
+ * @version 1.3.0
  */
 class ImageDecoder : DecoderFactory {
 
@@ -32,12 +32,15 @@ class ImageDecoder : DecoderFactory {
      * @param input The input [Enumerator].
      * @param context The [IndexContext] to use.
      */
-    override fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder = Instance(input, context, name)
+    override fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder {
+        val transient = context[name, "transient"]?.toBoolean() == true
+        return Instance(input, context, transient, name)
+    }
 
     /**
      * The [Decoder] returned by this [ImageDecoder].
      */
-    private class Instance(override val input: Enumerator, private val context: IndexContext, override val name: String) : Decoder {
+    private class Instance(override val input: Enumerator, private val context: IndexContext, private val transient: Boolean = false, override val name: String) : Decoder {
 
         /** [KLogger] instance. */
         private val logger: KLogger = KotlinLogging.logger {}
@@ -61,7 +64,7 @@ class ImageDecoder : DecoderFactory {
                 logger.info { "Finished decoding image from source '${source.name}' (${source.sourceId})." }
 
                 /* Return ingested. */
-                retrievable.copy(content = retrievable.content + content)
+                retrievable.copy(content = retrievable.content + content, transient = this@Instance.transient)
             } catch (e: IOException) {
                 logger.error(e) { "Failed to decode image from source '${source.name}' (${source.sourceId}) due to IO exception: ${e.message}" }
                 null

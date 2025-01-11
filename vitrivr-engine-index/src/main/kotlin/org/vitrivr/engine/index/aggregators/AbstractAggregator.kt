@@ -21,9 +21,10 @@ abstract class AbstractAggregator(override val input: Operator<out Retrievable>,
     /**
      *  Creates a flow for this [AbstractAggregator].
      *
-     *  The default [AbstractAggregator] simply copies the incoming [Ingested] and replaces the content with the aggregated content.
+     *  The default [AbstractAggregator] simply copies the incoming [Retrievable] and replaces the content with the aggregated content.
      *
      *  @param scope [CoroutineScope] to use for the [Flow].
+     *  @return [Flow] of [Retrievable] objects.
      */
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).map {
         if (it.content.isNotEmpty()) {

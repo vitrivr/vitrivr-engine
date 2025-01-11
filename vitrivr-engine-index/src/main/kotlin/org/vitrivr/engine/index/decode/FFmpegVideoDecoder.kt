@@ -43,17 +43,17 @@ import java.util.concurrent.TimeUnit
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.2.0
  */
 class FFmpegVideoDecoder : DecoderFactory {
 
     override fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder {
-        val video = context[name, "video"]?.let { it.lowercase() == "true" } != false
-        val audio = context[name, "audio"]?.let { it.lowercase() == "true" } != false
+        val video = context[name, "video"]?.toBoolean() == true
+        val audio = context[name, "audio"]?.toBoolean() == true
         val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
         val ffmpegPath = context[name, "ffmpegPath"]?.let { Path.of(it) }
-
-        return Instance(input, context, video, audio, timeWindowMs, ffmpegPath, name)
+        val transient = context[name, "transient"]?.toBoolean() == true
+        return Instance(input, context, video, audio, timeWindowMs, ffmpegPath, transient, name)
     }
 
     private class Instance(
@@ -63,6 +63,7 @@ class FFmpegVideoDecoder : DecoderFactory {
         private val audio: Boolean = true,
         private val timeWindowMs: Long = 500L,
         private val ffmpegPath: Path? = null,
+        private val transient: Boolean = false,
         override val name: String
     ) : Decoder {
 
@@ -111,7 +112,10 @@ class FFmpegVideoDecoder : DecoderFactory {
                 /* Create consumer. */
                 val consumer = InFlowFrameConsumer(this, sourceRetrievable)
 
-                /* Execute. */
+                /* Emit source retrievable. */
+                send(sourceRetrievable)
+
+                /* Extract and emit segments. */
                 try {
                     var output = FrameOutput.withConsumerAlpha(consumer).disableStream(StreamType.SUBTITLE).disableStream(StreamType.DATA)
                     if (!this@Instance.video) {
@@ -128,14 +132,10 @@ class FFmpegVideoDecoder : DecoderFactory {
                         }
                     }
 
-
                     /* Emit final frames. */
                     if (!consumer.isEmpty()) {
                         consumer.emit()
                     }
-
-                    /* Emit source retrievable. */
-                    send(sourceRetrievable)
                 } catch (e: Throwable) {
                     logger.error(e) { "Error while decoding source ${source.name} (${source.sourceId})." }
                 }
@@ -265,7 +265,7 @@ class FFmpegVideoDecoder : DecoderFactory {
                 /* Prepare ingested with relationship to source. */
                 val retrievableId = UUID.randomUUID()
                 val source = this.source.filteredAttribute(SourceAttribute::class.java)
-                val relationship = source?.let { Relationship.ById(retrievableId, "partOf", it.source.sourceId, false) }
+                val relationship = source?.let { Relationship.ById(retrievableId, "partOf", it.source.sourceId, transient = this@Instance.transient) }
 
                 /* Prepare attributes and content lists. */
                 val attributes = mutableSetOf<RetrievableAttribute>()
@@ -305,7 +305,7 @@ class FFmpegVideoDecoder : DecoderFactory {
                 logger.debug { "Emitting ingested $retrievableId with ${emitImage.size} images and ${emitAudio.size} audio samples." }
 
                 /* Emit ingested. */
-                this.channel.send(Ingested(retrievableId, "SEGMENT", content = content, attributes = attributes, relationships = relationship?.let { setOf(it) } ?: emptySet(), transient = false))
+                this.channel.send(Ingested(retrievableId, "SEGMENT", content = content, attributes = attributes, relationships = relationship?.let { setOf(it) } ?: emptySet(), transient = this@Instance.transient))
             }
         }
     }

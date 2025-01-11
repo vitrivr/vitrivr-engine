@@ -17,7 +17,7 @@ import org.vitrivr.engine.core.operators.general.ExporterFactory
 import org.vitrivr.engine.core.operators.general.Transformer
 import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.operators.ingest.*
-import org.vitrivr.engine.core.operators.persistence.PersistingSink
+import org.vitrivr.engine.core.operators.persistence.PersistRetrievableOperator
 import org.vitrivr.engine.core.operators.transform.shape.BroadcastOperator
 import org.vitrivr.engine.core.operators.transform.shape.CombineOperator
 import org.vitrivr.engine.core.operators.transform.shape.ConcatOperator
@@ -69,12 +69,12 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
             val output = this.config.output.map { (built[it] as? Operator<Retrievable>) ?: throw IllegalArgumentException("Output operation $it not found in pipeline!") }
             if (output.isEmpty()) throw IllegalStateException("No output operators found in pipeline!")
             if (output.size == 1) {
-                PersistingSink(output.first(), this.context)
+                PersistRetrievableOperator(output.first(), this.context)
             } else {
                 when (this.config.mergeType) {
-                    MERGE -> PersistingSink(MergeOperator(output), this.context)
-                    COMBINE -> PersistingSink(CombineOperator(output), this.context)
-                    CONCAT -> PersistingSink(ConcatOperator(output), this.context)
+                    MERGE -> PersistRetrievableOperator(MergeOperator(output), this.context)
+                    COMBINE -> PersistRetrievableOperator(CombineOperator(output), this.context)
+                    CONCAT -> PersistRetrievableOperator(ConcatOperator(output), this.context)
                     null -> throw IllegalStateException("Merge type must be specified if multiple outputs are defined.")
                 }
             }

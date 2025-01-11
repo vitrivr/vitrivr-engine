@@ -29,7 +29,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  * @author Luca Rossetto
  * @author Ralph Gasser
  * @author Raphael Waltenspül
- * @version 1.1.0
+ * @version 1.2.0
  */
 class ApiEnumerator : EnumeratorFactory {
     /**
@@ -44,9 +44,10 @@ class ApiEnumerator : EnumeratorFactory {
         val depth = (context[name, "depth"] ?: Int.MAX_VALUE.toString()).toInt()
         val skip = context[name, "skip"]?.toLongOrNull() ?: 0L
         val limit = context[name, "limit"]?.toLongOrNull() ?: Long.MAX_VALUE
+        val transient = context[name, "transient"]?.toBooleanStrictOrNull() == true
         val typeName = context[name, "type"]
         logger.info { "Enumerator: FileSystemEnumerator with path: $paths, depth: $depth, mediaTypes: $mediaTypes, skip: $skip, limit: ${if (limit == Long.MAX_VALUE) "none" else limit}" }
-        return Instance(paths, mediaTypes, typeName, name)
+        return Instance(paths, mediaTypes, typeName, transient, name)
     }
 
     /**
@@ -56,6 +57,7 @@ class ApiEnumerator : EnumeratorFactory {
         private val paths: Stream<Path>,
         private val mediaTypes: Collection<MediaType> = MediaType.allValid,
         private val typeName: String? = null,
+        private val transient: Boolean = false,
         override val name: String
     ) : Enumerator {
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
@@ -72,7 +74,7 @@ class ApiEnumerator : EnumeratorFactory {
 
                     /* Create source ingested and emit it. */
                     val typeName = this@Instance.typeName ?: "SOURCE:${file.type}"
-                    emit(Ingested(file.sourceId, typeName, attributes = setOf(SourceAttribute(file)), transient = false))
+                    emit(Ingested(file.sourceId, typeName, attributes = setOf(SourceAttribute(file)), transient = this@Instance.transient))
                 }
             }
         }.flowOn(Dispatchers.IO)

@@ -54,8 +54,8 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
         val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
         val ffmpegPath = context[name, "ffmpegPath"]?.let { Path.of(it) }
         val sbPath = context[name, "sbPath"]?.let { Path.of(it) }
-
-        return Instance(input, context, video, audio, timeWindowMs, ffmpegPath, sbPath, name)
+        val transient = context[name, "transient"]?.toBoolean() == true
+        return Instance(input, context, video, audio, timeWindowMs, ffmpegPath, sbPath, transient, name)
     }
 
     private class Instance(
@@ -66,6 +66,7 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
         private val timeWindowMs: Long = 500L,
         private val ffmpegPath: Path? = null,
         private val sbPath: Path? = null,
+        private val transient: Boolean = false,
         override val name: String
     ) : Decoder {
 
@@ -98,7 +99,6 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
                     }
                 }
 
-
                 val probeResult = ffprobe.setShowStreams(true).also {
                     if (source is FileSource) {
                         it.setInput(source.path)
@@ -123,6 +123,9 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
                     source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLESIZE] = audioStreamInfo.sampleFmt
                 }
 
+                /* Emit source retrievable. */
+                send(sourceRetrievable)
+
                 /* Create consumer. */
                 val consumer = InFlowFrameConsumer(this, sourceRetrievable, sbs)
 
@@ -144,14 +147,10 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
                         }
                     }
 
-
                     /* Emit final frames. */
                     if (!consumer.isEmpty()) {
                         consumer.emit()
                     }
-
-                    /* Emit source retrievable. */
-                    send(sourceRetrievable)
                 } catch (e: Throwable) {
                     logger.error(e) { "Error while decoding source ${source.name} (${source.sourceId})." }
                 }
@@ -330,7 +329,7 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
 
                 /* Prepare ingested with relationship to source. */
                 val retrievableId = UUID.randomUUID()
-                val relationships = setOf(Relationship.ById(retrievableId, "partOf", source.id, false))
+                val relationships = setOf(Relationship.ById(retrievableId, "partOf", source.id, transient = this@Instance.transient))
                 val attributes = mutableSetOf<RetrievableAttribute>()
                 this.source.filteredAttribute(SourceAttribute::class.java)?.let { attributes.add(it) }
                 attributes.add(TimeRangeAttribute(windowStartEnd.first, this.windowStartEnd.second, TimeUnit.MICROSECONDS))
@@ -361,7 +360,7 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
 
                 /* Emit ingested. */
                 logger.debug { "Emitting ingested $retrievableId with ${imageContent.size} images and ${audioContent.size} audio samples." }
-                this.channel.send(Ingested(UUID.randomUUID(), "SEGMENT", content = audioContent + imageContent, attributes = attributes, relationships = relationships, transient = false))
+                this.channel.send(Ingested(UUID.randomUUID(), "SEGMENT", content = audioContent + imageContent, attributes = attributes, relationships = relationships, transient = this@Instance.transient))
             }
         }
     }
