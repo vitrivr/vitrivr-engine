@@ -15,9 +15,9 @@ import org.vitrivr.engine.core.operators.general.Transformer
 import javax.management.Descriptor
 
 /**
- * Appends [Descriptor] to a [Retrieved] based on the values of a [Schema.Field], if available.
+ * Appends [Descriptor]s to a [Retrieved] based on the values of a [Schema.Field], if available.
  *
- * @version 1.1.2
+ * @version 1.1.3
  * @author Luca Rossetto
  * @author Ralph Gasser
  */
@@ -32,17 +32,18 @@ class FieldLookup(
 
         /* Fetch entries for the provided IDs. */
         val ids = inputRetrieved.map { it.id }.toSet()
-        val descriptors = if (ids.isEmpty()) {
+        val descriptorMap = if (ids.isEmpty()) {
             emptyMap()
         } else {
-            this@FieldLookup.reader.getAllForRetrievable(ids).associateBy { it.retrievableId!! }
+            this@FieldLookup.reader.getAllForRetrievable(ids).groupBy { it.retrievableId!! }
         }
 
         /* Emit retrievable with added attribute. */
         inputRetrieved.forEach { retrieved ->
-            val descriptor = descriptors[retrieved.id]
-            if (descriptor != null) {
+            val descriptors = descriptorMap[retrieved.id] ?: emptySet()
+            for (descriptor in descriptors) {
                 retrieved.addDescriptor(descriptor)
+
                 /* Somewhat experimental. Goal: Attach information in a meaningful manner, such that it can be serialised */
                 val values = descriptor.values().toMap()
                 retrieved.addAttribute(PropertyAttribute(keys.map{
