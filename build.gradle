@@ -39,7 +39,6 @@ allprojects {
 }
 
 subprojects {
-
     buildscript {
         dependencies {
             classpath "org.jetbrains.kotlin:kotlin-serialization:$version_kotlin"
