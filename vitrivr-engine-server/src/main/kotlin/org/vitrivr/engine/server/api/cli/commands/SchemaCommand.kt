@@ -1,6 +1,7 @@
 package org.vitrivr.engine.server.api.cli.commands
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.convert
@@ -21,17 +22,12 @@ import java.nio.file.Paths
 import java.util.*
 
 /**
+ * CLI commands related to schema management.
  *
  * @author Ralph Gasser
- * @version 1.0
+ * @version 1.1.0
  */
-class SchemaCommand(private val schema: Schema, private val server: ExecutionServer, private val manager: SchemaManager) : NoOpCliktCommand(
-    name = schema.name,
-    help = "Groups commands related to a specific schema, in this case the schema '${schema.name}'.",
-    epilog = "Schema related commands usually have the form: <schema> <command>, e.g., `vitrivr about` Check help for command specific parameters.",
-    invokeWithoutSubcommand = true,
-    printHelpOnEmptyArgs = true
-) {
+class SchemaCommand(private val schema: Schema, private val server: ExecutionServer, private val manager: SchemaManager) : NoOpCliktCommand(name = schema.name) {
 
 
     init {
@@ -39,18 +35,43 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
             About(),
             Initialize(),
             Extract(this.schema, this.server),
-            Status(this.schema, this.server),
+            Status(this.server),
             MigrateTo(this.schema, this.manager)
         )
+    }
+
+    override val invokeWithoutSubcommand: Boolean = true
+
+    override val printHelpOnEmptyArgs: Boolean = true
+
+    /**
+     * Returns the help message for [SchemaCommand] command.
+     */
+    override fun help(context: Context): String {
+        return  "Groups commands related to a specific schema, in this case the schema '${schema.name}'."
+    }
+
+    /**
+     * Returns the help message epilog for [SchemaCommand] command.
+     */
+    override fun helpEpilog(context: Context): String {
+        return "Schema related commands usually have the form: <schema> <command>, e.g., `vitrivr about` Check help for command specific parameters."
     }
 
     /**
      * [CliktCommand] to list all fields in a schema registered with this vitrivr instance.
      */
-    inner class About : CliktCommand(name = "about", help = "Lists all fields that are registered with the schema.") {
+    inner class About : CliktCommand(name = "about") {
 
         /**
-         * Executes the command.
+         * Returns the help message for [About] command.
+         */
+        override fun help(context: Context): String {
+            return "Lists all fields that are registered with the schema."
+        }
+
+        /**
+         * Executes the [About] command.
          */
         override fun run() {
             val table = table {
@@ -85,8 +106,18 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
     /**
      * [CliktCommand] to initialize the schema.
      */
-    inner class Initialize :
-        CliktCommand(name = "init", help = "Initializes the schema using the database connection.") {
+    inner class Initialize : CliktCommand(name = "init") {
+
+        /**
+         * Returns the help message for [Initialize] command.
+         */
+        override fun help(context: Context): String {
+            return "Initializes the schema using the database connection."
+        }
+
+        /**
+         * Executes the [Initialize] command.
+         */
         override fun run() {
             val schema = this@SchemaCommand.schema
             var initialized = 0
@@ -109,8 +140,7 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
     /**
      * [CliktCommand] to start an extraction job.
      */
-    inner class Extract(private val schema: Schema, private val executor: ExecutionServer) :
-        CliktCommand(name = "extract", help = "Extracts data from a source and stores it in the schema.") {
+    inner class Extract(private val schema: Schema, private val executor: ExecutionServer) : CliktCommand(name = "extract") {
 
         private val logger: KLogger = KotlinLogging.logger {}
 
@@ -128,7 +158,16 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
             help = "The name of the ingestion pipeline configuration to use from the schema"
         )
 
+        /**
+         * Returns the help message for [Extract] command.
+         */
+        override fun help(context: Context): String {
+            return "Extracts data from a source and stores it in the schema."
+        }
 
+        /**
+         * Executes the [Extract] command.
+         */
         override fun run() {
             val pipeline = if (name != null) {
                 this.schema.getIngestionPipelineBuilder(name!!).build()
@@ -159,19 +198,29 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
         }
     }
 
-    inner class Status(private val schema: Schema, private val executor: ExecutionServer) :
-        CliktCommand(name = "status", help = "Prints indexing status") {
+    inner class Status(private val executor: ExecutionServer) :
+        CliktCommand(name = "status") {
         private val logger: KLogger = KotlinLogging.logger {}
 
         private val jobId: UUID by option("--job-id", help = "The job id").convert { UUID.fromString(it) }.required()
 
+        /**
+         * Returns the help message for [Status] command.
+         */
+        override fun help(context: Context): String {
+            return "Prints indexing status"
+        }
+
+        /**
+         * Executes the [Status] command.
+         */
         override fun run() {
             logger.info { "Status: ${executor.status(jobId)} at ${System.currentTimeMillis()}" }
         }
     }
 
     inner class MigrateTo(private val schema: Schema, private val manager: SchemaManager) :
-        CliktCommand(name = "migrate-to", help = "Export all data from the schema.") {
+        CliktCommand(name = "migrate-to") {
 
         private val logger = KotlinLogging.logger {}
 
@@ -182,6 +231,16 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
             help = "name of the target schema."
         )
 
+        /**
+         * Returns the help message for [MigrateTo] command.
+         */
+        override fun help(context: Context): String {
+            return "Export all data from the schema."
+        }
+
+        /**
+         * Executes the [MigrateTo] command.
+         */
         override fun run() {
 
             /** Check if target [Schema] exists. */
