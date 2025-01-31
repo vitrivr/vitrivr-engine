@@ -27,6 +27,8 @@ dependencies {
     api group: 'io.grpc', name: 'grpc-stub', version: version_grpc
     api group: 'io.grpc', name: 'grpc-auth', version: version_grpc
     api group: 'io.grpc', name: 'grpc-kotlin-stub', version: version_grpc_kotlin
+
+    api group: 'com.google.auth', name: 'google-auth-library-oauth2-http', version: version_google_oauth2
 }
 
 protobuf {
