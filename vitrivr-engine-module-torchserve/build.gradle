@@ -26,8 +26,7 @@ dependencies {
     api group: 'io.grpc', name: 'grpc-protobuf', version: version_grpc
     api group: 'io.grpc', name: 'grpc-stub', version: version_grpc
     api group: 'io.grpc', name: 'grpc-auth', version: version_grpc
-    api group: 'io.grpc', name: 'grpc-kotlin-stub', version: '1.4.1'
-    api group: 'com.google.auth', name: 'google-auth-library-oauth2-http', version: '1.24.0'
+    api group: 'io.grpc', name: 'grpc-kotlin-stub', version: version_grpc_kotlin
 }
 
 protobuf {
@@ -36,7 +35,7 @@ protobuf {
             artifact = "io.grpc:protoc-gen-grpc-java:$version_grpc"
         }
         grpckt {
-            artifact = "io.grpc:protoc-gen-grpc-kotlin:1.4.1:jdk8@jar"
+            artifact = "io.grpc:protoc-gen-grpc-kotlin:$version_grpc_kotlin:jdk8@jar"
         }
     }
     protoc {
