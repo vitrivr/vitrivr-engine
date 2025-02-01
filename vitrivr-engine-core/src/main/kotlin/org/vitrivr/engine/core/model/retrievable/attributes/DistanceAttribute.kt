@@ -1,16 +1,33 @@
 package org.vitrivr.engine.core.model.retrievable.attributes
 
+import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
+import org.vitrivr.engine.core.model.retrievable.Retrievable
 import kotlin.math.min
 
 /**
- * A [MergingRetrievableAttribute] that contains a distance value.
+ * A [DistanceAttribute] that contains a distance value.
  *
  * @author Luca Rossetto
  * @version 1.1.0
  */
-data class DistanceAttribute(val distance: Float, val descriptorId: DescriptorId? = null) : MergingRetrievableAttribute {
-    override fun merge(other: MergingRetrievableAttribute): DistanceAttribute = DistanceAttribute(
-        min(this.distance, (other as? DistanceAttribute)?.distance ?: Float.POSITIVE_INFINITY)
-    )
+sealed interface DistanceAttribute: RetrievableAttribute {
+    /** The distance value associated with this [DistanceAttribute]. */
+    val distance: Float
+
+    /**
+     * A global [DistanceAttribute].
+     *
+     * It is used to store a global distance value for a [Retrievable].
+     */
+    data class Global(override val distance: Float): DistanceAttribute, MergingRetrievableAttribute {
+        override fun merge(other: MergingRetrievableAttribute) = Global(
+            min(this.distance, (other as? DistanceAttribute)?.distance ?: Float.POSITIVE_INFINITY)
+        )
+    }
+
+    /**
+     * A local [DistanceAttribute]. It is used to store a local distance value specific for a [Descriptor].
+     */
+    data class Local(override val distance: Float, val descriptorId: DescriptorId): DistanceAttribute
 }

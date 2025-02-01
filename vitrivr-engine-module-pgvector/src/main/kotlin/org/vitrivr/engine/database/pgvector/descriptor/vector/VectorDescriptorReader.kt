@@ -6,6 +6,7 @@ import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor.Companio
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
+import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
 import org.vitrivr.engine.database.pgvector.*
@@ -19,7 +20,7 @@ import java.util.*
  * An abstract implementation of a [DescriptorReader] for Cottontail DB.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, connection: PgVectorConnection) : AbstractDescriptorReader<VectorDescriptor<*, *>>(field, connection) {
     /**
@@ -115,32 +116,37 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, con
      * @return [Sequence] of [VectorDescriptor]s.
      */
     private fun queryAndJoinProximity(query: ProximityQuery<*>): Sequence<Retrieved> {
-        val descriptors = mutableListOf<Pair<VectorDescriptor<*, *>, Float>>()
-        val statement =
-            "SELECT $DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $VECTOR_ATTRIBUTE_NAME, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME FROM \"${tableName.lowercase()}\" ORDER BY $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? ${query.order} LIMIT ${query.k}"
+        val fetched = mutableMapOf<RetrievableId, MutableList<Pair<VectorDescriptor<*,*>,Float>>>()
+        val statement = "SELECT $DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $VECTOR_ATTRIBUTE_NAME, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME FROM \"${tableName.lowercase()}\" ORDER BY $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? ${query.order} LIMIT ${query.k}"
         this@VectorDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
             stmt.setValue(1, query.value)
             stmt.setValue(2, query.value)
             stmt.executeQuery().use { result ->
                 while (result.next()) {
-                    descriptors.add(this@VectorDescriptorReader.rowToDescriptor(result) to result.getFloat(DISTANCE_COLUMN_NAME))
+                    val d = this@VectorDescriptorReader.rowToDescriptor(result)
+                    fetched.compute(d.retrievableId!!) { _, v ->
+                        if (v == null) {
+                            mutableListOf(d to result.getFloat(DISTANCE_COLUMN_NAME))
+                        } else {
+                            v.add(d to result.getFloat(DISTANCE_COLUMN_NAME))
+                            v
+                        }
+                    }
                 }
             }
 
             /* Fetch retrievable ids. */
-            val retrievables = this.connection.getRetrievableReader().getAll(descriptors.mapNotNull { it.first.retrievableId }.toSet()).map { it.id to it }.toMap()
-            return descriptors.asSequence().mapNotNull { (descriptor, distance) ->
-                val retrievable = retrievables[descriptor.retrievableId]
-                if (retrievable != null) {
+            return this.connection.getRetrievableReader().getAll(fetched.keys).map { retrievable ->
+                val descriptors = fetched[retrievable.id] ?: emptyList()
+                for ((descriptor, distance) in descriptors) {
                     if (query.fetchVector) {
                         retrievable.addDescriptor(descriptor)
                     }
-                    retrievable.addAttribute(DistanceAttribute(distance))
-                    retrievable as Retrieved
-                } else {
-                    null
+                    retrievable.addAttribute(DistanceAttribute.Local(distance, descriptor.id))
                 }
+                retrievable as Retrieved
             }
+
         }
     }
 }

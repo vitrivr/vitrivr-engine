@@ -14,7 +14,7 @@ interface CorrespondenceFunction {
      * Computes the score for a given [DistanceAttribute].
      *
      * @param distance [DistanceAttribute] for which to compute the score.
-     * @return [ScoreAttribute.Similarity] for the given [DistanceAttribute].
+     * @return [ScoreAttribute] for the given [DistanceAttribute].
      */
-    operator fun invoke(distance: DistanceAttribute): ScoreAttribute.Similarity
+    operator fun invoke(distance: DistanceAttribute): ScoreAttribute
 }
