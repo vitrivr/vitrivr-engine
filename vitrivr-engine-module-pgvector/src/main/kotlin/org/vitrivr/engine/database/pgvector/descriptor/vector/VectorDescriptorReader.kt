@@ -15,6 +15,7 @@ import org.vitrivr.engine.database.pgvector.descriptor.model.PgBitVector
 import org.vitrivr.engine.database.pgvector.descriptor.model.PgVector
 import java.sql.ResultSet
 import java.util.*
+import kotlin.collections.LinkedHashMap
 
 /**
  * An abstract implementation of a [DescriptorReader] for Cottontail DB.
@@ -116,7 +117,7 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, con
      * @return [Sequence] of [VectorDescriptor]s.
      */
     private fun queryAndJoinProximity(query: ProximityQuery<*>): Sequence<Retrieved> {
-        val fetched = mutableMapOf<RetrievableId, MutableList<Pair<VectorDescriptor<*,*>,Float>>>()
+        val fetched = LinkedHashMap<RetrievableId, MutableList<Pair<VectorDescriptor<*,*>,Float>>>()
         val statement = "SELECT $DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $VECTOR_ATTRIBUTE_NAME, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME FROM \"${tableName.lowercase()}\" ORDER BY $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? ${query.order} LIMIT ${query.k}"
         this@VectorDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
             stmt.setValue(1, query.value)
