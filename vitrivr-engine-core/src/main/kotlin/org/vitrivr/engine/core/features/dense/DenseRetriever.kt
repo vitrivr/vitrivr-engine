@@ -10,7 +10,6 @@ import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
-import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 
 /**
  * [DenseRetriever] implementation for proximity-based retrieval on float vector embeddings.
@@ -26,16 +25,12 @@ import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
  * @author Fynn Faber
  * @version 1.0.0
  */
-class DenseRetriever<C : ContentElement<*>>(field: Schema.Field<C, FloatVectorDescriptor>, query: ProximityQuery<*>, context: QueryContext, val correspondence: CorrespondenceFunction) :
-    AbstractRetriever<C, FloatVectorDescriptor>(field, query, context) {
+class DenseRetriever<C : ContentElement<*>>(field: Schema.Field<C, FloatVectorDescriptor>, query: ProximityQuery<*>, context: QueryContext, val correspondence: CorrespondenceFunction) : AbstractRetriever<C, FloatVectorDescriptor>(field, query, context) {
     override fun toFlow(scope: CoroutineScope) = flow {
         this@DenseRetriever.reader.queryAndJoin(this@DenseRetriever.query).forEach {
-            val distance = it.filteredAttribute<DistanceAttribute>()
-            if (distance != null) {
-                it.addAttribute(this@DenseRetriever.correspondence(distance))
-            } else {
-                this@DenseRetriever.logger.warn { "No distance attribute found for descriptor ${it.id}." }
-                it.addAttribute(ScoreAttribute.Similarity(0.0f))
+            val distances = it.filteredAttributes<DistanceAttribute>()
+            for (d in distances) {
+                it.addAttribute(d)
             }
             emit(it)
         }

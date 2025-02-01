@@ -10,7 +10,6 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Aggregator
-import java.util.*
 import kotlin.math.pow
 
 class WeightedScoreFusion(
