@@ -17,7 +17,8 @@
           "attributes": [
             "path"
           ],
-          "type": "FULLTEXT"
+          "type": "FULLTEXT",
+          "parameters":{"type":"gin","language": "english"}
         },
         {
           "attributes": [

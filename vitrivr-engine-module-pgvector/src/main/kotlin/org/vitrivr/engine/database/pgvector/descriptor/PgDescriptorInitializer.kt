@@ -49,6 +49,7 @@ open class PgDescriptorInitializer<D : Descriptor<*>>(
 
         /* Add columns for each field in the struct. */
         for (field in this.prototype.layout()) {
+            // @formatter:off
             when (field.type) {
                 Type.String -> statement.append("\"${field.name.lowercase()}\" varchar(255), ")
                 Type.Text -> statement.append("\"${field.name.lowercase()}\" text, ")
@@ -67,6 +68,7 @@ open class PgDescriptorInitializer<D : Descriptor<*>>(
                 is Type.IntVector -> statement.append("\"${field.name.lowercase()}\" vector(${field.type.dimensions}), ")
                 is Type.LongVector -> statement.append("\"${field.name.lowercase()}\" vector(${field.type.dimensions}), ")
             }
+            // @formatter:on
         }
 
         /* Finalize statement*/
@@ -92,12 +94,8 @@ open class PgDescriptorInitializer<D : Descriptor<*>>(
                         require(type in INDEXES_SCALAR) { "Index type '$type' is not supported by PostgreSQL." }
                         "CREATE INDEX ON $tableName USING $type(${index.attributes.joinToString(",")});"
                     }
-
                     IndexType.FULLTEXT -> {
-
-
-
-                        val type = index.parameters[INDEX_TYPE_PARAMETER_NAME]?.lowercase() ?: "hnsw"
+                        val type = index.parameters[INDEX_TYPE_PARAMETER_NAME]?.lowercase() ?: "gin"
                         require(type in INDEXES_FULLTEXT) { "Index type '$type' is not supported by PostgreSQL." }
                         when (type) {
                             "gin" -> {
@@ -107,11 +105,9 @@ open class PgDescriptorInitializer<D : Descriptor<*>>(
                                         "to_tsvector('${index.parameters["language"] ?: "english"}', ${index.attributes.joinToString(" || ' ' || ") { it }})" +
                                         ") STORED;"
                             }
-
                             else -> ""
                         }
                     }
-
                     IndexType.NNS -> {
                         require(index.attributes.size == 1) { "NNS index can only be created on a single attribute." }
                         val type = index.parameters[INDEX_TYPE_PARAMETER_NAME]?.lowercase() ?: "hnsw"
