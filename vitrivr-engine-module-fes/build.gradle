@@ -7,7 +7,7 @@ plugins {
 
 /* Downloads the OpenAPI spec from the feature extraction server. */
 tasks.register('downloadOpenApiSpec', Download) {
-    src 'https://raw.githubusercontent.com/vitrivr/feature-extraction-server/main/openapi_spec.json'
+    src 'https://raw.githubusercontent.com/vitrivr/feature-extraction-server/dev/openapi_spec.json'
     dest "${layout.buildDirectory.get()}/api-client-spec/openapi_spec.json"
 }
 
@@ -43,8 +43,6 @@ sourceSets {
         }
     }
 }
-
-
 
 dependencies {
     /* vitrivr engine features dependency. */
