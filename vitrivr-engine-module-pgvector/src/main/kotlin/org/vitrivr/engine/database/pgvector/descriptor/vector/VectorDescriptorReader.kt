@@ -136,19 +136,15 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, con
             }
 
             /* Fetch retrievable ids. */
-            val retrievables = mutableMapOf<RetrievableId,Retrieved>()
-            this.connection.getRetrievableReader().getAll(descriptors.keys).forEach { retrievable ->
+            return this.connection.getRetrievableReader().getAll(descriptors.keys).map { retrievable ->
                 for ((descriptor, distance) in descriptors[retrievable.id] ?: emptyList()) {
                     if (query.fetchVector) {
                         retrievable.addDescriptor(descriptor)
                     }
                     retrievable.addAttribute(DistanceAttribute.Local(distance, descriptor.id))
                 }
-                retrievables[retrievable.id] = retrievable as Retrieved
+                retrievable as Retrieved
             }
-
-            /* Returns new sequence of retrieved objects. */
-            return descriptors.keys.asSequence().mapNotNull { retrievables[it] }
         }
     }
 }
