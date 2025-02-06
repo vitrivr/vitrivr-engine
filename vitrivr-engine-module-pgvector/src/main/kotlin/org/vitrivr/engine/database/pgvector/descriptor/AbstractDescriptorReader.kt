@@ -183,18 +183,12 @@ abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val fi
      * @return [Sequence] of [Retrieved].
      */
     override fun queryAndJoin(query: Query): Sequence<Retrieved> {
-        val descriptors = query(query).toList()
+        val descriptors = query(query).groupBy { it.retrievableId!! }
         if (descriptors.isEmpty()) return emptySequence()
 
         /* Fetch retrievable ids. */
-        val retrievables = this.connection.getRetrievableReader().getAll(descriptors.mapNotNull { it.retrievableId }.toSet()).map { it.id to it }.toMap()
-        return descriptors.asSequence().mapNotNull { descriptor ->
-            val retrievable = retrievables[descriptor.retrievableId]
-            if (retrievable != null) {
-                retrievable.copy(descriptors = retrievable.descriptors + descriptor)
-            } else {
-                null
-            }
+        return this.connection.getRetrievableReader().getAll(descriptors.keys).map { retrieved ->
+            retrieved.copy(descriptors = retrieved.descriptors + (descriptors[retrieved.id] ?: emptyList()))
         }
     }
 

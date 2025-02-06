@@ -146,12 +146,19 @@ class Cli(private val manager: SchemaManager) {
     /**
      * Wrapper class and single access point to the actual commands.
      */
-    inner class MainCommand : NoOpCliktCommand(name = "vitrivr", help = "The base command for all CLI commands.") {
+    inner class MainCommand : NoOpCliktCommand(name = "vitrivr") {
         init {
             subcommands(
                 ListSchemaCommand(this@Cli.manager),
                 StopCommand()
             )
+        }
+
+        /**
+         * Returns the help message for the [MainCommand].
+         */
+        override fun help(context: Context): String {
+            return  "The base command for all CLI commands."
         }
 
         /**
@@ -169,7 +176,15 @@ class Cli(private val manager: SchemaManager) {
     /**
      * Stops the [Cli].
      */
-    inner class StopCommand : CliktCommand(name = "stop", help = "Stops this CLI.") {
+    inner class StopCommand : CliktCommand(name = "stop") {
+
+        /**
+         * Returns the help message for the [MainCommand].
+         */
+        override fun help(context: Context): String {
+            return "Stops this CLI."
+        }
+
         override fun run() {
             println("Stopping vitrivr engine CLI now...")
             this@Cli.stop()

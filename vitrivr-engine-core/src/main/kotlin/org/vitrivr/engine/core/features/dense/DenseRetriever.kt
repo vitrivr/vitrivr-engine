@@ -26,8 +26,7 @@ import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
  * @author Fynn Faber
  * @version 1.1.0
  */
-class DenseRetriever<C : ContentElement<*>>(field: Schema.Field<C, FloatVectorDescriptor>, query: ProximityQuery<*>, context: QueryContext, val correspondence: CorrespondenceFunction) :
-    AbstractRetriever<C, FloatVectorDescriptor>(field, query, context) {
+class DenseRetriever<C : ContentElement<*>>(field: Schema.Field<C, FloatVectorDescriptor>, query: ProximityQuery<*>, context: QueryContext, val correspondence: CorrespondenceFunction) : AbstractRetriever<C, FloatVectorDescriptor>(field, query, context) {
     override fun toFlow(scope: CoroutineScope) = flow {
         this@DenseRetriever.reader.queryAndJoin(this@DenseRetriever.query).forEach {
             val distance = it.filteredAttribute<DistanceAttribute>()

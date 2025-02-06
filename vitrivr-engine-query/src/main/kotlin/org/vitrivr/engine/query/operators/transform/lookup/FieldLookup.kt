@@ -13,7 +13,7 @@ import org.vitrivr.engine.core.operators.general.Transformer
 import javax.management.Descriptor
 
 /**
- * Appends [Descriptor] to a [Retrieved] based on the values of a [Schema.Field], if available.
+ * Appends [Descriptor]s to a [Retrieved] based on the values of a [Schema.Field], if available.
  *
  * @version 1.2.0
  * @author Luca Rossetto
@@ -26,21 +26,21 @@ class FieldLookup(
 ) : Transformer {
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
         /* Parse input IDs.*/
-        val inputRetrieved = input.toFlow(scope).toList()
+        val inputRetrieved = this@FieldLookup.input.toFlow(scope).toList()
 
         /* Fetch entries for the provided IDs. */
         val ids = inputRetrieved.map { it.id }.toSet()
-        val descriptors = if (ids.isEmpty()) {
+        val fetchedDescriptors = if (ids.isEmpty()) {
             emptyMap()
         } else {
-            this@FieldLookup.reader.getAllForRetrievable(ids).associateBy { it.retrievableId!! }
+            this@FieldLookup.reader.getAllForRetrievable(ids).groupBy { it.retrievableId!! }
         }
 
         /* Emit retrievable with added attribute. */
         inputRetrieved.forEach { retrieved ->
-            val descriptor = descriptors[retrieved.id]
-            if (descriptor != null) {
-                emit(retrieved.copy(descriptors = retrieved.descriptors + descriptor))
+            val descriptors = fetchedDescriptors[retrieved.id]
+            if (descriptors != null) {
+                emit(retrieved.copy(descriptors = retrieved.descriptors + descriptors))
             } else {
                 emit(retrieved)
             }
