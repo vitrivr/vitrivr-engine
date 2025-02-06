@@ -15,7 +15,6 @@ import org.vitrivr.engine.database.pgvector.descriptor.model.PgBitVector
 import org.vitrivr.engine.database.pgvector.descriptor.model.PgVector
 import java.sql.ResultSet
 import java.util.*
-import kotlin.collections.LinkedHashMap
 
 /**
  * An abstract implementation of a [DescriptorReader] for Cottontail DB.
@@ -117,7 +116,7 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, con
      * @return [Sequence] of [VectorDescriptor]s.
      */
     private fun queryAndJoinProximity(query: ProximityQuery<*>): Sequence<Retrieved> {
-        val fetched = LinkedHashMap<RetrievableId, MutableList<Pair<VectorDescriptor<*,*>,Float>>>()
+        val descriptors = linkedMapOf<RetrievableId, MutableList<Pair<VectorDescriptor<*,*>,Float>>>()
         val statement = "SELECT $DESCRIPTOR_ID_COLUMN_NAME, $RETRIEVABLE_ID_COLUMN_NAME, $VECTOR_ATTRIBUTE_NAME, $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? AS $DISTANCE_COLUMN_NAME FROM \"${tableName.lowercase()}\" ORDER BY $VECTOR_ATTRIBUTE_NAME ${query.distance.toSql()} ? ${query.order} LIMIT ${query.k}"
         this@VectorDescriptorReader.connection.jdbc.prepareStatement(statement).use { stmt ->
             stmt.setValue(1, query.value)
@@ -125,7 +124,7 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, con
             stmt.executeQuery().use { result ->
                 while (result.next()) {
                     val d = this@VectorDescriptorReader.rowToDescriptor(result)
-                    fetched.compute(d.retrievableId!!) { _, v ->
+                    descriptors.compute(d.retrievableId!!) { _, v ->
                         if (v == null) {
                             mutableListOf(d to result.getFloat(DISTANCE_COLUMN_NAME))
                         } else {
@@ -137,17 +136,19 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, con
             }
 
             /* Fetch retrievable ids. */
-            return this.connection.getRetrievableReader().getAll(fetched.keys).map { retrievable ->
-                val descriptors = fetched[retrievable.id] ?: emptyList()
-                for ((descriptor, distance) in descriptors) {
+            val retrievables = mutableMapOf<RetrievableId,Retrieved>()
+            this.connection.getRetrievableReader().getAll(descriptors.keys).forEach { retrievable ->
+                for ((descriptor, distance) in descriptors[retrievable.id] ?: emptyList()) {
                     if (query.fetchVector) {
                         retrievable.addDescriptor(descriptor)
                     }
                     retrievable.addAttribute(DistanceAttribute.Local(distance, descriptor.id))
                 }
-                retrievable as Retrieved
+                retrievables[retrievable.id] = retrievable as Retrieved
             }
 
+            /* Returns new sequence of retrieved objects. */
+            return descriptors.keys.asSequence().mapNotNull { retrievables[it] }
         }
     }
 }
