@@ -21,7 +21,7 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Ralph Gasser
  * @version 1.4.0
  */
-abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>> private constructor(
+abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>> protected constructor(
     final override val input: Operator<Retrievable>,
     final override val analyser: Analyser<C, D>,
     final override val field: Schema.Field<C, D>? = null,
@@ -30,14 +30,12 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>> priva
 ) : Extractor<C, D> {
 
     constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, field: Schema.Field<C, D>, transient: Boolean = false) : this(
-        input,
-        analyser,
-        field,
-        field.fieldName,
-        transient
+        input, analyser, field, field.fieldName, transient
     )
 
-    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, name: String) : this(input, analyser, null, name, true)
+    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, name: String) : this(
+        input, analyser, null, name, true
+    )
 
     init {
         require(this.field == null || this.field.analyser == this.analyser) { "Field and analyser do not match! This is a programmer's error!" }

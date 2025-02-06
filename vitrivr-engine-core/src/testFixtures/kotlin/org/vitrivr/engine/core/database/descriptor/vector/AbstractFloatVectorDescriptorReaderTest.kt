@@ -168,7 +168,7 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
 
         /* Generate and store test data. */
         val retrievables = (0 until size).map {
-            Ingested(UUID.randomUUID(), "SOURCE:TEST", true)
+            Ingested(UUID.randomUUID(), "SOURCE:TEST", transient = true)
         }
         Assertions.assertTrue(this.testConnection.getRetrievableWriter().addAll(retrievables))
 

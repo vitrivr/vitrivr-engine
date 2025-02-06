@@ -25,7 +25,7 @@ abstract class AbstractRetrievableWriterTest(schemaPath: String) : AbstractDatab
 
         /* Create and add retrievable. */
         val id = UUID.randomUUID()
-        Assertions.assertTrue(writer.add(Ingested(id, "INGESTED:TEST", false)))
+        Assertions.assertTrue(writer.add(Ingested(id, "INGESTED:TEST", transient = false)))
 
         /* Check if retrievable can be read. */
         Assertions.assertEquals(1L, reader.count())
@@ -43,7 +43,7 @@ abstract class AbstractRetrievableWriterTest(schemaPath: String) : AbstractDatab
 
         /* Create and add retrievable. */
         val ids = (0 until size).map { UUID.randomUUID() }
-        val ingested = ids.map { Ingested(it, "INGESTED:TEST", false) }
+        val ingested = ids.map { Ingested(it, "INGESTED:TEST", transient = false) }
         Assertions.assertTrue(writer.addAll(ingested))
 
         /* Check if retrievable can be read. */
@@ -65,7 +65,7 @@ abstract class AbstractRetrievableWriterTest(schemaPath: String) : AbstractDatab
 
         /* Create and add retrievable. */
         val ids = (0 until size).map { UUID.randomUUID() }
-        val ingested = ids.map { Ingested(it, "INGESTED:TEST", false) }
+        val ingested = ids.map { Ingested(it, "INGESTED:TEST", transient = false) }
         val delete = ingested[Random().nextInt(0, ingested.size)]
 
         /* Execute actions. */
@@ -92,7 +92,7 @@ abstract class AbstractRetrievableWriterTest(schemaPath: String) : AbstractDatab
 
         /* Create and add retrievable. */
         val ids = (0 until size).map { UUID.randomUUID() }
-        val ingested = ids.map { Ingested(it, "INGESTED:TEST", false) }
+        val ingested = ids.map { Ingested(it, "INGESTED:TEST", transient = false) }
 
         /* Execute actions. */
         Assertions.assertTrue(writer.addAll(ingested))
@@ -120,7 +120,7 @@ abstract class AbstractRetrievableWriterTest(schemaPath: String) : AbstractDatab
 
         /* Create and add retrievable. */
         val ids = (0 until size).map { UUID.randomUUID() }
-        val ingested = ids.map { Ingested(it, "INGESTED:TEST", false) }
+        val ingested = ids.map { Ingested(it, "INGESTED:TEST", transient = false) }
         val update = ingested[Random().nextInt(0, ingested.size)]
 
         /* Execute actions. */
