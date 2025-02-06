@@ -66,7 +66,7 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
     override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrievable> = sequence {
         try {
             val values = ids.map { it }.toTypedArray()
-            this@RetrievableReader.connection.jdbc.prepareStatement("SELECT * FROM $RETRIEVABLE_ENTITY_NAME WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY (?)").use { statement ->
+            this@RetrievableReader.connection.jdbc.prepareStatement("WITH x(ids) AS VALUES(?) SELECT ${RETRIEVABLE_ENTITY_NAME}.* FROM $RETRIEVABLE_ENTITY_NAME, x WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY (x.ids) ORDER BY array_position(x.ids, ${RETRIEVABLE_ID_COLUMN_NAME})").use { statement ->
                 statement.setArray(1,  this@RetrievableReader.connection.jdbc.createArrayOf("uuid", values))
                 statement.executeQuery().use { result ->
                     while (result.next()) {
@@ -75,7 +75,7 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
                 }
             }
         } catch (e: Exception) {
-            LOGGER.error(e) { "Failed to check for retrievables due to SQL error." }
+            LOGGER.error(e) { "Failed to fetch retrievables due to SQL error." }
         }
     }
 
