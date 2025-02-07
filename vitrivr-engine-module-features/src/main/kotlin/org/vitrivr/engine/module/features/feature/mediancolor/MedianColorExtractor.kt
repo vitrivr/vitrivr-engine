@@ -21,7 +21,11 @@ import org.vitrivr.engine.core.source.file.FileSource
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class MedianColorExtractor(input: Operator<Retrievable>, analyser: MedianColor, field: Schema.Field<ImageContent, FloatVectorDescriptor>?, parameters:Map<String,String>) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, analyser, field, parameters) {
+class MedianColorExtractor : AbstractExtractor<ImageContent, FloatVectorDescriptor> {
+
+    constructor(input: Operator<Retrievable>, analyser: MedianColor, field: Schema.Field<ImageContent, FloatVectorDescriptor>) : super(input, analyser, field)
+    constructor(input: Operator<Retrievable>, analyser: MedianColor, name: String) : super(input, analyser, name)
+
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
@@ -38,8 +42,7 @@ class MedianColorExtractor(input: Operator<Retrievable>, analyser: MedianColor, 
      * @param retrievable The [Retrievable] to process.
      * @return List of resulting [Descriptor]s.
      */
-    override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
-        val content = this.filterContent(retrievable)
-        return content.map { (this.analyser as MedianColor).analyse(it).copy(retrievableId = retrievable.id, field = this.field) }
+    override fun extract(retrievable: Retrievable)= retrievable.content.filterIsInstance<ImageContent>().map {
+        (this.analyser as MedianColor).analyse(it).copy(retrievableId = retrievable.id, field = this.field)
     }
 }

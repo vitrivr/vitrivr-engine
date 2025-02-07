@@ -9,7 +9,6 @@ import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
-import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.basics.Distance
@@ -79,7 +78,7 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
      */
     override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext): CLIPExtractor {
         val host: String = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
-        return CLIPExtractor(input, this, field, host, merge(field, context))
+        return CLIPExtractor(input, this,  field, host)
     }
 
     /**
@@ -94,7 +93,7 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
      */
     override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): CLIPExtractor {
         val host: String = context.getProperty(name, HOST_PARAMETER_NAME) ?: HOST_PARAMETER_DEFAULT
-        return CLIPExtractor(input, this, null, host, context.local[name] ?: emptyMap())
+        return CLIPExtractor(input, this, name, host)
     }
 
     /**

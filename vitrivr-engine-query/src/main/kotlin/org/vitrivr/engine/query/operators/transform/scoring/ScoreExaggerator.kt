@@ -9,11 +9,10 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 import kotlin.math.pow
 
-class ScoreExaggerator(override val input: Operator<out Retrievable>, val factor: Float) : Transformer {
+class ScoreExaggerator(override val input: Operator<out Retrievable>, val factor: Float, override val name: String) : Transformer {
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> {
         return flow {
             input.toFlow(scope).collect { retrieved : Retrievable ->
-
                 val newAttributes = mutableListOf<ScoreAttribute>()
                 retrieved.filteredAttributes(ScoreAttribute::class.java).forEach { attribute ->
                     when(attribute) {
@@ -27,9 +26,7 @@ class ScoreExaggerator(override val input: Operator<out Retrievable>, val factor
                         }
                     }
                 }
-                retrieved.removeAttributes(ScoreAttribute::class.java)
-                newAttributes.forEach { retrieved.addAttribute(it) }
-                emit(retrieved)
+                emit(retrieved.copy(attributes = retrieved.attributes.filter { it !is ScoreAttribute }.toSet() + newAttributes))
             }
         }
     }

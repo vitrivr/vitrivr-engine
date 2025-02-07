@@ -15,7 +15,7 @@ import org.vitrivr.engine.core.operators.general.Aggregator
 import java.util.*
 
 class TemporalSequenceAggregator(
-    override val inputs: List<Operator<out Retrievable>>
+    override val inputs: List<Operator<out Retrievable>>, override val name: String
 ) : Aggregator {
 
     companion object {
@@ -192,11 +192,7 @@ class TemporalSequenceAggregator(
             if (relationships.size < 2) {
                 return@forEach
             }
-            val retrieved = Retrieved(id, "temporalSequence", true)
-
-            retrieved.addAttribute(ScoreAttribute.Unbound(score))
-            relationships.forEach { retrieved.addRelationship(it) }
-            emit(retrieved)
+            emit(Retrieved(id, "temporalSequence", attributes = setOf(ScoreAttribute.Unbound(score)), relationships = relationships, transient = true))
         }
 
     }

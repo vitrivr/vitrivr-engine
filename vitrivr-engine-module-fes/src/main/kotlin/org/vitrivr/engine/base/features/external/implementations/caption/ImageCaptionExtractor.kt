@@ -6,11 +6,9 @@ import org.vitrivr.engine.base.features.external.api.ImageCaptioningApi
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.base.features.external.common.FesExtractor
 import org.vitrivr.engine.base.features.external.implementations.caption.ImageCaption.Companion.PROMPT_PARAMETER_NAME
-import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryTextContent
-import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
@@ -24,12 +22,22 @@ val logger = KotlinLogging.logger {}
  * @author Ralph Gasser
  * @version 1.0
  */
-class ImageCaptionExtractor(
-    input: Operator<Retrievable>,
-    field: Schema.Field<ContentElement<*>, TextDescriptor>?,
-    analyser: ExternalFesAnalyser<ContentElement<*>, TextDescriptor>,
-    parameters: Map<String, String>
-) : FesExtractor<ContentElement<*>, TextDescriptor>(input, field, analyser, parameters) {
+class ImageCaptionExtractor : FesExtractor<ImageContent, TextDescriptor> {
+
+    constructor(
+        input: Operator<Retrievable>,
+        field: Schema.Field<ImageContent, TextDescriptor>,
+        analyser: ExternalFesAnalyser<ImageContent, TextDescriptor>,
+        parameters: Map<String, String>
+    ) : super(input, field, analyser, parameters)
+
+    constructor(
+        input: Operator<Retrievable>,
+        name: String,
+        analyser: ExternalFesAnalyser<ImageContent, TextDescriptor>,
+        parameters: Map<String, String>
+    ) : super(input, name, analyser, parameters)
+
 
     /** The [ImageCaptioningApi] used to perform extraction with. */
     private val captioningApi by lazy { ImageCaptioningApi(this.host, this.model, this.timeoutMs, this.pollingIntervalMs, this.retries) }
@@ -68,11 +76,10 @@ class ImageCaptionExtractor(
     }
 
     override fun extract(retrievables: List<Retrievable>): List<List<TextDescriptor>> {
+        val imageContents = retrievables.map { it.content.filterIsInstance<ImageContent>() }
 
-        val content = retrievables.map { this.filterContent(it) }
-        val imageContents = content.map { it.filterIsInstance<ImageContent>() }
-
-        val texts : List<List<String?>> = content.map { it.filterIsInstance<TextContent>().map { it.content } }.mapIndexed { index, text -> if (text.isEmpty()) {
+        val texts: List<List<String?>> = imageContents.map { it.filterIsInstance<TextContent>().map { it.content } }.mapIndexed { index, text ->
+            if (text.isEmpty()) {
             List(imageContents[index].size) { this.parameters[PROMPT_PARAMETER_NAME] }
             } else {
                 if (text.size != 1) {
@@ -87,13 +94,9 @@ class ImageCaptionExtractor(
         var index = 0
 
         return retrievables.map { retrievable ->
-            this.filterContent(retrievable).map {
-                if (it !is ImageContent) {
-                    null
-                } else{
-                flatResults[index++].also { TextDescriptor(it.id, retrievable.id, it.value, it.field) }
-                }
-            }.filterNotNull()
+            imageContents.mapNotNull {
+                flatResults.getOrNull(index++)?.let { TextDescriptor(it.id, retrievable.id, it.value, it.field) }
+            }
         }
     }
 }

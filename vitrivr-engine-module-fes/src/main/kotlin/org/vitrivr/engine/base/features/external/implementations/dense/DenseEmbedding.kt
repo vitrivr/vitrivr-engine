@@ -18,6 +18,7 @@ import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Value
@@ -36,6 +37,8 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
     companion object {
         const val LENGTH_PARAMETER_DEFAULT = 512
         const val LENGTH_PARAMETER_NAME = "length"
+        const val DISTANCE_PARAMETER_DEFAULT = "euclidean"
+        const val DISTANCE_PARAMETER_NAME = "distance"
     }
     override val contentClasses = setOf(ImageContent::class, TextContent::class)
     override val descriptorClass = FloatVectorDescriptor::class
@@ -59,7 +62,7 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
      * @param context The [IndexContext] to use with the [FesExtractor].
      * @return [DenseEmbeddingExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = DenseEmbeddingExtractor(input, null, this, context.local[name] ?: emptyMap())
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = DenseEmbeddingExtractor(input, name, this, context.local[name] ?: emptyMap())
 
     /**
      * Generates and returns a new [ASRExtractor] instance for this [ASR].
@@ -103,6 +106,7 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
         val retries = field.parameters[RETRIES_PARAMETER_NAME]?.toIntOrNull() ?: RETRIES_PARAMETER_DEFAULT
         val model =  field.parameters[MODEL_PARAMETER_NAME] ?: throw IllegalStateException("Model parameter not set.")
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
+        val distance = Distance fromString (field.parameters[DISTANCE_PARAMETER_NAME] ?: DISTANCE_PARAMETER_DEFAULT)
         val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
 
         /* Generate vector for content element. */
@@ -116,6 +120,6 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
         }
 
         /* Return retriever. */
-        return this.newRetrieverForQuery(field, ProximityQuery(value = vector, k = k, fetchVector = fetchVector), context)
+        return this.newRetrieverForQuery(field, ProximityQuery(value = vector, distance = distance, k = k, fetchVector = fetchVector), context)
     }
 }

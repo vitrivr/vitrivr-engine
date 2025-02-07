@@ -30,7 +30,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.4.0
  */
 class FileSystemEnumerator : EnumeratorFactory {
 
@@ -46,9 +46,11 @@ class FileSystemEnumerator : EnumeratorFactory {
         val depth = (context[name, "depth"] ?: Int.MAX_VALUE.toString()).toInt()
         val skip = context[name, "skip"]?.toLongOrNull() ?: 0L
         val limit = context[name, "limit"]?.toLongOrNull() ?: Long.MAX_VALUE
+        val transient = context[name, "transient"]?.toBooleanStrictOrNull() == true
         val type = context[name, "type"]
-        logger.info { "Enumerator: FileSystemEnumerator with path: $path, depth: $depth, mediaTypes: $mediaTypes, skip: $skip, limit: ${if (limit == Long.MAX_VALUE) "none" else limit}" }
-        return Instance(path, depth, mediaTypes, skip, limit, type)
+        val regex = context[name, "regex"]
+        logger.info { "Enumerator: FileSystemEnumerator with path: $path, depth: $depth, mediaTypes: $mediaTypes, skip: $skip, limit: ${if (limit == Long.MAX_VALUE) "none" else limit} and type: $type, regex: $regex" }
+        return Instance(path, depth, mediaTypes, skip, limit, type, regex, transient, name)
     }
 
     /**
@@ -57,7 +59,12 @@ class FileSystemEnumerator : EnumeratorFactory {
      * @param context The [IndexContext] to use.
      * @param inputs Is ignored.
      */
-    override fun newEnumerator(name: String, context: IndexContext, mediaTypes: List<MediaType>, inputs: Stream<*>?): Enumerator {
+    override fun newEnumerator(
+        name: String,
+        context: IndexContext,
+        mediaTypes: List<MediaType>,
+        inputs: Stream<*>?
+    ): Enumerator {
         return newEnumerator(name, context, mediaTypes)
     }
 
@@ -70,14 +77,26 @@ class FileSystemEnumerator : EnumeratorFactory {
         private val mediaTypes: Collection<MediaType> = MediaType.allValid,
         private val skip: Long = 0,
         private val limit: Long = Long.MAX_VALUE,
-        private val typeName: String? = null
+        private val typeName: String? = null,
+        private val regex: String? = null,
+        private val transient: Boolean = false,
+        override val name: String,
     ) : Enumerator {
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
             logger.debug { "In flow: Start Enumerating with path: $path, depth: $depth, mediaTypes: $mediaTypes, skip: $skip, limit: $limit" }
 
             val stream = try {
-                Files.walk(this@Instance.path, this@Instance.depth, FileVisitOption.FOLLOW_LINKS).filter { it.isRegularFile() }.skip(skip).limit(limit)
+                if (this@Instance.regex == null) {
+                    Files.walk(this@Instance.path, this@Instance.depth, FileVisitOption.FOLLOW_LINKS).filter {
+                        it.isRegularFile()
+                    }.skip(skip).limit(limit)
+                } else {
+                    Files.walk(this@Instance.path, this@Instance.depth, FileVisitOption.FOLLOW_LINKS).filter {
+                        it.isRegularFile() && it.toString().matches(Regex(regex))
+                    }.skip(skip).limit(limit)
+                }
+
             } catch (ex: NoSuchFileException) {
                 val mes = "In flow: Path ${this@Instance.path} does not exist."
                 logger.error { mes }
@@ -97,10 +116,7 @@ class FileSystemEnumerator : EnumeratorFactory {
 
                     /* Create source ingested and emit it. */
                     val typeName = this@Instance.typeName ?: "SOURCE:${file.type}"
-                    val ingested = Ingested(file.sourceId, typeName, false)
-                    ingested.addAttribute(SourceAttribute(file))
-
-                    emit(ingested)
+                    emit(Ingested(file.sourceId, typeName, attributes = setOf(SourceAttribute(file)), transient = this@Instance.transient))
                     logger.debug { "In flow: Emitting source ${element.fileName} (${element.toUri()})" }
                 }
             }

@@ -5,6 +5,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.basics.SortOrder
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
+import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
 import org.vitrivr.engine.core.model.types.Value
@@ -73,18 +74,23 @@ class VectorJsonlReader(
 
     private fun queryAndJoinProximity(query: ProximityQuery<*>): Sequence<Retrieved> {
         val queue = knn(query)
-
-        val ids = queue.mapNotNull { it.first.retrievableId }
-
-        val retrievables = connection.getRetrievableReader().getAll(ids).associateBy { it.id }
-
-        return queue.map {
-            val retrieved = retrievables[it.first.retrievableId]!!
-            retrieved.addDescriptor(it.first)
-            retrieved.addAttribute(DistanceAttribute(it.second))
-            retrieved as Retrieved
-        }.asSequence()
-
+        val descriptors = linkedMapOf<RetrievableId, MutableList<Pair<VectorDescriptor<*,*>,Float>>>()
+        for ((descriptor, distance) in queue) {
+            descriptors.compute(descriptor.retrievableId!!) { _, v ->
+                val list = v ?: mutableListOf()
+                list.add(descriptor to distance)
+                list
+            }
+        }
+        return this.connection.getRetrievableReader().getAll(descriptors.keys).map { retrieved ->
+            val distances = descriptors[retrieved.id]?.map { d -> DistanceAttribute.Local(d.second, d.first.id) } ?: emptyList()
+            if (query.fetchVector) {
+                val localDescriptors = descriptors[retrieved.id]?.map { d -> d.first } ?: emptyList()
+                retrieved.copy(descriptors = retrieved.descriptors + localDescriptors, attributes = retrieved.attributes + distances)
+            } else {
+                retrieved.copy(attributes = retrieved.attributes + distances)
+            }
+        }
     }
 
     private fun queryProximity(query: ProximityQuery<*>): Sequence<VectorDescriptor<*, *>> =

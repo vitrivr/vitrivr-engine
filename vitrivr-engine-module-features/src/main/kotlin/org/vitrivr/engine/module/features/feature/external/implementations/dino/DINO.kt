@@ -67,7 +67,7 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
      */
     override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext): DINOExtractor {
         val host: String = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
-        return DINOExtractor(input, this, field, host, Analyser.merge(field, context))
+        return DINOExtractor(input, this,  field, host)
     }
 
     /**
@@ -80,7 +80,7 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
      */
     override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): DINOExtractor {
         val host: String = context.getProperty(name, HOST_PARAMETER_NAME) ?: HOST_PARAMETER_DEFAULT
-        return DINOExtractor(input, this, null, host, context.local[name] ?: emptyMap())
+        return DINOExtractor(input, this, name, host)
     }
 
     /**

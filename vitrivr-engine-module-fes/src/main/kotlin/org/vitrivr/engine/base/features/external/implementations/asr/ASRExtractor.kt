@@ -17,12 +17,22 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class ASRExtractor(
-    input: Operator<Retrievable>,
-    field: Schema.Field<AudioContent, TextDescriptor>?,
-    analyser: ExternalFesAnalyser<AudioContent, TextDescriptor>,
-    parameters: Map<String, String>
-) : FesExtractor<AudioContent, TextDescriptor>(input, field, analyser, parameters) {
+class ASRExtractor : FesExtractor<AudioContent, TextDescriptor> {
+
+    constructor(
+        input: Operator<Retrievable>,
+        field: Schema.Field<AudioContent, TextDescriptor>,
+        analyser: ExternalFesAnalyser<AudioContent, TextDescriptor>,
+        parameters: Map<String, String>
+    ) : super(input, field, analyser, parameters)
+
+    constructor(
+        input: Operator<Retrievable>,
+        name: String,
+        analyser: ExternalFesAnalyser<AudioContent, TextDescriptor>,
+        parameters: Map<String, String>
+    ) : super(input, name, analyser, parameters)
+
     /** The [AsrApi] used to perform extraction with. */
     private val api = AsrApi(this.host, this.model, this.timeoutMs, this.pollingIntervalMs, this.retries)
 
@@ -34,13 +44,12 @@ class ASRExtractor(
      * @return List of resulting [Descriptor]s grouped by [Retrievable].
      */
     override fun extract(retrievables: List<Retrievable>): List<List<TextDescriptor>> {
-        val flatResults = this.api.analyseBatched(retrievables.flatMap { this.filterContent(it) }).mapNotNull { result -> TextDescriptor(UUID.randomUUID(), null, result, this.field)}
-
+        val content = retrievables.flatMap { it.content.filterIsInstance<AudioContent>() }
+        val flatResults = this.api.analyseBatched(content).map { result -> TextDescriptor(UUID.randomUUID(), null, result, this.field)}
         var index = 0
-
         return retrievables.map { retrievable ->
-            this.filterContent(retrievable).map {
-                flatResults[index++].also { TextDescriptor(it.id, retrievable.id, it.value, it.field) }
+            retrievable.content.map {
+                flatResults[index++].let { TextDescriptor(it.id, retrievable.id, it.value, it.field) }
             }
         }
     }

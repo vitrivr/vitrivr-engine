@@ -12,7 +12,8 @@ import org.vitrivr.engine.core.operators.general.Transformer
 class ScoreAggregator(
     override val input: Operator<out Retrievable>,
     private val aggregationMode: AggregationMode = AggregationMode.MAX,
-    private val relations: Set<String> = setOf("partOf")
+    private val relations: Set<String> = setOf("partOf"),
+    override val name: String
 ) : Transformer {
     enum class AggregationMode {
         MAX,
@@ -24,7 +25,6 @@ class ScoreAggregator(
         if (retrieved.filteredAttribute(ScoreAttribute::class.java) != null) { //pass through if score is already set
             return@map retrieved
         }
-
         val relationships = retrieved.relationships.filterIsInstance<Relationship.ByRef>()
         if (relationships.isNotEmpty()) {
             val scores = relationships.filter { rel -> rel.predicate in this.relations && rel.objectId == retrieved.id }.map { it.subject.filteredAttribute(ScoreAttribute::class.java)?.score ?: 0f }
@@ -37,10 +37,9 @@ class ScoreAggregator(
                     AggregationMode.MIN -> scores.min()
                 }
             }
-            retrieved.addAttribute(ScoreAttribute.Unbound(score))
+            retrieved.copy(attributes = retrieved.attributes + ScoreAttribute.Unbound(score))
         } else {
-            retrieved.addAttribute(ScoreAttribute.Unbound(0f))
+            retrieved.copy(attributes = retrieved.attributes + ScoreAttribute.Unbound(0f))
         }
-        retrieved
     }
 }

@@ -3,8 +3,10 @@ package org.vitrivr.engine.database.jsonl.retrievable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
+import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.database.jsonl.JsonlConnection
 import org.vitrivr.engine.database.jsonl.LOGGER
 import org.vitrivr.engine.database.jsonl.model.JsonlRelationship
@@ -18,11 +20,11 @@ class JsonlRetrievableReader(override val connection: JsonlConnection) : Retriev
     private val retrievablePath = connection.schemaRoot.resolve("retrievables.jsonl")
     private val connectionPath = connection.schemaRoot.resolve("retrievable_connections.jsonl")
 
-    override fun get(id: RetrievableId): Retrievable? = getAll().firstOrNull { it.id == id }
+    override fun get(id: RetrievableId): Retrieved? = getAll().firstOrNull { it.id == id }
 
     override fun exists(id: RetrievableId): Boolean = get(id) != null
 
-    override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrievable> {
+    override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrieved> {
         val idSet = ids.toSet()
         return getAll().filter { idSet.contains(it.id) }
     }
@@ -31,7 +33,7 @@ class JsonlRetrievableReader(override val connection: JsonlConnection) : Retriev
         subjectIds: Collection<RetrievableId>,
         predicates: Collection<String>,
         objectIds: Collection<RetrievableId>
-    ): Sequence<Triple<RetrievableId, String, RetrievableId>> {
+    ): Sequence<Relationship.ById> {
         val subIds = subjectIds.toSet()
         val predIds = predicates.toSet()
         val objIds = objectIds.toSet()
@@ -50,10 +52,10 @@ class JsonlRetrievableReader(override val connection: JsonlConnection) : Retriev
             (subIds.isEmpty() || subIds.contains(it.sub)) &&
                     (predIds.isEmpty() || predIds.contains(it.pred)) &&
                     (objIds.isEmpty() || objIds.contains(it.obj))
-        }.map { it.toTriple() }
+        }.map { it.toRelationship() }
     }
 
-    override fun getAll(): Sequence<Retrievable> {
+    override fun getAll(): Sequence<Retrieved> {
         return BufferedReader(InputStreamReader(retrievablePath.inputStream())).lineSequence().mapNotNull {
             try {
                 Json.decodeFromString<JsonlRetrievable>(it).toRetrieved()
@@ -67,6 +69,6 @@ class JsonlRetrievableReader(override val connection: JsonlConnection) : Retriev
         }
     }
 
-    override fun count(): Long = BufferedReader(InputStreamReader(retrievablePath.inputStream())).lineSequence().count().toLong()
-
+    override fun count(): Long =
+        BufferedReader(InputStreamReader(retrievablePath.inputStream())).lineSequence().count().toLong()
 }

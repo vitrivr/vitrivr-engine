@@ -9,7 +9,6 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
-import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.BooleanQuery
@@ -44,7 +43,7 @@ class VideoSourceMetadata : Analyser<ContentElement<*>, VideoSourceMetadataDescr
      *
      * @return [FileSourceMetadataExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext) = VideoSourceMetadataExtractor(input, this, field, merge(field, context))
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext) = VideoSourceMetadataExtractor(input, this, field)
 
     /**
      * Generates and returns a new [FileSourceMetadataExtractor] for the provided [Schema.Field].
@@ -55,7 +54,7 @@ class VideoSourceMetadata : Analyser<ContentElement<*>, VideoSourceMetadataDescr
      *
      * @return [FileSourceMetadataExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, VideoSourceMetadataDescriptor> = VideoSourceMetadataExtractor(input, this, null, context.local[name] ?: emptyMap())
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ContentElement<*>, VideoSourceMetadataDescriptor> = VideoSourceMetadataExtractor(input, this, name)
 
     /**
      * Generates and returns a new [VideoSourceMetadataRetriever] for the provided [Schema.Field].

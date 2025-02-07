@@ -1,6 +1,5 @@
 package org.vitrivr.engine.index.transform
 
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -11,15 +10,12 @@ import org.vitrivr.engine.core.model.content.factory.ContentFactory
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
 import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.AnyMapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
-import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 import org.vitrivr.engine.core.operators.general.TransformerFactory
-
-private val logger = KotlinLogging.logger {}
 
 /**
  * A [Transformer] that converts descriptors to content elements for further processing.
@@ -32,37 +28,43 @@ class DescriptorAsContentTransformer : TransformerFactory {
 
         return Instance(
             input = input,
+            name = name,
             contentFactory = (context as IndexContext).contentFactory,
-            fieldName = context[name, "field"]  ?: throw IllegalArgumentException("The descriptor as content transformer requires a field name."),
-            name = name
+            fieldName = context[name, "field"]  ?: throw IllegalArgumentException("The descriptor as content transformer requires a field name.")
         )
     }
 
-    private class Instance(override val input: Operator<out Retrievable>, val contentFactory: ContentFactory, val fieldName : String, val name: String) : Transformer {
+    private class Instance(
+        override val input: Operator<out Retrievable>,
+        override val name: String,
+        val contentFactory: ContentFactory,
+        val fieldName : String
+    ) : Transformer {
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
-            input.toFlow(scope).collect {
-                retrievable : Retrievable ->
-                retrievable.descriptors.filter{
-                    descriptor ->
+            input.toFlow(scope).collect { retrievable ->
+                val content = retrievable.descriptors.filter { descriptor ->
                     descriptor.field?.fieldName == fieldName
-                }.forEach{ descriptor ->
-                    val content = convertDescriptorToContent(descriptor)
-                    retrievable.addContent(content)
-                    retrievable.addAttribute(ContentAuthorAttribute(content.id, name))
-                    logger.debug { "Descriptor ${descriptor.id} of retrievable ${retrievable.id} has been converted to content element." }
+                }.flatMap { descriptor ->
+                    val pairs = processDescriptor(descriptor)
+                    pairs.map { pair -> pair.second }
                 }
-                emit(retrievable)
+                emit(retrievable.copy(content = retrievable.content + content))
             }
         }
 
-        private fun convertDescriptorToContent(descriptor: Descriptor<*>): ContentElement<*> {
+        private fun processDescriptor(descriptor: Descriptor<*>): List<Pair<Set<String>, ContentElement<*>>> {
             return when (descriptor) {
-                is StringDescriptor -> contentFactory.newTextContent(descriptor.value.value)
-                is TextDescriptor -> contentFactory.newTextContent(descriptor.value.value)
-                is FileSourceMetadataDescriptor -> contentFactory.newTextContent(descriptor.path.value)
+                is StringDescriptor -> listOf(Pair(setOf(name), contentFactory.newTextContent(descriptor.value.value)))
+                is TextDescriptor -> listOf(Pair(setOf(name), contentFactory.newTextContent(descriptor.value.value)))
+                is FileSourceMetadataDescriptor -> listOf(Pair(setOf(name), contentFactory.newTextContent(descriptor.path.value)))
+                is AnyMapStructDescriptor -> {
+                    descriptor.values().map{
+                        entry ->
+                        Pair(setOf(name, "$name.${entry.key}"), contentFactory.newTextContent(entry.value.toString()))
+                    }
+                }
                 else -> throw IllegalArgumentException("Descriptor type not supported.")
             }
-
         }
     }
 }

@@ -20,7 +20,11 @@ import org.vitrivr.engine.core.source.file.FileSource
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class CLDExtractor(input: Operator<Retrievable>, analyser: CLD, field: Schema.Field<ImageContent, FloatVectorDescriptor>?, parameters: Map<String, String>) : AbstractExtractor<ImageContent, FloatVectorDescriptor>(input, analyser, field, parameters) {
+class CLDExtractor : AbstractExtractor<ImageContent, FloatVectorDescriptor> {
+
+    constructor(input: Operator<Retrievable>, analyser: CLD, field: Schema.Field<ImageContent, FloatVectorDescriptor>) : super(input, analyser, field)
+    constructor(input: Operator<Retrievable>, analyser: CLD, name: String) : super(input, analyser, name)
+
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
@@ -37,8 +41,6 @@ class CLDExtractor(input: Operator<Retrievable>, analyser: CLD, field: Schema.Fi
      * @param retrievable The [Retrievable] to process.
      * @return List of resulting [Descriptor]s.
      */
-    override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
-        val content = this.filterContent(retrievable)
-        return content.map { (this.analyser as CLD).analyse(it).copy(retrievableId = retrievable.id, field = this.field) }
-    }
+    override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor>
+       = retrievable.content.filterIsInstance<ImageContent>().map { (this.analyser as CLD).analyse(it).copy(retrievableId = retrievable.id, field = this.field) }
 }

@@ -59,12 +59,8 @@ enum class MimeType(val fileExtension: String, val mimeType: String, val mediaTy
     OFF("off", "application/3d-off", MediaType.MESH),
     GLTF("gltf", "model/gltf+json", MediaType.MESH),
 
-
-
-
     //Unknown type
-    UNKNOWN("", "", MediaType.NONE)
-    ;
+    UNKNOWN("", "", MediaType.NONE);
 
     companion object {
         fun getMimeType(fileName: String): MimeType? = try {
@@ -80,6 +76,6 @@ enum class MimeType(val fileExtension: String, val mimeType: String, val mediaTy
             null
         }
 
-        val allValid = MimeType.values().filter { it != UNKNOWN }.toSet()
+        val allValid = entries.filter { it != UNKNOWN }.toSet()
     }
 }

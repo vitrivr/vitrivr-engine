@@ -1,15 +1,43 @@
 {
   "schema": "example",
   "context": {
-    "contentFactory": "InMemoryContentFactory",
+    "contentFactory": "CachedContentFactory",
     "resolverName":"disk",
+
     "local": {
+      "clip": {
+        "contentSources": "selector"
+      },
+      "averagecolor": {
+        "contentSources": "selector"
+      },
+      "content": {
+        "path": "../cache"
+      },
+      "thumbnail": {
+        "contentSources": "selector",
+        "maxSideResolution": "400",
+        "mimeType": "JPG"
+      },
+      "selector":{
+        "contentSources": "decoder"
+      },
       "enumerator": {
-        "path": "./example/media/",
+        "path": "D:\\v3c",
         "depth": "3"
       },
+      "decoder": {
+        "timeWindowMs": "1000"
+      },
+      "segmenter": {
+        "duration": "6000",
+        "lookAheadTime": "1000"
+      },
       "filter": {
-        "type": "SOURCE:IMAGE"
+        "type": "SOURCE:VIDEO"
+      },
+      "path": {
+        "field": "file"
       }
     }
   },
@@ -17,11 +45,35 @@
     "enumerator": {
       "type": "ENUMERATOR",
       "factory": "FileSystemEnumerator",
-      "mediaTypes": ["IMAGE"]
+      "mediaTypes": ["VIDEO"]
     },
     "decoder": {
       "type": "DECODER",
-      "factory": "ImageDecoder"
+      "factory": "VideoDecoder"
+    },
+    "segmenter": {
+      "type": "TRANSFORMER",
+      "factory": "FixedDurationSegmenter"
+    },
+    "metadata":{
+      "type": "EXTRACTOR",
+      "fieldName": "video"
+    },
+    "source":{
+      "type": "EXTRACTOR",
+      "fieldName": "file"
+    },
+    "path": {
+      "type": "TRANSFORMER",
+      "factory":"DescriptorAsContentTransformer"
+    },
+    "selector": {
+      "type": "TRANSFORMER",
+      "factory": "LastContentAggregator"
+    },
+    "time": {
+      "type": "EXTRACTOR",
+      "fieldName": "time"
     },
     "averagecolor": {
       "type": "EXTRACTOR",
@@ -30,26 +82,6 @@
     "clip": {
       "type": "EXTRACTOR",
       "fieldName": "clip"
-    },
-    "dino": {
-      "type": "EXTRACTOR",
-      "fieldName": "dino"
-    },
-    "ocr": {
-      "type": "EXTRACTOR",
-      "fieldName": "ocr"
-    },
-    "meta-file": {
-      "type": "EXTRACTOR",
-      "fieldName": "file"
-    },
-    "meta-video": {
-      "type": "EXTRACTOR",
-      "fieldName": "video"
-    },
-    "meta-time": {
-      "type": "EXTRACTOR",
-      "fieldName": "time"
     },
     "thumbnail": {
       "type": "EXPORTER",
@@ -61,22 +93,20 @@
     }
   },
   "operations": {
-    "stage-0-0": {"operator": "enumerator"},
-    "stage-1-0": {"operator": "decoder","inputs": ["stage-0-0"]},
-    "stage-2-0": {"operator": "clip","inputs": ["stage-1-0"]},
-    "stage-2-1": {"operator": "dino","inputs": ["stage-1-0"]},
-    "stage-2-2": {"operator": "ocr","inputs": ["stage-1-0"]},
-    "stage-2-3": {"operator": "averagecolor","inputs": ["stage-1-0"]},
-    "stage-2-4": {"operator": "thumbnail","inputs": ["stage-1-0"]},
-    "stage-3-0": {"operator": "filter","inputs": ["stage-2-3","stage-2-4"], "merge": "COMBINE"},
-    "stage-4-0": {"operator": "meta-file", "inputs": ["stage-3-0"]}
+    "enumerator": {"operator": "enumerator"},
+    "decoder": {"operator": "decoder", "inputs": ["enumerator"]},
+    "segmenter": {"operator": "decoder", "inputs": ["decoder"]},
+    "path": {"operator": "path", "inputs": ["segmenter"]},
+    "metadata": {"operator": "metadata", "inputs": ["path"], "merge": "COMBINE"},
+    "source": {"operator": "source", "inputs": ["metadata"]},
+    "time": {"operator": "time", "inputs": ["source"]},
+    "selector": {"operator": "selector", "inputs": ["time"]},
+    "thumbnail": {"operator": "thumbnail", "inputs": ["selector"]},
+    "clip": {"operator": "clip", "inputs": ["thumbnail"]},
+    "filter": {"operator": "filter","inputs": ["clip"],"merge": "MERGE"}
   },
   "output": [
-    "stage-2-0",
-    "stage-2-1",
-    "stage-2-2",
-    "stage-2-3",
-    "stage-4-0"
+    "filter"
   ],
-  "mergeType": "COMBINE"
+  "mergeType": "MERGE"
 }

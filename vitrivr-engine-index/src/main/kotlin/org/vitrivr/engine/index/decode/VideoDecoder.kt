@@ -9,6 +9,7 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
+import org.bytedeco.javacpp.PointerScope
 import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.Frame
 import org.bytedeco.javacv.FrameGrabber
@@ -16,11 +17,12 @@ import org.bytedeco.javacv.Java2DFrameConverter
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.AudioContent
+import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
 import org.vitrivr.engine.core.operators.ingest.Decoder
@@ -39,16 +41,17 @@ import java.util.concurrent.TimeUnit
  * A [Decoder] that can decode [ImageContent] and [AudioContent] from a [Source] of [MediaType.VIDEO].
  *
  * @author Ralph Gasser
- * @version 2.1.0
+ * @version 2.2.0
  */
 class VideoDecoder : DecoderFactory {
 
     override fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder {
-        val video = context[name, "video"]?.let { it.lowercase() == "true" } ?: true
-        val audio = context[name, "audio"]?.let { it.lowercase() == "true" } ?: true
-        val keyFrames = context[name, "keyFrames"]?.let { it.lowercase() == "true" } ?: false
+        val video = context[name, "video"]?.toBoolean() ?: true
+        val audio = context[name, "audio"]?.toBoolean() ?: true
+        val keyFrames = context[name, "keyFrames"]?.toBoolean() ?: false
+        val transient = context[name, "transient"]?.toBoolean()  ?: false
         val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
-        return Instance(input, context, video, audio, keyFrames, timeWindowMs, name)
+        return Instance(input, context, name, video, audio, keyFrames, timeWindowMs, transient)
     }
 
     /**
@@ -57,11 +60,12 @@ class VideoDecoder : DecoderFactory {
     private class Instance(
         override val input: Enumerator,
         private val context: IndexContext,
+        override val name: String,
         private val video: Boolean = true,
         private val audio: Boolean = true,
         private val keyFrames: Boolean = false,
         private val timeWindowMs: Long = 500L,
-        private val name : String
+        private val transient: Boolean = false
     ) : Decoder {
 
         /** [KLogger] instance. */
@@ -84,6 +88,9 @@ class VideoDecoder : DecoderFactory {
                     logger.debug { "In flow: Skipping source ${source.name} (${source.sourceId}) because it is not of type VIDEO." }
                     return@collect
                 }
+
+                /* First send source retrievable. */
+                send(sourceRetrievable)
 
                 /* Decode video and audio; make distinction between FileSource and other types of sources. */
                 if (source is FileSource) {
@@ -108,10 +115,14 @@ class VideoDecoder : DecoderFactory {
          * @param grabber The [FFmpegFrameGrabber] used to decode the video.
          * @param channel The [ProducerScope] used to emit [Retrievable] elements.
          */
-        private suspend fun decodeFromGrabber(source: Source, sourceRetrievable: Retrievable, grabber: FFmpegFrameGrabber, channel: ProducerScope<Retrievable>) {
+        private suspend fun decodeFromGrabber(
+            source: Source,
+            sourceRetrievable: Retrievable,
+            grabber: FFmpegFrameGrabber,
+            channel: ProducerScope<Retrievable>
+        ) {
             /* Determine end of time window. */
             var windowEnd = TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
-            var error = false
 
             /* Configure FFmpegFrameGrabber. */
             grabber.imageMode = FrameGrabber.ImageMode.COLOR
@@ -142,7 +153,14 @@ class VideoDecoder : DecoderFactory {
                     val frame = grabber.grabFrame(this@Instance.audio, this@Instance.video, true, this@Instance.keyFrames, true) ?: break
                     when (frame.type) {
                         Frame.Type.VIDEO -> {
-                            imageBuffer.add(Java2DFrameConverter().use { it.convert(frame) to frame.timestamp })
+                            imageBuffer.add(
+                                (try {
+                                    PointerScope().use { scope -> Java2DFrameConverter().convert(frame) to frame.timestamp }
+                                } catch (e: Exception) {
+                                    logger.error(e) { "Error converting frame to BufferedImage" }
+                                    null
+                                })!!
+                            )
                             if (frame.timestamp > windowEnd) {
                                 videoReady = true
                             }
@@ -158,8 +176,7 @@ class VideoDecoder : DecoderFactory {
                             }
                         }
 
-                        else -> { /* No op. */
-                        }
+                        else -> { /* No op. */ }
                     }
 
                     /* If enough frames have been collected, emit them. */
@@ -182,16 +199,9 @@ class VideoDecoder : DecoderFactory {
 
                 logger.info { "Finished decoding video from source '${source.name}' (${source.sourceId}): ${sourceRetrievable.id}" }
             } catch (exception: Exception) {
-                error = true
                 logger.error(exception) { "Failed to decode video from source '${source.name}' (${source.sourceId})." }
             } finally {
                 grabber.stop()
-            }
-
-            /* Send source retrievable downstream as a signal that file has been decoded. */
-            if (!error) {
-                logger.debug { "Emitting source ${sourceRetrievable.id} as signal that video has been decoded." }
-                channel.send(sourceRetrievable)
             }
         }
 
@@ -204,7 +214,14 @@ class VideoDecoder : DecoderFactory {
          * @param timestampEnd The end timestamp.
          * @param source The source [Retrievable] the emitted [Retrievable] is part of.
          */
-        private suspend fun emit(imageBuffer: LinkedList<Pair<BufferedImage, Long>>, audioBuffer: LinkedList<Pair<ShortBuffer, Long>>, grabber: FrameGrabber, timestampEnd: Long, source: Retrievable, channel: ProducerScope<Retrievable>) {
+        private suspend fun emit(
+            imageBuffer: LinkedList<Pair<BufferedImage, Long>>,
+            audioBuffer: LinkedList<Pair<ShortBuffer, Long>>,
+            grabber: FrameGrabber,
+            timestampEnd: Long,
+            source: Retrievable,
+            channel: ProducerScope<Retrievable>
+        ) {
             /* Audio samples. */
             var audioSize = 0
             val emitImage = mutableListOf<BufferedImage>()
@@ -230,35 +247,48 @@ class VideoDecoder : DecoderFactory {
             }
 
             /* Prepare ingested with relationship to source. */
-            val ingested = Ingested(UUID.randomUUID(), "SEGMENT", false)
-            source.filteredAttribute(SourceAttribute::class.java)?.let { ingested.addAttribute(it) }
-            ingested.addRelationship(Relationship.ByRef(ingested, "partOf", source, false))
-            ingested.addAttribute(TimeRangeAttribute(timestampEnd - TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs), timestampEnd, TimeUnit.MICROSECONDS))
+            val retrievableId = UUID.randomUUID()
+            val source = source.filteredAttribute(SourceAttribute::class.java)
+            val relationship = source?.let { Relationship.ById(retrievableId, "partOf", it.source.sourceId, transient = this.transient) }
+
+            /* Prepare attributes and content lists. */
+            val attributes = mutableSetOf<RetrievableAttribute>()
+            val content = mutableListOf<ContentElement<*>>()
+
+            /* Add time range. */
+            attributes.add(
+                TimeRangeAttribute(
+                    timestampEnd - TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs),
+                    timestampEnd,
+                    TimeUnit.MICROSECONDS
+                )
+            )
 
             /* Prepare and append audio content element. */
-            if (emitAudio.size > 0) {
+            if (emitAudio.isNotEmpty()) {
                 val samples = ShortBuffer.allocate(audioSize)
                 for (frame in emitAudio) {
                     frame.clear()
                     samples.put(frame)
                 }
                 samples.clear()
-                val audio = this.context.contentFactory.newAudioContent(grabber.audioChannels.toShort(), grabber.sampleRate, samples)
-                ingested.addContent(audio)
-                ingested.addAttribute(ContentAuthorAttribute(audio.id, name))
+                val audio = this.context.contentFactory.newAudioContent(
+                    grabber.audioChannels.toShort(),
+                    grabber.sampleRate,
+                    samples
+                )
+                content.add(audio)
             }
 
             /* Prepare and append image content element. */
             for (image in emitImage) {
-                val imageContent = this.context.contentFactory.newImageContent(image)
-                ingested.addContent(imageContent)
-                ingested.addAttribute(ContentAuthorAttribute(imageContent.id, name))
+                val imageContent = this@Instance.context.contentFactory.newImageContent(image)
+                content.add(imageContent)
             }
-
-            logger.debug { "Emitting ingested ${ingested.id} with ${emitImage.size} images and ${emitAudio.size} audio samples: ${ingested.id}" }
+            logger.debug { "Emitting ingested $retrievableId with ${emitImage.size} images and ${emitAudio.size} audio samples." }
 
             /* Emit ingested. */
-            channel.send(ingested)
+            channel.send(Ingested(retrievableId, "SEGMENT", content = content, attributes = attributes, relationships = relationship?.let { setOf(it) } ?: emptySet(), transient = this.transient))
         }
     }
 }

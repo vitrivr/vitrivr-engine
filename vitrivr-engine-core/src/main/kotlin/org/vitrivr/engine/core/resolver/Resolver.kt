@@ -13,8 +13,9 @@ interface Resolver {
      * Attempts to resolve the provided [RetrievableId] to a [Resolvable] using this [Resolver].
      *
      * @param id The [RetrievableId] to resolve.
+     * @param suffix The suffix of the filename.
      * @return [Resolvable] or null, if [RetrievableId] could not be resolved.
      */
-    fun resolve(id: RetrievableId) : Resolvable?
+    fun resolve(id: RetrievableId, suffix: String) : Resolvable?
 
 }

@@ -6,6 +6,9 @@ plugins {
 
 dependencies {
     api project(':vitrivr-engine-core')
+
+    /* Open API annotations. */
+    implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: version_javalin
 }
 
 /* Publication of vitrivr engine query to Maven Central. */
