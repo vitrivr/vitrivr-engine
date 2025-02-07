@@ -46,11 +46,11 @@ import java.util.concurrent.TimeUnit
 class VideoDecoder : DecoderFactory {
 
     override fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder {
-        val video = context[name, "video"]?.toBoolean() == true
-        val audio = context[name, "audio"]?.toBoolean() == true
-        val keyFrames = context[name, "keyFrames"]?.toBoolean() == true
+        val video = context[name, "video"]?.toBoolean() ?: true
+        val audio = context[name, "audio"]?.toBoolean() ?: true
+        val keyFrames = context[name, "keyFrames"]?.toBoolean() ?: false
+        val transient = context[name, "transient"]?.toBoolean()  ?: false
         val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
-        val transient = context[name, "transient"]?.toBoolean() == true
         return Instance(input, context, name, video, audio, keyFrames, timeWindowMs, transient)
     }
 
@@ -176,8 +176,7 @@ class VideoDecoder : DecoderFactory {
                             }
                         }
 
-                        else -> { /* No op. */
-                        }
+                        else -> { /* No op. */ }
                     }
 
                     /* If enough frames have been collected, emit them. */
