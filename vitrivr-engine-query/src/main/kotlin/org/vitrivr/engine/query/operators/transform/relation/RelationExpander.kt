@@ -37,7 +37,7 @@ class RelationExpander(
                 this@RelationExpander.retrievableReader.getConnections(emptyList(), this@RelationExpander.incomingRelations, ids)
             } else {
                 emptySequence()
-            }.groupBy { it.subjectId }
+            }.groupBy { it.objectId }
 
             to
 
@@ -45,7 +45,7 @@ class RelationExpander(
                 this@RelationExpander.retrievableReader.getConnections(ids, this@RelationExpander.outgoingRelations, emptyList())
             } else {
                 emptySequence()
-            }.groupBy { it.objectId })
+            }.groupBy { it.subjectId })
         } else {
             emptyMap<RetrievableId, List<Relationship.ById>>() to emptyMap()
         }
