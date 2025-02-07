@@ -15,7 +15,7 @@ import org.vitrivr.engine.core.operators.general.Transformer
 /**
  * Appends [Relationship] to a [Retrieved] by expanding the specified incoming and outgoing relationships.
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @author Luca Rossetto
  * @author Ralph Gasser
  */
@@ -37,7 +37,7 @@ class RelationExpander(
                 this@RelationExpander.retrievableReader.getConnections(emptyList(), this@RelationExpander.incomingRelations, ids)
             } else {
                 emptySequence()
-            }.groupBy { it.third }
+            }.groupBy { it.subjectId }
 
             to
 
@@ -45,13 +45,13 @@ class RelationExpander(
                 this@RelationExpander.retrievableReader.getConnections(ids, this@RelationExpander.outgoingRelations, emptyList())
             } else {
                 emptySequence()
-            }.groupBy { it.first })
+            }.groupBy { it.objectId })
         } else {
-            emptyMap<RetrievableId, List<Triple<RetrievableId,String,RetrievableId>>>() to emptyMap()
+            emptyMap<RetrievableId, List<Relationship.ById>>() to emptyMap()
         }
 
         /* Collection IDs that are new and fetch corresponding retrievable. */
-        val fetchIds = (objects.values.flatMap { o -> o.map { s -> s.first } }.toSet() + subjects.values.flatMap { s -> s.map { o -> o.third } }.toSet())
+        val fetchIds = (objects.values.flatMap { o -> o.map { s -> s.subjectId } }.toSet() + subjects.values.flatMap { s -> s.map { o -> o.objectId } }.toSet())
         val fetched = if (fetchIds.isNotEmpty()) {
             this@RelationExpander.retrievableReader.getAll(fetchIds.toList())
         } else {
@@ -66,17 +66,17 @@ class RelationExpander(
         inputRetrieved.forEach {
             /* Expand incoming relationships. */
             for (obj in (objects[it.id] ?: emptyList())) {
-                val subject = fetched[obj.first]
+                val subject = fetched[obj.subjectId]
                 if (subject != null) {
-                    it.addRelationship(Relationship.ByRef(subject, obj.second, it, false))
+                    it.addRelationship(Relationship.ByRef(subject, obj.predicate, it, false))
                 }
             }
 
             /* Expand outgoing relationships. */
             for (sub in (subjects[it.id] ?: emptyList())) {
-                val `object` = fetched[sub.third]
+                val `object` = fetched[sub.objectId]
                 if (`object` != null) {
-                    it.addRelationship(Relationship.ByRef(it, sub.second, `object`, false))
+                    it.addRelationship(Relationship.ByRef(it, sub.predicate, `object`, false))
 
                 }
             }
