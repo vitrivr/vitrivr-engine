@@ -57,7 +57,6 @@ open class PgDescriptorWriter<D : Descriptor<*>>(final override val field: Schem
      */
     override fun addAll(items: Iterable<D>): Boolean {
         try {
-            this.connection.jdbc.autoCommit = false
             var success = true
             var batched = 0
             this.prepareInsertStatement().use { stmt ->
@@ -92,19 +91,11 @@ open class PgDescriptorWriter<D : Descriptor<*>>(final override val field: Schem
                 if (batched > 0) {
                     success = stmt.executeBatch().all { it == 1 }
                 }
-                if (success) {
-                    this.connection.jdbc.commit()
-                } else {
-                    this.connection.jdbc.rollback()
-                }
                 return success
             }
         } catch (e: SQLException) {
             LOGGER.error(e) { "Failed to INSERT descriptors into \"${tableName.lowercase()}\" due to SQL error." }
-            this.connection.jdbc.rollback()
             return false
-        } finally {
-            this.connection.jdbc.autoCommit = true
         }
     }
 
