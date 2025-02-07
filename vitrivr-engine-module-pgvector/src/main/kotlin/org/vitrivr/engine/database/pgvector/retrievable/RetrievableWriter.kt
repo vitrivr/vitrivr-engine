@@ -144,14 +144,14 @@ internal class RetrievableWriter(override val connection: PgVectorConnection, pr
      */
     override fun connect(relationship: Relationship): Boolean {
         try {
-            this.connection.jdbc.prepareStatement("INSERT INTO $RELATIONSHIP_ENTITY_NAME ($OBJECT_ID_COLUMN_NAME,$PREDICATE_COLUMN_NAME,$SUBJECT_ID_COLUMN_NAME) VALUES (?,?,?)").use { stmt ->
-                stmt.setObject(1, relationship.objectId)
+            this.connection.jdbc.prepareStatement("INSERT INTO $RELATIONSHIP_ENTITY_NAME ($SUBJECT_ID_COLUMN_NAME,$PREDICATE_COLUMN_NAME,$OBJECT_ID_COLUMN_NAME) VALUES (?,?,?)").use { stmt ->
+                stmt.setObject(1, relationship.subjectId)
                 stmt.setString(2, relationship.predicate)
-                stmt.setObject(3, relationship.subjectId)
+                stmt.setObject(3, relationship.objectId)
                 return stmt.execute()
             }
         } catch (e: SQLException) {
-            LOGGER.error(e) { "Failed to insert relationship ${relationship.objectId} -(${relationship.predicate}-> ${relationship.subjectId} due to SQL error." }
+            LOGGER.error(e) { "Failed to insert relationship ${relationship.subjectId} -(${relationship.predicate}-> ${relationship.objectId} due to SQL error." }
             return false
         }
     }
@@ -167,11 +167,11 @@ internal class RetrievableWriter(override val connection: PgVectorConnection, pr
             this.connection.jdbc.autoCommit = false
             var success = true
             var batched = 0
-            this.connection.jdbc.prepareStatement("INSERT INTO $RELATIONSHIP_ENTITY_NAME ($OBJECT_ID_COLUMN_NAME,$PREDICATE_COLUMN_NAME,$SUBJECT_ID_COLUMN_NAME) VALUES (?,?,?)").use { stmt ->
+            this.connection.jdbc.prepareStatement("INSERT INTO $RELATIONSHIP_ENTITY_NAME ($SUBJECT_ID_COLUMN_NAME,$PREDICATE_COLUMN_NAME,$OBJECT_ID_COLUMN_NAME) VALUES (?,?,?)").use { stmt ->
                 for (relationship in relationships) {
-                    stmt.setObject(1, relationship.objectId)
+                    stmt.setObject(1, relationship.subjectId)
                     stmt.setString(2, relationship.predicate)
-                    stmt.setObject(3, relationship.subjectId)
+                    stmt.setObject(3, relationship.objectId)
                     stmt.addBatch()
                     batched += 1
 
@@ -222,7 +222,7 @@ internal class RetrievableWriter(override val connection: PgVectorConnection, pr
                 return stmt.execute()
             }
         } catch (e: SQLException) {
-            LOGGER.error(e) { "Failed to delete relationship ${relationship.objectId} -(${relationship.predicate}-> ${relationship.subjectId} due to SQL error." }
+            LOGGER.error(e) { "Failed to delete relationship ${relationship.subjectId} -(${relationship.predicate}-> ${relationship.objectId} due to SQL error." }
             return false
         }
     }
