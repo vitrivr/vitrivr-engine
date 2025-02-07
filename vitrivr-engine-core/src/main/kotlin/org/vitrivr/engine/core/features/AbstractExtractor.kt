@@ -61,10 +61,11 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>> prote
             if (this.matches(retrievable)) {
                 /* Perform extraction. */
                 val descriptors = try {
-                    logger.debug{"Extraction on field ${field?.fieldName} for retrievable: $retrievable" }
-                    extract(retrievable)
+                    val d = extract(retrievable)
+                    this.logger.debug { "Extracted feature '${field?.fieldName}' for retrievable: ${retrievable.id}" }
+                    d
                 } catch (e: Throwable) {
-                    logger.error(e) { "Error during extraction of $retrievable" }
+                    this.logger.error(e) { "Failed to extract feature '${field?.fieldName}' for retrievable: ${retrievable.id}" }
                     emptyList()
                 }
 
