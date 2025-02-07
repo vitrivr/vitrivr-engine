@@ -1,6 +1,7 @@
 package org.vitrivr.engine.database.pgvector.retrievable
 
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
+import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
@@ -12,7 +13,7 @@ import java.util.*
  * A [RetrievableReader] implementation for PostgreSQL with pgVector.
  *
  * @author Ralph Gasser
- * @version 1.0.1
+ * @version 1.1.0
  */
 class RetrievableReader(override val connection: PgVectorConnection): RetrievableReader {
     /**
@@ -103,7 +104,7 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
      *
      * @return A [Sequence] of all [Retrievable]s in the database.
      */
-    override fun getConnections(subjectIds: Collection<RetrievableId>, predicates: Collection<String>, objectIds: Collection<RetrievableId>): Sequence<Triple<RetrievableId, String, RetrievableId>> {
+    override fun getConnections(subjectIds: Collection<RetrievableId>, predicates: Collection<String>, objectIds: Collection<RetrievableId>): Sequence<Relationship.ById> {
         val query = StringBuilder("SELECT * FROM \"$RELATIONSHIP_ENTITY_NAME\" WHERE ")
         if (subjectIds.isNotEmpty()) {
             query.append("$SUBJECT_ID_COLUMN_NAME = ANY (?)")
@@ -139,7 +140,7 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
                     }
                     stmt.executeQuery().use { result ->
                         while (result.next()) {
-                            yield(Triple(result.getObject(OBJECT_ID_COLUMN_NAME, UUID::class.java), result.getString(PREDICATE_COLUMN_NAME), result.getObject(SUBJECT_ID_COLUMN_NAME, UUID::class.java)))
+                            yield(Relationship.ById(result.getObject(SUBJECT_ID_COLUMN_NAME, UUID::class.java), result.getString(PREDICATE_COLUMN_NAME), result.getObject(OBJECT_ID_COLUMN_NAME, UUID::class.java), false))
                         }
                     }
                 }
