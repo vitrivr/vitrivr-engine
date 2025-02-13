@@ -100,7 +100,7 @@ open class PgDescriptorInitializer<D : Descriptor<*>>(
                         when (type) {
                             "gin" -> {
                                 "ALTER TABLE $tableName " +
-                                        "ADD COLUMN search_vector tsvector " +
+                                        "ADD COLUMN ${INDEX_VALUE_COLUMN_NAME} tsvector " +
                                         "GENERATED ALWAYS AS (" +
                                         "to_tsvector('${index.parameters["language"] ?: "english"}', ${index.attributes.joinToString(" || ' ' || ") { it }})" +
                                         ") STORED;"
