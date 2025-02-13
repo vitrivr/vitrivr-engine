@@ -2,7 +2,6 @@ package org.vitrivr.engine.database.pgvector.descriptor.scalar
 
 import org.vitrivr.engine.core.model.descriptor.scalar.*
 import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor.Companion.VALUE_ATTRIBUTE_NAME
-import org.vitrivr.engine.core.model.descriptor.scalar.ScalarDescriptor.Companion.VALUE_INDEX_NAME
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -76,7 +75,7 @@ class ScalarDescriptorReader(field: Schema.Field<*, ScalarDescriptor<*, *>>, con
             it.parameters["type"]?.lowercase() in PgDescriptorInitializer.INDEXES_FULLTEXT
         }?.let {
             when (it.parameters["type"]?.lowercase()) {
-                "gin" -> "SELECT * FROM \"${tableName.lowercase()}\" WHERE $VALUE_INDEX_NAME @@ to_tsquery('${it.parameters["language"] ?: "english"}', ?)"
+                "gin" -> "SELECT * FROM \"${tableName.lowercase()}\" WHERE ${INDEX_VALUE_COLUMN_NAME}  @@ to_tsquery('${it.parameters["language"] ?: "english"}', ?)"
                 else -> "SELECT * FROM \"${tableName.lowercase()}\" WHERE $VALUE_ATTRIBUTE_NAME @@ to_tsquery(?)"
             }
         }
