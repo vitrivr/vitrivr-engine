@@ -14,7 +14,6 @@ sealed interface ScalarDescriptor<T : ScalarDescriptor<T, V>, V : Value.ScalarVa
 
     companion object {
         const val VALUE_ATTRIBUTE_NAME = "value"
-        const val VALUE_INDEX_NAME = "search_vector"
     }
 
     /** The [Value] held by this [ScalarDescriptor]. */
