@@ -112,6 +112,7 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
 
         /* Check results. */
         val result = reader.query(query).toList()
+        Assertions.assertTrue(result.isNotEmpty())
         for (r in result) {
             Assertions.assertTrue(r.path.value.endsWith(".jpg"))
         }
@@ -139,6 +140,7 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
 
         /* Check results. */
         val result = reader.query(query).toList()
+        Assertions.assertTrue(result.isNotEmpty())
         for (r in result) {
             Assertions.assertTrue(r.size.value > size.value)
         }
@@ -166,6 +168,7 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
 
         /* Check results. */
         val result = reader.query(query).toList()
+        Assertions.assertTrue(result.isNotEmpty())
         for (r in result) {
             Assertions.assertTrue(r.size.value < size.value)
         }
@@ -191,6 +194,7 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
 
         /* Check results. */
         val result = reader.query(query).toList()
+        // TODO enable Assertions.assertTrue(result.isNotEmpty())
         for (r in result) {
             Assertions.assertTrue(r.path.value.contains("var"))
         }

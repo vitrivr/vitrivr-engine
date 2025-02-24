@@ -120,7 +120,7 @@ class ShaderProgram(shaderModuleDataList: List<ShaderModuleData>) {
     protected fun createShader(shaderCode: String?, shaderType: Int): Int {
         val shaderId = GL30.glCreateShader(shaderType)
         check(shaderId != 0) { "Error creating shader" }
-        GL30.glShaderSource(shaderId, shaderCode)
+        GL30.glShaderSource(shaderId, shaderCode ?: "")
         GL30.glCompileShader(shaderId)
 
         check(GL30.glGetShaderi(shaderId, GL30.GL_COMPILE_STATUS) != 0) { "Error compiling shader" }

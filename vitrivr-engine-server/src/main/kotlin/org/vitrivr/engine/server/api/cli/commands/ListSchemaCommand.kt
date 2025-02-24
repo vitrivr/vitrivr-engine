@@ -1,15 +1,28 @@
 package org.vitrivr.engine.server.api.cli.commands
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.Context
 import com.jakewharton.picnic.table
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
+import org.vitrivr.engine.server.api.cli.Cli.MainCommand
 import kotlin.math.roundToInt
 
 
 /**
  * [CliktCommand] to list all schemas registered with this vitrivr instance.
  */
-class ListSchemaCommand(private val manager: SchemaManager) : CliktCommand(name = "list", help = "Lists all schemas that are registered with this vitrivr instance.") {
+class ListSchemaCommand(private val manager: SchemaManager) : CliktCommand(name = "list") {
+
+    /**
+     * Returns the help message for the [MainCommand].
+     */
+    override fun help(context: Context): String {
+        return "Lists all schemas that are registered with this vitrivr instance."
+    }
+
+    /**
+     * Executes the command.
+     */
     override fun run() {
         val table = table {
             cellStyle { border = true; paddingLeft = 1; paddingRight = 1 }

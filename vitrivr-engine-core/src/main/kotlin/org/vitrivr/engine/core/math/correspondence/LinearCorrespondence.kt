@@ -10,5 +10,8 @@ import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
  * @version 1.0.0
  */
 class LinearCorrespondence(private val max: Float) : CorrespondenceFunction {
-    override fun invoke(distance: DistanceAttribute): ScoreAttribute.Similarity = ScoreAttribute.Similarity(1.0f - (distance.distance / this.max))
+    override fun invoke(distance: DistanceAttribute): ScoreAttribute.Similarity = when(distance) {
+        is DistanceAttribute.Global ->  ScoreAttribute.Similarity(1.0f - (distance.distance / this.max))
+        is DistanceAttribute.Local -> ScoreAttribute.Similarity(1.0f - (distance.distance / this.max), distance.descriptorId)
+    }
 }

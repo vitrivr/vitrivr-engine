@@ -98,6 +98,7 @@ enum class Distance {
         override fun invoke(v1: Value.DoubleVector, v2: Value.DoubleVector): Double = throw UnsupportedOperationException("Jaccard distance is not supported for float vectors.")
     };
 
+
     /**
      * Calculates this [Distance] between two [Value.FloatVector].
      *
@@ -116,3 +117,4 @@ enum class Distance {
      */
     abstract operator fun invoke(v1: Value.DoubleVector, v2: Value.DoubleVector): Double
 }
+

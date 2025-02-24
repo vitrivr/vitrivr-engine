@@ -22,6 +22,8 @@ import kotlin.system.exitProcess
 
 private val logger: KLogger = KotlinLogging.logger {}
 
+private val executionServer = ExecutionServer()
+
 /**
  * Entry point for vitrivr engine (index + query).
  */
