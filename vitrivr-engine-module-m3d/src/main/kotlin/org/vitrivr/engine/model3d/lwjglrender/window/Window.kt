@@ -96,7 +96,7 @@ class Window(
             this.width,
             this.height
         )
-        this.windowHandle = GLFW.glfwCreateWindow(this.width, this.height, title, MemoryUtil.NULL, MemoryUtil.NULL)
+        this.windowHandle = GLFW.glfwCreateWindow(this.width, this.height, title ?: "Untitled", MemoryUtil.NULL, MemoryUtil.NULL)
         if (this.windowHandle == MemoryUtil.NULL) {
             throw RuntimeException("Failed to create the GLFW window")
         }

@@ -11,6 +11,9 @@
         }
       },
       "fields": {
+        "imageFilePathContent": {
+          "field": "file"
+        },
         "averagecolor": {
           "factory": "AverageColor"
         },
@@ -45,7 +48,7 @@
         "clip": {
           "factory": "DenseEmbedding",
           "parameters": {
-            "host": "http://10.34.64.84:8888/",
+            "host": "http://10.34.64.83:8888/",
             "model": "open-clip-vit-b32",
             "length": "512",
             "timeoutSeconds": "100",

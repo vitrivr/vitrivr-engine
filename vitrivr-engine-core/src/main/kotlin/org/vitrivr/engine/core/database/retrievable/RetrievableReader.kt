@@ -1,6 +1,7 @@
 package org.vitrivr.engine.core.database.retrievable
 
 import org.vitrivr.engine.core.database.Reader
+import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import java.util.*
@@ -10,7 +11,7 @@ import java.util.*
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 interface RetrievableReader : Reader<Retrievable> {
     /**
@@ -39,10 +40,10 @@ interface RetrievableReader : Reader<Retrievable> {
 
     /**
      * Returns a [Retrievable] of type [T] that corresponds to the provided [UUID] in a specified columnName.
+     *
+     * @param subjectIds The [UUID]s of the subjects to consider. If empty, all subjects are considered.
+     * @param predicates The predicates to consider.
+     * @param objectIds The [UUID]s of the objects to consider.  If empty, all subjects are considered.
      */
-    fun getConnections(
-        subjectIds: Collection<RetrievableId>,
-        predicates: Collection<String>,
-        objectIds: Collection<RetrievableId>
-    ): Sequence<Triple<RetrievableId, String, RetrievableId>>
+    fun getConnections(subjectIds: Collection<RetrievableId>, predicates: Collection<String>, objectIds: Collection<RetrievableId>): Sequence<Relationship.ById>
 }

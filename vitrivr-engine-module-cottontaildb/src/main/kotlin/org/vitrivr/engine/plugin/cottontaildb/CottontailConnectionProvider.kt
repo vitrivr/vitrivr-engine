@@ -5,6 +5,7 @@ import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
 import org.vitrivr.engine.core.model.descriptor.scalar.*
+import org.vitrivr.engine.core.model.descriptor.struct.AnyMapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.MediaDimensionsDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.Rectangle2DMetadataDescriptor
@@ -72,6 +73,7 @@ class CottontailConnectionProvider: AbstractConnectionProvider() {
         this.register(TemporalMetadataDescriptor::class, StructDescriptorProvider)
         this.register(Rectangle2DMetadataDescriptor::class, StructDescriptorProvider)
         this.register(MediaDimensionsDescriptor::class, StructDescriptorProvider)
+        this.register(AnyMapStructDescriptor::class, StructDescriptorProvider)
     }
 
     /**

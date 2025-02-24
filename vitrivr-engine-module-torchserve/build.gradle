@@ -1,0 +1,109 @@
+plugins {
+    id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
+    id 'maven-publish'
+    id 'signing'
+    id 'com.google.protobuf' version '0.9.4'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api project(':vitrivr-engine-core')
+
+    /** vitrivr engine Core is required for running tests. */
+    testImplementation(testFixtures(project(':vitrivr-engine-core')))
+
+    /** TwelveMonkeys. */
+    implementation group: 'com.twelvemonkeys.imageio', name: 'imageio-core', version: version_twelvemonkeys
+    implementation group: 'com.twelvemonkeys.imageio', name: 'imageio-jpeg', version: version_twelvemonkeys
+
+    /** gRPC */
+    api group: 'com.google.protobuf', name: 'protobuf-java', version: version_protobuf
+    api group: 'com.google.protobuf', name: 'protobuf-kotlin', version: version_protobuf
+    api group: 'io.grpc', name: 'grpc-netty', version: version_grpc
+    api group: 'io.grpc', name: 'grpc-protobuf', version: version_grpc
+    api group: 'io.grpc', name: 'grpc-stub', version: version_grpc
+    api group: 'io.grpc', name: 'grpc-auth', version: version_grpc
+    api group: 'io.grpc', name: 'grpc-kotlin-stub', version: version_grpc_kotlin
+
+    api group: 'com.google.auth', name: 'google-auth-library-oauth2-http', version: version_google_oauth2
+}
+
+protobuf {
+    plugins {
+        grpc {
+            artifact = "io.grpc:protoc-gen-grpc-java:$version_grpc"
+        }
+        grpckt {
+            artifact = "io.grpc:protoc-gen-grpc-kotlin:$version_grpc_kotlin:jdk8@jar"
+        }
+    }
+    protoc {
+        artifact = "com.google.protobuf:protoc:$version_protobuf"
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {
+                outputSubDir = 'java'
+            }
+            grpckt {
+                outputSubDir = 'kotlin'
+            }
+            kotlin {}
+        }
+    }
+}
+
+/* Publication of vitrivr engine query to Maven Central. */
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'org.vitrivr'
+            artifactId = 'vitrivr-engine-module-torchserve'
+            version = System.getenv().getOrDefault("MAVEN_PUBLICATION_VERSION", version.toString())
+            from components.java
+            pom {
+                name = 'vitrivr Engine TorchServe module'
+                description = 'A module that adds facilities to call models via torch serve.'
+                url = 'https://github.com/vitrivr/vitrivr-engine/'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'ppanopticon'
+                        name = 'Ralph Gasser'
+                        email = 'ralph.gasser@unibas.ch'
+                    }
+                    developer {
+                        id = 'lucaro'
+                        name = 'Luca Rossetto'
+                        email = 'rossetto@ifi.uzh.ch'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/vitrivr/vitrivr-engine.git'
+                    url = 'https://github.com/vitrivr/vitrivr-engine/'
+                }
+            }
+        }
+    }
+    repositories {
+        repositories {
+            maven {
+                def releasesRepoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+                def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
+                name = "OSSRH"
+                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+                credentials {
+                    username = System.getenv("MAVEN_USERNAME")
+                    password = System.getenv("MAVEN_PASSWORD")
+                }
+            }
+        }
+    }
+}

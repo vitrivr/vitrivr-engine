@@ -21,6 +21,6 @@ class WeightedScoreFusionFactory : AggregatorFactory {
         if (p == Float.POSITIVE_INFINITY && weights.isNotEmpty()) {
             logger.warn { "Weights are ignored when p is set to infinity" }
         }
-        return WeightedScoreFusion(inputs, weights, p, normalize)
+        return WeightedScoreFusion(inputs, weights, p, normalize, name)
     }
 }

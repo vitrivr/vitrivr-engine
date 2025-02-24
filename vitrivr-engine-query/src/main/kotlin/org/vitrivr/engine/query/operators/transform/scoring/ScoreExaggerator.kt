@@ -9,7 +9,7 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 import kotlin.math.pow
 
-class ScoreExaggerator(override val input: Operator<out Retrievable>, val factor: Float) : Transformer {
+class ScoreExaggerator(override val input: Operator<out Retrievable>, val factor: Float, override val name: String) : Transformer {
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> {
         return flow {
             input.toFlow(scope).collect { retrieved : Retrievable ->

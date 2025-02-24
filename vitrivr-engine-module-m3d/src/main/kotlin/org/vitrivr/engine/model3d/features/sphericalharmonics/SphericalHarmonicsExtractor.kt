@@ -20,19 +20,50 @@ import org.vitrivr.engine.core.source.file.FileSource
  * @author Ralph Gasser
  * @version 1.2.0
  */
-class SphericalHarmonicsExtractor(
-    input: Operator<Retrievable>,
-    analyser: SphericalHarmonics,
-    field: Schema.Field<Model3dContent, FloatVectorDescriptor>?,
-    private val gridSize: Int,
-    private val cap: Int,
-    private val minL: Int,
-    private val maxL: Int,
-    parameters : Map<String,String>
-) : AbstractExtractor<Model3dContent, FloatVectorDescriptor>(input, analyser, field, parameters) {
+class SphericalHarmonicsExtractor :
+    AbstractExtractor<Model3dContent, FloatVectorDescriptor> {
 
-    init {
-        require(this.minL < this.maxL) { "Parameter mismatch: min_l must be smaller than max_l. "}
+    private val gridSize: Int
+    private val cap: Int
+    private val minL: Int
+    private val maxL: Int
+
+    constructor(
+        input: Operator<Retrievable>,
+        analyser: SphericalHarmonics,
+        contentSources : Set<String>?,
+        field: Schema.Field<Model3dContent, FloatVectorDescriptor>,
+        gridSize: Int,
+        cap: Int,
+        minL: Int,
+        maxL: Int
+    ) : super(input, analyser, contentSources, field) {
+        this.gridSize = gridSize
+        this.cap = cap
+        this.minL = minL
+        this.maxL = maxL
+
+        require(this.minL < this.maxL) { "Parameter mismatch: min_l must be smaller than max_l. " }
+
+    }
+
+    constructor(
+        input: Operator<Retrievable>,
+        analyser: SphericalHarmonics,
+        contentSources : Set<String>?,
+        name: String,
+        gridSize: Int,
+        cap: Int,
+        minL: Int,
+        maxL: Int
+    ) : super(input, analyser, contentSources, name) {
+        this.gridSize = gridSize
+        this.cap = cap
+        this.minL = minL
+        this.maxL = maxL
+
+        require(this.minL < this.maxL) { "Parameter mismatch: min_l must be smaller than max_l. " }
+
     }
 
     /**
@@ -53,6 +84,18 @@ class SphericalHarmonicsExtractor(
      */
     override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
         val content = this.filterContent(retrievable)
-        return content.flatMap { c -> c.content.getMaterials().flatMap { mat -> mat.materialMeshes.map { mesh -> SphericalHarmonics.analyse(mesh, this.gridSize, this.minL, this.maxL, this.cap).copy(field = this.field) } } }
+        return content.flatMap { c ->
+            c.content.getMaterials().flatMap { mat ->
+                mat.materialMeshes.map { mesh ->
+                    SphericalHarmonics.analyse(
+                        mesh,
+                        this.gridSize,
+                        this.minL,
+                        this.maxL,
+                        this.cap
+                    ).copy(field = this.field)
+                }
+            }
+        }
     }
 }

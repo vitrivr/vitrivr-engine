@@ -72,7 +72,7 @@ class QueryParser(val schema: Schema) {
         /* Special case: handle pass-through. */
         if (operation.field == null) { //special case, handle pass-through
             require(input.type == InputType.ID) { "Only inputs of type ID are supported for direct retrievable lookup." }
-            return RetrievedLookup(this.schema.connection.getRetrievableReader(), listOf(UUID.fromString((input as RetrievableIdInputData).id)))
+            return RetrievedLookup(this.schema.connection.getRetrievableReader(), listOf(UUID.fromString((input as RetrievableIdInputData).id)), "${operatorName}-lookup")
         }
         val fieldAndAttributeName: Pair<String,String?> = if (operation.field.contains(".")) {
             val f = operation.field.substringBefore(".")

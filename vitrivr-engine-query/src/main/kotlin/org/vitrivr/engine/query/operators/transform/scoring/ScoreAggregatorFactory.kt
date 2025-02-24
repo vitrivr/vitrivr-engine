@@ -24,6 +24,6 @@ class ScoreAggregatorFactory : TransformerFactory {
 
         val relationships = context[name, "relationships"]?.split(",")?.map { s -> s.trim() }?.toSet() ?: setOf("partOf")
 
-        return ScoreAggregator(input, aggregation, relationships)
+        return ScoreAggregator(input, aggregation, relationships, name)
     }
 }

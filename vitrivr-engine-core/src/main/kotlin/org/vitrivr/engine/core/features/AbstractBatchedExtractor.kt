@@ -12,8 +12,8 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
 import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 
@@ -24,7 +24,37 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor<*>>(final override val input: Operator<Retrievable>, final override val analyser: Analyser<C, D>, final override val field: Schema.Field<C, D>?, protected val parameters: Map<String, String>) : Extractor<C, D> {
+abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor<*>>
+    private constructor(
+        final override val input: Operator<Retrievable>,
+        final override val analyser: Analyser<C, D>,
+        final override val field: Schema.Field<C, D>? = null,
+        protected val contentSources : Set<String>? = null,
+        final override val name: String,
+        private val bufferSize: Int
+) :
+    Extractor<C, D> {
+
+    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, contentSources : Set<String>?, field: Schema.Field<C, D>, bufferSize: Int = 100) : this(
+        input,
+        analyser,
+        field,
+        contentSources,
+        field.fieldName,
+        bufferSize
+    )
+
+    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, contentSources : Set<String>?, name: String, bufferSize: Int = 100) : this(
+        input,
+        analyser,
+        null,
+        contentSources,
+        name,
+        bufferSize
+    )
+
+
+
 
     companion object {
         const val BATCH_SIZE_KEY = "batchSize"
@@ -37,13 +67,6 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor<*>
     /** The [KLogger] instance used by this [AbstractExtractor]. */
     protected val logger: KLogger = KotlinLogging.logger {}
 
-    /** The names of the content source to consider during processing. */
-    protected val contentSources : Set<String>?
-        get() = this.parameters[CONTENT_AUTHORS_KEY]?.split(",")?.toSet()
-
-    /** The buffer- and batch size. */
-    private val bufferSize : Int
-        get() = this.parameters[BATCH_SIZE_KEY]?.toIntOrNull() ?: 1
 
     /**
      * A default [Extractor] implementation for batched extraction. It executes the following steps:
@@ -71,9 +94,12 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor<*>
                         logger.debug { "Batch size reached for field ${field?.fieldName}, extracting descriptors" }
                         val descriptors = extract(batch)
                         batch.forEachIndexed { i, r ->
+                            val sourceAttribute = DescriptorAuthorAttribute()
                             descriptors[i].forEach { d ->
                                 r.addDescriptor(d)
+                                sourceAttribute.add(d, name)
                             }
+                            r.addAttribute(sourceAttribute)
                         }
                         emitAll(batch.asFlow())
                         batch.clear()
