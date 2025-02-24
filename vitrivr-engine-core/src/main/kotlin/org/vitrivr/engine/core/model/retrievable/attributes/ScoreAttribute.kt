@@ -1,5 +1,6 @@
 package org.vitrivr.engine.core.model.retrievable.attributes
 
+import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import kotlin.math.max
 
 /**
@@ -11,15 +12,15 @@ import kotlin.math.max
  * @author Ralph Gasser
  * @version 1.1.0
  */
-sealed interface ScoreAttribute : MergingRetrievableAttribute {
+sealed interface ScoreAttribute : RetrievableAttribute {
 
     /** The score associated with this [ScoreAttribute]. */
     val score: Float
 
     /**
-     * A similarity score. Strictly bound between 0 and 1.
+     * A global similarity score. Strictly bound between 0 and 1.
      */
-    data class Similarity(override val score: Float): ScoreAttribute {
+    data class Similarity(override val score: Float, val descriptorId: DescriptorId? = null): ScoreAttribute, MergingRetrievableAttribute {
         init {
             require(score in 0f..1f) { "Similarity score '$score' outside of valid range (0, 1)" }
         }
@@ -30,9 +31,9 @@ sealed interface ScoreAttribute : MergingRetrievableAttribute {
     }
 
     /**
-     * An unbound score. Unbounded and can be any value >= 0.
+     * A global unbound score. Unbounded and can be any value >= 0.
      */
-    data class Unbound(override val score: Float): ScoreAttribute {
+    data class Unbound(override val score: Float, val descriptorId: DescriptorId? = null): ScoreAttribute, MergingRetrievableAttribute {
         init {
             require(this.score >= 0f) { "Score '$score' outside of valid range (>= 0)." }
         }
@@ -41,3 +42,4 @@ sealed interface ScoreAttribute : MergingRetrievableAttribute {
         )
     }
 }
+

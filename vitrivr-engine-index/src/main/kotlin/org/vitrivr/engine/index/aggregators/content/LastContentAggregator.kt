@@ -1,4 +1,4 @@
-package org.vitrivr.engine.index.aggregators
+package org.vitrivr.engine.index.aggregators.content
 
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.context.IndexContext
@@ -8,6 +8,7 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 import org.vitrivr.engine.core.operators.general.TransformerFactory
+import org.vitrivr.engine.index.aggregators.AbstractAggregator
 
 /**
  * A [Transformer] that selects the last [ContentElement] of each type in an [Ingested] and drops all the others.

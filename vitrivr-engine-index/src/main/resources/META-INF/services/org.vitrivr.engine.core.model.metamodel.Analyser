@@ -1,0 +1,6 @@
+org.vitrivr.engine.index.analyzer.mapper.DoubleDescriptorFieldMapper
+org.vitrivr.engine.index.analyzer.mapper.DoubleVectorDescriptorFieldMapper
+org.vitrivr.engine.index.analyzer.mapper.FloatDescriptorFieldMapper
+org.vitrivr.engine.index.analyzer.mapper.FloatVectorDescriptorFieldMapper
+org.vitrivr.engine.index.analyzer.mapper.IntDescriptorFieldMapper
+org.vitrivr.engine.index.analyzer.mapper.IntVectorDescriptorFieldMapper

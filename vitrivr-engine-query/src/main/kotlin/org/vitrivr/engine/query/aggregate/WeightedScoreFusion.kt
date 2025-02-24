@@ -10,19 +10,19 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Aggregator
-import java.util.*
 import kotlin.math.pow
 
 class WeightedScoreFusion(
     override val inputs: List<Operator<out Retrievable>>,
     weights: List<Float>,
-    val p: Float,
-    val normalize: Boolean
+    private val p: Float,
+    private val normalize: Boolean,
+    override val name: String
 ) : Aggregator {
 
     private val weights: List<Float> = when {
         weights.size > inputs.size -> weights.subList(0, inputs.size - 1)
-        weights.size < inputs.size -> weights + List(inputs.size - weights.size) {1f}
+        weights.size < inputs.size -> weights + List(inputs.size - weights.size) { 1f }
         else -> weights
     }
 
@@ -42,7 +42,7 @@ class WeightedScoreFusion(
 
             val inputs = inputs.map { it.toFlow(scope).toList() }
 
-            //check if there is more than one populated input, return early if not
+            // Check if there is more than one populated input, return early if not
             if (inputs.filter { it.isNotEmpty() }.size < 2) {
                 inputs.asSequence().flatten().forEach { emit(it) }
                 return@flow
@@ -51,53 +51,39 @@ class WeightedScoreFusion(
             val scoreMap = mutableMapOf<RetrievableId, MutableList<Pair<Int, Retrievable>>>()
 
             for ((index, retrieveds) in inputs.withIndex()) {
-
                 for (retrieved in retrieveds) {
-
-                    if (!scoreMap.containsKey(retrieved.id)) {
-                        scoreMap[retrieved.id] = mutableListOf()
-                    }
-
+                    scoreMap.computeIfAbsent(retrieved.id) { mutableListOf() }
                     scoreMap[retrieved.id]!!.add(index to retrieved)
-
                 }
-
             }
 
-            for((_, retrieveds) in scoreMap) {
+            for ((_, retrieveds) in scoreMap) {
 
-                var score : Float
-                var first : Retrievable
+                var score: Float
+                val first: Retrievable
 
-                if (p == Float.POSITIVE_INFINITY){
-                    score = retrieveds.map { ((it.second.filteredAttribute(ScoreAttribute::class.java))?.score ?: 0f) }.max()
+                if (p == Float.POSITIVE_INFINITY) {
+                    // Max score selection when p = infinity
+                    score = retrieveds.map { (it.second.filteredAttribute(ScoreAttribute::class.java)?.score ?: 0f) }
+                        .maxOrNull() ?: 0f
+
+                    first = retrieveds.first().second
+                } else {
+                    // Compute weighted p-norm score without normalization
+                    score = retrieveds.map {
+                        (it.second.filteredAttribute(ScoreAttribute::class.java)?.score ?: 0f).pow(p) * weights[it.first]
+                    }.sum().pow(1 / p)
 
                     first = retrieveds.first().second
                 }
-                else{
-                    val normalization = (retrieveds.map { weights[it.first] }.sum()).pow(1/p)
 
-                    if (normalization == 0f){
-                        score = 0f
-                    }
-                    else {
-                        score = retrieveds.map {
-                            ((it.second.filteredAttribute(ScoreAttribute::class.java))?.score ?: 0f).pow(p) * weights[it.first]
-                        }.sum().pow(1 / p)
-                        if (normalize) score /= normalization
-                    }
-                    first = retrieveds.first().second
-                }
-
-                //make a copy and override score
+                // Create a copy and override the score
                 val retrieved = first.copy()
                 retrieved.filteredAttribute(ScoreAttribute::class.java)
                 retrieved.addAttribute(ScoreAttribute.Unbound(score))
 
                 emit(retrieved)
-
             }
-
         }
     }
 }

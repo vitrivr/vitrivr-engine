@@ -24,12 +24,22 @@ val logger = KotlinLogging.logger {}
  * @author Ralph Gasser
  * @version 1.0
  */
-class ImageCaptionExtractor(
-    input: Operator<Retrievable>,
-    field: Schema.Field<ContentElement<*>, TextDescriptor>?,
-    analyser: ExternalFesAnalyser<ContentElement<*>, TextDescriptor>,
-    parameters: Map<String, String>
-) : FesExtractor<ContentElement<*>, TextDescriptor>(input, field, analyser, parameters) {
+class ImageCaptionExtractor : FesExtractor<ImageContent, TextDescriptor> {
+
+    constructor(
+        input: Operator<Retrievable>,
+        field: Schema.Field<ImageContent, TextDescriptor>,
+        analyser: ExternalFesAnalyser<ImageContent, TextDescriptor>,
+        parameters: Map<String, String>
+    ) : super(input, field, analyser, parameters)
+
+    constructor(
+        input: Operator<Retrievable>,
+        name: String,
+        analyser: ExternalFesAnalyser<ImageContent, TextDescriptor>,
+        parameters: Map<String, String>
+    ) : super(input, name, analyser, parameters)
+
 
     /** The [ImageCaptioningApi] used to perform extraction with. */
     private val captioningApi by lazy { ImageCaptioningApi(this.host, this.model, this.timeoutMs, this.pollingIntervalMs, this.retries) }
@@ -91,7 +101,7 @@ class ImageCaptionExtractor(
                 if (it !is ImageContent) {
                     null
                 } else{
-                flatResults[index++].also { TextDescriptor(it.id, retrievable.id, it.value, it.field) }
+                flatResults[index++].let { TextDescriptor(it.id, retrievable.id, it.value, it.field) }
                 }
             }.filterNotNull()
         }

@@ -246,6 +246,14 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * @return [DescriptorWriter]
          */
         fun getWriter(): DescriptorWriter<D> = this.connection.getDescriptorWriter(this as Field<*, D>)
+
+
+        /**
+         * Convenience method to generate and return a prototypical [D] for this [Field].
+         *
+         * @return [D]
+         */
+        fun getPrototype(): D = this.analyser.prototype(this as Field<*, D>)
     }
 
     /**

@@ -5,13 +5,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
 import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
-import java.util.*
 
 /**
  * An abstract [Transformer] implementation for aggregators; aggregators are used to aggregate the content of [Ingested] objects.
@@ -19,7 +17,8 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.1.0
  */
-abstract class AbstractAggregator(override val input: Operator<out Retrievable>, protected open val context: Context, protected val name: String, val newContent: Boolean = false) : Transformer {
+abstract class AbstractAggregator(override val input: Operator<out Retrievable>, protected open val context: Context, override val name: String, val newContent: Boolean = false) :
+    Transformer {
     /**
      *  Creates a flow for this [AbstractAggregator].
      *

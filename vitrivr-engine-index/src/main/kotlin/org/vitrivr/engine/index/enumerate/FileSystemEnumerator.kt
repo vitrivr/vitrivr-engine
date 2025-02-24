@@ -47,8 +47,9 @@ class FileSystemEnumerator : EnumeratorFactory {
         val skip = context[name, "skip"]?.toLongOrNull() ?: 0L
         val limit = context[name, "limit"]?.toLongOrNull() ?: Long.MAX_VALUE
         val type = context[name, "type"]
-        logger.info { "Enumerator: FileSystemEnumerator with path: $path, depth: $depth, mediaTypes: $mediaTypes, skip: $skip, limit: ${if (limit == Long.MAX_VALUE) "none" else limit}" }
-        return Instance(path, depth, mediaTypes, skip, limit, type)
+        val regex = context[name, "regex"]
+        logger.info { "Enumerator: FileSystemEnumerator with path: $path, depth: $depth, mediaTypes: $mediaTypes, skip: $skip, limit: ${if (limit == Long.MAX_VALUE) "none" else limit} and type: $type, regex: $regex" }
+        return Instance(path, depth, mediaTypes, skip, limit, type, regex, name)
     }
 
     /**
@@ -57,7 +58,12 @@ class FileSystemEnumerator : EnumeratorFactory {
      * @param context The [IndexContext] to use.
      * @param inputs Is ignored.
      */
-    override fun newEnumerator(name: String, context: IndexContext, mediaTypes: List<MediaType>, inputs: Stream<*>?): Enumerator {
+    override fun newEnumerator(
+        name: String,
+        context: IndexContext,
+        mediaTypes: List<MediaType>,
+        inputs: Stream<*>?
+    ): Enumerator {
         return newEnumerator(name, context, mediaTypes)
     }
 
@@ -70,14 +76,25 @@ class FileSystemEnumerator : EnumeratorFactory {
         private val mediaTypes: Collection<MediaType> = MediaType.allValid,
         private val skip: Long = 0,
         private val limit: Long = Long.MAX_VALUE,
-        private val typeName: String? = null
+        private val typeName: String? = null,
+        private val regex: String? = null,
+        override val name: String
     ) : Enumerator {
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
             logger.debug { "In flow: Start Enumerating with path: $path, depth: $depth, mediaTypes: $mediaTypes, skip: $skip, limit: $limit" }
 
             val stream = try {
-                Files.walk(this@Instance.path, this@Instance.depth, FileVisitOption.FOLLOW_LINKS).filter { it.isRegularFile() }.skip(skip).limit(limit)
+                if (regex == null) {
+                    Files.walk(this@Instance.path, this@Instance.depth, FileVisitOption.FOLLOW_LINKS).filter {
+                        it.isRegularFile()
+                    }.skip(skip).limit(limit)
+                } else {
+                    Files.walk(this@Instance.path, this@Instance.depth, FileVisitOption.FOLLOW_LINKS).filter {
+                        it.isRegularFile() && it.toString().matches(Regex(regex))
+                    }.skip(skip).limit(limit)
+                }
+
             } catch (ex: NoSuchFileException) {
                 val mes = "In flow: Path ${this@Instance.path} does not exist."
                 logger.error { mes }

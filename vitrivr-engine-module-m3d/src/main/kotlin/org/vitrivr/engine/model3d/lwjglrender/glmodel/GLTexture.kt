@@ -38,8 +38,8 @@ class GLTexture(
       val h = memoryStack.mallocInt(1)
       val channels = memoryStack.mallocInt(1)
       val imageBuffer: ByteBuffer?
-      if (texture.texturePath != null) {
-        imageBuffer = STBImage.stbi_load(texture.texturePath, w, h, channels, 4)
+      if (this.texture.texturePath != null) {
+        imageBuffer = STBImage.stbi_load(this.texture.texturePath!!, w, h, channels, 4)
       } else if (texture.textureImage != null) {
         val imagePath = "tmp.png"
         val outputFile = File(imagePath)
@@ -55,10 +55,10 @@ class GLTexture(
           outputFile.delete()
         }
       } else {
-        throw RuntimeException("Could not load texture file: " + texture.texturePath)
+        throw RuntimeException("Could not load texture file: " + this.texture.texturePath)
       }
       this.generateTexture(w.get(), h.get(), imageBuffer)
-      STBImage.stbi_image_free(imageBuffer)
+      STBImage.stbi_image_free(imageBuffer!!)
     }
   }
 

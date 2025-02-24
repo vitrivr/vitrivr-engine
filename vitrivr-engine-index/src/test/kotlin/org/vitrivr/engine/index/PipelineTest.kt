@@ -16,7 +16,7 @@ import org.vitrivr.engine.core.operators.transform.shape.BroadcastOperator
 import org.vitrivr.engine.core.operators.transform.shape.CombineOperator
 import org.vitrivr.engine.core.resolver.impl.DiskResolver
 import org.vitrivr.engine.core.source.MediaType
-import org.vitrivr.engine.index.aggregators.MiddleContentAggregator
+import org.vitrivr.engine.index.aggregators.content.MiddleContentAggregator
 import org.vitrivr.engine.index.decode.VideoDecoder
 import org.vitrivr.engine.index.enumerate.FileSystemEnumerator
 import kotlin.time.Duration

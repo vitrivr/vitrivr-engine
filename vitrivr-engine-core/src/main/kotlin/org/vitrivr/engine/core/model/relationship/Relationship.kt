@@ -21,6 +21,26 @@ sealed interface Relationship: Persistable {
     /** The [RetrievableId] pointing to the object [Retrievable]. */
     val objectId: RetrievableId
 
+    /** Re-maps a relationship to a new [Retrievable] by copy. */
+    fun exchange(oldId: RetrievableId, new: Retrievable): Relationship {
+        if(this.objectId != oldId && this.subjectId != oldId) {
+            throw IllegalArgumentException("Relation does not contain ID '$oldId'")
+        }
+        return if (this.objectId == oldId) {
+            if (this is WithSubject) {
+                ByRef(this.subject, this.predicate, new, this.transient)
+            } else {
+                BySubIdObjRef(this.subjectId, this.predicate, new, this.transient)
+            }
+        } else {
+            if (this is WithObject) {
+                ByRef(new, this.predicate, this.`object`, this.transient)
+            } else {
+                BySubRefObjId(new, this.predicate, this.objectId, this.transient)
+            }
+        }
+    }
+
     sealed interface WithSubject : Relationship {
         val subject: Retrievable
     }
@@ -38,7 +58,7 @@ sealed interface Relationship: Persistable {
     override val transient: Boolean
 
     /** A [Relationship] by reference to another [Retrievable]. */
-    class ByRef(override val subject: Retrievable, override val predicate: String, override val `object`: Retrievable, override val transient: Boolean) : WithSubject, WithObject {
+    data class ByRef(override val subject: Retrievable, override val predicate: String, override val `object`: Retrievable, override val transient: Boolean) : WithSubject, WithObject {
         override val subjectId: RetrievableId
             get() = this.subject.id
 

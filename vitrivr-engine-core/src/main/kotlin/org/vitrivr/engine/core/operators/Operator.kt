@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.operators
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import org.vitrivr.engine.core.operators.ingest.Extractor
 
 /**
  * A basic implementation of a pipeline-able operator.
@@ -10,6 +11,11 @@ import kotlinx.coroutines.flow.Flow
  * @version 1.1.0
  */
 sealed interface Operator<O> {
+
+
+    /** The name of this [Operator]. In case a field is set, is equivalent to field.fieldName.*/
+    val name: String
+
     /**
      * Returns root of this [Unary].
      */

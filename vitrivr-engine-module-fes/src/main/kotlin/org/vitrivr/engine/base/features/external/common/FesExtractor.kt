@@ -25,14 +25,27 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Fynn Faber
  * @version 1.1.0
  */
-abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>>(
-    input: Operator<Retrievable>,
-    field: Schema.Field<C, D>?,
-    analyser: ExternalFesAnalyser<C, D>,
-    parameters: Map<String, String>
-) : AbstractBatchedExtractor<C, D>(input, analyser, field, parameters) {
+abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>> : AbstractBatchedExtractor<C, D> {
 
+    protected val parameters: Map<String, String>
 
+    constructor(
+        input: Operator<Retrievable>,
+        field: Schema.Field<C, D>,
+        analyser: ExternalFesAnalyser<C, D>,
+        parameters: Map<String, String>
+    ) : super(input, analyser, parameters[CONTENT_AUTHORS_KEY]?.split(",")?.toSet(), field, parameters["batchSize"]?.toIntOrNull() ?: 1) {
+        this.parameters = parameters
+    }
+
+    constructor(
+        input: Operator<Retrievable>,
+        name: String,
+        analyser: ExternalFesAnalyser<C, D>,
+        parameters: Map<String, String>
+    ) : super(input, analyser, parameters[CONTENT_AUTHORS_KEY]?.split(",")?.toSet(), name, parameters["batchSize"]?.toIntOrNull() ?: 1) {
+        this.parameters = parameters
+    }
 
     protected val host: String
         get() = this.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
@@ -43,11 +56,13 @@ abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>>(
 
     /** */
     protected val timeoutMs: Long
-        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull() ?: TIMEOUT_MS_PARAMETER_DEFAULT
+        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull()
+            ?: TIMEOUT_MS_PARAMETER_DEFAULT
 
     /** */
     protected val pollingIntervalMs: Long
-        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull() ?: POLLINGINTERVAL_MS_PARAMETER_DEFAULT
+        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull()
+            ?: POLLINGINTERVAL_MS_PARAMETER_DEFAULT
 
     /** */
     protected val retries: Int
@@ -62,7 +77,7 @@ abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>>(
     override fun matches(retrievable: Retrievable): Boolean {
         val contentIds = this.contentSources?.let { retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it) }
         return retrievable.content.any { content ->
-            this.analyser.contentClasses.any { it.isInstance(content) && (contentIds?.contains(content.id) ?: false) }
+            this.analyser.contentClasses.any { it.isInstance(content) && (contentIds?.contains(content.id) ?: true) }
         }
     }
 

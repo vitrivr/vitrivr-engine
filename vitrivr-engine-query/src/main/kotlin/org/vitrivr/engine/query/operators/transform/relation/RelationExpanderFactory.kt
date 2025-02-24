@@ -20,6 +20,6 @@ class RelationExpanderFactory : TransformerFactory {
         val retrievableReader = context.schema.connection.getRetrievableReader()
         val incomingRelations = context[name, "incoming"]?.split(",")?.map { s -> s.trim() } ?: emptyList()
         val outgoingRelations = context[name, "outgoing"]?.split(",")?.map { s -> s.trim() } ?: emptyList()
-        return RelationExpander(input, incomingRelations, outgoingRelations, retrievableReader)
+        return RelationExpander(input, incomingRelations, outgoingRelations, retrievableReader, name)
     }
 }

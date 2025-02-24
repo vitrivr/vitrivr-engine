@@ -20,7 +20,7 @@ class VideoSourceMetadataDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId?,
     values: Map<AttributeName, Value<*>?>,
-    override val field: Schema.Field<*, VideoSourceMetadataDescriptor>? = null
+    override val field: Schema.Field<*, VideoSourceMetadataDescriptor>? = null,
 ) : StructDescriptor<VideoSourceMetadataDescriptor>(id, retrievableId, SCHEMA, values, field) {
 
     /** The width of the video source in pixels. */
@@ -30,7 +30,7 @@ class VideoSourceMetadataDescriptor(
     val height: Value.Int by this.values
 
     /** The duration of the video source in pixels. */
-    val duration: Value.Double by this.values
+    val duration: Value.Long by this.values
 
     /** The number of visual frames per seconds. */
     val fps: Value.Double by this.values

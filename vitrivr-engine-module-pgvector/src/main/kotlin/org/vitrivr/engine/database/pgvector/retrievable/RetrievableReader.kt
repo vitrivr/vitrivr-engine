@@ -1,6 +1,7 @@
 package org.vitrivr.engine.database.pgvector.retrievable
 
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
+import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
@@ -12,7 +13,7 @@ import java.util.*
  * A [RetrievableReader] implementation for PostgreSQL with pgVector.
  *
  * @author Ralph Gasser
- * @version 1.0.1
+ * @version 1.1.0
  */
 class RetrievableReader(override val connection: PgVectorConnection): RetrievableReader {
     /**
@@ -66,7 +67,7 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
     override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrievable> = sequence {
         try {
             val values = ids.map { it }.toTypedArray()
-            this@RetrievableReader.connection.jdbc.prepareStatement("SELECT * FROM $RETRIEVABLE_ENTITY_NAME WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY (?)").use { statement ->
+            this@RetrievableReader.connection.jdbc.prepareStatement("WITH x(ids) AS ( VALUES (?::uuid[])) SELECT ${RETRIEVABLE_ENTITY_NAME}.* FROM $RETRIEVABLE_ENTITY_NAME, x WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY (x.ids) ORDER BY array_position(x.ids, ${RETRIEVABLE_ID_COLUMN_NAME})").use { statement ->
                 statement.setArray(1,  this@RetrievableReader.connection.jdbc.createArrayOf("uuid", values))
                 statement.executeQuery().use { result ->
                     while (result.next()) {
@@ -75,7 +76,7 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
                 }
             }
         } catch (e: Exception) {
-            LOGGER.error(e) { "Failed to check for retrievables due to SQL error." }
+            LOGGER.error(e) { "Failed to fetch retrievables due to SQL error." }
         }
     }
 
@@ -103,7 +104,7 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
      *
      * @return A [Sequence] of all [Retrievable]s in the database.
      */
-    override fun getConnections(subjectIds: Collection<RetrievableId>, predicates: Collection<String>, objectIds: Collection<RetrievableId>): Sequence<Triple<RetrievableId, String, RetrievableId>> {
+    override fun getConnections(subjectIds: Collection<RetrievableId>, predicates: Collection<String>, objectIds: Collection<RetrievableId>): Sequence<Relationship.ById> {
         val query = StringBuilder("SELECT * FROM \"$RELATIONSHIP_ENTITY_NAME\" WHERE ")
         if (subjectIds.isNotEmpty()) {
             query.append("$SUBJECT_ID_COLUMN_NAME = ANY (?)")
@@ -119,6 +120,9 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
                 query.append(" AND ")
             }
             query.append("$OBJECT_ID_COLUMN_NAME = ANY (?)")
+        }
+        if (query.endsWith("WHERE ")) {
+            query.delete(query.length - 7, query.length)
         }
 
         return sequence {
@@ -136,7 +140,7 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
                     }
                     stmt.executeQuery().use { result ->
                         while (result.next()) {
-                            yield(Triple(result.getObject(OBJECT_ID_COLUMN_NAME, UUID::class.java), result.getString(PREDICATE_COLUMN_NAME), result.getObject(SUBJECT_ID_COLUMN_NAME, UUID::class.java)))
+                            yield(Relationship.ById(result.getObject(SUBJECT_ID_COLUMN_NAME, UUID::class.java), result.getString(PREDICATE_COLUMN_NAME), result.getObject(OBJECT_ID_COLUMN_NAME, UUID::class.java), false))
                         }
                     }
                 }

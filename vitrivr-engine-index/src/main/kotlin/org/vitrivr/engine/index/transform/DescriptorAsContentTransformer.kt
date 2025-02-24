@@ -11,6 +11,7 @@ import org.vitrivr.engine.core.model.content.factory.ContentFactory
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
 import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.AnyMapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
@@ -32,13 +33,18 @@ class DescriptorAsContentTransformer : TransformerFactory {
 
         return Instance(
             input = input,
+            name = name,
             contentFactory = (context as IndexContext).contentFactory,
-            fieldName = context[name, "field"]  ?: throw IllegalArgumentException("The descriptor as content transformer requires a field name."),
-            name = name
+            fieldName = context[name, "field"]  ?: throw IllegalArgumentException("The descriptor as content transformer requires a field name.")
         )
     }
 
-    private class Instance(override val input: Operator<out Retrievable>, val contentFactory: ContentFactory, val fieldName : String, val name: String) : Transformer {
+    private class Instance(
+        override val input: Operator<out Retrievable>,
+        override val name: String,
+        val contentFactory: ContentFactory,
+        val fieldName : String
+    ) : Transformer {
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
             input.toFlow(scope).collect {
                 retrievable : Retrievable ->
@@ -46,23 +52,34 @@ class DescriptorAsContentTransformer : TransformerFactory {
                     descriptor ->
                     descriptor.field?.fieldName == fieldName
                 }.forEach{ descriptor ->
-                    val content = convertDescriptorToContent(descriptor)
-                    retrievable.addContent(content)
-                    retrievable.addAttribute(ContentAuthorAttribute(content.id, name))
-                    logger.debug { "Descriptor ${descriptor.id} of retrievable ${retrievable.id} has been converted to content element." }
+                    val pairs = processDescriptor(descriptor)
+                    for (pair in pairs) {
+                        val content = pair.second
+                        retrievable.addContent(content)
+                        for (key in pair.first) {
+                            val attribute = ContentAuthorAttribute(content.id, key)
+                            retrievable.addAttribute(attribute)
+                        }
+                        logger.debug { "Descriptor ${descriptor.id} of retrievable ${retrievable.id} has been converted to content element." }
+                    }
                 }
                 emit(retrievable)
             }
         }
 
-        private fun convertDescriptorToContent(descriptor: Descriptor<*>): ContentElement<*> {
+        private fun processDescriptor(descriptor: Descriptor<*>): List<Pair<Set<String>, ContentElement<*>>> {
             return when (descriptor) {
-                is StringDescriptor -> contentFactory.newTextContent(descriptor.value.value)
-                is TextDescriptor -> contentFactory.newTextContent(descriptor.value.value)
-                is FileSourceMetadataDescriptor -> contentFactory.newTextContent(descriptor.path.value)
+                is StringDescriptor -> listOf(Pair(setOf(name), contentFactory.newTextContent(descriptor.value.value)))
+                is TextDescriptor -> listOf(Pair(setOf(name), contentFactory.newTextContent(descriptor.value.value)))
+                is FileSourceMetadataDescriptor -> listOf(Pair(setOf(name), contentFactory.newTextContent(descriptor.path.value)))
+                is AnyMapStructDescriptor -> {
+                    descriptor.values().map{
+                        entry ->
+                        Pair(setOf(name, "$name.${entry.key}"), contentFactory.newTextContent(entry.value.toString()))
+                    }
+                }
                 else -> throw IllegalArgumentException("Descriptor type not supported.")
             }
-
         }
     }
 }
