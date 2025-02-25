@@ -1,6 +1,5 @@
 package org.vitrivr.engine.index.transform
 
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -13,14 +12,10 @@ import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
 import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.AnyMapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
-import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 import org.vitrivr.engine.core.operators.general.TransformerFactory
-
-private val logger = KotlinLogging.logger {}
 
 /**
  * A [Transformer] that converts descriptors to content elements for further processing.
@@ -46,24 +41,14 @@ class DescriptorAsContentTransformer : TransformerFactory {
         val fieldName : String
     ) : Transformer {
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
-            input.toFlow(scope).collect {
-                retrievable : Retrievable ->
-                retrievable.descriptors.filter{
-                    descriptor ->
+            input.toFlow(scope).collect { retrievable ->
+                val content = retrievable.descriptors.filter { descriptor ->
                     descriptor.field?.fieldName == fieldName
-                }.forEach{ descriptor ->
+                }.flatMap { descriptor ->
                     val pairs = processDescriptor(descriptor)
-                    for (pair in pairs) {
-                        val content = pair.second
-                        retrievable.addContent(content)
-                        for (key in pair.first) {
-                            val attribute = ContentAuthorAttribute(content.id, key)
-                            retrievable.addAttribute(attribute)
-                        }
-                        logger.debug { "Descriptor ${descriptor.id} of retrievable ${retrievable.id} has been converted to content element." }
-                    }
+                    pairs.map { pair -> pair.second }
                 }
-                emit(retrievable)
+                emit(retrievable.copy(content = retrievable.content + content))
             }
         }
 

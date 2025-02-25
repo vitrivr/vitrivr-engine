@@ -17,15 +17,18 @@ import java.util.*
  */
 class RetrievableReader(override val connection: PgVectorConnection): RetrievableReader {
     /**
-     * Returns the [Retrievable]s that matches the provided [RetrievableId]
+     * Returns the [Retrieved]s that matches the provided [RetrievableId]
+     *
+     * @param id [RetrievableId]s to return.
+     * @return [Retrieved] or null
      */
-    override fun get(id: RetrievableId): Retrievable? {
+    override fun get(id: RetrievableId): Retrieved? {
         try {
             this.connection.jdbc.prepareStatement("SELECT * FROM $RETRIEVABLE_ENTITY_NAME WHERE $RETRIEVABLE_ID_COLUMN_NAME = ?").use { stmt ->
                 stmt.setObject(1, id)
                 stmt.executeQuery().use { res ->
                     if (res.next() ) {
-                        return Retrieved(res.getObject(RETRIEVABLE_ID_COLUMN_NAME, UUID::class.java), res.getString(RETRIEVABLE_TYPE_COLUMN_NAME), false)
+                        return Retrieved(res.getObject(RETRIEVABLE_ID_COLUMN_NAME, UUID::class.java), res.getString(RETRIEVABLE_TYPE_COLUMN_NAME), transient = false)
                     } else {
                         return null
                     }
@@ -59,19 +62,19 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
     }
 
     /**
-     * Returns all [Retrievable]s that match any of the provided [RetrievableId]
+     * Returns all [Retrieved]s that match any of the provided [RetrievableId]
      *
      * @param ids A [Iterable] of [RetrievableId]s to return.
-     * @return A [Sequence] of all [Retrievable].
+     * @return A [Sequence] of all [Retrieved].
      */
-    override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrievable> = sequence {
+    override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrieved> = sequence {
         try {
             val values = ids.map { it }.toTypedArray()
             this@RetrievableReader.connection.jdbc.prepareStatement("WITH x(ids) AS ( VALUES (?::uuid[])) SELECT ${RETRIEVABLE_ENTITY_NAME}.* FROM $RETRIEVABLE_ENTITY_NAME, x WHERE $RETRIEVABLE_ID_COLUMN_NAME = ANY (x.ids) ORDER BY array_position(x.ids, ${RETRIEVABLE_ID_COLUMN_NAME})").use { statement ->
                 statement.setArray(1,  this@RetrievableReader.connection.jdbc.createArrayOf("uuid", values))
                 statement.executeQuery().use { result ->
                     while (result.next()) {
-                        yield(Retrieved(result.getObject(RETRIEVABLE_ID_COLUMN_NAME, UUID::class.java), result.getString(RETRIEVABLE_TYPE_COLUMN_NAME), false))
+                        yield(Retrieved(result.getObject(RETRIEVABLE_ID_COLUMN_NAME, UUID::class.java), result.getString(RETRIEVABLE_TYPE_COLUMN_NAME), transient = false))
                     }
                 }
             }
@@ -83,14 +86,14 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
     /**
      * Returns all [Retrievable]s stored by the database.
      *
-     * @return A [Sequence] of all [Retrievable]s in the database.
+     * @return A [Sequence] of all [Retrieved]s in the database.
      */
-    override fun getAll(): Sequence<Retrievable> = sequence {
+    override fun getAll(): Sequence<Retrieved> = sequence {
         try {
             this@RetrievableReader.connection.jdbc.prepareStatement("SELECT * FROM $RETRIEVABLE_ENTITY_NAME").use { stmt ->
                 stmt.executeQuery().use { result ->
                     while (result.next()) {
-                        yield(Retrieved(result.getObject(RETRIEVABLE_ID_COLUMN_NAME, UUID::class.java), result.getString(RETRIEVABLE_TYPE_COLUMN_NAME), false))
+                        yield(Retrieved(result.getObject(RETRIEVABLE_ID_COLUMN_NAME, UUID::class.java), result.getString(RETRIEVABLE_TYPE_COLUMN_NAME), transient = false))
                     }
                 }
             }

@@ -44,14 +44,12 @@ class OCRExtractor : FesExtractor<ImageContent, TextDescriptor> {
      * @return List of resulting [Descriptor]s grouped by [Retrievable].
      */
     override fun extract(retrievables: List<Retrievable>): List<List<TextDescriptor>> {
-        val flatResults = this.api.analyseBatched(retrievables.flatMap { this.filterContent(it) }).mapNotNull { result ->
+        val flatResults = this.api.analyseBatched(retrievables.flatMap { it.content.filterIsInstance<ImageContent>() }).map { result ->
             TextDescriptor(UUID.randomUUID(), null, result, this.field)
         }
-
         var index = 0
-
         return retrievables.map { retrievable ->
-            this.filterContent(retrievable).map { filtered ->
+            retrievables.flatMap { it.content.filterIsInstance<ImageContent>() }.map { filtered ->
                 flatResults[index++].let { TextDescriptor(it.id, retrievable.id, it.value, it.field) }
             }
         }

@@ -15,7 +15,7 @@ import java.util.*
  * An abstract implementation of a [DescriptorReader] for Cottontail DB.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val field: Schema.Field<*, D>, override val connection: PgVectorConnection) : DescriptorReader<D> {
 
@@ -188,10 +188,7 @@ abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val fi
 
         /* Fetch retrievable ids. */
         return this.connection.getRetrievableReader().getAll(descriptors.keys).map { retrieved ->
-            for (d in descriptors[retrieved.id] ?: emptyList()) {
-                retrieved.addDescriptor(d)
-            }
-            retrieved as Retrieved
+            retrieved.copy(descriptors = retrieved.descriptors + (descriptors[retrieved.id] ?: emptyList()))
         }
     }
 

@@ -192,11 +192,7 @@ class TemporalSequenceAggregator(
             if (relationships.size < 2) {
                 return@forEach
             }
-            val retrieved = Retrieved(id, "temporalSequence", true)
-
-            retrieved.addAttribute(ScoreAttribute.Unbound(score))
-            relationships.forEach { retrieved.addRelationship(it) }
-            emit(retrieved)
+            emit(Retrieved(id, "temporalSequence", attributes = setOf(ScoreAttribute.Unbound(score)), relationships = relationships, transient = true))
         }
 
     }

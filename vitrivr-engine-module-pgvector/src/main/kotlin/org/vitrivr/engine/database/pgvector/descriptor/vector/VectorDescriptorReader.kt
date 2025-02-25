@@ -125,25 +125,22 @@ class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, con
                 while (result.next()) {
                     val d = this@VectorDescriptorReader.rowToDescriptor(result)
                     descriptors.compute(d.retrievableId!!) { _, v ->
-                        if (v == null) {
-                            mutableListOf(d to result.getFloat(DISTANCE_COLUMN_NAME))
-                        } else {
-                            v.add(d to result.getFloat(DISTANCE_COLUMN_NAME))
-                            v
-                        }
+                        val list = v ?: mutableListOf()
+                        list.add(d to result.getFloat(DISTANCE_COLUMN_NAME))
+                        list
                     }
                 }
             }
 
             /* Fetch retrievable ids. */
-            return this.connection.getRetrievableReader().getAll(descriptors.keys).map { retrievable ->
-                for ((descriptor, distance) in descriptors[retrievable.id] ?: emptyList()) {
-                    if (query.fetchVector) {
-                        retrievable.addDescriptor(descriptor)
-                    }
-                    retrievable.addAttribute(DistanceAttribute.Local(distance, descriptor.id))
+            return this.connection.getRetrievableReader().getAll(descriptors.keys).map { retrieved ->
+                val distances = descriptors[retrieved.id]?.map { d -> DistanceAttribute.Local(d.second, d.first.id) } ?: emptyList()
+                if (query.fetchVector) {
+                    val localDescriptors = descriptors[retrieved.id]?.map { d -> d.first } ?: emptyList()
+                    retrieved.copy(descriptors = retrieved.descriptors + localDescriptors, attributes = retrieved.attributes + distances)
+                } else {
+                    retrieved.copy(attributes = retrieved.attributes + distances)
                 }
-                retrievable as Retrieved
             }
         }
     }

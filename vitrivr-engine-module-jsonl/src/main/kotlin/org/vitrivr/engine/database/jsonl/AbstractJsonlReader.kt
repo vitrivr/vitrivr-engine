@@ -63,8 +63,8 @@ abstract class AbstractJsonlReader<D : Descriptor<*>>(
 
         return results.map { descriptor ->
             val retrieved = retrievables[descriptor.retrievableId]!!
-            retrieved.addDescriptor(descriptor)
-            retrieved as Retrieved
+            //retrieved.addDescriptor(descriptor)
+            retrieved
         }.asSequence()
     }
 

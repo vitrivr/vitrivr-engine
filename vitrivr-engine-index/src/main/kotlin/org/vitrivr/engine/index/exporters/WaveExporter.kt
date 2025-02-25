@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.onEach
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Exporter
 import org.vitrivr.engine.core.operators.general.ExporterFactory
@@ -48,11 +47,7 @@ class WaveExporter : ExporterFactory {
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
             try {
                 val resolvable = this.context.resolver.resolve(retrievable.id, ".wav")
-                val contentIds = this.contentSources?.let {
-                    retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it)
-                }
-                val content =
-                    retrievable.content.filterIsInstance<AudioContent>().filter { contentIds?.contains(it.id) ?: true }
+                val content = retrievable.content.filterIsInstance<AudioContent>()
                 if (resolvable != null && content.isNotEmpty()) {
                     resolvable.openOutputStream().use {
                         WaveUtilities.export(content, it)

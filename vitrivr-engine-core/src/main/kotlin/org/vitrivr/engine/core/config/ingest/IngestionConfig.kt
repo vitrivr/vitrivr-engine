@@ -74,6 +74,5 @@ data class IngestionConfig(
             logger.error(e) { "Failed to read the ingestion configuration from $path due to an exception." }
             null
         }
-
     }
 }

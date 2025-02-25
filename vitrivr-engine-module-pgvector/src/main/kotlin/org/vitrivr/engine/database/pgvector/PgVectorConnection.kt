@@ -71,7 +71,6 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
     @Synchronized
     override fun <T> withTransaction(action: (Unit) -> T): T {
         try {
-            this.jdbc.autoCommit = false
             val ret = action.invoke(Unit)
             this.jdbc.commit()
             return ret
@@ -79,8 +78,6 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
             LOGGER.error(e) { "Failed to execute transaction due to exception." }
             this.jdbc.rollback()
             throw e
-        } finally {
-            this.jdbc.autoCommit = true
         }
     }
 

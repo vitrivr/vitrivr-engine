@@ -30,7 +30,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.4.0
  */
 class FileSystemEnumerator : EnumeratorFactory {
 
@@ -46,10 +46,11 @@ class FileSystemEnumerator : EnumeratorFactory {
         val depth = (context[name, "depth"] ?: Int.MAX_VALUE.toString()).toInt()
         val skip = context[name, "skip"]?.toLongOrNull() ?: 0L
         val limit = context[name, "limit"]?.toLongOrNull() ?: Long.MAX_VALUE
+        val transient = context[name, "transient"]?.toBooleanStrictOrNull() == true
         val type = context[name, "type"]
         val regex = context[name, "regex"]
         logger.info { "Enumerator: FileSystemEnumerator with path: $path, depth: $depth, mediaTypes: $mediaTypes, skip: $skip, limit: ${if (limit == Long.MAX_VALUE) "none" else limit} and type: $type, regex: $regex" }
-        return Instance(path, depth, mediaTypes, skip, limit, type, regex, name)
+        return Instance(path, depth, mediaTypes, skip, limit, type, regex, transient, name)
     }
 
     /**
@@ -78,14 +79,15 @@ class FileSystemEnumerator : EnumeratorFactory {
         private val limit: Long = Long.MAX_VALUE,
         private val typeName: String? = null,
         private val regex: String? = null,
-        override val name: String
+        private val transient: Boolean = false,
+        override val name: String,
     ) : Enumerator {
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
             logger.debug { "In flow: Start Enumerating with path: $path, depth: $depth, mediaTypes: $mediaTypes, skip: $skip, limit: $limit" }
 
             val stream = try {
-                if (regex == null) {
+                if (this@Instance.regex == null) {
                     Files.walk(this@Instance.path, this@Instance.depth, FileVisitOption.FOLLOW_LINKS).filter {
                         it.isRegularFile()
                     }.skip(skip).limit(limit)
@@ -114,10 +116,7 @@ class FileSystemEnumerator : EnumeratorFactory {
 
                     /* Create source ingested and emit it. */
                     val typeName = this@Instance.typeName ?: "SOURCE:${file.type}"
-                    val ingested = Ingested(file.sourceId, typeName, false)
-                    ingested.addAttribute(SourceAttribute(file))
-
-                    emit(ingested)
+                    emit(Ingested(file.sourceId, typeName, attributes = setOf(SourceAttribute(file)), transient = this@Instance.transient))
                     logger.debug { "In flow: Emitting source ${element.fileName} (${element.toUri()})" }
                 }
             }

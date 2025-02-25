@@ -17,7 +17,7 @@ import java.util.stream.Stream
  * A [Enumerator] that allows a caller to explicitly prepare a list of [Source]s to enumerate.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.2.0
  */
 class ListEnumerator : EnumeratorFactory {
 
@@ -29,7 +29,8 @@ class ListEnumerator : EnumeratorFactory {
      */
     override fun newEnumerator(name: String, context: IndexContext, mediaTypes: List<MediaType>): Enumerator {
         val type = context[name, "type"]
-        return Instance(type, name)
+        val transient = context[name, "transient"]?.toBooleanStrictOrNull() == true
+        return Instance(type, transient, name)
     }
 
     /**
@@ -46,7 +47,7 @@ class ListEnumerator : EnumeratorFactory {
     /**
      * The [Enumerator] returned by this [FileSystemEnumerator].
      */
-    class Instance(private val typeName: String? = null, override val name: String) : Enumerator {
+    class Instance(private val typeName: String? = null, private val transient: Boolean = false, override val name: String) : Enumerator {
 
         /** List of [Source]s that should be enumerated. */
         private val list: LinkedList<Source> = LinkedList()
@@ -55,9 +56,7 @@ class ListEnumerator : EnumeratorFactory {
             for (s in this@Instance.list) {
                 /* Create source ingested and emit it. */
                 val typeName = this@Instance.typeName ?: "SOURCE:${s.type}"
-                val ingested = Ingested(s.sourceId, typeName, false)
-                ingested.addAttribute(SourceAttribute(s))
-                emit(ingested)
+                emit(Ingested(s.sourceId, typeName, attributes = setOf(SourceAttribute(s)), transient = this@Instance.transient))
             }
         }
 

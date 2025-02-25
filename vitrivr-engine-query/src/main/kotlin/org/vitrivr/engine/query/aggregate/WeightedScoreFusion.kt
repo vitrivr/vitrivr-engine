@@ -78,11 +78,7 @@ class WeightedScoreFusion(
                 }
 
                 // Create a copy and override the score
-                val retrieved = first.copy()
-                retrieved.filteredAttribute(ScoreAttribute::class.java)
-                retrieved.addAttribute(ScoreAttribute.Unbound(score))
-
-                emit(retrieved)
+                emit(first.copy(attributes = first.attributes + ScoreAttribute.Unbound(score)))
             }
         }
     }

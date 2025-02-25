@@ -17,7 +17,7 @@ import org.vitrivr.engine.module.torchserve.client.InferenceClient
  * An abstract implementation of the [TorchServe] [Analyser], which leverages TorchServe ML models for inference.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 abstract class TorchServe<C : ContentElement<*>, D : Descriptor<*>> : Analyser<C, D> {
 
@@ -54,7 +54,7 @@ abstract class TorchServe<C : ContentElement<*>, D : Descriptor<*>> : Analyser<C
      */
     fun analyse(content: Collection<C>, model: String, host: String, port: Int = 8080, token: String? = null): List<D> {
         /* Obtain a client. */
-        var client = synchronized(this) {
+        val client = synchronized(this) {
             var localClient = this.cachedClient
             if (localClient == null || localClient.host != host || localClient.port != port) {
                 localClient = InferenceClient(host, port, token)
@@ -94,7 +94,7 @@ abstract class TorchServe<C : ContentElement<*>, D : Descriptor<*>> : Analyser<C
         val port = ((context.local[field.fieldName]?.get(TORCHSERVE_PORT_KEY) ?: field.parameters[TORCHSERVE_PORT_KEY]))?.toIntOrNull() ?: TORCHSERVE_PORT_DEFAULT
         val token = context.local[field.fieldName]?.get(TORCHSERVE_TOKEN_KEY) ?: field.parameters[TORCHSERVE_TOKEN_KEY]
         val model = context.local[field.fieldName]?.get(TORCHSERVE_MODEL_KEY) ?: field.parameters[TORCHSERVE_MODEL_KEY] ?: throw IllegalArgumentException("Missing model for TorchServe model.")
-        return TorchServeExtractor(host, port, token, model, input, this, field, emptySet(), field.fieldName)
+        return TorchServeExtractor(host, port, token, model, input, this, field, false)
     }
 
     /**
@@ -111,7 +111,7 @@ abstract class TorchServe<C : ContentElement<*>, D : Descriptor<*>> : Analyser<C
         val port = context.local[name]?.get(TORCHSERVE_PORT_KEY)?.toIntOrNull() ?: TORCHSERVE_PORT_DEFAULT
         val token = context.local[name]?.get(TORCHSERVE_TOKEN_KEY)
         val model = context.local[name]?.get(TORCHSERVE_MODEL_KEY) ?: throw IllegalArgumentException("Missing model for TorchServe model.")
-        return TorchServeExtractor(host, port, token, model, input, this, null, emptySet(), name)
+        return TorchServeExtractor(host, port, token, model, input, this, name)
     }
 
     /**

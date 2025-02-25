@@ -45,6 +45,13 @@ sealed interface OperatorConfig {
     data class Transformer(override val factory: String) : WithFactory
 
     /**
+     * Configuration for a [Transformer].
+     */
+    @Serializable
+    @SerialName("PROCESSOR")
+    data class Processor(override val factory: String) : WithFactory
+
+    /**
      * Configuration for an [Extractor].
      */
     @Serializable

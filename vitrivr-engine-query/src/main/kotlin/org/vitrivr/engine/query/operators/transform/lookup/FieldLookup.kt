@@ -26,11 +26,11 @@ class FieldLookup(
 ) : Transformer {
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
         /* Parse input IDs.*/
-        val inputRetrieved = input.toFlow(scope).toList()
+        val inputRetrieved = this@FieldLookup.input.toFlow(scope).toList()
 
         /* Fetch entries for the provided IDs. */
         val ids = inputRetrieved.map { it.id }.toSet()
-        val descriptorMap = if (ids.isEmpty()) {
+        val fetchedDescriptors = if (ids.isEmpty()) {
             emptyMap()
         } else {
             this@FieldLookup.reader.getAllForRetrievable(ids).groupBy { it.retrievableId!! }
@@ -38,13 +38,12 @@ class FieldLookup(
 
         /* Emit retrievable with added attribute. */
         inputRetrieved.forEach { retrieved ->
-            val descriptors = descriptorMap[retrieved.id] ?: emptySet()
-            for (descriptor in descriptors) {
-                if (retrieved.descriptors.none { it.id == descriptor.id }) {
-                    retrieved.addDescriptor(descriptor)
-                }
+            val descriptors = fetchedDescriptors[retrieved.id]
+            if (descriptors != null) {
+                emit(retrieved.copy(descriptors = retrieved.descriptors + descriptors))
+            } else {
+                emit(retrieved)
             }
-            emit(retrieved)
         }
     }
 }

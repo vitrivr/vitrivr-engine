@@ -12,12 +12,9 @@ import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.general.Exporter
-import org.vitrivr.engine.core.operators.general.ExporterFactory
-import org.vitrivr.engine.core.operators.general.Transformer
-import org.vitrivr.engine.core.operators.general.TransformerFactory
+import org.vitrivr.engine.core.operators.general.*
 import org.vitrivr.engine.core.operators.ingest.*
-import org.vitrivr.engine.core.operators.persistence.PersistingSink
+import org.vitrivr.engine.core.operators.sinks.SilentSink
 import org.vitrivr.engine.core.operators.transform.shape.BroadcastOperator
 import org.vitrivr.engine.core.operators.transform.shape.CombineOperator
 import org.vitrivr.engine.core.operators.transform.shape.ConcatOperator
@@ -69,14 +66,14 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
             val output = this.config.output.map { (built[it] as? Operator<Retrievable>) ?: throw IllegalArgumentException("Output operation $it not found in pipeline!") }
             if (output.isEmpty()) throw IllegalStateException("No output operators found in pipeline!")
             if (output.size == 1) {
-                PersistingSink(output.first(), this.context)
+                SilentSink(input = output.first())
             } else {
-                when (this.config.mergeType) {
-                    MERGE -> PersistingSink(MergeOperator(output), this.context)
-                    COMBINE -> PersistingSink(CombineOperator(output), this.context)
-                    CONCAT -> PersistingSink(ConcatOperator(output), this.context)
+                SilentSink(input = when (this.config.mergeType) {
+                    MERGE -> MergeOperator(output)
+                    COMBINE -> CombineOperator(output)
+                    CONCAT -> ConcatOperator(output)
                     null -> throw IllegalStateException("Merge type must be specified if multiple outputs are defined.")
-                }
+                })
             }
         }
     }
@@ -191,6 +188,7 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
         return when (config) { // the when-on-type is on purpose: It enforces all branches
             is OperatorConfig.Decoder -> buildDecoder(name, parent as Enumerator, config)
             is OperatorConfig.Transformer -> buildTransformer(name, parent as Operator<Retrievable>, config) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
+            is OperatorConfig.Processor -> buildProcessor(name, parent as Operator<Retrievable>, config) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
             is OperatorConfig.Extractor -> buildExtractor(name, parent as Operator<Retrievable>, config) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
             is OperatorConfig.Exporter -> buildExporter(name, parent as Operator<Retrievable>, config) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
             else -> throw IllegalStateException("Operator type $config is not supported in this context!")
@@ -250,6 +248,20 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
         val factory = loadFactory<TransformerFactory>(config.factory)
         return factory.newTransformer(name, parent, context).apply {
             logger.info { "Built transformer: ${this.javaClass.name} with name $name" }
+        }
+    }
+
+    /**
+     * Builds a [Processor] based on the [OperatorConfig.Processor]'s factory.
+     *
+     * @param name The name of the [Processor]
+     * @param parent The preceding parent [Operator]s.
+     * @param config The [OperatorConfig.Processor] describing the to-be-built [Processor]
+     */
+    private fun buildProcessor(name: String, parent: Operator<Retrievable>, config: OperatorConfig.Processor): Processor {
+        val factory = loadFactory<ProcessorFactory>(config.factory)
+        return factory.newProcessor(name, parent, context).apply {
+            logger.info { "Built processor: ${this.javaClass.name} with name $name" }
         }
     }
 

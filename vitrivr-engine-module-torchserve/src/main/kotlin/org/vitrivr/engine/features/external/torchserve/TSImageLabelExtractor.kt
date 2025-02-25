@@ -14,9 +14,9 @@ import org.vitrivr.engine.features.external.torchserve.basic.TorchServeExtractor
  * @see [TSImageLabel]
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
-class TSImageLabelExtractor(
+class TSImageLabelExtractor private constructor(
     val threshold: Float,
     host: String,
     port: Int,
@@ -25,9 +25,19 @@ class TSImageLabelExtractor(
     input: Operator<Retrievable>,
     analyser: TSImageLabel,
     field: Schema.Field<ImageContent, LabelDescriptor>? = null,
-    contentSources: Set<String>? = null,
-    name: String
-) : TorchServeExtractor<ImageContent, LabelDescriptor>(host, port, token, model, input, analyser, field, contentSources, name) {
+    name: String,
+    transient: Boolean
+) : TorchServeExtractor<ImageContent, LabelDescriptor>(host, port, token, model, input, analyser, field, name, transient) {
+
+    constructor(threshold: Float, host: String, port: Int, token: String?, model: String, input: Operator<Retrievable>, analyser: TSImageLabel, field: Schema.Field<ImageContent, LabelDescriptor>, transient: Boolean = false) : this(
+        threshold, host, port, token, model, input, analyser, field, field.fieldName, transient
+    )
+
+    constructor(threshold: Float, host: String, port: Int, token: String?, model: String, input: Operator<Retrievable>, analyser: TSImageLabel, name: String) : this(
+        threshold, host, port, token, model, input, analyser, null, name, true
+    )
+
+
     /**
      * Extracts [Descriptor]s from the provided [Retrievable].
      *
