@@ -202,7 +202,9 @@ class VideoSegmentExporter : ExporterFactory {
                 } catch (e: Exception) {
                     logger.error(e) { "Error while recording video segment. ${e.cause.toString()}" }
                 } finally {
+                    recorder.flush()
                     recorder.stop()
+                    recorder.close()
                 }
                 logger.info { "Finished decoding video from source '${source.name}' (${source.sourceId}):" }
             } catch (exception: Exception) {
