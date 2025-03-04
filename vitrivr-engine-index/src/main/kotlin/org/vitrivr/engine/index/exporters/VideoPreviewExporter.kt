@@ -123,21 +123,19 @@ class VideoPreviewExporter : ExporterFactory {
                 val frameRate = grabber.frameRate
                 grabber.frameNumber = (frameRate * second).toInt()
 
-                val frame = grabber.grabImage()
-                grabber.stop()
-
+                val frame = grabber.grabImage() ?: throw IllegalStateException("Could not grab frame from video.")
 
                 val img = try {
                     PointerScope().use { scope ->
-                        Java2DFrameConverter().use {
-                            it.convert(frame)
-                        }
+                        val c = Java2DFrameConverter()
+                        c.convert(frame)
                     }
                 } catch (e: Exception) {
                     logger.error(e) { "Error converting frame to BufferedImage" }
                     null
                 }
 
+                grabber.stop()
                 return img!!
             }
         }
