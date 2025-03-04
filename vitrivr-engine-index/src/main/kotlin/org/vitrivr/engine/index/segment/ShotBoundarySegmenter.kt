@@ -18,8 +18,10 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.source.Source
-import org.vitrivr.engine.index.util.boundaryFile.BoundaryFileDecoder
+import org.vitrivr.engine.core.util.extension.loadServiceForName
 import org.vitrivr.engine.index.util.boundaryFile.MediaSegmentDescriptor
+import org.vitrivr.engine.index.util.boundaryFile.ShotBoundaryProvider
+import org.vitrivr.engine.index.util.boundaryFile.ShotBoundaryProviderFactory
 import java.nio.file.Path
 import java.time.Duration
 import java.util.*
@@ -40,10 +42,10 @@ class ShotBoundarySegmenter : TransformerFactory {
      */
     override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
         /** Path to folder of shotBoundary Files **/
-        val sbPath = Path(
-            (context[name, "sbPath"]
-                ?: throw IllegalArgumentException("Property 'duration' must be specified"))
-        )
+        val sbProvider = context[name, "sbProvider"]?.let { it }
+            ?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
+        val sbParams = context[name, "sbParams"]?.let { it }
+            ?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
         val tolerance = Duration.ofMillis(
             (context[name, "tolerance"]
                 ?: throw IllegalArgumentException("Property 'duration' must be specified")).toLong()
@@ -56,7 +58,7 @@ class ShotBoundarySegmenter : TransformerFactory {
             (context[name, "lookAheadTime"]
                 ?: throw IllegalArgumentException("Property 'lookAheadTime' must be specified")).toLong()
         )
-        return Instance(input, name, sbPath, tolerance, duration, lookAheadTime)
+        return Instance(input, name, context, sbProvider, sbParams, tolerance, duration, lookAheadTime)
     }
 
     /**
@@ -68,8 +70,12 @@ class ShotBoundarySegmenter : TransformerFactory {
 
         override val name: String,
 
+        context: Context,
+
         /** Path to folder of shotBoundary Files **/
-        sbPath: Path,
+        sbProvider: String,
+
+        sbName: String,
 
         /** The target duration of the segments to be created */
         tolerance: Duration,
@@ -81,7 +87,9 @@ class ShotBoundarySegmenter : TransformerFactory {
         lookAheadTime: Duration = Duration.ofSeconds(1)
     ) : Transformer {
 
-        private val sb: BoundaryFileDecoder = BoundaryFileDecoder(sbPath)
+        val factory = loadServiceForName<ShotBoundaryProviderFactory>(sbProvider)
+            ?: throw IllegalArgumentException("Failed to find ShotBoundaryProviderFactory for $name")
+        private val sb: ShotBoundaryProvider = factory.newShotBoundaryProvider(sbName, context)
 
         private val tolerance: Long = tolerance.toNanos()
 
@@ -119,7 +127,14 @@ class ShotBoundarySegmenter : TransformerFactory {
                     ingested.content.forEach { srcRetrievable!!.addContent(it) }
                     ingested.descriptors.forEach { srcRetrievable!!.addDescriptor(it) }
                     ingested.attributes.forEach { srcRetrievable!!.addAttribute(it) }
-                    sendFromCache(downstream, cache, sbs!!.last().startAbs.toNanos(),sbs!!.last().endAbs.toNanos(), tolerance, srcRetrievable!!)
+                    sendFromCache(
+                        downstream,
+                        cache,
+                        sbs!!.last().startAbs.toNanos(),
+                        sbs!!.last().endAbs.toNanos(),
+                        tolerance,
+                        srcRetrievable!!
+                    )
                     downstream.send(srcRetrievable!!)
                     srcRetrievable = Ingested(UUID.randomUUID(), "SOURCE:VIDEO", false)
                     return@collect
@@ -136,7 +151,14 @@ class ShotBoundarySegmenter : TransformerFactory {
                 /* Check if source has changed. */
                 if (lastSource != source) {
                     while (this@Instance.cache.isNotEmpty()) {
-                        sendFromCache(downstream, cache, sbs!![icSbs].startAbs.toNanos(), sbs!![icSbs].endAbs.toNanos(), tolerance, srcRetrievable!!)
+                        sendFromCache(
+                            downstream,
+                            cache,
+                            sbs!![icSbs].startAbs.toNanos(),
+                            sbs!![icSbs].endAbs.toNanos(),
+                            tolerance,
+                            srcRetrievable!!
+                        )
                     }
                     lastSource = source
                     sbs = sb.decode(source.name.split(".")[0])
@@ -149,7 +171,14 @@ class ShotBoundarySegmenter : TransformerFactory {
                 /* Check if cut-off time has been exceeded. */
                 val cutOffTime = sbs!![icSbs].endAbs.toNanos() + this@Instance.lookAheadNanos
                 if (timestamp.endNs >= cutOffTime) {
-                    sendFromCache(downstream, cache, sbs!![icSbs].startAbs.toNanos(),sbs!![icSbs].endAbs.toNanos(), tolerance, srcRetrievable!!)
+                    sendFromCache(
+                        downstream,
+                        cache,
+                        sbs!![icSbs].startAbs.toNanos(),
+                        sbs!![icSbs].endAbs.toNanos(),
+                        tolerance,
+                        srcRetrievable!!
+                    )
                     icSbs++
                 }
             }
@@ -171,12 +200,12 @@ class ShotBoundarySegmenter : TransformerFactory {
             tolerance: Long,
             srcRetrievable: Retrievable,
 
-        ) {
+            ) {
             /* Drain cache. */
             val emit = LinkedList<Retrievable>()
             cache.removeIf {
                 val timestamp = it.filteredAttribute(TimeRangeAttribute::class.java) ?: return@removeIf true
-                if (startTime <= timestamp.startNs && timestamp.endNs <= endTime ) {
+                if (startTime <= timestamp.startNs && timestamp.endNs <= endTime) {
                     emit.add(it)
                     true
                 } else {
@@ -204,7 +233,7 @@ class ShotBoundarySegmenter : TransformerFactory {
                     it.takeUnless { it is TimeRangeAttribute }?.let { ingested.addAttribute(it) }
                     it.takeIf { it is TimeRangeAttribute }?.let {
                         min = (it as TimeRangeAttribute).takeIf { it.startNs < min }?.startNs ?: min
-                        max = (it as TimeRangeAttribute).takeIf { it.endNs > max }?. endNs ?: max
+                        max = (it as TimeRangeAttribute).takeIf { it.endNs > max }?.endNs ?: max
                     }
                 }
             }

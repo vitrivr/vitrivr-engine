@@ -1,19 +1,20 @@
 package org.vitrivr.engine.index.util.boundaryFile
 
-import org.apache.logging.log4j.core.appender.rolling.FileExtension
-import org.vitrivr.engine.core.model.types.Type
-import java.io.File
+import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.context.IndexContext
 import java.nio.file.Path
 import java.time.Duration
-import java.util.UUID
+import java.util.*
 
 
 class FileSystemShotBoundaryProvider: ShotBoundaryProviderFactory {
 
-    override fun newShotBoundaryProvider(uri: String, parmeters: Map<String, String>): ShotBoundaryProvider {
-        return Instance("boundaryFilesPath")
+    override fun newShotBoundaryProvider(name: String, context: Context): ShotBoundaryProvider {
+        val boundaryFilesPath = context[name, "boundaryFilesPath"] ?: throw IllegalArgumentException("Property 'boundaryFilesPath' must be specified")
+        val boundaryFileExtension = context[name, "boundaryFileExtension"] ?: ".tsv"
+        val toNanoScale = context[name, "toNanoScale"]?.toDouble() ?: throw IllegalArgumentException("Property 'toNanoScale' must be specified")
+        return Instance(boundaryFilesPath, boundaryFileExtension, toNanoScale)
     }
-
 
     class Instance(
         private val boundaryFilesPath: String,

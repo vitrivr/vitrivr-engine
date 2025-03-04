@@ -1,20 +1,19 @@
 package org.vitrivr.engine.index.util.boundaryFile
 
-import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.operators.ingest.Enumerator
-import org.vitrivr.engine.core.source.MediaType
-import java.util.stream.Stream
+import org.vitrivr.engine.core.context.Context
 
-interface ShotBoundaryProvider {
-    fun decode(boundaryId: String): List<MediaSegmentDescriptor>
-}
+
 
 /**
- * A factory object for a specific [Enumerator] type.
+ * A factory object for a specific [ShotBoundaryProvider] type.
  *
  * @author Raphael Waltenspuel
  * @version 1.0.0
  */
 interface ShotBoundaryProviderFactory {
-    fun newShotBoundaryProvider(uri: String, parmeters: Map<String,String> = mapOf()): ShotBoundaryProvider
+    fun newShotBoundaryProvider(name: String, context: Context): ShotBoundaryProvider
+}
+
+interface ShotBoundaryProvider {
+    fun decode(boundaryId: String): List<MediaSegmentDescriptor>
 }
