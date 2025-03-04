@@ -16,22 +16,22 @@ import java.util.*
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class TemporalMetadataDescriptor(
+class ShotBoundaryDescriptor(
     override val id: DescriptorId,
     override val retrievableId: RetrievableId?, //retrievable Id must come first, due to reflection
     values: Map<AttributeName, Value<*>?>,
-    override val field: Schema.Field<*, TemporalMetadataDescriptor>? = null
-) : StructDescriptor<TemporalMetadataDescriptor>(id, retrievableId, SCHEMA, values, field) {
+    override val field: Schema.Field<*, ShotBoundaryDescriptor>? = null
+) : StructDescriptor<ShotBoundaryDescriptor>(id, retrievableId, SCHEMA, values, field) {
 
     companion object {
-        /** The field schema associated with a [TemporalMetadataDescriptor]. */
+        /** The field schema associated with a [ShotBoundaryDescriptor]. */
         private val SCHEMA = listOf(
-            Attribute("start", Type.Long),
-            Attribute("end", Type.Long),
+            Attribute("starts", Type.String),
+            Attribute("ends", Type.String),
         )
 
-        /** The prototype [TemporalMetadataDescriptor]. */
-        val PROTOTYPE = TemporalMetadataDescriptor(UUID.randomUUID(), UUID.randomUUID(), mapOf("start" to Value.Long(0L), "end" to Value.Long(0L)))
+        /** The prototype [ShotBoundaryDescriptor]. */
+        val PROTOTYPE = ShotBoundaryDescriptor(UUID.randomUUID(), UUID.randomUUID(), mapOf("starts" to Value.String("[0,1000000000]"), "ends" to Value.String("[1000000000,2000000000]")))
     }
 
     /** The start timestamp in nanoseconds. */
@@ -41,12 +41,12 @@ class TemporalMetadataDescriptor(
     val end: Value.Long by this.values
 
     /**
-     * Returns a copy of this [TemporalMetadataDescriptor] with new [RetrievableId] and/or [DescriptorId]
+     * Returns a copy of this [ShotBoundaryDescriptor] with new [RetrievableId] and/or [DescriptorId]
      *
-     * @param id [DescriptorId] of the new [TemporalMetadataDescriptor].
-     * @param retrievableId [RetrievableId] of the new [TemporalMetadataDescriptor].
-     * @param field [Schema.Field] the new [TemporalMetadataDescriptor] belongs to.
-     * @return Copy of this [TemporalMetadataDescriptor].
+     * @param id [DescriptorId] of the new [ShotBoundaryDescriptor].
+     * @param retrievableId [RetrievableId] of the new [ShotBoundaryDescriptor].
+     * @param field [Schema.Field] the new [ShotBoundaryDescriptor] belongs to.
+     * @return Copy of this [ShotBoundaryDescriptor].
      */
-    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, TemporalMetadataDescriptor>?) = TemporalMetadataDescriptor(id, retrievableId, HashMap(this.values), field)
+    override fun copy(id: DescriptorId, retrievableId: RetrievableId?, field: Schema.Field<*, ShotBoundaryDescriptor>?) = ShotBoundaryDescriptor(id, retrievableId, HashMap(this.values), field)
 }
