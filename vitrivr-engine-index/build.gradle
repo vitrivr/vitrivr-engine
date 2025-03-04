@@ -14,9 +14,15 @@ switch (org.gradle.internal.os.OperatingSystem.current()) {
         project.ext.set("javacppPlatform", 'windows-x86_64')
         break
     case org.gradle.internal.os.OperatingSystem.MAC_OS:
-        project.ext.set("javacppPlatform", 'macosx-x86_64')
+        def arch = System.getProperty("os.arch")
+        if (arch.contains("aarch64") || arch.contains("arm64")) {
+            project.ext.set("javacppPlatform", 'macosx-arm64')
+        } else {
+            project.ext.set("javacppPlatform", 'macosx-x86_64')
+        }
         break
 }
+
 
 dependencies {
 
