@@ -1,35 +1,72 @@
 package org.vitrivr.engine.index.util.boundaryFile
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.client.*
+import io.ktor.client.call.*
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.context.IndexContext
 import java.nio.file.Path
 import java.time.Duration
 import java.util.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 
+private val logger: KLogger = KotlinLogging.logger {}
 
-class ApiShotBoundaryProvider: ShotBoundaryProviderFactory {
+class ApiShotBoundaryProvider : ShotBoundaryProviderFactory {
 
     override fun newShotBoundaryProvider(name: String, context: Context): ShotBoundaryProvider {
-        val boundaryAssetUri = context[name, "boundaryAssetUri"] ?: throw IllegalArgumentException("Property 'boundaryFilesPath' must be specified")
-        val toNanoScale = context[name, "toNanoScale"]?.toDouble() ?: throw IllegalArgumentException("Property 'toNanoScale' must be specified")
-        return Instance(boundaryAssetUri, toNanoScale)
+        val boundaryEndpointUri = context[name, "boundaryEndpointUri"]
+            ?: throw IllegalArgumentException("Property 'boundaryFilesPath' must be specified")
+        val toNanoScale = context[name, "toNanoScale"]?.toDouble()
+            ?: throw IllegalArgumentException("Property 'toNanoScale' must be specified")
+        return Instance(boundaryEndpointUri, toNanoScale)
     }
 
     class Instance(
-        private val boundaryAssetUri: String,
+        private val boundaryEndpointUri: String,
         private val toNanoScale: Double = 1e9
     ) : ShotBoundaryProvider {
 
+        companion object {
+            private val client: HttpClient = HttpClient()
+        }
+
+        private suspend fun querySb(boundaryId: String): HttpResponse {
+            // Api Call
+            val response: HttpResponse = client.request("$boundaryEndpointUri?id=$boundaryId") {
+                // Configure request parameters exposed by HttpRequestBuilder
+                method = HttpMethod.Get
+            }
+            return response
+        }
 
         override fun decode(boundaryId: String): List<MediaSegmentDescriptor> {
 
             val mediaSegementDescriptors = mutableListOf<MediaSegmentDescriptor>()
 
-            // Api Call
+            val result = runBlocking<String> {
+                val response = (try {
+                    querySb(boundaryId)
+                } catch (e: ArithmeticException) {
+                    logger.error { "Error while fetching shot boundary file $boundaryId" }
+                } as HttpResponse)
+
+                if (response.status != HttpStatusCode.OK) {
+                    "Error while fetching shot boundary file $boundaryId".let {
+                        logger.error { it }
+                        throw IllegalArgumentException(it)
+                    }
+                }
+                response.body<String>()
+            }
 
 
-
-            with(Path.of(this.boundaryAssetUri).resolve("$boundaryId").toFile().bufferedReader()) {
+            with(Path.of(this.boundaryEndpointUri).resolve("$boundaryId").toFile().bufferedReader()) {
                 var shotCounter = 0
                 while (true) {
 
