@@ -17,17 +17,17 @@ import kotlinx.coroutines.runBlocking
 
 private val logger: KLogger = KotlinLogging.logger {}
 
-class ApiShotBoundaryProvider : ShotBoundaryProviderFactory {
+class ApiShotBoundaryProvider: ShotBoundaryProviderFactory {
 
     override fun newShotBoundaryProvider(name: String, context: Context): ShotBoundaryProvider {
         val boundaryEndpointUri = context[name, "boundaryEndpointUri"]
             ?: throw IllegalArgumentException("Property 'boundaryFilesPath' must be specified")
         val toNanoScale = context[name, "toNanoScale"]?.toDouble()
             ?: throw IllegalArgumentException("Property 'toNanoScale' must be specified")
-        return Instance(boundaryEndpointUri, toNanoScale)
+        return Instance<ShotBoundaryDetectionDescriptor>(boundaryEndpointUri, toNanoScale)
     }
 
-    class Instance(
+    class Instance<T : MediaSegmentDecriptable>(
         private val boundaryEndpointUri: String,
         private val toNanoScale: Double = 1e9
     ) : ShotBoundaryProvider {
@@ -47,9 +47,7 @@ class ApiShotBoundaryProvider : ShotBoundaryProviderFactory {
 
         override fun decode(boundaryId: String): List<MediaSegmentDescriptor> {
 
-            val mediaSegementDescriptors = mutableListOf<MediaSegmentDescriptor>()
-
-            val result = runBlocking<String> {
+            val result = runBlocking<T> {
                 val response = (try {
                     querySb(boundaryId)
                 } catch (e: ArithmeticException) {
@@ -62,45 +60,11 @@ class ApiShotBoundaryProvider : ShotBoundaryProviderFactory {
                         throw IllegalArgumentException(it)
                     }
                 }
-                response.body<String>()
+                @Suppress("UNCHECKED_CAST")
+                response.body<Any?>() as T
             }
 
-
-            with(Path.of(this.boundaryEndpointUri).resolve("$boundaryId").toFile().bufferedReader()) {
-                var shotCounter = 0
-                while (true) {
-
-                    var line: String = readLine() ?: break
-                    line = line.trim()
-
-                    when {
-                        !line[0].isDigit() -> {
-                            continue
-                        }
-
-                        line.split(" ", "\t").size < 2 -> {
-                            continue
-                        }
-
-                        line.split(" ", "\t").size == 4 -> {
-                            val (startframe, starttime, endframe, endtime) = line.split(" ", "\t")
-                            mediaSegementDescriptors.add(
-                                MediaSegmentDescriptor(
-                                    boundaryId,
-                                    UUID.randomUUID().toString(),
-                                    shotCounter,
-                                    startframe.toInt(),
-                                    endframe.toInt(),
-                                    Duration.ofNanos((starttime.toDouble() * toNanoScale).toLong()),
-                                    Duration.ofNanos((endtime.toDouble() * toNanoScale).toLong()),
-                                    true
-                                )
-                            )
-                        }
-                    }
-                    shotCounter++
-                }
-            }
+            val mediaSegementDescriptors = result.toMediaSegmentDescriptors()
 
             return mediaSegementDescriptors
         }
