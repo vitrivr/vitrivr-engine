@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.runBlocking
+import org.bytedeco.opencv.presets.opencv_core.Str
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -29,8 +30,10 @@ import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Metadata
 import org.vitrivr.engine.core.source.Source
 import org.vitrivr.engine.core.source.file.FileSource
-import org.vitrivr.engine.index.util.boundaryFile.BoundaryFileDecoder
+import org.vitrivr.engine.core.util.extension.loadServiceForName
 import org.vitrivr.engine.index.util.boundaryFile.MediaSegmentDescriptor
+import org.vitrivr.engine.index.util.boundaryFile.ShotBoundaryProvider
+import org.vitrivr.engine.index.util.boundaryFile.ShotBoundaryProviderFactory
 import java.awt.image.BufferedImage
 import java.nio.ShortBuffer
 import java.nio.file.Path
@@ -53,9 +56,9 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
         val audio = context[name, "audio"]?.let { it.lowercase() == "true" } != false
         val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
         val ffmpegPath = context[name, "ffmpegPath"]?.let { Path.of(it) }
-        val sbPath = context[name, "sbPath"]?.let { Path.of(it) }
-
-        return Instance(input, context, video, audio, timeWindowMs, ffmpegPath, sbPath, name)
+        val sbProvider = context[name, "sbProvider"]?.let { it }?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
+        val sbName = context[name, "sbName"]?.let { it }?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
+        return Instance(input, context, video, audio, timeWindowMs, ffmpegPath, sbProvider, sbName, name)
     }
 
     private class Instance(
@@ -65,7 +68,8 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
         private val audio: Boolean = true,
         private val timeWindowMs: Long = 500L,
         private val ffmpegPath: Path? = null,
-        private val sbPath: Path? = null,
+        private val sbProvider: String,
+        private val sbName: String,
         override val name: String
     ) : Decoder {
 
@@ -78,8 +82,8 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
         private val ffmpeg: FFmpeg
             get() = if (this.ffmpegPath != null) FFmpeg.atPath(this.ffmpegPath) else FFmpeg.atPath()
 
-
-        private val sb: BoundaryFileDecoder = BoundaryFileDecoder(this.sbPath!!)
+        val factory = loadServiceForName<ShotBoundaryProviderFactory>(sbProvider) ?: throw IllegalArgumentException("Failed to find ShotBoundaryProviderFactory for $name")
+        private val sb: ShotBoundaryProvider = factory.newShotBoundaryProvider(sbName, context)
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = channelFlow {
             this@Instance.input.toFlow(scope).collect { sourceRetrievable ->

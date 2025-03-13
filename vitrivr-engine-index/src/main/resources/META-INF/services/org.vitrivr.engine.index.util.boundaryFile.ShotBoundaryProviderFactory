@@ -1,0 +1,2 @@
+org.vitrivr.engine.index.util.boundaryFile.FileSystemShotBoundaryProvider
+org.vitrivr.engine.index.util.boundaryFile.ApiShotBoundaryProvider

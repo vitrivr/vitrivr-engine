@@ -14,6 +14,7 @@ import org.vitrivr.cottontail.core.values.StringValue
 import org.vitrivr.cottontail.core.values.UuidValue
 import org.vitrivr.engine.core.database.retrievable.RetrievableInitializer
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
+import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
@@ -153,7 +154,7 @@ internal class RetrievableReader(override val connection: CottontailConnection) 
         subjectIds: Collection<RetrievableId>,
         predicates: Collection<String>,
         objectIds: Collection<RetrievableId>
-    ): Sequence<Triple<RetrievableId, String, RetrievableId>> {
+    ): Sequence<Relationship.ById> {
 
         val filters = listOfNotNull(
             if (subjectIds.isNotEmpty()) {
@@ -204,7 +205,7 @@ internal class RetrievableReader(override val connection: CottontailConnection) 
                 ?: throw IllegalArgumentException("The provided tuple is missing the required field '${PREDICATE_COLUMN_NAME}'.")
             val o = tuple.asUuidValue(OBJECT_ID_COLUMN_NAME)?.value
                 ?: throw IllegalArgumentException("The provided tuple is missing the required field '${OBJECT_ID_COLUMN_NAME}'.")
-            Triple(s, p, o)
+            Relationship.ById(s, p, o, false)
         }
 
     }
