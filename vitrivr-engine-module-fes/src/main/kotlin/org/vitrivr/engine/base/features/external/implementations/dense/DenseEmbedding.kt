@@ -37,7 +37,7 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
     companion object {
         const val LENGTH_PARAMETER_DEFAULT = 512
         const val LENGTH_PARAMETER_NAME = "length"
-        const val DISTANCE_PARAMETER_DEFAULT = "euclidean"
+        const val DISTANCE_PARAMETER_DEFAULT = "EUCLIDEAN"
         const val DISTANCE_PARAMETER_NAME = "distance"
     }
     override val contentClasses = setOf(ImageContent::class, TextContent::class)
@@ -106,7 +106,7 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
         val retries = field.parameters[RETRIES_PARAMETER_NAME]?.toIntOrNull() ?: RETRIES_PARAMETER_DEFAULT
         val model =  field.parameters[MODEL_PARAMETER_NAME] ?: throw IllegalStateException("Model parameter not set.")
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        val distance = Distance fromString (field.parameters[DISTANCE_PARAMETER_NAME] ?: DISTANCE_PARAMETER_DEFAULT)
+        val distance = Distance.valueOf (field.parameters[DISTANCE_PARAMETER_NAME]?.uppercase() ?: DISTANCE_PARAMETER_DEFAULT)
         val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
 
         /* Generate vector for content element. */

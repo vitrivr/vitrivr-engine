@@ -29,3 +29,6 @@ const val DESCRIPTOR_ID_COLUMN_NAME = "descriptorid"
 
 /** The column name used to describe a distance.*/
 const val DISTANCE_COLUMN_NAME = "distance"
+
+/** Name of columns storing an index value e.g. `value` -> `index_value` */
+const val INDEX_VALUE_COLUMN_NAME = "idx_value"

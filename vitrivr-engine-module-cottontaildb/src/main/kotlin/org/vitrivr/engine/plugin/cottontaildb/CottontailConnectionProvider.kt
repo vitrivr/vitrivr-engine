@@ -9,6 +9,7 @@ import org.vitrivr.engine.core.model.descriptor.struct.AnyMapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.MediaDimensionsDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.Rectangle2DMetadataDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.metadata.ShotBoundaryDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSourceMetadataDescriptor
@@ -71,6 +72,7 @@ class CottontailConnectionProvider: AbstractConnectionProvider() {
         this.register(FileSourceMetadataDescriptor::class, StructDescriptorProvider)
         this.register(VideoSourceMetadataDescriptor::class, StructDescriptorProvider)
         this.register(TemporalMetadataDescriptor::class, StructDescriptorProvider)
+        this.register(ShotBoundaryDescriptor::class, StructDescriptorProvider)
         this.register(Rectangle2DMetadataDescriptor::class, StructDescriptorProvider)
         this.register(MediaDimensionsDescriptor::class, StructDescriptorProvider)
         this.register(AnyMapStructDescriptor::class, StructDescriptorProvider)

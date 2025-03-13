@@ -17,14 +17,20 @@ import java.sql.SQLException
  * @author Ralph Gasser
  * @version 1.0.0
  */
-open class PgDescriptorInitializer<D : Descriptor<*>>(final override val field: Schema.Field<*, D>, protected val connection: PgVectorConnection) : DescriptorInitializer<D> {
+open class PgDescriptorInitializer<D : Descriptor<*>>(
+    final override val field: Schema.Field<*, D>,
+    protected val connection: PgVectorConnection
+) : DescriptorInitializer<D> {
 
     companion object {
         /** Set of scalar index structures supported by PostgreSQL. */
-        private val INDEXES_SCALAR = setOf("btree", "brin", "hash")
+        val INDEXES_SCALAR = setOf("btree", "brin", "hash")
 
         /** Set of NNS index structures supported by PostgreSQL. */
-        private val INDEXES_NNS = setOf("hnsw", "ivfflat")
+        val INDEXES_NNS = setOf("hnsw", "ivfflat")
+
+        /** Set of FULLTEXT index structures supported by PostgreSQL. */
+        val INDEXES_FULLTEXT = setOf("gin")
     }
 
     /** The name of the table backing this [PgDescriptorInitializer]. */
@@ -43,6 +49,7 @@ open class PgDescriptorInitializer<D : Descriptor<*>>(final override val field: 
 
         /* Add columns for each field in the struct. */
         for (field in this.prototype.layout()) {
+            // @formatter:off
             when (field.type) {
                 Type.String -> statement.append("\"${field.name.lowercase()}\" varchar(255), ")
                 Type.Text -> statement.append("\"${field.name.lowercase()}\" text, ")
@@ -61,6 +68,7 @@ open class PgDescriptorInitializer<D : Descriptor<*>>(final override val field: 
                 is Type.IntVector -> statement.append("\"${field.name.lowercase()}\" vector(${field.type.dimensions}), ")
                 is Type.LongVector -> statement.append("\"${field.name.lowercase()}\" vector(${field.type.dimensions}), ")
             }
+            // @formatter:on
         }
 
         /* Finalize statement*/
@@ -86,13 +94,36 @@ open class PgDescriptorInitializer<D : Descriptor<*>>(final override val field: 
                         require(type in INDEXES_SCALAR) { "Index type '$type' is not supported by PostgreSQL." }
                         "CREATE INDEX ON $tableName USING $type(${index.attributes.joinToString(",")});"
                     }
-                    IndexType.FULLTEXT -> "CREATE INDEX ON $tableName USING gin(${index.attributes.joinToString(",") { "to_tsvector('${index.parameters["language"] ?: "english"}', $it)" }});"
-                    IndexType.NNS ->  {
+                    IndexType.FULLTEXT -> {
+                        val type = index.parameters[INDEX_TYPE_PARAMETER_NAME]?.lowercase() ?: "gin"
+                        require(type in INDEXES_FULLTEXT) { "Index type '$type' is not supported by PostgreSQL." }
+                        when (type) {
+                            "gin" -> {
+                                "ALTER TABLE $tableName " +
+                                        "ADD COLUMN ${INDEX_VALUE_COLUMN_NAME} tsvector " +
+                                        "GENERATED ALWAYS AS (" +
+                                        "to_tsvector('${index.parameters["language"] ?: "english"}', ${index.attributes.joinToString(" || ' ' || ") { it }})" +
+                                        ") STORED;"
+                            }
+                            else -> ""
+                        }
+                    }
+                    IndexType.NNS -> {
                         require(index.attributes.size == 1) { "NNS index can only be created on a single attribute." }
                         val type = index.parameters[INDEX_TYPE_PARAMETER_NAME]?.lowercase() ?: "hnsw"
-                        val distance = index.parameters[DISTANCE_PARAMETER_NAME]?.let { Distance.valueOf(it.uppercase()) } ?: Distance.EUCLIDEAN
                         require(type in INDEXES_NNS) { "Index type '$type' is not supported by PostgreSQL." }
-                        "CREATE INDEX ON $tableName USING $type(${index.attributes.first()} ${distance.toIndexName()});"
+                        var hyperparameters = ""
+                        when (type) {
+                            "hnsw" -> {
+                                hyperparameters =
+                                    "WITH (m = ${index.parameters["m"] ?: "16"}, ef_construction = ${index.parameters["efConstruction "] ?: "64"}); SET hnsw.ef_search = ${index.parameters["efSearch"] ?: "200"}"
+                            }
+                        }
+                        val distance =
+                            index.parameters[DISTANCE_PARAMETER_NAME]?.let { Distance.valueOf(it.uppercase()) }
+                                ?: Distance.EUCLIDEAN
+
+                        "CREATE INDEX ON $tableName USING $type(${index.attributes.first()} ${distance.toIndexName()}) $hyperparameters;"
                     }
                 }
                 this.connection.jdbc.prepareStatement(/* sql = postgres */ indexStatement).use { it.execute() }
@@ -109,9 +140,10 @@ open class PgDescriptorInitializer<D : Descriptor<*>>(final override val field: 
     override fun deinitialize() {
         try {
             /* Create 'retrievable' entity and index. */
-            this.connection.jdbc.prepareStatement(/* sql = postgres */ "DROP TABLE IF EXISTS \"${tableName.lowercase()}\" CASCADE;").use {
-                it.execute()
-            }
+            this.connection.jdbc.prepareStatement(/* sql = postgres */ "DROP TABLE IF EXISTS \"${tableName.lowercase()}\" CASCADE;")
+                .use {
+                    it.execute()
+                }
         } catch (e: SQLException) {
             LOGGER.error(e) { "Failed to de-initialize entity '$tableName' due to exception." }
         }
@@ -124,9 +156,10 @@ open class PgDescriptorInitializer<D : Descriptor<*>>(final override val field: 
      */
     override fun isInitialized(): Boolean {
         try {
-            this.connection.jdbc.prepareStatement(/* sql = postgres */ "SELECT count(*) FROM \"${tableName.lowercase()}\"").use {
-                it.execute()
-            }
+            this.connection.jdbc.prepareStatement(/* sql = postgres */ "SELECT count(*) FROM \"${tableName.lowercase()}\"")
+                .use {
+                    it.execute()
+                }
         } catch (e: SQLException) {
             return false
         }
@@ -151,7 +184,7 @@ open class PgDescriptorInitializer<D : Descriptor<*>>(final override val field: 
      */
     private fun Distance.toIndexName() = when (this) {
         Distance.MANHATTAN -> "vector_l1_ops"
-        Distance.EUCLIDEAN -> "sparsevec_l2_ops"
+        Distance.EUCLIDEAN -> "vector_l2_ops"
         Distance.COSINE -> "vector_cosine_ops"
         Distance.HAMMING -> "bit_hamming_ops"
         Distance.JACCARD -> "bit_jaccard_ops"
