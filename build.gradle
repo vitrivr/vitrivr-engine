@@ -14,10 +14,11 @@ allprojects {
     group = 'org.vitrivr'
 
     /* Current version of our artifacts. */
-    version = '0.0.2-SNAPSHOT'
+    version = '0.0.3'
 
     /* Repositories for build script. */
     buildscript {
+
         repositories {
             mavenCentral()
             maven {
@@ -67,6 +68,13 @@ subprojects {
 
     kotlin {
         jvmToolchain(21)
+        // this prevents from optimizing out unused variables for debugging
+        compilerOptions {
+            if (System.getProperty("idea.active") == "true") {
+                println("Enable coroutine debugging")
+                freeCompilerArgs.add("-Xdebug")
+            }
+        }
     }
 
     java {

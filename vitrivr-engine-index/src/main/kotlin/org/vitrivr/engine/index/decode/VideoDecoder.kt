@@ -91,8 +91,8 @@ class VideoDecoder : DecoderFactory {
                 if (source is FileSource) {
                     FFmpegFrameGrabber(source.path.toFile()).use { grabber ->
                         decodeFromGrabber(source, sourceRetrievable, grabber, channel)
-                    }
-                } else {
+                    }                }
+                else {
                     source.newInputStream().use { input ->
                         FFmpegFrameGrabber(input).use { grabber ->
                             decodeFromGrabber(source, sourceRetrievable, grabber, channel)
