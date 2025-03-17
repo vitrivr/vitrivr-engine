@@ -98,7 +98,7 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
                 // TODO parse/create  path/uri to source
                 //val uri = "http://local-nmr.xreco-retrieval.ch/api/assets/resource/f58389e0-4f0e-42cd-800e-6f9ec2eeb2e5/asset.mp4"
                 val uri = "http%3A%2F%2Flocal-nmr.xreco-retrieval.ch%2Fapi%2Fassets%2Fresource%2Ff58389e0-4f0e-42cd-800e-6f9ec2eeb2e5%2Fasset.mp4"
-                val sbs = sb.decode(uri)
+                val sbs = emptyList<MediaSegmentDescriptor>()//sb.decode(uri)
                 sbs.isEmpty().let {
                     if (it) {
                         logger.warn { "No shot boundaries found for source ${source.name} (${source.sourceId}) using fixed time window of $timeWindowMs ms." }
@@ -252,6 +252,7 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
                     this@InFlowFrameConsumer.videoStream?.id -> this@InFlowFrameConsumer.videoStream!!
                     else -> return@runBlocking
                 }
+                //
                 val timestamp = ((1_000_000 * frame.pts) / stream.timebase)
                 when (stream.type) {
                     Stream.Type.VIDEO -> {
@@ -296,12 +297,8 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
                         )
                     } else {
                         windowStartEnd = Pair(
-                            TimeUnit.MILLISECONDS.toMicros(
-                                windowStartEnd.second
-                            ),
-                            TimeUnit.MILLISECONDS.toMicros(
-                                windowStartEnd.second + this@Instance.timeWindowMs
-                            )
+                            windowStartEnd.second,
+                            windowStartEnd.second + TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
                         )
                     }
                 }

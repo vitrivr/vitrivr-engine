@@ -24,6 +24,7 @@ import org.vitrivr.engine.core.source.Metadata
 import org.vitrivr.engine.core.source.Source
 import org.vitrivr.engine.core.source.file.FileSource
 import org.vitrivr.engine.core.source.file.MimeType
+import java.awt.image.BufferedImage
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
@@ -79,8 +80,12 @@ class VideoSegmentExporter : ExporterFactory {
         private val video: Boolean = true,
         private val audio: Boolean = true,
         private val keyFrames: Boolean = false,
-        override val name: String
+        override val name: String,
+        private val useGrabber: Boolean? = false
     ) : Exporter {
+
+        private var grabber: Pair<FFmpegFrameGrabber, UUID>? = null
+
         init {
             require(mimeType in SUPPORTED) {
                 "VideoPreviewExporter only supports image formats JPEG and PNG."
@@ -100,18 +105,18 @@ class VideoSegmentExporter : ExporterFactory {
             val resolvable = this.context.resolver.resolve(retrievable.id, this.mimeType.fileExtension)!!
             val path  = "$location/${retrievable.id}/segment.${this.mimeType.fileExtension}"
 
-            if (source is FileSource) {
-                FFmpegFrameGrabber(source.path.toFile()).use { grabber ->
-                    decodeFromGrabber(source, grabber, path , startTimestamp, endTimestamp)
-                    grabber.close()
+            if (source is FileSource && useGrabber == true) {
+                if (this.grabber == null) {
+                    this.grabber = Pair(FFmpegFrameGrabber(source.path.toFile()), source.sourceId)
                 }
+                if (this.grabber?.second != source.sourceId) {
+                    this.grabber?.first?.release()
+                    this.grabber?.first?.close()
+                    this.grabber = Pair(FFmpegFrameGrabber(source.path.toFile()), source.sourceId)
+                }
+                decodeFromGrabber(source, this.grabber!!.first, path , startTimestamp, endTimestamp)
             } else {
-                source.newInputStream().use { input ->
-                    FFmpegFrameGrabber(input).use { grabber ->
-                        decodeFromGrabber(source, grabber, path , startTimestamp, endTimestamp)
-                        grabber.close()
-                    }
-                }
+                //decode(source, emptyList(), path , startTimestamp, endTimestamp)
             }
         }
 
@@ -136,7 +141,7 @@ class VideoSegmentExporter : ExporterFactory {
             grabber.sampleMode = FrameGrabber.SampleMode.SHORT
 
 
-            logger.info { "Start recording segment from ${startMs/1000000} to ${endMs/1000000} of source ${source.name} (${source.sourceId})" }
+            logger.info { "Start recording segment from ${startMs / 1000000} to ${endMs / 1000000} of source ${source.name} (${source.sourceId})" }
             try {
                 grabber.start()
                 grabber.setTimestamp(startMs)
