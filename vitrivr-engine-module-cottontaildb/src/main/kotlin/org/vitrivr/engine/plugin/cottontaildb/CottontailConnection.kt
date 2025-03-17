@@ -19,7 +19,7 @@ internal val LOGGER: KLogger = logger("org.vitrivr.engine.plugin.cottontaildb.Co
  * A [AbstractConnection] to connect to a Cottontail DB instance.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 class CottontailConnection(provider: CottontailConnectionProvider, schemaName: String, private val host: String, private val port: Int) : AbstractConnection(schemaName, provider) {
 
@@ -44,9 +44,9 @@ class CottontailConnection(provider: CottontailConnectionProvider, schemaName: S
      * @param action The action to execute within the transaction.
      */
     @Synchronized
-    override fun <T> withTransaction(action: (Unit) -> T): T {
+    override fun <T> withTransaction(action: () -> T): T {
         LOGGER.warn { "Transactions are not supported by Cottontail DB. Ignoring transaction." }
-        return action.invoke(Unit)
+        return action.invoke()
     }
 
     /**

@@ -1,15 +1,19 @@
 package org.vitrivr.engine.database.pgvector.retrievable
 
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.vitrivr.engine.core.database.retrievable.RetrievableInitializer
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.database.pgvector.*
+import org.vitrivr.engine.database.pgvector.exposed.RelationshipTable
+import org.vitrivr.engine.database.pgvector.exposed.RetrievableTable
 import java.sql.SQLException
 
 /**
  * A [RetrievableInitializer] implementation for PostgreSQL with pgVector.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 internal class RetrievableInitializer(private val connection: PgVectorConnection): RetrievableInitializer {
     /**
@@ -17,17 +21,12 @@ internal class RetrievableInitializer(private val connection: PgVectorConnection
      */
     override fun initialize() {
         try {
-            /* Create 'retrievable' entity and index. */
-            this.connection.jdbc.prepareStatement(/* sql = postgres */ "CREATE TABLE IF NOT EXISTS ${RETRIEVABLE_ENTITY_NAME} ($RETRIEVABLE_ID_COLUMN_NAME uuid NOT NULL, type VARCHAR(100), PRIMARY KEY ($RETRIEVABLE_ID_COLUMN_NAME));").use {
-                it.execute()
+            transaction(this.connection.database) {
+                SchemaUtils.create(RetrievableTable)
+                SchemaUtils.create(RelationshipTable)
             }
-
-            /* Create 'relationship' entity. */
-            this.connection.jdbc.prepareStatement(/* sql = postgres */ "CREATE TABLE IF NOT EXISTS ${RELATIONSHIP_ENTITY_NAME} ($SUBJECT_ID_COLUMN_NAME uuid NOT NULL, $PREDICATE_COLUMN_NAME VARCHAR(100) NOT NULL, $OBJECT_ID_COLUMN_NAME uuid NOT NULL, PRIMARY KEY ($SUBJECT_ID_COLUMN_NAME, $PREDICATE_COLUMN_NAME, $OBJECT_ID_COLUMN_NAME), FOREIGN KEY($OBJECT_ID_COLUMN_NAME) REFERENCES $RETRIEVABLE_ENTITY_NAME($RETRIEVABLE_ID_COLUMN_NAME) ON DELETE CASCADE, FOREIGN KEY($SUBJECT_ID_COLUMN_NAME) REFERENCES $RETRIEVABLE_ENTITY_NAME($RETRIEVABLE_ID_COLUMN_NAME) ON DELETE CASCADE);").use {
-                it.execute()
-            }
-        } catch (e: SQLException) {
-            LOGGER.error(e) { "Failed to initialize entity due to exception." }
+        } catch (e: Throwable) {
+            LOGGER.error(e) { "Failed to initialize retrievable entities due to exception." }
         }
     }
 
@@ -36,17 +35,11 @@ internal class RetrievableInitializer(private val connection: PgVectorConnection
      */
     override fun deinitialize() {
         try {
-            /* Create 'retrievable' entity and index. */
-            this.connection.jdbc.prepareStatement(/* sql = postgres */ "DROP TABLE IF EXISTS ${RETRIEVABLE_ENTITY_NAME} CASCADE;").use {
-                it.execute()
+            transaction(this.connection.database) {
+                SchemaUtils.drop(RelationshipTable, RetrievableTable)
             }
-
-            /* Create 'relationship' entity. */
-            this.connection.jdbc.prepareStatement(/* sql = postgres */ "DROP TABLE IF EXISTS ${RELATIONSHIP_ENTITY_NAME} CASCADE;").use {
-                it.execute()
-            }
-        } catch (e: SQLException) {
-            LOGGER.error(e) { "Failed to initialize entity due to exception." }
+        } catch (e: Throwable) {
+            LOGGER.error(e) { "Failed to de-initialize retrievable entities due to exception." }
         }
     }
 
@@ -55,22 +48,15 @@ internal class RetrievableInitializer(private val connection: PgVectorConnection
      *
      * @return True if entity has been initialized, false otherwise.
      */
-    override fun isInitialized(): Boolean {
-        try {
-            this.connection.jdbc.prepareStatement(/* sql = postgres */ "SELECT count(*) FROM  ${RETRIEVABLE_ENTITY_NAME};").use {
-                it.execute()
+    override fun isInitialized(): Boolean =  try {
+        transaction(this.connection.database) {
+            SchemaUtils.listTables().let {
+                val tables = it.map { table -> table.split(".").last() }
+                tables.contains(RetrievableTable.nameInDatabaseCase()) && tables.contains(RelationshipTable.nameInDatabaseCase())
             }
-        } catch (e: SQLException) {
-            return false
         }
-        try {
-            this.connection.jdbc.prepareStatement(/* sql = postgres */ "SELECT count(*) FROM $RELATIONSHIP_ENTITY_NAME;").use {
-                it.execute()
-            }
-        } catch (e: SQLException) {
-            return false
-        }
-        return true
+    } catch (e: Throwable) {
+        false
     }
 
     /**
@@ -78,9 +64,10 @@ internal class RetrievableInitializer(private val connection: PgVectorConnection
      */
     override fun truncate() {
         try {
-            this.connection.jdbc.prepareStatement(/* sql = postgres */ "TRUNCATE ${RETRIEVABLE_ENTITY_NAME}, ${RELATIONSHIP_ENTITY_NAME}").use {
-                it.execute()
+            transaction(this.connection.database) {
+                exec("TRUNCATE TABLE IF EXISTS ${RetrievableTable.nameInDatabaseCase()};")
             }
+
         } catch (e: SQLException) {
             LOGGER.error(e) { "Failed to truncate entities due to exception." }
         }
