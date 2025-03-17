@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.runBlocking
-import org.bytedeco.opencv.presets.opencv_core.Str
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -98,7 +97,7 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
                 // TODO parse/create  path/uri to source
                 //val uri = "http://local-nmr.xreco-retrieval.ch/api/assets/resource/f58389e0-4f0e-42cd-800e-6f9ec2eeb2e5/asset.mp4"
                 val uri = "http%3A%2F%2Flocal-nmr.xreco-retrieval.ch%2Fapi%2Fassets%2Fresource%2Ff58389e0-4f0e-42cd-800e-6f9ec2eeb2e5%2Fasset.mp4"
-                val sbs = emptyList<MediaSegmentDescriptor>()//sb.decode(uri)
+                val sbs = sb.decode(uri)
                 sbs.isEmpty().let {
                     if (it) {
                         logger.warn { "No shot boundaries found for source ${source.name} (${source.sourceId}) using fixed time window of $timeWindowMs ms." }
@@ -121,6 +120,8 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
                     source.metadata[Metadata.METADATA_KEY_AV_DURATION] = (videoStreamInfo.duration * 1000f).toLong()
                     source.metadata[Metadata.METADATA_KEY_IMAGE_WIDTH] = videoStreamInfo.width
                     source.metadata[Metadata.METADATA_KEY_IMAGE_HEIGHT] = videoStreamInfo.height
+                    source.metadata[Metadata.METADATA_KEY_VIDEO_BITRATE] = videoStreamInfo.bitRate
+
                 }
 
                 val audioStreamInfo = probeResult.streams.find { it.codecType == StreamType.AUDIO }
@@ -128,6 +129,7 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
                     source.metadata[Metadata.METADATA_KEY_AUDIO_CHANNELS] = audioStreamInfo.channels
                     source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLERATE] = audioStreamInfo.sampleRate
                     source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLESIZE] = audioStreamInfo.sampleFmt
+                    source.metadata[Metadata.METADATA_KEY_AUDIO_BITRATE] = audioStreamInfo.bitRate
                 }
 
                 /* Create consumer. */

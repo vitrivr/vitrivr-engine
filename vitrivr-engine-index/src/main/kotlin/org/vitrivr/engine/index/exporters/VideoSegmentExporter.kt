@@ -13,6 +13,9 @@ import org.bytedeco.ffmpeg.global.avutil
 import org.bytedeco.javacpp.PointerScope
 import org.bytedeco.javacv.*
 import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.model.content.element.AudioContent
+import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
@@ -25,10 +28,14 @@ import org.vitrivr.engine.core.source.Source
 import org.vitrivr.engine.core.source.file.FileSource
 import org.vitrivr.engine.core.source.file.MimeType
 import java.awt.image.BufferedImage
+import java.awt.image.DataBufferByte
+import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.concurrent.fixedRateTimer
+
 
 private val logger: KLogger = KotlinLogging.logger {}
 
@@ -60,14 +67,16 @@ class VideoSegmentExporter : ExporterFactory {
                     null
                 }
             } ?: MimeType.MP4
-        val location = context[name, "location"]?.let { it.lowercase()} ?: throw IllegalArgumentException("No location specified")
+        val location =
+            context[name, "location"]?.let { it.lowercase() } ?: throw IllegalArgumentException("No location specified")
         val video = context[name, "video"]?.let { it.lowercase() == "true" } ?: true
         val audio = context[name, "audio"]?.let { it.lowercase() == "true" } ?: true
+        val useGrabber = context[name, "useGrabber"]?.let { it.lowercase() == "true" } ?: false
         val keyFrames = context[name, "keyFrames"]?.let { it.lowercase() == "true" } ?: false
         logger.debug {
             "Creating new VideoSegmentExporter with mimeType=$mimeType."
         }
-        return Instance(input, context, mimeType, location, video, audio, keyFrames, name)
+        return Instance(input, context, mimeType, location, video, audio, keyFrames, name, useGrabber)
     }
 
 
@@ -91,6 +100,7 @@ class VideoSegmentExporter : ExporterFactory {
                 "VideoPreviewExporter only supports image formats JPEG and PNG."
             }
         }
+
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
 
             val source = retrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@onEach
@@ -103,7 +113,7 @@ class VideoSegmentExporter : ExporterFactory {
             val startTimestamp = retrievable.filteredAttribute(TimeRangeAttribute::class.java)?.startNs!! / 1000
             val endTimestamp = retrievable.filteredAttribute(TimeRangeAttribute::class.java)?.endNs!! / 1000
             val resolvable = this.context.resolver.resolve(retrievable.id, this.mimeType.fileExtension)!!
-            val path  = "$location/${retrievable.id}/segment.${this.mimeType.fileExtension}"
+            val path = "$location/${retrievable.id}/segment.${this.mimeType.fileExtension}"
 
             if (source is FileSource && useGrabber == true) {
                 if (this.grabber == null) {
@@ -114,10 +124,90 @@ class VideoSegmentExporter : ExporterFactory {
                     this.grabber?.first?.close()
                     this.grabber = Pair(FFmpegFrameGrabber(source.path.toFile()), source.sourceId)
                 }
-                decodeFromGrabber(source, this.grabber!!.first, path , startTimestamp, endTimestamp)
+                decodeFromGrabber(source, this.grabber!!.first, path, startTimestamp, endTimestamp)
             } else {
-                //decode(source, emptyList(), path , startTimestamp, endTimestamp)
+                decode(source, retrievable.content, path, startTimestamp, endTimestamp)
             }
+        }
+
+
+        /**
+         * Decodes a video from a [FFmpegFrameGrabber] and emits [Retrievable] elements to the downstream [channel].
+         *
+         * @param source The [Source] from which the video is being decoded.
+         * @param grabber The [FFmpegFrameGrabber] used to decode the video.
+         * @param channel The [ProducerScope] used to emit [Retrievable] elements.
+         */
+        private suspend fun decode(
+            source: Source,
+            content: List<ContentElement<*>>,
+            path: String,
+            startMs: Long,
+            endMs: Long,
+        ) {
+
+            logger.info { "Start recording segment from ${startMs / 1000000} to ${endMs / 1000000} of source ${source.name} (${source.sourceId})" }
+
+
+            withContext(Dispatchers.IO) {
+                Files.createDirectories(Paths.get(path).parent)
+            }
+
+            val recorder = FFmpegFrameRecorder(
+                path,
+                source.metadata[Metadata.METADATA_KEY_IMAGE_WIDTH]!! as Int, //grabber.imageWidth,
+                source.metadata[Metadata.METADATA_KEY_IMAGE_HEIGHT]!! as Int, //grabber.imageHeight,
+                source.metadata[Metadata.METADATA_KEY_AUDIO_CHANNELS]!! as Int //grabber.audioChannels
+            )
+            try {
+                recorder.start()
+                configureRecorder(recorder, source)
+
+                for (c in content) {
+
+                    when (c) {
+                        is ImageContent -> {
+                            val f = Frame(c.content.width, c.content.height, 8, 4)
+                            val frame = createFrame(c.content, f)
+                            try {
+                                PointerScope().use { scope -> recorder.record(frame) }
+                            } catch (e: Exception) {
+                                logger.error(e) { "Error converting frame to BufferedImage" }
+                            }
+                        }
+
+                        is AudioContent -> {
+                            logger.warn { "Audio content found. Audio recording not yet implemented." }
+                        }
+
+                        else -> { /* No op. */
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                logger.error(e) { "Error while recording video segment. ${e.cause.toString()}" }
+            } finally {
+                recorder.flush()
+                recorder.stop()
+                recorder.close()
+            }
+            logger.info { "Finished decoding video from source '${source.name}' (${source.sourceId}):" }
+        }
+
+        private fun createFrame(image: BufferedImage, frame: Frame?): Frame {
+            var frame = frame
+            val imageBuffer = image.raster.dataBuffer as DataBufferByte
+            val stride = imageBuffer.data.size / image.height
+
+            if (frame == null || frame.imageWidth !== image.width || frame.imageHeight !== image.height) frame =
+                Frame(image.width, image.height, 8, 4)
+
+            val frameBuffer: ByteBuffer = frame.image[0].position(0) as ByteBuffer
+
+            frameBuffer.put((image.raster.dataBuffer as DataBufferByte).data)
+            frameBuffer.position(0)
+
+            return frame
         }
 
 
@@ -135,7 +225,6 @@ class VideoSegmentExporter : ExporterFactory {
             startMs: Long,
             endMs: Long,
         ) {
-
             /* Configure FFmpegFrameGrabber. */
             grabber.imageMode = FrameGrabber.ImageMode.COLOR
             grabber.sampleMode = FrameGrabber.SampleMode.SHORT
@@ -167,7 +256,7 @@ class VideoSegmentExporter : ExporterFactory {
                 )
                 try {
                     recorder.start()
-                    configureRecorder(recorder, grabber)
+                    configureRecorder(recorder, source)
 
                     do {
                         val frame =
@@ -222,17 +311,16 @@ class VideoSegmentExporter : ExporterFactory {
         /**
          * Configures the [FFmpegFrameRecorder] with the given [FFmpegFrameGrabber]
          **/
-        private fun configureRecorder(recorder: FFmpegFrameRecorder, grabber: FFmpegFrameGrabber) {
+        private fun configureRecorder(recorder: FFmpegFrameRecorder, source: Source) {
             recorder.format = "mp4"
-            recorder.frameRate = grabber.frameRate
-            recorder.videoBitrate = grabber.videoBitrate
+            recorder.frameRate = source.metadata[Metadata.METADATA_KEY_VIDEO_FPS] as Double
+            recorder.videoBitrate = source.metadata[Metadata.METADATA_KEY_VIDEO_BITRATE] as Int
             recorder.videoCodec = avcodec.AV_CODEC_ID_H264
             recorder.pixelFormat = avutil.AV_PIX_FMT_YUV420P
             recorder.audioCodec = avcodec.AV_CODEC_ID_AAC
-            recorder.audioChannels = grabber.audioChannels
-            recorder.sampleRate = grabber.sampleRate
-            recorder.audioBitrate = grabber.audioBitrate
-            recorder.audioCodec = grabber.audioCodec
+            recorder.audioChannels = source.metadata[Metadata.METADATA_KEY_AUDIO_CHANNELS] as Int
+            recorder.sampleRate = source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLERATE] as Int
+            recorder.audioBitrate = source.metadata[Metadata.METADATA_KEY_AUDIO_BITRATE] as Int
         }
     }
 }
