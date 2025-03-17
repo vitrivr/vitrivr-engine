@@ -71,7 +71,7 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
      */
     @ParameterizedTest
     @EnumSource(mode = EnumSource.Mode.EXCLUDE, names = ["JACCARD", "HAMMING"])
-    fun testQueryAndJoin(distance: Distance) {
+    fun testQueryAndJoinWithVector(distance: Distance) {
         val writer = this.testConnection.getDescriptorWriter(this.field)
         val reader = this.testConnection.getDescriptorReader(this.field)
         val random = SplittableRandom()
@@ -86,6 +86,38 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
             SortOrder.ASC,
             100,
             fetchVector = true
+        )
+        val result = reader.queryAndJoin(query).toList()
+
+        /* Make manual query and compare. */
+        val manual = descriptors.sortedBy { distance(it.vector, query.value) }.take(100)
+        result.zip(manual).forEach { r ->
+            Assertions.assertEquals(r.first.id, r.second.retrievableId)
+            Assertions.assertTrue(r.first.hasAttribute(DistanceAttribute::class.java))
+            Assertions.assertTrue(r.first.findDescriptor { d -> d.id == r.second.id }.isNotEmpty())
+        }
+    }
+
+    /**
+     * Tests [VectorDescriptorReader.queryAndJoin] method.
+     */
+    @ParameterizedTest
+    @EnumSource(mode = EnumSource.Mode.EXCLUDE, names = ["JACCARD", "HAMMING"])
+    fun testQueryAndJoinNoVector(distance: Distance) {
+        val writer = this.testConnection.getDescriptorWriter(this.field)
+        val reader = this.testConnection.getDescriptorReader(this.field)
+        val random = SplittableRandom()
+
+        /* Generate and store test data. */
+        val descriptors = this.initialize(writer, random)
+
+        /* Perform nearest neighbour search. */
+        val query = ProximityQuery(
+            Value.FloatVector(FloatArray(3) { random.nextFloat() }),
+            distance,
+            SortOrder.ASC,
+            100,
+            fetchVector = false
         )
         val result = reader.queryAndJoin(query).toList()
 

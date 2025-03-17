@@ -16,9 +16,9 @@ import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourc
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.database.pgvector.descriptor.scalar.ScalarDescriptorProvider
-import org.vitrivr.engine.database.pgvector.descriptor.struct.StructDescriptorProvider
-import org.vitrivr.engine.database.pgvector.descriptor.vector.VectorDescriptorProvider
+import org.vitrivr.engine.database.pgvector.descriptor.providers.ScalarDescriptorProvider
+import org.vitrivr.engine.database.pgvector.descriptor.providers.StructDescriptorProvider
+import org.vitrivr.engine.database.pgvector.descriptor.providers.VectorDescriptorProvider
 
 
 /**

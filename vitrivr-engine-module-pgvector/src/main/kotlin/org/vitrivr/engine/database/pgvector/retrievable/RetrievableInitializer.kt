@@ -5,8 +5,8 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.vitrivr.engine.core.database.retrievable.RetrievableInitializer
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.database.pgvector.*
-import org.vitrivr.engine.database.pgvector.exposed.RelationshipTable
-import org.vitrivr.engine.database.pgvector.exposed.RetrievableTable
+import org.vitrivr.engine.database.pgvector.tables.RelationshipTable
+import org.vitrivr.engine.database.pgvector.tables.RetrievableTable
 import java.sql.SQLException
 
 /**
@@ -48,7 +48,7 @@ internal class RetrievableInitializer(private val connection: PgVectorConnection
      *
      * @return True if entity has been initialized, false otherwise.
      */
-    override fun isInitialized(): Boolean =  try {
+    override fun isInitialized(): Boolean = try {
         transaction(this.connection.database) {
             SchemaUtils.listTables().let {
                 val tables = it.map { table -> table.split(".").last() }

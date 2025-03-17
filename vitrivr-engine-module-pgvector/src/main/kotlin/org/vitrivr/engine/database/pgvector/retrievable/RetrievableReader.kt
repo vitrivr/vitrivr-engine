@@ -7,10 +7,10 @@ import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.database.pgvector.*
-import org.vitrivr.engine.database.pgvector.exposed.RelationshipTable
-import org.vitrivr.engine.database.pgvector.exposed.RelationshipTable.toRelationship
-import org.vitrivr.engine.database.pgvector.exposed.RetrievableTable
-import org.vitrivr.engine.database.pgvector.exposed.RetrievableTable.toRetrieved
+import org.vitrivr.engine.database.pgvector.tables.RelationshipTable
+import org.vitrivr.engine.database.pgvector.tables.RelationshipTable.toRelationship
+import org.vitrivr.engine.database.pgvector.tables.RetrievableTable
+import org.vitrivr.engine.database.pgvector.tables.RetrievableTable.toRetrieved
 import java.sql.SQLException
 import java.util.*
 
