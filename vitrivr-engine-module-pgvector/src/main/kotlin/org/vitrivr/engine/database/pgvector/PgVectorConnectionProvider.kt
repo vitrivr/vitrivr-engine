@@ -1,5 +1,6 @@
 package org.vitrivr.engine.database.pgvector
 
+import org.jetbrains.exposed.sql.Database
 import org.vitrivr.engine.core.database.AbstractConnectionProvider
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
@@ -18,8 +19,6 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.database.pgvector.descriptor.scalar.ScalarDescriptorProvider
 import org.vitrivr.engine.database.pgvector.descriptor.struct.StructDescriptorProvider
 import org.vitrivr.engine.database.pgvector.descriptor.vector.VectorDescriptorProvider
-import java.sql.DriverManager
-import java.util.*
 
 
 /**
@@ -111,12 +110,11 @@ class PgVectorConnectionProvider: AbstractConnectionProvider() {
         val url = "jdbc:postgresql://${host}:${port}/${database}"
 
         /* Prepare properties (optional). */
-        val props = Properties()
-        parameters[PARAMETER_NAME_USERNAME]?.let { props.setProperty("user", it) }
-        parameters[PARAMETER_NAME_PASSWORD]?.let { props.setProperty("password", it) }
-        parameters[PARAMETER_NAME_SSL]?.let { props.setProperty("ssl", it) }
+        val username = parameters[PARAMETER_NAME_USERNAME] ?: "postgres"
+        val password = parameters[PARAMETER_NAME_PASSWORD] ?: "postgres"
+        val db = Database.connect(url, driver = "org.postgresql.Driver", user = username, password = password)
 
         /* Open JDBC connection and return PgVectorConnection. */
-        return PgVectorConnection(this, schemaName, DriverManager.getConnection(url, props))
+        return PgVectorConnection(this, schemaName, db)
     }
 }

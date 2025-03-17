@@ -20,9 +20,9 @@ class JsonlConnection(
     private val root: Path
 ) : AbstractConnection(schemaName, connectionProvider) {
 
-    override fun <T> withTransaction(action: (Unit) -> T): T {
+    override fun <T> withTransaction(action: () -> T): T {
         LOGGER.warn { "Transactions are not supported by the JsonlConnection" }
-        return action(Unit)
+        return action()
     }
 
     internal val schemaRoot = root.resolve(schemaName)
