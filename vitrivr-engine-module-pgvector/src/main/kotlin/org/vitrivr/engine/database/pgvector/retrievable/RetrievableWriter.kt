@@ -8,11 +8,11 @@ import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.database.pgvector.*
-import org.vitrivr.engine.database.pgvector.exposed.RelationshipTable
-import org.vitrivr.engine.database.pgvector.exposed.RelationshipTable.objectId
-import org.vitrivr.engine.database.pgvector.exposed.RelationshipTable.predicate
-import org.vitrivr.engine.database.pgvector.exposed.RelationshipTable.subjectId
-import org.vitrivr.engine.database.pgvector.exposed.RetrievableTable
+import org.vitrivr.engine.database.pgvector.tables.RelationshipTable
+import org.vitrivr.engine.database.pgvector.tables.RelationshipTable.objectId
+import org.vitrivr.engine.database.pgvector.tables.RelationshipTable.predicate
+import org.vitrivr.engine.database.pgvector.tables.RelationshipTable.subjectId
+import org.vitrivr.engine.database.pgvector.tables.RetrievableTable
 
 /**
  * A [RetrievableWriter] implementation for PostgreSQL with pgVector.

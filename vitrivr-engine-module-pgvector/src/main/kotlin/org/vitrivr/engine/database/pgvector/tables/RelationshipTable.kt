@@ -1,5 +1,6 @@
-package org.vitrivr.engine.database.pgvector.exposed
+package org.vitrivr.engine.database.pgvector.tables
 
+import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
 import org.vitrivr.engine.core.model.relationship.Relationship
@@ -13,10 +14,10 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
  */
 object RelationshipTable: Table("relationships") {
     /** The reference to th [Retrievable] in object position of the [Relationship]. */
-    val objectId = reference("objectId", RetrievableTable)
+    val objectId = reference("objectId", RetrievableTable, onDelete = ReferenceOption.CASCADE)
 
     /** The reference to th [Retrievable] in subject position of the [Relationship]. */
-    val subjectId = reference("subjectId", RetrievableTable)
+    val subjectId = reference("subjectId", RetrievableTable, onDelete = ReferenceOption.CASCADE)
 
     /** The predicate of the [Relationship]. */
     val predicate = varchar("predicate", 255)

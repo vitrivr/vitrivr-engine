@@ -1,4 +1,4 @@
-package org.vitrivr.engine.database.pgvector.exposed
+package org.vitrivr.engine.database.pgvector.tables
 
 import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -11,7 +11,7 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
  * @author Ralph Gasser
  * @version 1.0.0
  */
-object RetrievableTable: UUIDTable("retrievable") {
+object RetrievableTable: UUIDTable("retrievable", "retrievableid") {
     val type = varchar("type", 255).nullable()
 
     /**
