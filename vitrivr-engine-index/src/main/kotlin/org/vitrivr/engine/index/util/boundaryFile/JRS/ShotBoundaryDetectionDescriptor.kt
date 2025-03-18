@@ -9,6 +9,12 @@ import java.time.Duration
 import java.util.*
 import kotlin.collections.ArrayList
 
+
+/**
+ * Data class for the ShotBoundaryDetectionDescriptor.
+ * TODO: remove, XReeco specific
+ * @version 1.0.0
+ */
 @Serializable
 data class ShotBoundaryDetectionDescriptor(
     @SerialName("success" ) var success : Boolean? = null,

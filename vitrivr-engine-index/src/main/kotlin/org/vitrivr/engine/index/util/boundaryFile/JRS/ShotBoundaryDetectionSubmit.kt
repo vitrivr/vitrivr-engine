@@ -5,6 +5,12 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
 
+/**
+ * Data class for the data class ShotBoundaryDetectionSubmit(
+ *
+ * TODO: remove, XReeco specific
+ * @version 1.0.0
+ */
 @Serializable
 data class ShotBoundaryDetectionSubmit(
 
