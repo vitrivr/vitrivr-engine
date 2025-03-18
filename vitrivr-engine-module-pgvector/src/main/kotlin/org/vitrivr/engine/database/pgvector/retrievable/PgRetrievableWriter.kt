@@ -20,7 +20,7 @@ import org.vitrivr.engine.database.pgvector.tables.RetrievableTable
  * @author Ralph Gasser
  * @version 1.1.0
  */
-internal class RetrievableWriter(override val connection: PgVectorConnection) : RetrievableWriter {
+internal class PgRetrievableWriter(override val connection: PgVectorConnection) : RetrievableWriter {
     /**
      * Adds a new [Retrievable] to the database using this [RetrievableWriter] instance.
      *
@@ -168,6 +168,6 @@ internal class RetrievableWriter(override val connection: PgVectorConnection) : 
      * @return True on success, false otherwise.
      */
     override fun disconnectAll(relationships: Iterable<Relationship>): Boolean = transaction(this.connection.database)  {
-        relationships.map { this@RetrievableWriter.disconnect(it) }.all { it }
+        relationships.map { this@PgRetrievableWriter.disconnect(it) }.all { it }
     }
 }

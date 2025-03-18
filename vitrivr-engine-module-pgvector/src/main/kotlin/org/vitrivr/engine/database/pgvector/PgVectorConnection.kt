@@ -85,7 +85,7 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
      * @return [RetrievableInitializer]
      */
     override fun getRetrievableInitializer(): RetrievableInitializer
-        = org.vitrivr.engine.database.pgvector.retrievable.RetrievableInitializer(this)
+        = org.vitrivr.engine.database.pgvector.retrievable.PgRetrievableInitializer(this)
 
     /**
      * Generates and returns a [RetrievableWriter] for this [PgVectorConnection].
@@ -93,7 +93,7 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
      * @return [RetrievableWriter]
      */
     override fun getRetrievableWriter(): RetrievableWriter
-        = org.vitrivr.engine.database.pgvector.retrievable.RetrievableWriter(this)
+        = org.vitrivr.engine.database.pgvector.retrievable.PgRetrievableWriter(this)
 
     /**
      * Generates and returns a [RetrievableWriter] for this [PgVectorConnection].
@@ -101,7 +101,7 @@ class PgVectorConnection(provider: PgVectorConnectionProvider, schemaName: Strin
      * @return [RetrievableReader]
      */
     override fun getRetrievableReader(): RetrievableReader
-        = org.vitrivr.engine.database.pgvector.retrievable.RetrievableReader(this)
+        = org.vitrivr.engine.database.pgvector.retrievable.PgRetrievableReader(this)
 
     /**
      * Returns the human-readable description of this [PgVectorConnection].

@@ -15,7 +15,7 @@ import java.sql.SQLException
  * @author Ralph Gasser
  * @version 1.1.0
  */
-internal class RetrievableInitializer(private val connection: PgVectorConnection): RetrievableInitializer {
+internal class PgRetrievableInitializer(private val connection: PgVectorConnection): RetrievableInitializer {
     /**
      * Initializes the data structures backing this [RetrievableInitializer].
      */
