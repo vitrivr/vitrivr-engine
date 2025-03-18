@@ -82,7 +82,7 @@ enum class Distance {
             for (i in v1.value.indices) {
                 innerProduct += v1.value[i] * v2.value[i]
             }
-            return innerProduct
+            return -1.0f * innerProduct
         }
 
         override fun invoke(v1: Value.DoubleVector, v2: Value.DoubleVector): Double {
@@ -90,7 +90,7 @@ enum class Distance {
             for (i in v1.value.indices) {
                 innerProduct += v1.value[i] * v2.value[i]
             }
-            return innerProduct
+            return -1.0f * innerProduct
         }
     },
     HAMMING {
