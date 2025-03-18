@@ -155,7 +155,7 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
         /* Make manual query and compare. */
         val manual = descriptors.sortedBy { distance(it.vector, query.value) }.take(100)
         result.zip(manual).forEach {
-            Assertions.assertEquals(distance(it.first.vector, query.value), distance(it.second.vector, query.value), 0.00005f)
+            Assertions.assertEquals(distance(it.first.vector, query.value), distance(it.second.vector, query.value), 0.00005)
         }
     }
 
@@ -185,7 +185,7 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
         /* Make manual query and compare. */
         val manual = descriptors.sortedByDescending { distance(it.vector, query.value) }.take(100)
         result.zip(manual).forEach {
-            Assertions.assertEquals(distance(it.first.vector, query.value), distance(it.second.vector, query.value), 0.00005f)
+            Assertions.assertEquals(distance(it.first.vector, query.value), distance(it.second.vector, query.value), 0.00005)
         }
     }
 
