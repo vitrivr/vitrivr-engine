@@ -13,7 +13,7 @@ sealed class DistanceOps(expr1: Expression<*>, expr2: Expression<*>, name: Strin
     class Manhattan(expr1: Expression<*>, expr2: Expression<*>) : DistanceOps(expr1, expr2, "<+>")
     class Cosine(expr1: Expression<*>, expr2: Expression<*>) : DistanceOps(expr1, expr2, "<=>") {
         override fun toQueryBuilder(queryBuilder: QueryBuilder): Unit = queryBuilder {
-            append('(', '1', '-', expr1, ' ', operatorName, ' ', expr2, ')')
+            append('(', '1', ' ', '-', ' ', '(', expr1, ' ', operatorName, ' ', expr2, ')', ')')
         }
     }
     class Inner(expr1: Expression<*>, expr2: Expression<*>) : DistanceOps(expr1, expr2, "<#>")
