@@ -11,6 +11,8 @@ import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.database.pgvector.DESCRIPTOR_ENTITY_PREFIX
+import org.vitrivr.engine.database.pgvector.DESCRIPTOR_ID_COLUMN_NAME
+import org.vitrivr.engine.database.pgvector.RETRIEVABLE_ID_COLUMN_NAME
 import org.vitrivr.engine.database.pgvector.exposed.types.FloatVectorColumnType
 
 /**
@@ -19,9 +21,9 @@ import org.vitrivr.engine.database.pgvector.exposed.types.FloatVectorColumnType
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractDescriptorTable<D : Descriptor<*>>(protected val field: Schema.Field<*, D>): UUIDTable("${DESCRIPTOR_ENTITY_PREFIX}_${field.fieldName.lowercase()}", "descriptorid") {
+abstract class AbstractDescriptorTable<D : Descriptor<*>>(protected val field: Schema.Field<*, D>): UUIDTable("${DESCRIPTOR_ENTITY_PREFIX}_${field.fieldName.lowercase()}", DESCRIPTOR_ID_COLUMN_NAME) {
     /** Reference to the [RetrievableTable]. */
-    val retrievableId = reference("retrievableid", RetrievableTable, onDelete = ReferenceOption.CASCADE).index()
+    val retrievableId = reference(RETRIEVABLE_ID_COLUMN_NAME, RetrievableTable, onDelete = ReferenceOption.CASCADE).index()
 
     /** The prototype value handled by this [StructDescriptorTable]. */
     protected val prototype by lazy { this.field.getPrototype() }
