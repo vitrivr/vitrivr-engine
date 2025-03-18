@@ -104,9 +104,7 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
                 val uri = when (source) {
                     is FileSource -> source.path.toUri().toString()
                     else -> "Source $source is not a FileSource.".let {
-                        logger.error { it }; throw IllegalArgumentException(
-                        it
-                    )
+                        logger.error { it }; throw IllegalArgumentException(it)
                     }
                 }
 
