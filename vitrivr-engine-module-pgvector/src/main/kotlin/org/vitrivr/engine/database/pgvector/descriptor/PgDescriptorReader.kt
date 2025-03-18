@@ -21,7 +21,6 @@ import org.vitrivr.engine.database.pgvector.tables.AbstractDescriptorTable
 import org.vitrivr.engine.database.pgvector.tables.RetrievableTable
 import org.vitrivr.engine.database.pgvector.tables.RetrievableTable.toRetrieved
 import java.util.*
-import java.util.Collections.list
 
 /**
  * An abstract implementation of a [DescriptorReader] for Cottontail DB.
@@ -29,7 +28,7 @@ import java.util.Collections.list
  * @author Ralph Gasser
  * @version 1.1.0
  */
-class PgDescriptorReader<D : Descriptor<*>>(final override val field: Schema.Field<*, D>, override val connection: PgVectorConnection) : DescriptorReader<D> {
+class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, D>, override val connection: PgVectorConnection) : DescriptorReader<D> {
 
     /** The [AbstractDescriptorTable] backing this [PgDescriptorReader]. */
     private val table: AbstractDescriptorTable<D> = this.field.toTable()
@@ -46,7 +45,7 @@ class PgDescriptorReader<D : Descriptor<*>>(final override val field: Schema.Fie
      */
     override fun query(query: org.vitrivr.engine.core.model.query.Query): Sequence<D> = transaction(this.connection.database) {
         try {
-            this@PgDescriptorReader.parseQuery(query).map { this@PgDescriptorReader.table.rowToDescriptor(it) }.asSequence()
+            this@PgDescriptorReader.parseQuery(query).asSequence().map { this@PgDescriptorReader.table.rowToDescriptor(it) }
         } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to execute query on '$tableName' due to error." }
             throw e
@@ -78,16 +77,16 @@ class PgDescriptorReader<D : Descriptor<*>>(final override val field: Schema.Fie
      * @param retrievableId The [RetrievableId] to search for.
      * @return [Sequence] of [Descriptor]  of type [D]
      */
-    override fun getForRetrievable(retrievableId: RetrievableId): Sequence<D> = sequenceWithTx(this.connection.database) {
+    override fun getForRetrievable(retrievableId: RetrievableId): Sequence<D> = transaction(this.connection.database) {
         try {
-            val query = this@PgDescriptorReader.table.selectAll().where {
+            this@PgDescriptorReader.table.selectAll().where {
                 this@PgDescriptorReader.table.retrievableId eq retrievableId
-            }
-            for (row in query) {
-                yield(this@PgDescriptorReader.table.rowToDescriptor(row))
+            }.asSequence().map { row ->
+                this@PgDescriptorReader.table.rowToDescriptor(row)
             }
         } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to fetch descriptor for retrievable $retrievableId from '$tableName' due to error." }
+            throw e
         }
     }
 
@@ -113,14 +112,14 @@ class PgDescriptorReader<D : Descriptor<*>>(final override val field: Schema.Fie
      *
      * @return [Sequence] of all [Descriptor]s.
      */
-    override fun getAll(): Sequence<D> = sequenceWithTx(this.connection.database) {
+    override fun getAll(): Sequence<D> = transaction(this.connection.database) {
         try {
-            val query = this@PgDescriptorReader.table.selectAll()
-            for (row in query) {
-                yield(this@PgDescriptorReader.table.rowToDescriptor(row))
+            this@PgDescriptorReader.table.selectAll().asSequence().map { row ->
+                this@PgDescriptorReader.table.rowToDescriptor(row)
             }
         } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to fetch descriptors from '$tableName' due to error." }
+            throw e
         }
     }
 
@@ -130,16 +129,16 @@ class PgDescriptorReader<D : Descriptor<*>>(final override val field: Schema.Fie
      * @param descriptorIds A [Iterable] of [DescriptorId]s to return.
      * @return [Sequence] of [Descriptor] of type [D]
      */
-    override fun getAll(descriptorIds: Iterable<DescriptorId>): Sequence<D> = sequenceWithTx(this.connection.database) {
+    override fun getAll(descriptorIds: Iterable<DescriptorId>): Sequence<D> = transaction(this.connection.database) {
         try {
-            val query = this@PgDescriptorReader.table.selectAll().where {
+            this@PgDescriptorReader.table.selectAll().where {
                 this@PgDescriptorReader.table.id inList descriptorIds
-            }
-            for (row in query) {
-                yield(this@PgDescriptorReader.table.rowToDescriptor(row))
+            }.asSequence().map { row ->
+                this@PgDescriptorReader.table.rowToDescriptor(row)
             }
         } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to fetch descriptors from '$tableName' due to error." }
+            throw e
         }
     }
 
@@ -149,16 +148,16 @@ class PgDescriptorReader<D : Descriptor<*>>(final override val field: Schema.Fie
      * @param retrievableIds A [Iterable] of [RetrievableId]s to return [Descriptor]s for
      * @return [Sequence] of [Descriptor] of type [D]
      */
-    override fun getAllForRetrievable(retrievableIds: Iterable<RetrievableId>): Sequence<D> = sequenceWithTx(this.connection.database) {
+    override fun getAllForRetrievable(retrievableIds: Iterable<RetrievableId>): Sequence<D> = transaction(this.connection.database) {
         try {
-            val query = this@PgDescriptorReader.table.selectAll().where {
+            this@PgDescriptorReader.table.selectAll().where {
                 this@PgDescriptorReader.table.retrievableId inList retrievableIds
-            }
-            for (row in query) {
-                yield(this@PgDescriptorReader.table.rowToDescriptor(row))
+            }.asSequence().map { row ->
+                this@PgDescriptorReader.table.rowToDescriptor(row)
             }
         } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to fetch descriptors from '$tableName' due to error." }
+            throw e
         }
     }
 
@@ -194,7 +193,7 @@ class PgDescriptorReader<D : Descriptor<*>>(final override val field: Schema.Fie
         }
 
         val grouped = sqlQuery.groupBy { it[this@PgDescriptorReader.table.retrievableId] }
-        grouped.map { (retrievableId, rows) ->
+        grouped.map { (_, rows) ->
             val retrieved = rows.first().toRetrieved()
             for (row in rows) {
                 val distance = row.fieldIndex.keys.filterIsInstance<DistanceOps>().firstOrNull()
