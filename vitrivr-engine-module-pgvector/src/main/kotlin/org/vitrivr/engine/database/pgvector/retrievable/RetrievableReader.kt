@@ -58,14 +58,14 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
      * @param ids A [Iterable] of [RetrievableId]s to return.
      * @return A [Sequence] of all [Retrievable].
      */
-    override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrievable> = sequenceWithTx(this.connection.database) {
+    override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrievable> = transaction(this.connection.database) {
         try {
-            val query = RetrievableTable.selectAll().where { RetrievableTable.id inList ids }
-            for (row in query) {
-                yield(row.toRetrieved())
+            RetrievableTable.selectAll().where { RetrievableTable.id inList ids }.asSequence().map { row ->
+                row.toRetrieved()
             }
         } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to fetch retrievables due to SQL error." }
+            throw e
         }
     }
 
@@ -74,14 +74,14 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
      *
      * @return A [Sequence] of all [Retrievable]s in the database.
      */
-    override fun getAll(): Sequence<Retrievable> = sequenceWithTx(this.connection.database)  {
+    override fun getAll(): Sequence<Retrievable> = transaction(this.connection.database)  {
         try {
-            val query = RetrievableTable.selectAll()
-            for (row in query) {
-                yield(row.toRetrieved())
+            RetrievableTable.selectAll().asSequence().map { row ->
+                row.toRetrieved()
             }
         } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to fetch retrievables due to SQL error." }
+            throw e
         }
     }
 
@@ -90,7 +90,7 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
      *
      * @return A [Sequence] of all [Retrievable]s in the database.
      */
-    override fun getConnections(subjectIds: Collection<RetrievableId>, predicates: Collection<String>, objectIds: Collection<RetrievableId>) = sequenceWithTx(this.connection.database)  {
+    override fun getConnections(subjectIds: Collection<RetrievableId>, predicates: Collection<String>, objectIds: Collection<RetrievableId>) = transaction(this.connection.database)  {
         /* Prepare query based on provided parameters. */
         val query = RelationshipTable.selectAll()
         if (subjectIds.isNotEmpty()) {
@@ -105,11 +105,10 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
 
         /* Execute query and convert to [Relationship] */
         try {
-            for (result in query) {
-                this.yield(result.toRelationship())
-            }
+            query.asSequence().map { row -> row.toRelationship()}
         } catch (e: SQLException) {
             LOGGER.error(e) { "Failed to fetch relationships due to SQL error." }
+            throw e
         }
     }
 
