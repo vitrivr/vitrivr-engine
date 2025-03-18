@@ -65,10 +65,10 @@ internal class PgRetrievableInitializer(private val connection: PgVectorConnecti
     override fun truncate() {
         try {
             transaction(this.connection.database) {
-                exec("TRUNCATE TABLE IF EXISTS ${RetrievableTable.nameInDatabaseCase()};")
+                exec("TRUNCATE TABLE IF EXISTS ${RelationshipTable.nameInDatabaseCase()} CASCADE;")
+                exec("TRUNCATE TABLE IF EXISTS ${RetrievableTable.nameInDatabaseCase()} CASCADE;")
             }
-
-        } catch (e: SQLException) {
+        } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to truncate entities due to exception." }
         }
     }
