@@ -1,7 +1,6 @@
 package org.vitrivr.engine.database.pgvector.tables
 
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.statements.BatchInsertStatement
 import org.jetbrains.exposed.sql.statements.InsertStatement
@@ -9,8 +8,12 @@ import org.jetbrains.exposed.sql.statements.UpdateStatement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
+import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
+import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
+import org.vitrivr.engine.database.pgvector.exposed.fulltext
 import java.util.*
 import kotlin.reflect.full.primaryConstructor
 
@@ -65,14 +68,17 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
     override fun rowToDescriptor(row: ResultRow): D {
         /* Obtain constructor. */
         val constructor = this.field.analyser.descriptorClass.primaryConstructor ?: throw IllegalStateException("Provided type ${this.field.analyser.descriptorClass} does not have a primary constructor.")
+        val values = mutableMapOf<String, Value<*>?>()
         val parameters: MutableList<Any?> = mutableListOf(
-            row[this.id],
-            row[this.retrievableId]
+            row[this.id].value,
+            row[this.retrievableId].value,
+            values,
+            this.field
         )
 
         /* Add the values. */
         for ((column, attribute) in this.valueColumns.zip(this.prototype.layout())) {
-            val value = when (attribute.type) {
+            values[attribute.name] = when (attribute.type) {
                 Type.Boolean -> Value.Boolean(row[column] as Boolean)
                 Type.Byte -> Value.Byte(row[column] as Byte)
                 Type.Datetime -> Value.DateTime(row[column] as Date)
@@ -92,11 +98,45 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
             }
         }
 
-        /* Add the field. */
-        parameters.add(this.field)
-
         /* Call constructor. */
         return constructor.call(*parameters.toTypedArray())
+    }
+
+    /**
+     * Converts a [SimpleFulltextQuery] into a [Query] that can be executed against the database.
+     *
+     * @param query [SimpleFulltextQuery] to convert.
+     * @return The [Query] that can be executed against the database.
+     */
+    @Suppress("UNCHECKED_CAST")
+    override fun parseQuery(query: SimpleFulltextQuery): Query = this.selectAll().where {
+        require(query.attributeName != null) { "Attribute name of boolean query must not be null!" }
+        val value = query.value.value as? String ?: throw IllegalArgumentException("Attribute value of fulltext query must be a string")
+        val descriptor = this@StructDescriptorTable.valueColumns.find { it.name == query.attributeName } as Column<String>
+        descriptor fulltext value
+    }
+
+    /**
+     * Converts a [SimpleBooleanQuery] into a [Query] that can be executed against the database.
+     *
+     * @param query The [SimpleBooleanQuery] to convert.
+     * @return The [Query] that can be executed against the database.
+     */
+    @Suppress("UNCHECKED_CAST")
+    override fun parseQuery(query: SimpleBooleanQuery<*>): Query = this.selectAll().where {
+        require(query.attributeName != null) { "Attribute name of boolean query must not be null!" }
+        val value = query.value.value ?: throw IllegalArgumentException("Attribute value of boolean query must not be null")
+        val descriptor = this@StructDescriptorTable.valueColumns.find { it.name == query.attributeName } as Column<Any>
+        when(query.comparison) {
+            ComparisonOperator.EQ -> EqOp(descriptor, QueryParameter(value, descriptor.columnType))
+            ComparisonOperator.NEQ -> NeqOp(descriptor, QueryParameter(value, descriptor.columnType))
+            ComparisonOperator.LE -> LessOp(descriptor, QueryParameter(value, descriptor.columnType))
+            ComparisonOperator.GR -> GreaterOp(descriptor, QueryParameter(value, descriptor.columnType))
+            ComparisonOperator.LEQ -> LessEqOp(descriptor, QueryParameter(value, descriptor.columnType))
+            ComparisonOperator.GEQ -> GreaterEqOp(descriptor, QueryParameter(value, descriptor.columnType))
+            ComparisonOperator.LIKE -> LikeEscapeOp(descriptor, QueryParameter(value, descriptor.columnType), true, null)
+            else -> throw IllegalArgumentException("Unsupported comparison type: ${query.comparison}")
+        }
     }
 
     /**
@@ -104,6 +144,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
      *
      * @param d The [Descriptor] to set value for
      */
+    @Suppress("UNCHECKED_CAST")
     override fun InsertStatement<*>.setValue(d: D) {
         val values = d.values()
         for (c in this@StructDescriptorTable.valueColumns) {
@@ -116,6 +157,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
      *
      * @param d The [Descriptor] to set value for
      */
+    @Suppress("UNCHECKED_CAST")
     override fun BatchInsertStatement.setValue(d: D) {
         val values = d.values()
         for (c in this@StructDescriptorTable.valueColumns) {
@@ -128,6 +170,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
      *
      * @param d The [Descriptor] to set value for
      */
+    @Suppress("UNCHECKED_CAST")
     override fun UpdateStatement.setValue(d: D) {
         val values = d.values()
         for (c in this@StructDescriptorTable.valueColumns) {

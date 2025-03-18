@@ -5,7 +5,6 @@ import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.wrap
 import org.vitrivr.engine.database.pgvector.exposed.ops.DistanceOps
 import org.vitrivr.engine.database.pgvector.exposed.ops.FulltextOp
-import org.vitrivr.engine.database.pgvector.exposed.types.FloatVectorColumnType
 
 /**
  *
