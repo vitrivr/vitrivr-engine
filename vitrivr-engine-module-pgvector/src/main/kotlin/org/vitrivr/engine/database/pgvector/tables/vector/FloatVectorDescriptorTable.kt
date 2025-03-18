@@ -38,7 +38,7 @@ class FloatVectorDescriptorTable(field: Schema.Field<*, FloatVectorDescriptor>):
             Distance.EUCLIDEAN -> descriptor euclidean value
             Distance.MANHATTAN -> descriptor manhattan  value
             Distance.COSINE -> descriptor cosine value
-            Distance.INNER -> descriptor inner value
+            Distance.IP -> descriptor inner value
             else -> throw IllegalArgumentException("Unsupported distance type: ${query.distance}")
         }
 
