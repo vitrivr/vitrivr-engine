@@ -44,10 +44,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
                 Type.Text -> text(attribute.name)
                 Type.UUID -> uuid(attribute.name)
                 is Type.FloatVector -> floatVector(attribute.name, type.dimensions)
-                is Type.BooleanVector -> TODO()
-                is Type.DoubleVector -> TODO()
-                is Type.IntVector -> TODO()
-                is Type.LongVector -> TODO()
+                else -> error("Unsupported type $type for attribute ${attribute.name} in ${this.tableName}")
             }.index().let { column ->
                 if (attribute.nullable) {
                     column.nullable()
