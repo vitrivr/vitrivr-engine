@@ -5,12 +5,10 @@ import org.vitrivr.engine.core.model.descriptor.scalar.*
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
 import org.vitrivr.engine.core.model.query.basics.Distance
-import org.vitrivr.engine.core.model.query.basics.Distance.*
 import org.vitrivr.engine.core.model.query.basics.SortOrder
-import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
+import org.vitrivr.engine.database.pgvector.descriptor.PgDescriptorInitializer
 import org.vitrivr.engine.database.pgvector.descriptor.model.PgBitVector
 import org.vitrivr.engine.database.pgvector.descriptor.model.PgVector
 import org.vitrivr.engine.database.pgvector.tables.AbstractDescriptorTable
@@ -18,9 +16,7 @@ import org.vitrivr.engine.database.pgvector.tables.scalar.*
 import org.vitrivr.engine.database.pgvector.tables.StructDescriptorTable
 import org.vitrivr.engine.database.pgvector.tables.vector.FloatVectorDescriptorTable
 import java.sql.Date
-import java.sql.JDBCType
 import java.sql.PreparedStatement
-import java.sql.SQLType
 
 
 /**
@@ -78,49 +74,13 @@ internal fun PreparedStatement.setValue(index: Int, value: Value<*>) = when (val
 }
 
 /**
- * Converts a [Type] to a [SQLType].
+ * Closes the [PgDescriptorInitializer].
  */
-internal fun Type.toSql(): Int = when (this) {
-    Type.Boolean -> JDBCType.BOOLEAN
-    Type.Byte -> JDBCType.TINYINT
-    Type.Short -> JDBCType.SMALLINT
-    Type.Int -> JDBCType.INTEGER
-    Type.Long -> JDBCType.BIGINT
-    Type.Float -> JDBCType.REAL
-    Type.Double -> JDBCType.DOUBLE
-    Type.Datetime -> JDBCType.DATE
-    Type.String -> JDBCType.VARCHAR
-    Type.Text -> JDBCType.CLOB
-    Type.UUID -> JDBCType.OTHER
-    is Type.BooleanVector -> JDBCType.ARRAY
-    is Type.DoubleVector -> JDBCType.ARRAY
-    is Type.FloatVector -> JDBCType.ARRAY
-    is Type.IntVector -> JDBCType.ARRAY
-    is Type.LongVector -> JDBCType.ARRAY
-}.vendorTypeNumber
-
-/**
- * Converts a [Distance] to a pgVector distance operator.
- */
-fun Distance.toSql() = when(this) {
-    MANHATTAN -> "<+>"
-    EUCLIDEAN -> "<->"
-    COSINE -> "<=>"
-    HAMMING -> "<~>"
-    JACCARD -> "<%>"
-}
-
-/**
- * Converts a [ComparisonOperator] to a SQL operator.
- *
- * @return SQL comparison operator.
- */
-internal fun ComparisonOperator.toSql(): String = when (this){
-    ComparisonOperator.EQ -> "="
-    ComparisonOperator.NEQ -> "!="
-    ComparisonOperator.LE -> "<"
-    ComparisonOperator.GR -> ">"
-    ComparisonOperator.LEQ -> ">="
-    ComparisonOperator.GEQ -> "<="
-    ComparisonOperator.LIKE -> "LIKE"
+internal fun Distance.toIndexName() = when (this) {
+    Distance.MANHATTAN -> "vector_l1_ops"
+    Distance.EUCLIDEAN -> "vector_l2_ops"
+    Distance.INNER -> "vector_ip_ops"
+    Distance.COSINE -> "vector_cosine_ops"
+    Distance.HAMMING -> "bit_hamming_ops"
+    Distance.JACCARD -> "bit_jaccard_ops"
 }

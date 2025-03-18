@@ -76,6 +76,23 @@ enum class Distance {
             return 1.0 - (dotProduct / (normV1 * normV2))
         }
     },
+    INNER {
+        override fun invoke(v1: Value.FloatVector, v2: Value.FloatVector): Float {
+            var innerProduct = 0.0f
+            for (i in v1.value.indices) {
+                innerProduct += v1.value[i] * v2.value[i]
+            }
+            return innerProduct
+        }
+
+        override fun invoke(v1: Value.DoubleVector, v2: Value.DoubleVector): Double {
+            var innerProduct = 0.0
+            for (i in v1.value.indices) {
+                innerProduct += v1.value[i] * v2.value[i]
+            }
+            return innerProduct
+        }
+    },
     HAMMING {
         override fun invoke(v1: Value.FloatVector, v2: Value.FloatVector): Float {
             var sum = 0.0f

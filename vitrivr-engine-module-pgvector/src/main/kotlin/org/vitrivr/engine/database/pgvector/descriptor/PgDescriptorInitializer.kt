@@ -5,7 +5,6 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.vitrivr.engine.core.database.descriptor.DescriptorInitializer
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.database.pgvector.*
 import org.vitrivr.engine.database.pgvector.tables.AbstractDescriptorTable
 import java.sql.SQLException
@@ -90,16 +89,5 @@ open class PgDescriptorInitializer<D : Descriptor<*>>(
             LOGGER.error(e) { "Failed to truncate entities due to exception." }
             throw e
         }
-    }
-
-    /**
-     * Closes the [PgDescriptorInitializer].
-     */
-    private fun Distance.toIndexName() = when (this) {
-        Distance.MANHATTAN -> "vector_l1_ops"
-        Distance.EUCLIDEAN -> "vector_l2_ops"
-        Distance.COSINE -> "vector_cosine_ops"
-        Distance.HAMMING -> "bit_hamming_ops"
-        Distance.JACCARD -> "bit_jaccard_ops"
     }
 }

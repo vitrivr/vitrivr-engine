@@ -6,11 +6,11 @@ import org.jetbrains.exposed.sql.ResultRow
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.basics.Distance
-import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.database.pgvector.exposed.cosine
 import org.vitrivr.engine.database.pgvector.exposed.euclidean
+import org.vitrivr.engine.database.pgvector.exposed.inner
 import org.vitrivr.engine.database.pgvector.exposed.manhattan
 import org.vitrivr.engine.database.pgvector.toSql
 
@@ -36,8 +36,9 @@ class FloatVectorDescriptorTable(field: Schema.Field<*, FloatVectorDescriptor>):
         val value = query.value.value as? FloatArray ?: throw IllegalArgumentException("Failed to execute query on ${nameInDatabaseCase()}. Comparison value of wrong type.")
         val expression = when (query.distance) {
             Distance.EUCLIDEAN -> descriptor euclidean value
-            Distance.COSINE -> descriptor cosine  value
             Distance.MANHATTAN -> descriptor manhattan  value
+            Distance.COSINE -> descriptor cosine value
+            Distance.INNER -> descriptor inner value
             else -> throw IllegalArgumentException("Unsupported distance type: ${query.distance}")
         }
 
