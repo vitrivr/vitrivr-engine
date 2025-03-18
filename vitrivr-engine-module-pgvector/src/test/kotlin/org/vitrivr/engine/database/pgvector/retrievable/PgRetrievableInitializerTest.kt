@@ -12,7 +12,7 @@ import org.vitrivr.engine.database.pgvector.RETRIEVABLE_ENTITY_NAME
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class RetrievableInitializerTest : AbstractRetrievableInitializerTest("test-schema-postgres.json") {
+class PgRetrievableInitializerTest : AbstractRetrievableInitializerTest("test-schema-postgres.json") {
 
     /**
      *

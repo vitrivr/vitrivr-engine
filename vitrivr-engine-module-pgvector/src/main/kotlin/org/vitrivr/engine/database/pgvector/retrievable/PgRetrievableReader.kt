@@ -20,7 +20,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.1.0
  */
-class RetrievableReader(override val connection: PgVectorConnection): RetrievableReader {
+class PgRetrievableReader(override val connection: PgVectorConnection): RetrievableReader {
     /**
      * Returns the [Retrievable]s that matches the provided [RetrievableId]
      */
@@ -60,9 +60,9 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
      */
     override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrievable> = transaction(this.connection.database) {
         try {
-            RetrievableTable.selectAll().where { RetrievableTable.id inList ids }.asSequence().map { row ->
+            RetrievableTable.selectAll().where { RetrievableTable.id inList ids }.map { row ->
                 row.toRetrieved()
-            }
+            }.asSequence()
         } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to fetch retrievables due to SQL error." }
             throw e
@@ -76,9 +76,9 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
      */
     override fun getAll(): Sequence<Retrievable> = transaction(this.connection.database)  {
         try {
-            RetrievableTable.selectAll().asSequence().map { row ->
+            RetrievableTable.selectAll().map { row ->
                 row.toRetrieved()
-            }
+            }.asSequence()
         } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to fetch retrievables due to SQL error." }
             throw e
@@ -105,7 +105,7 @@ class RetrievableReader(override val connection: PgVectorConnection): Retrievabl
 
         /* Execute query and convert to [Relationship] */
         try {
-            query.asSequence().map { row -> row.toRelationship()}
+            query.map { row -> row.toRelationship()}.asSequence()
         } catch (e: SQLException) {
             LOGGER.error(e) { "Failed to fetch relationships due to SQL error." }
             throw e

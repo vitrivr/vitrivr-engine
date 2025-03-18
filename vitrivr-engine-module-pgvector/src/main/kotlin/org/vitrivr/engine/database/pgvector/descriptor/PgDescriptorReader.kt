@@ -45,7 +45,7 @@ class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, 
      */
     override fun query(query: org.vitrivr.engine.core.model.query.Query): Sequence<D> = transaction(this.connection.database) {
         try {
-            this@PgDescriptorReader.parseQuery(query).asSequence().map { this@PgDescriptorReader.table.rowToDescriptor(it) }
+            this@PgDescriptorReader.parseQuery(query).map { this@PgDescriptorReader.table.rowToDescriptor(it) }.asSequence()
         } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to execute query on '$tableName' due to error." }
             throw e
@@ -81,9 +81,9 @@ class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, 
         try {
             this@PgDescriptorReader.table.selectAll().where {
                 this@PgDescriptorReader.table.retrievableId eq retrievableId
-            }.asSequence().map { row ->
+            }.map { row ->
                 this@PgDescriptorReader.table.rowToDescriptor(row)
-            }
+            }.asSequence()
         } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to fetch descriptor for retrievable $retrievableId from '$tableName' due to error." }
             throw e
@@ -114,9 +114,9 @@ class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, 
      */
     override fun getAll(): Sequence<D> = transaction(this.connection.database) {
         try {
-            this@PgDescriptorReader.table.selectAll().asSequence().map { row ->
+            this@PgDescriptorReader.table.selectAll().map { row ->
                 this@PgDescriptorReader.table.rowToDescriptor(row)
-            }
+            }.asSequence()
         } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to fetch descriptors from '$tableName' due to error." }
             throw e
@@ -133,9 +133,9 @@ class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, 
         try {
             this@PgDescriptorReader.table.selectAll().where {
                 this@PgDescriptorReader.table.id inList descriptorIds
-            }.asSequence().map { row ->
+            }.map { row ->
                 this@PgDescriptorReader.table.rowToDescriptor(row)
-            }
+            }.asSequence()
         } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to fetch descriptors from '$tableName' due to error." }
             throw e
@@ -152,9 +152,9 @@ class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, 
         try {
             this@PgDescriptorReader.table.selectAll().where {
                 this@PgDescriptorReader.table.retrievableId inList retrievableIds
-            }.asSequence().map { row ->
+            }.map { row ->
                 this@PgDescriptorReader.table.rowToDescriptor(row)
-            }
+            }.asSequence()
         } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to fetch descriptors from '$tableName' due to error." }
             throw e
