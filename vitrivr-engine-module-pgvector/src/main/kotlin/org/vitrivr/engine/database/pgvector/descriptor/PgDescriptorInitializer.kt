@@ -84,7 +84,7 @@ open class PgDescriptorInitializer<D : Descriptor<*>>(
      */
     override fun truncate() = transaction(this.connection.database) {
         try {
-            exec("TRUNCATE TABLE IF NOT EXISTS ${this@PgDescriptorInitializer.tableName};")
+            exec("TRUNCATE TABLE IF EXISTS ${this@PgDescriptorInitializer.tableName} CASCADE;")
             Unit
         } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to truncate entities due to exception." }
