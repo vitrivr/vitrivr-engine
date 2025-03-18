@@ -72,7 +72,7 @@ enum class Distance {
             return 1.0 - (dotProduct / (sqrt(sumV1) * sqrt(sumV2)))
         }
     },
-    INNER {
+    IP {
         override fun invoke(v1: Value.FloatVector, v2: Value.FloatVector): Double {
             var innerProduct = 0.0f
             for (i in v1.value.indices) {

@@ -79,7 +79,7 @@ internal fun PreparedStatement.setValue(index: Int, value: Value<*>) = when (val
 internal fun Distance.toIndexName() = when (this) {
     Distance.MANHATTAN -> "vector_l1_ops"
     Distance.EUCLIDEAN -> "vector_l2_ops"
-    Distance.INNER -> "vector_ip_ops"
+    Distance.IP -> "vector_ip_ops"
     Distance.COSINE -> "vector_cosine_ops"
     Distance.HAMMING -> "bit_hamming_ops"
     Distance.JACCARD -> "bit_jaccard_ops"
