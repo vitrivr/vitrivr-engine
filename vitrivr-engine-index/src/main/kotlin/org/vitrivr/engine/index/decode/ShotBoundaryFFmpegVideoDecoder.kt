@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.runBlocking
-import org.bytedeco.opencv.presets.opencv_core.Str
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -42,9 +41,11 @@ import java.util.concurrent.TimeUnit
 
 /**
  * A [Decoder] that can decode [ImageContent] and [AudioContent] from a [Source] of [MediaType.VIDEO].
+ * Further it uses the [ShotBoundaryProvider] to split the video into segments.
  *
  * Based on Jaffree FFmpeg wrapper, which spawns a new FFmpeg process for each [Source].
  *
+ * @author Raphael Waltenspül
  * @author Luca Rossetto
  * @author Ralph Gasser
  * @version 1.0.0
@@ -56,8 +57,10 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
         val audio = context[name, "audio"]?.let { it.lowercase() == "true" } != false
         val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
         val ffmpegPath = context[name, "ffmpegPath"]?.let { Path.of(it) }
-        val sbProvider = context[name, "sbProvider"]?.let { it }?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
-        val sbName = context[name, "sbName"]?.let { it }?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
+        val sbProvider = context[name, "sbProvider"]?.let { it }
+            ?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
+        val sbName = context[name, "sbName"]?.let { it }
+            ?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
         return Instance(input, context, video, audio, timeWindowMs, ffmpegPath, sbProvider, sbName, name)
     }
 
@@ -82,7 +85,8 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
         private val ffmpeg: FFmpeg
             get() = if (this.ffmpegPath != null) FFmpeg.atPath(this.ffmpegPath) else FFmpeg.atPath()
 
-        val factory = loadServiceForName<ShotBoundaryProviderFactory>(sbProvider) ?: throw IllegalArgumentException("Failed to find ShotBoundaryProviderFactory for $name")
+        val factory = loadServiceForName<ShotBoundaryProviderFactory>(sbProvider)
+            ?: throw IllegalArgumentException("Failed to find ShotBoundaryProviderFactory for $name")
         private val sb: ShotBoundaryProvider = factory.newShotBoundaryProvider(sbName, context)
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = channelFlow {
@@ -95,7 +99,18 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
                 }
 
                 /* Load shot boundaries. */
-                val sbs = sb.decode(source.name.split(".")[0])
+                // TODO parse/create  path/uri from source in a generic pattern.
+                // val uri = "http://local-nmr.xreco-retrieval.ch/api/assets/resource/f58389e0-4f0e-42cd-800e-6f9ec2eeb2e5/asset.mp4"
+                val uri = when (source) {
+                    is FileSource -> source.path.toUri().toString()
+                    else -> "Source $source is not a FileSource.".let {
+                        logger.error { it }; throw IllegalArgumentException(
+                        it
+                    )
+                    }
+                }
+
+                val sbs = sb.decode(uri)
                 sbs.isEmpty().let {
                     if (it) {
                         logger.warn { "No shot boundaries found for source ${source.name} (${source.sourceId}) using fixed time window of $timeWindowMs ms." }
@@ -118,6 +133,8 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
                     source.metadata[Metadata.METADATA_KEY_AV_DURATION] = (videoStreamInfo.duration * 1000f).toLong()
                     source.metadata[Metadata.METADATA_KEY_IMAGE_WIDTH] = videoStreamInfo.width
                     source.metadata[Metadata.METADATA_KEY_IMAGE_HEIGHT] = videoStreamInfo.height
+                    source.metadata[Metadata.METADATA_KEY_VIDEO_BITRATE] = videoStreamInfo.bitRate
+
                 }
 
                 val audioStreamInfo = probeResult.streams.find { it.codecType == StreamType.AUDIO }
@@ -125,6 +142,7 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
                     source.metadata[Metadata.METADATA_KEY_AUDIO_CHANNELS] = audioStreamInfo.channels
                     source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLERATE] = audioStreamInfo.sampleRate
                     source.metadata[Metadata.METADATA_KEY_AUDIO_SAMPLESIZE] = audioStreamInfo.sampleFmt
+                    source.metadata[Metadata.METADATA_KEY_AUDIO_BITRATE] = audioStreamInfo.bitRate
                 }
 
                 /* Create consumer. */
@@ -249,6 +267,7 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
                     this@InFlowFrameConsumer.videoStream?.id -> this@InFlowFrameConsumer.videoStream!!
                     else -> return@runBlocking
                 }
+                //
                 val timestamp = ((1_000_000 * frame.pts) / stream.timebase)
                 when (stream.type) {
                     Stream.Type.VIDEO -> {
@@ -293,12 +312,8 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
                         )
                     } else {
                         windowStartEnd = Pair(
-                            TimeUnit.MILLISECONDS.toMicros(
-                                windowStartEnd.second
-                            ),
-                            TimeUnit.MILLISECONDS.toMicros(
-                                windowStartEnd.second + this@Instance.timeWindowMs
-                            )
+                            windowStartEnd.second,
+                            windowStartEnd.second + TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
                         )
                     }
                 }
