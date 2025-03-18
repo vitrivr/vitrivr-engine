@@ -41,9 +41,11 @@ import java.util.concurrent.TimeUnit
 
 /**
  * A [Decoder] that can decode [ImageContent] and [AudioContent] from a [Source] of [MediaType.VIDEO].
+ * Further it uses the [ShotBoundaryProvider] to split the video into segments.
  *
  * Based on Jaffree FFmpeg wrapper, which spawns a new FFmpeg process for each [Source].
  *
+ * @author Raphael Waltenspül
  * @author Luca Rossetto
  * @author Ralph Gasser
  * @version 1.0.0
@@ -55,8 +57,10 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
         val audio = context[name, "audio"]?.let { it.lowercase() == "true" } != false
         val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
         val ffmpegPath = context[name, "ffmpegPath"]?.let { Path.of(it) }
-        val sbProvider = context[name, "sbProvider"]?.let { it }?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
-        val sbName = context[name, "sbName"]?.let { it }?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
+        val sbProvider = context[name, "sbProvider"]?.let { it }
+            ?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
+        val sbName = context[name, "sbName"]?.let { it }
+            ?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
         return Instance(input, context, video, audio, timeWindowMs, ffmpegPath, sbProvider, sbName, name)
     }
 
@@ -81,7 +85,8 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
         private val ffmpeg: FFmpeg
             get() = if (this.ffmpegPath != null) FFmpeg.atPath(this.ffmpegPath) else FFmpeg.atPath()
 
-        val factory = loadServiceForName<ShotBoundaryProviderFactory>(sbProvider) ?: throw IllegalArgumentException("Failed to find ShotBoundaryProviderFactory for $name")
+        val factory = loadServiceForName<ShotBoundaryProviderFactory>(sbProvider)
+            ?: throw IllegalArgumentException("Failed to find ShotBoundaryProviderFactory for $name")
         private val sb: ShotBoundaryProvider = factory.newShotBoundaryProvider(sbName, context)
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = channelFlow {
@@ -94,9 +99,17 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
                 }
 
                 /* Load shot boundaries. */
-                // TODO parse/create  path/uri to source
-                //val uri = "http://local-nmr.xreco-retrieval.ch/api/assets/resource/f58389e0-4f0e-42cd-800e-6f9ec2eeb2e5/asset.mp4"
-                val uri = "http%3A%2F%2Flocal-nmr.xreco-retrieval.ch%2Fapi%2Fassets%2Fresource%2Ff58389e0-4f0e-42cd-800e-6f9ec2eeb2e5%2Fasset.mp4"
+                // TODO parse/create  path/uri from source in a generic pattern.
+                // val uri = "http://local-nmr.xreco-retrieval.ch/api/assets/resource/f58389e0-4f0e-42cd-800e-6f9ec2eeb2e5/asset.mp4"
+                val uri = when (source) {
+                    is FileSource -> source.path.toUri().toString()
+                    else -> "Source $source is not a FileSource.".let {
+                        logger.error { it }; throw IllegalArgumentException(
+                        it
+                    )
+                    }
+                }
+
                 val sbs = sb.decode(uri)
                 sbs.isEmpty().let {
                     if (it) {

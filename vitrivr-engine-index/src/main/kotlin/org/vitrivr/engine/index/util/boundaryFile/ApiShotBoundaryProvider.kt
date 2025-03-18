@@ -15,6 +15,10 @@ import org.vitrivr.engine.index.util.boundaryFile.JRS.ShotBoundaryDetectionSubmi
 
 private val logger: KLogger = KotlinLogging.logger {}
 
+/**
+ * TODO Remove this
+ * XReco specific implementation of a [ApiShotBoundaryProvider] that uses an API to detect shot boundaries.
+ */
 class ApiShotBoundaryProvider: ShotBoundaryProviderFactory {
 
     override fun newShotBoundaryProvider(name: String, context: Context): ShotBoundaryProvider {
@@ -25,6 +29,11 @@ class ApiShotBoundaryProvider: ShotBoundaryProviderFactory {
         return Instance(boundaryEndpointUri, toNanoScale)
     }
 
+    /**
+     * Instance of the [ShotBoundaryProvider] that uses the API to fetch the shot boundaries.
+     * @param boundaryEndpointUri The URI of the boundary endpoint
+     * @param toNanoScale Scaling value to convert seconds to nanoseconds
+     */
     class Instance(
         private val boundaryEndpointUri: String,
         private val toNanoScale: Double = 1e9

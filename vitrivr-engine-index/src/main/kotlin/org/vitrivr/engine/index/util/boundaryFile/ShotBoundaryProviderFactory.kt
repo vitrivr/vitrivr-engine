@@ -15,5 +15,5 @@ interface ShotBoundaryProviderFactory {
 }
 
 interface ShotBoundaryProvider {
-    fun decode(boundaryId: String): List<MediaSegmentDescriptor>
+    fun decode(assetUri: String): List<MediaSegmentDescriptor>
 }
