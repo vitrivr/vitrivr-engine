@@ -80,9 +80,11 @@ open class CottontailDescriptorInitializer<D : Descriptor<*>>(final override val
     override fun deinitialize() {
         try {
             /* Try to drop entity. */
-            this.connection.client.drop(DropEntity(this.entityName))
+            this.connection.client.drop(DropEntity(this.entityName, ))
         } catch (e: StatusRuntimeException) {
-            LOGGER.error(e) { "Failed to de-initialize entity '${this.entityName}' due to exception." }
+            if (e.status.code != io.grpc.Status.Code.NOT_FOUND) {
+                LOGGER.error(e) { "Failed to de-initialize entity '${this.entityName}' due to exception." }
+            }
         }
     }
 
