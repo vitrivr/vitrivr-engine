@@ -12,18 +12,16 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.database.jsonl.model.AttributeContainerList
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.nio.file.Path
 import kotlin.io.path.inputStream
 
-abstract class AbstractJsonlReader<D : Descriptor<*>>(
-    final override val field: Schema.Field<*, D>,
-    final override val connection: JsonlConnection
-) :
-    DescriptorReader<D> {
+abstract class AbstractJsonlReader<D : Descriptor<*>>(final override val field: Schema.Field<*, D>, final override val connection: JsonlConnection) : DescriptorReader<D> {
 
     /** Prototype used to create new instances. */
     protected val prototype = this.field.analyser.prototype(this.field)
 
-    private val path = connection.getPath(field)
+    /** The [Path] to the JSONL file. */
+    private val path: Path = this.connection.resolve(field)
 
     protected abstract fun toDescriptor(list: AttributeContainerList): D
 
@@ -40,17 +38,17 @@ abstract class AbstractJsonlReader<D : Descriptor<*>>(
         return getAll().filter { ids.contains(it.id) }
     }
 
-    override fun getAll(): Sequence<D> {
-        return BufferedReader(InputStreamReader(path.inputStream())).lineSequence().mapNotNull {
-            try {
-                val list = Json.decodeFromString<AttributeContainerList>(it)
-                return@mapNotNull toDescriptor(list)
-            } catch (se: SerializationException) {
-                LOGGER.error(se) { "Error during deserialization" }
-                null
-            } catch (ie: IllegalArgumentException) {
-                LOGGER.error(ie) { "Error during deserialization" }
-                null
+    override fun getAll(): Sequence<D> = sequence {
+        BufferedReader(InputStreamReader(this@AbstractJsonlReader.path.inputStream())).use { reader ->
+            for (line in reader.lineSequence()) {
+                try {
+                    val list = Json.decodeFromString<AttributeContainerList>(line)
+                    yield(toDescriptor(list))
+                } catch (se: SerializationException) {
+                    LOGGER.error(se) { "Error during deserialization" }
+                } catch (ie: IllegalArgumentException) {
+                    LOGGER.error(ie) { "Error during deserialization" }
+                }
             }
         }
     }
@@ -78,7 +76,7 @@ abstract class AbstractJsonlReader<D : Descriptor<*>>(
     }
 
 
-    override fun count(): Long {
-        return BufferedReader(InputStreamReader(path.inputStream())).lineSequence().count().toLong()
+    override fun count(): Long = BufferedReader(InputStreamReader(this.path.inputStream())).use { reader ->
+        reader.lineSequence().count().toLong()
     }
 }

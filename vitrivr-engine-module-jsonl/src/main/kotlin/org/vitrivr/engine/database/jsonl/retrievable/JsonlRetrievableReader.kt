@@ -8,6 +8,8 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.database.jsonl.JsonlConnection
 import org.vitrivr.engine.database.jsonl.LOGGER
+import org.vitrivr.engine.database.jsonl.RELATIONSHIPS_FILE_NAME
+import org.vitrivr.engine.database.jsonl.RETRIEVABLES_FILE_NAME
 import org.vitrivr.engine.database.jsonl.model.JsonlRelationship
 import org.vitrivr.engine.database.jsonl.model.JsonlRetrievable
 import java.io.BufferedReader
@@ -16,8 +18,11 @@ import kotlin.io.path.inputStream
 
 class JsonlRetrievableReader(override val connection: JsonlConnection) : RetrievableReader {
 
-    private val retrievablePath = connection.schemaRoot.resolve("retrievables.jsonl")
-    private val connectionPath = connection.schemaRoot.resolve("retrievable_connections.jsonl")
+    /** Path to the file containing [Retrievable]s. */
+    private val retrievablePath = this.connection.schemaRoot.resolve(RETRIEVABLES_FILE_NAME)
+
+    /** Path to the file containing [Relationship]s. */
+    private val connectionPath = this.connection.schemaRoot.resolve(RELATIONSHIPS_FILE_NAME)
 
     override fun get(id: RetrievableId): Retrievable? = getAll().firstOrNull { it.id == id }
 
@@ -55,7 +60,7 @@ class JsonlRetrievableReader(override val connection: JsonlConnection) : Retriev
     }
 
     override fun getAll(): Sequence<Retrievable> {
-        return BufferedReader(InputStreamReader(retrievablePath.inputStream())).lineSequence().mapNotNull {
+        return BufferedReader(InputStreamReader(this.retrievablePath.inputStream())).lineSequence().mapNotNull {
             try {
                 Json.decodeFromString<JsonlRetrievable>(it).toRetrieved()
             } catch (se: SerializationException) {
@@ -69,5 +74,5 @@ class JsonlRetrievableReader(override val connection: JsonlConnection) : Retriev
     }
 
     override fun count(): Long =
-        BufferedReader(InputStreamReader(retrievablePath.inputStream())).lineSequence().count().toLong()
+        BufferedReader(InputStreamReader(this.retrievablePath.inputStream())).lineSequence().count().toLong()
 }
