@@ -27,7 +27,7 @@ class TemporalSequenceAggregator(
         val retrieved: List<Retrievable>,
         val start: Long,
         val end: Long,
-        val score: Float,
+        val score: Double,
         val stage: Int
     )
 
@@ -119,7 +119,7 @@ class TemporalSequenceAggregator(
                     val end =
                         sequence.last().filteredAttribute(PropertyAttribute::class.java)!!.properties["end"]!!.toLong()
                     val score =
-                        sequence.maxOfOrNull { (it.filteredAttribute(ScoreAttribute::class.java))?.score ?: 0f } ?: 0f
+                        sequence.maxOfOrNull { (it.filteredAttribute(ScoreAttribute::class.java))?.score ?: 0.0 } ?: 0.0
 
                     continuousSequences[source.id]!!.add(
                         ContinuousSequence(
