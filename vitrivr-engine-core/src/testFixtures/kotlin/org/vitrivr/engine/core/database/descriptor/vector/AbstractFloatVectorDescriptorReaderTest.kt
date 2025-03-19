@@ -27,9 +27,9 @@ import java.util.*
 @Suppress("UNCHECKED_CAST")
 abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : AbstractDatabaseTest(schemaPath) {
 
-    /** The [Schema.Field] used for this [DescriptorInitializerTest]. */
-    private val field: Schema.Field<*, FloatVectorDescriptor> =
-        this.testSchema["averagecolor"]!! as Schema.Field<*, FloatVectorDescriptor>
+    /** The [Schema.Field] used for this [AbstractFloatVectorDescriptorReaderTest]. */
+    protected val field: Schema.Field<*, FloatVectorDescriptor>
+        = this.testSchema["averagecolor"]!! as Schema.Field<*, FloatVectorDescriptor>
 
     /**
      * Tests [VectorDescriptorReader.getAll] method.
@@ -71,7 +71,7 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
      */
     @ParameterizedTest
     @EnumSource(mode = EnumSource.Mode.EXCLUDE, names = ["JACCARD", "HAMMING"])
-    fun testQueryAndJoinWithVector(distance: Distance) {
+    open fun testQueryAndJoinWithVector(distance: Distance) {
         val writer = this.testConnection.getDescriptorWriter(this.field)
         val reader = this.testConnection.getDescriptorReader(this.field)
         val random = SplittableRandom()
@@ -103,7 +103,7 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
      */
     @ParameterizedTest
     @EnumSource(mode = EnumSource.Mode.EXCLUDE, names = ["JACCARD", "HAMMING"])
-    fun testQueryAndJoinNoVector(distance: Distance) {
+    open fun testQueryAndJoinNoVector(distance: Distance) {
         val writer = this.testConnection.getDescriptorWriter(this.field)
         val reader = this.testConnection.getDescriptorReader(this.field)
         val random = SplittableRandom()
@@ -192,7 +192,7 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
     /**
      * Initializes the test data.
      */
-    private fun initialize(
+    protected fun initialize(
         writer: DescriptorWriter<FloatVectorDescriptor>,
         random: SplittableRandom
     ): List<FloatVectorDescriptor> {

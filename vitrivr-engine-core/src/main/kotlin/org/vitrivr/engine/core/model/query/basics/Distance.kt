@@ -74,7 +74,7 @@ enum class Distance {
     },
     IP {
         override fun invoke(v1: Value.FloatVector, v2: Value.FloatVector): Double {
-            var innerProduct = 0.0f
+            var innerProduct = 0.0
             for (i in v1.value.indices) {
                 innerProduct += v1.value[i] * v2.value[i]
             }
