@@ -70,14 +70,19 @@ abstract class AbstractDescriptorTable<D : Descriptor<*>>(protected val field: S
             val columns = index.attributes.map { a -> this.columns.find { c -> a == c.name } ?: throw IllegalStateException("Cannot create index; no column named '$a'.") }
             when (index.type) {
                 IndexType.SCALAR -> {
-                    val type = index.parameters[INDEX_TYPE_PARAMETER_NAME]?.lowercase() ?: "bree"
-                    index(indexType = type, columns = columns.toTypedArray())
+                    val type = index.parameters[INDEX_TYPE_PARAMETER_NAME]?.lowercase() ?: "btree"
+                    if (type == "btree") {
+                        index(columns = columns.toTypedArray())
+                    } else {
+                        index(indexType = type, columns = columns.toTypedArray())
+                    }
                 }
                 IndexType.FULLTEXT -> {
                     val column = columns.firstOrNull() ?: error("Cannot create fulltext index without column.")
+                    val language =  index.parameters["language"]?.lowercase() ?: "english"
                     this.registerColumn("${column.nameInDatabaseCase()}_ft_index", TsVectorColumnType())
                         .databaseGenerated()
-                        .withDefinition("GENERATED ALWAYS AS (to_tsvector(${column.nameInDatabaseCase()}) STORED;")
+                        .withDefinition("GENERATED ALWAYS AS (to_tsvector('${language}', ${column.nameInDatabaseCase()})) STORED")
                 }
                 IndexType.NNS -> {
                     val type = index.parameters[INDEX_TYPE_PARAMETER_NAME]?.lowercase() ?: "hnsw"
@@ -181,5 +186,5 @@ abstract class AbstractDescriptorTable<D : Descriptor<*>>(protected val field: S
      * Creates the SQL statement to create the table.
      */
     override fun dropStatement(): List<String> =
-        super.createStatement() + this.vectorIndexes.flatMap { it.dropStatement() }
+        super.dropStatement() + this.vectorIndexes.flatMap { it.dropStatement() }
 }

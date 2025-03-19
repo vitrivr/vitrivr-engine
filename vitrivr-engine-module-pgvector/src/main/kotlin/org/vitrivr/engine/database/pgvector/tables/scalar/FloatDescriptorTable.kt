@@ -16,7 +16,7 @@ import org.vitrivr.engine.core.model.types.Value
  * @version 1.0.0
  */
 internal class FloatDescriptorTable(field: Schema.Field<*, FloatDescriptor>): AbstractScalarDescriptorTable<FloatDescriptor, Value.Float, Float>(field) {
-    override val descriptor = float("descriptor").index()
+    override val descriptor = float("descriptor")
 
     init {
         this.initializeIndexes()

@@ -20,7 +20,7 @@ import org.vitrivr.engine.database.pgvector.exposed.ops.tsMatches
  * @version 1.0.0
  */
 internal class StringDescriptorTable(field: Schema.Field<*, StringDescriptor>): AbstractScalarDescriptorTable<StringDescriptor, Value.String, String>(field) {
-    override val descriptor = varchar("descriptor", 255).index()
+    override val descriptor = varchar("descriptor", 255)
 
     init {
         this.initializeIndexes()

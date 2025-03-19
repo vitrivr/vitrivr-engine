@@ -16,7 +16,7 @@ import org.vitrivr.engine.core.model.types.Value
  * @version 1.0.0
  */
 internal class ShortDescriptorTable(field: Schema.Field<*, ShortDescriptor>): AbstractScalarDescriptorTable<ShortDescriptor, Value.Short, Short>(field) {
-    override val descriptor = short("descriptor").index()
+    override val descriptor = short("descriptor")
 
     init {
         this.initializeIndexes()
