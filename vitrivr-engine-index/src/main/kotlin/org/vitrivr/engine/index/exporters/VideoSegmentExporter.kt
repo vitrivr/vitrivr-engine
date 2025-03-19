@@ -113,7 +113,7 @@ class VideoSegmentExporter : ExporterFactory {
 
 
             // Decide `useGrabber` using grabber from source or using content from retrievable
-            if (source is FileSource && useGrabber == true) {
+            if (source is FileSource) {
                 if (this.grabber == null) {
                     this.grabber = Pair(FFmpegFrameGrabber(source.path.toFile()), source.sourceId)
                 }
@@ -124,7 +124,15 @@ class VideoSegmentExporter : ExporterFactory {
                 }
                 decodeFromGrabber(source, resolvable, this.grabber!!.first, startTimestamp, endTimestamp)
             } else {
-                decode(source, resolvable, retrievable.content, startTimestamp, endTimestamp)
+                if (this.grabber == null) {
+                    this.grabber = Pair(FFmpegFrameGrabber(source.newInputStream()), source.sourceId)
+                }
+                if (this.grabber?.second != source.sourceId) {
+                    this.grabber?.first?.release()
+                    this.grabber?.first?.close()
+                    this.grabber = Pair(FFmpegFrameGrabber(source.newInputStream()), source.sourceId)
+                }
+                decodeFromGrabber(source, resolvable, this.grabber!!.first, startTimestamp, endTimestamp)
             }
         }
 
