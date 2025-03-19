@@ -88,13 +88,17 @@ internal class RetrievableInitializer(private val connection: CottontailConnecti
         try {
             this.connection.client.drop(DropEntity(this.entityName))
         } catch (e: StatusRuntimeException) {
-            LOGGER.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
+            if (e.status.code != io.grpc.Status.Code.NOT_FOUND) {
+                LOGGER.error(e) { "Failed to initialize entity ${this.entityName} due to exception." }
+            }
         }
 
         try {
             this.connection.client.drop(DropEntity(this.relationshipEntityName))
         } catch (e: StatusRuntimeException) {
-            LOGGER.error(e) { "Failed to initialize entity '${this.entityName}' due to exception." }
+            if (e.status.code != io.grpc.Status.Code.NOT_FOUND) {
+                LOGGER.error(e) { "Failed to initialize entity '${this.entityName}' due to exception." }
+            }
         }
     }
 
