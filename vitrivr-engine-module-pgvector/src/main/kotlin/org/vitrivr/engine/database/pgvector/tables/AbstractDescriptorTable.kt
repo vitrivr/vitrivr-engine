@@ -5,15 +5,21 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.BatchInsertStatement
 import org.jetbrains.exposed.sql.statements.InsertStatement
 import org.jetbrains.exposed.sql.statements.UpdateStatement
+import org.vitrivr.engine.core.config.schema.IndexType
+import org.vitrivr.engine.core.database.Initializer.Companion.DISTANCE_PARAMETER_NAME
+import org.vitrivr.engine.core.database.Initializer.Companion.INDEX_TYPE_PARAMETER_NAME
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.database.pgvector.DESCRIPTOR_ENTITY_PREFIX
 import org.vitrivr.engine.database.pgvector.DESCRIPTOR_ID_COLUMN_NAME
 import org.vitrivr.engine.database.pgvector.RETRIEVABLE_ID_COLUMN_NAME
+import org.vitrivr.engine.database.pgvector.exposed.index.VectorIndex
 import org.vitrivr.engine.database.pgvector.exposed.types.FloatVectorColumnType
+import org.vitrivr.engine.database.pgvector.exposed.types.TsVectorColumnType
 
 /**
  * An abstract [UUIDTable] for [Descriptor]s. This class is used as a base class for all descriptor tables.
@@ -25,6 +31,9 @@ abstract class AbstractDescriptorTable<D : Descriptor<*>>(protected val field: S
     /** Reference to the [RetrievableTable]. */
     val retrievableId = reference(RETRIEVABLE_ID_COLUMN_NAME, RetrievableTable, onDelete = ReferenceOption.CASCADE).index()
 
+    /** List of [VectorIndex] structures. */
+    private val vectorIndexes: MutableList<VectorIndex> = mutableListOf()
+
     /** The prototype value handled by this [StructDescriptorTable]. */
     protected val prototype by lazy { this.field.getPrototype() }
 
@@ -35,6 +44,50 @@ abstract class AbstractDescriptorTable<D : Descriptor<*>>(protected val field: S
      * @param dimension The dimensionality of the [FloatVectorColumnType]
      */
     protected fun floatVector(name: String, dimension: Int) = registerColumn(name, FloatVectorColumnType(dimension))
+
+    /**
+     * Registers a new [VectorIndex].
+     *
+     * @param column The column to create the [VectorIndex] for.
+     * @param type The type of the [VectorIndex] to create.
+     * @param distance The [Distance] function to create [VectorIndex] for.
+     * @param customName Name of the index.
+     * @param parameters Named paramters used for index creation.
+     */
+    protected fun vectorIndex(column: Column<*>, type: String, distance: Distance, customName: String? = null, parameters: Map<String, String> = emptyMap()) {
+        require(this.columns.contains(column)) { "Column $column does not exist in table '${this.nameInDatabaseCase()}'." }
+        this.vectorIndexes.add(VectorIndex(column, type, distance, customName, parameters))
+    }
+
+    /**
+     * Initializes the indexes for this [AbstractDescriptorTable].
+     *
+     * This method is used to create the indexes for the table. It must be called by the implementing subclass
+     * for reasons of inheritance.
+     */
+    protected fun initializeIndexes() {
+        for (index in this.field.indexes) {
+            val columns = index.attributes.map { a -> this.columns.find { c -> a == c.name } ?: throw IllegalStateException("Cannot create index; no column named '$a'.") }
+            when (index.type) {
+                IndexType.SCALAR -> {
+                    val type = index.parameters[INDEX_TYPE_PARAMETER_NAME]?.lowercase() ?: "bree"
+                    index(indexType = type, columns = columns.toTypedArray())
+                }
+                IndexType.FULLTEXT -> {
+                    val column = columns.firstOrNull() ?: error("Cannot create fulltext index without column.")
+                    this.registerColumn("${column.nameInDatabaseCase()}_ft_index", TsVectorColumnType())
+                        .databaseGenerated()
+                        .withDefinition("GENERATED ALWAYS AS (to_tsvector(${column.nameInDatabaseCase()}) STORED;")
+                }
+                IndexType.NNS -> {
+                    val type = index.parameters[INDEX_TYPE_PARAMETER_NAME]?.lowercase() ?: "hnsw"
+                    val distance = index.parameters[DISTANCE_PARAMETER_NAME]?.let { Distance.valueOf(it.uppercase()) } ?: Distance.EUCLIDEAN
+                    this.vectorIndex(columns.first(), type, distance, parameters = index.parameters.filter { it.key == INDEX_TYPE_PARAMETER_NAME || it.key == DISTANCE_PARAMETER_NAME })
+                }
+            }
+        }
+        this.vectorIndexes.forEach { it.createStatement() }
+    }
 
     /**
      * Inserts a descriptor into the table. This method is used to insert a descriptor into the table.
@@ -117,4 +170,16 @@ abstract class AbstractDescriptorTable<D : Descriptor<*>>(protected val field: S
      * @param d The [Descriptor] to set value for
      */
     protected abstract fun BatchInsertStatement.setValue(d: D)
+
+    /**
+     * Creates the SQL statement to create the table.
+     */
+    override fun createStatement(): List<String> =
+        super.createStatement() + this.vectorIndexes.flatMap { it.createStatement() }
+
+    /**
+     * Creates the SQL statement to create the table.
+     */
+    override fun dropStatement(): List<String> =
+        super.createStatement() + this.vectorIndexes.flatMap { it.dropStatement() }
 }

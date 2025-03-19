@@ -5,14 +5,12 @@ import org.postgresql.util.PGobject
 import org.vitrivr.engine.database.pgvector.descriptor.model.PgVector
 
 /**
- * A [ColumnType] for [Short] values.
- *
- * This class is used to define the column type for short values in the database.
+ * A [ColumnType] for [FloatArray] vector values.
  *
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class FloatVectorColumnType(val dimension: Int): ColumnType<FloatArray>() {
+class FloatVectorColumnType(val dimension: Int): ColumnType<FloatArray>(), VectorColumnType {
     override fun sqlType(): String = "vector($dimension)"
     override fun valueFromDB(value: Any): FloatArray = when (value) {
         is PgVector -> value.vec ?: error("Unexpected null value for vector.")

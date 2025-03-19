@@ -13,7 +13,8 @@ import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
-import org.vitrivr.engine.database.pgvector.exposed.fulltext
+import org.vitrivr.engine.database.pgvector.exposed.functions.toTsQuery
+import org.vitrivr.engine.database.pgvector.exposed.ops.tsMatches
 import java.util.*
 import kotlin.reflect.full.primaryConstructor
 
@@ -27,6 +28,10 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
 
     /** List of value columns for this [StructDescriptorTable]*/
     private val valueColumns = mutableListOf<Column<*>>()
+
+    init {
+        this.initializeIndexes()
+    }
 
     /* Initializes the columns for this [StructDescriptorTable]. */
     init {
@@ -110,7 +115,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
         require(query.attributeName != null) { "Attribute name of boolean query must not be null!" }
         val value = query.value.value as? String ?: throw IllegalArgumentException("Attribute value of fulltext query must be a string")
         val descriptor = this@StructDescriptorTable.valueColumns.find { it.name == query.attributeName } as Column<String>
-        descriptor fulltext value
+        descriptor tsMatches toTsQuery(stringParam(value))
     }
 
     /**

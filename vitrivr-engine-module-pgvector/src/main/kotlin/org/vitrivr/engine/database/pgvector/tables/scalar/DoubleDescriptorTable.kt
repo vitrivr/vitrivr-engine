@@ -18,6 +18,10 @@ import org.vitrivr.engine.core.model.types.Value
 internal class DoubleDescriptorTable(field: Schema.Field<*, DoubleDescriptor>): AbstractScalarDescriptorTable<DoubleDescriptor, Value.Double, Double>(field) {
     override val descriptor = double("descriptor")
 
+    init {
+        this.initializeIndexes()
+    }
+
     override fun rowToDescriptor(row: ResultRow) = DoubleDescriptor(
         id = row[id].value,
         retrievableId = row[retrievableId].value,

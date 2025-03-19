@@ -3,13 +3,15 @@ package org.vitrivr.engine.database.pgvector.tables.scalar
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.stringParam
 import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
 import org.vitrivr.engine.core.model.types.Value
-import org.vitrivr.engine.database.pgvector.exposed.fulltext
+import org.vitrivr.engine.database.pgvector.exposed.functions.toTsQuery
+import org.vitrivr.engine.database.pgvector.exposed.ops.tsMatches
 
 /**
  * Table definition for the [StringDescriptor] entity.
@@ -19,6 +21,10 @@ import org.vitrivr.engine.database.pgvector.exposed.fulltext
  */
 internal class StringDescriptorTable(field: Schema.Field<*, StringDescriptor>): AbstractScalarDescriptorTable<StringDescriptor, Value.String, String>(field) {
     override val descriptor = varchar("descriptor", 255).index()
+
+    init {
+        this.initializeIndexes()
+    }
 
     override fun rowToDescriptor(row: ResultRow) = StringDescriptor(
         id = row[id].value,
@@ -34,7 +40,7 @@ internal class StringDescriptorTable(field: Schema.Field<*, StringDescriptor>): 
      * @return The [Query] that can be executed against the database.
      */
     override fun parseQuery(query: SimpleFulltextQuery): Query = this.selectAll().where {
-        descriptor fulltext query.value.value
+        descriptor tsMatches toTsQuery(stringParam(query.value.value))
     }
 
     /**

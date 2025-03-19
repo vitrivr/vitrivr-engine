@@ -18,6 +18,10 @@ import org.vitrivr.engine.core.model.types.Value
 internal class FloatDescriptorTable(field: Schema.Field<*, FloatDescriptor>): AbstractScalarDescriptorTable<FloatDescriptor, Value.Float, Float>(field) {
     override val descriptor = float("descriptor").index()
 
+    init {
+        this.initializeIndexes()
+    }
+
     override fun rowToDescriptor(row: ResultRow) = FloatDescriptor(
         id = row[id].value,
         retrievableId = row[retrievableId].value,

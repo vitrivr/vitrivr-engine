@@ -18,6 +18,10 @@ import org.vitrivr.engine.core.model.types.Value
 internal class IntDescriptorTable(field: Schema.Field<*, IntDescriptor>): AbstractScalarDescriptorTable<IntDescriptor, Value.Int, Int>(field) {
     override val descriptor = integer("descriptor").index()
 
+    init {
+        this.initializeIndexes()
+    }
+
     override fun rowToDescriptor(row: ResultRow) = IntDescriptor(
         id = row[id].value,
         retrievableId = row[retrievableId].value,
