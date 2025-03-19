@@ -91,11 +91,11 @@ class VectorJsonlReader(
         knn(query).asSequence().map { it.first }
 
 
-    private fun knn(query: ProximityQuery<*>): FixedSizePriorityQueue<Pair<VectorDescriptor<*, *>, Float>> {
+    private fun knn(query: ProximityQuery<*>): FixedSizePriorityQueue<Pair<VectorDescriptor<*, *>, Double>> {
 
         val queue = FixedSizePriorityQueue(query.k.toInt(),
             when (query.order) {
-                SortOrder.ASC -> Comparator<Pair<VectorDescriptor<*, *>, Float>> { p0, p1 ->
+                SortOrder.ASC -> Comparator<Pair<VectorDescriptor<*, *>, Double>> { p0, p1 ->
                     p0.second.compareTo(p1.second)
                 }
 
@@ -114,17 +114,15 @@ class VectorJsonlReader(
 
     }
 
-    private fun distance(query: ProximityQuery<*>, vector: Value.Vector<*>): Float {
+    private fun distance(query: ProximityQuery<*>, vector: Value.Vector<*>): Double {
         return when (query.value) {
             is Value.FloatVector -> query.distance(query.value as Value.FloatVector, vector as Value.FloatVector)
             is Value.DoubleVector -> query.distance(
                 query.value as Value.DoubleVector,
                 vector as Value.DoubleVector
-            ).toFloat()
+            )
 
             else -> error("Unsupported query type ${query.value::class.simpleName}")
         }
     }
-
-
 }

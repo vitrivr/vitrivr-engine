@@ -13,21 +13,21 @@ import kotlin.math.min
  */
 sealed interface DistanceAttribute: RetrievableAttribute {
     /** The distance value associated with this [DistanceAttribute]. */
-    val distance: Float
+    val distance: Double
 
     /**
      * A global [DistanceAttribute].
      *
      * It is used to store a global distance value for a [Retrievable].
      */
-    data class Global(override val distance: Float): DistanceAttribute, MergingRetrievableAttribute {
+    data class Global(override val distance: Double): DistanceAttribute, MergingRetrievableAttribute {
         override fun merge(other: MergingRetrievableAttribute) = Global(
-            min(this.distance, (other as? DistanceAttribute)?.distance ?: Float.POSITIVE_INFINITY)
+            min(this.distance, (other as? DistanceAttribute)?.distance ?: Double.POSITIVE_INFINITY)
         )
     }
 
     /**
      * A local [DistanceAttribute]. It is used to store a local distance value specific for a [Descriptor].
      */
-    data class Local(override val distance: Float, val descriptorId: DescriptorId): DistanceAttribute
+    data class Local(override val distance: Double, val descriptorId: DescriptorId): DistanceAttribute
 }
