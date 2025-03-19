@@ -11,7 +11,7 @@ class JsonlInitializer<D : Descriptor<*>>(
     connection: JsonlConnection
 ) : DescriptorInitializer<D> {
 
-    private val path = connection.getPath(field)
+    private val path = connection.resolve(field)
 
     override fun initialize() {
         try {
