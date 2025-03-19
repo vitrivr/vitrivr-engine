@@ -9,7 +9,7 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 import kotlin.math.pow
 
-class ScoreExaggerator(override val input: Operator<out Retrievable>, val factor: Float, override val name: String) : Transformer {
+class ScoreExaggerator(override val input: Operator<out Retrievable>, val factor: Double, override val name: String) : Transformer {
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> {
         return flow {
             input.toFlow(scope).collect { retrieved : Retrievable ->
@@ -34,12 +34,11 @@ class ScoreExaggerator(override val input: Operator<out Retrievable>, val factor
         }
     }
 
-    private fun exaggerateSimilarity(score: Float): Float {
-        // -1 + 2/(1 + ((-1 - x)/(-1 + x))^(-a))
-        return -1 + 2 / (1 + ((-1 - score) / (-1 + score)).pow(-factor))
+    private fun exaggerateSimilarity(score: Double): Double {
+        return -1.0 + 2.0 / (1.0 + ((-1.0 - score) / (-1.0 + score)).pow(-factor))
     }
 
-    private fun exaggerateUnbound(score: Float): Float {
+    private fun exaggerateUnbound(score: Double): Double {
         return score * factor
     }
 
