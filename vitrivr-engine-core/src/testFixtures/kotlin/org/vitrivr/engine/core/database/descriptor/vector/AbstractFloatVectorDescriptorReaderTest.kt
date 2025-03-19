@@ -134,7 +134,7 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
      */
     @ParameterizedTest
     @EnumSource(mode = EnumSource.Mode.EXCLUDE, names = ["JACCARD", "HAMMING"])
-    fun testNearestNeighbourSearch(distance: Distance) {
+    open fun testNearestNeighbourSearch(distance: Distance) {
         val writer = this.testConnection.getDescriptorWriter(this.field)
         val reader = this.testConnection.getDescriptorReader(this.field)
         val random = SplittableRandom()
@@ -164,7 +164,7 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
      */
     @ParameterizedTest
     @EnumSource(mode = EnumSource.Mode.EXCLUDE, names = ["JACCARD", "HAMMING"])
-    fun testFarthestNeighbourSearch(distance: Distance) {
+    open fun testFarthestNeighbourSearch(distance: Distance) {
         val writer = this.testConnection.getDescriptorWriter(this.field)
         val reader = this.testConnection.getDescriptorReader(this.field)
         val random = SplittableRandom()
