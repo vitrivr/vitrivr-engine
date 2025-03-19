@@ -17,7 +17,7 @@ import org.vitrivr.engine.core.model.types.Value
  * @version 1.0.0
  */
 internal class ByteDescriptorTable(field: Schema.Field<*, ByteDescriptor>): AbstractScalarDescriptorTable<ByteDescriptor, Value.Byte, Byte>(field) {
-    override val descriptor = byte("descriptor").index()
+    override val descriptor = byte("descriptor")
 
     init {
         this.initializeIndexes()

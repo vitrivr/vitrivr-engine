@@ -30,11 +30,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
     private val valueColumns = mutableListOf<Column<*>>()
 
     init {
-        this.initializeIndexes()
-    }
-
-    /* Initializes the columns for this [StructDescriptorTable]. */
-    init {
+        /* Initializes the columns for this [StructDescriptorTable]. */
         for (attribute in this.prototype.layout()) {
             val column = when (val type = attribute.type) {
                 Type.Boolean -> bool(attribute.name)
@@ -50,7 +46,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
                 Type.UUID -> uuid(attribute.name)
                 is Type.FloatVector -> floatVector(attribute.name, type.dimensions)
                 else -> error("Unsupported type $type for attribute ${attribute.name} in ${this.tableName}")
-            }.index().let { column ->
+            }.let { column ->
                 if (attribute.nullable) {
                     column.nullable()
                 }
@@ -58,6 +54,9 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
             }
             this.valueColumns.add(column)
         }
+
+        /* Initializes the indexes. */
+        this.initializeIndexes()
     }
 
 

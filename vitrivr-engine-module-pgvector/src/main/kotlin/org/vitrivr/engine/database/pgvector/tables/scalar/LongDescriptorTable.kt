@@ -16,7 +16,7 @@ import org.vitrivr.engine.core.model.types.Value
  * @version 1.0.0
  */
 internal class LongDescriptorTable(field: Schema.Field<*, LongDescriptor>): AbstractScalarDescriptorTable<LongDescriptor, Value.Long, Long>(field) {
-    override val descriptor = long("descriptor").index()
+    override val descriptor = long("descriptor")
 
     init {
         this.initializeIndexes()
