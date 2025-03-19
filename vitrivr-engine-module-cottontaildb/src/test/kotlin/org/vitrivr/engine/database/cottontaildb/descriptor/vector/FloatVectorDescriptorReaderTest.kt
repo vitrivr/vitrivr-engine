@@ -63,7 +63,7 @@ class FloatVectorDescriptorReaderTest : AbstractFloatVectorDescriptorReaderTest(
      * Tests [VectorDescriptorReader.queryAndJoin] method.
      */
     @ParameterizedTest
-    @EnumSource(mode = EnumSource.Mode.EXCLUDE, names = ["JACCARD", "HAMMING"])
+    @EnumSource(mode = EnumSource.Mode.EXCLUDE, names = ["JACCARD", "HAMMING", "IP"])
     override fun testQueryAndJoinNoVector(distance: Distance) {
         val writer = this.testConnection.getDescriptorWriter(this.field)
         val reader = this.testConnection.getDescriptorReader(this.field)
@@ -85,10 +85,7 @@ class FloatVectorDescriptorReaderTest : AbstractFloatVectorDescriptorReaderTest(
         /* Make manual query and compare. */
         val manual = descriptors.sortedBy {
             if (distance == Distance.IP) {
-                -1.0 * distance(
-                    it.vector,
-                    query.value
-                ) /* Definition problem with IP in Cottontail DB, which is not a distance. */
+                -1.0 * distance(it.vector, query.value) /* Definition problem with IP in Cottontail DB, which is not a distance. */
             } else {
                 distance(it.vector, query.value)
             }
@@ -96,6 +93,78 @@ class FloatVectorDescriptorReaderTest : AbstractFloatVectorDescriptorReaderTest(
         result.zip(manual).forEach {
             Assertions.assertEquals(it.first.id, it.second.retrievableId)
             Assertions.assertTrue(it.first.hasAttribute(DistanceAttribute::class.java))
+        }
+    }
+
+    /**
+     * Tests nearest neighbour search through the [VectorDescriptorReader.query] method.
+     */
+    @ParameterizedTest
+    @EnumSource(mode = EnumSource.Mode.EXCLUDE, names = ["JACCARD", "HAMMING"])
+    override fun testNearestNeighbourSearch(distance: Distance) {
+        val writer = this.testConnection.getDescriptorWriter(this.field)
+        val reader = this.testConnection.getDescriptorReader(this.field)
+        val random = SplittableRandom()
+
+        /* Generate and store test data. */
+        val descriptors = this.initialize(writer, random)
+
+        /* Perform nearest neighbour search. */
+        val query = ProximityQuery(
+            Value.FloatVector(FloatArray(3) { random.nextFloat() }),
+            distance,
+            SortOrder.ASC,
+            100,
+            fetchVector = true
+        )
+        val result = reader.query(query).toList()
+
+        /* Make manual query and compare. */
+        val manual = descriptors.sortedBy {
+            if (distance == Distance.IP) {
+                -1.0 * distance(it.vector, query.value) /* Definition problem with IP in Cottontail DB, which is not a distance. */
+            } else {
+                distance(it.vector, query.value)
+            }
+        }.take(100)
+        result.zip(manual).forEach {
+            Assertions.assertEquals(distance(it.first.vector, query.value), distance(it.second.vector, query.value), 0.00005)
+        }
+    }
+
+    /**
+     * Tests farthest neighbour search through the [VectorDescriptorReader.query] method.
+     */
+    @ParameterizedTest
+    @EnumSource(mode = EnumSource.Mode.EXCLUDE, names = ["JACCARD", "HAMMING"])
+    override fun testFarthestNeighbourSearch(distance: Distance) {
+        val writer = this.testConnection.getDescriptorWriter(this.field)
+        val reader = this.testConnection.getDescriptorReader(this.field)
+        val random = SplittableRandom()
+
+        /* Generate and store test data. */
+        val descriptors = this.initialize(writer, random)
+
+        /* Perform nearest neighbour search. */
+        val query = ProximityQuery(
+            Value.FloatVector(FloatArray(3) { random.nextFloat() }),
+            distance,
+            SortOrder.DESC,
+            100,
+            fetchVector = true
+        )
+        val result = reader.query(query).toList()
+
+        /* Make manual query and compare. */
+        val manual = descriptors.sortedBy {
+            if (distance == Distance.IP) {
+                -1.0 * distance(it.vector, query.value) /* Definition problem with IP in Cottontail DB, which is not a distance. */
+            } else {
+                distance(it.vector, query.value)
+            }
+        }.take(100)
+        result.zip(manual).forEach {
+            Assertions.assertEquals(distance(it.first.vector, query.value), distance(it.second.vector, query.value), 0.00005)
         }
     }
 }
