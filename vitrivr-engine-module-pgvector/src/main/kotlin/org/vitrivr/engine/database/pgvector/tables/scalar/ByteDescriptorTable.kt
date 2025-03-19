@@ -19,6 +19,10 @@ import org.vitrivr.engine.core.model.types.Value
 internal class ByteDescriptorTable(field: Schema.Field<*, ByteDescriptor>): AbstractScalarDescriptorTable<ByteDescriptor, Value.Byte, Byte>(field) {
     override val descriptor = byte("descriptor").index()
 
+    init {
+        this.initializeIndexes()
+    }
+
     override fun rowToDescriptor(row: ResultRow) = ByteDescriptor(
         id = row[id].value,
         retrievableId = row[retrievableId].value,

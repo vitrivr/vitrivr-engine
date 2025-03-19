@@ -18,6 +18,10 @@ import org.vitrivr.engine.core.model.types.Value
 internal class BooleanDescriptorTable(field: Schema.Field<*, BooleanDescriptor>): AbstractScalarDescriptorTable<BooleanDescriptor, Value.Boolean, Boolean>(field) {
     override val descriptor = bool("descriptor").index()
 
+    init {
+        this.initializeIndexes()
+    }
+
     override fun rowToDescriptor(row: ResultRow) = BooleanDescriptor(
         id = row[id].value,
         retrievableId = row[retrievableId].value,

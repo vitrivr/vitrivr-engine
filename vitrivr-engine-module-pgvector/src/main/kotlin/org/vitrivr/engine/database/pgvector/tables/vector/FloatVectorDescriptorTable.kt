@@ -8,10 +8,10 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.types.Value
-import org.vitrivr.engine.database.pgvector.exposed.cosine
-import org.vitrivr.engine.database.pgvector.exposed.euclidean
-import org.vitrivr.engine.database.pgvector.exposed.inner
-import org.vitrivr.engine.database.pgvector.exposed.manhattan
+import org.vitrivr.engine.database.pgvector.exposed.ops.cosine
+import org.vitrivr.engine.database.pgvector.exposed.ops.euclidean
+import org.vitrivr.engine.database.pgvector.exposed.ops.inner
+import org.vitrivr.engine.database.pgvector.exposed.ops.manhattan
 import org.vitrivr.engine.database.pgvector.toSql
 
 /**
@@ -26,6 +26,10 @@ class FloatVectorDescriptorTable(field: Schema.Field<*, FloatVectorDescriptor>):
     /** The [Column] holding the vector value. */
     override val descriptor: Column<FloatArray> = floatVector("descriptor", this.prototype.dimensionality)
 
+    init {
+        this.initializeIndexes()
+    }
+
     /**
      * Converts a [ProximityQuery] into a [Query] that can be executed against the database.
      *
@@ -36,7 +40,7 @@ class FloatVectorDescriptorTable(field: Schema.Field<*, FloatVectorDescriptor>):
         val value = query.value.value as? FloatArray ?: throw IllegalArgumentException("Failed to execute query on ${nameInDatabaseCase()}. Comparison value of wrong type.")
         val expression = when (query.distance) {
             Distance.EUCLIDEAN -> descriptor euclidean value
-            Distance.MANHATTAN -> descriptor manhattan  value
+            Distance.MANHATTAN -> descriptor manhattan value
             Distance.COSINE -> descriptor cosine value
             Distance.IP -> descriptor inner value
             else -> throw IllegalArgumentException("Unsupported distance type: ${query.distance}")
