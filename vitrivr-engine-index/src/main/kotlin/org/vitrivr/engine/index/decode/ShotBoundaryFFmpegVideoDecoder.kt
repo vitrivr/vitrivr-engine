@@ -100,13 +100,15 @@ class ShotBoundaryFFmpegVideoDecoder : DecoderFactory {
 
                 /* Load shot boundaries. */
                 // TODO parse/create  path/uri from source in a generic pattern.
-                // val uri = "http://local-nmr.xreco-retrieval.ch/api/assets/resource/f58389e0-4f0e-42cd-800e-6f9ec2eeb2e5/asset.mp4"
-                val uri = when (source) {
+
+                var uri = when (source) {
                     is FileSource -> source.path.toUri().toString()
                     else -> "Source $source is not a FileSource.".let {
                         logger.error { it }; throw IllegalArgumentException(it)
                     }
                 }
+
+                uri = "http://local-nmr.xreco-retrieval.ch/api/assets/resource/f58389e0-4f0e-42cd-800e-6f9ec2eeb2e5/asset.mp4"
 
                 val sbs = sb.decode(uri)
                 sbs.isEmpty().let {
