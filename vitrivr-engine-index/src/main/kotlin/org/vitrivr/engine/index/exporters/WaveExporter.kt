@@ -12,6 +12,7 @@ import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribu
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Exporter
 import org.vitrivr.engine.core.operators.general.ExporterFactory
+import org.vitrivr.engine.core.resolver.Resolver
 import org.vitrivr.engine.index.util.WaveUtilities
 import java.io.IOException
 
@@ -32,7 +33,8 @@ class WaveExporter : ExporterFactory {
      * @param context The [IndexContext] to use.
      */
     override fun newExporter(name: String, input: Operator<Retrievable>, context: IndexContext): Exporter {
-        return Instance(input, context, context[name, "contentSources"]?.split(",")?.toSet(), name)
+        val resolverName = context[name, "resolver"]?: "default"
+        return Instance(input, context, resolverName, context[name, "contentSources"]?.split(",")?.toSet(), name)
     }
 
     /**
@@ -41,13 +43,17 @@ class WaveExporter : ExporterFactory {
     private class Instance(
         override val input: Operator<Retrievable>,
         private val context: IndexContext,
+        resolverName: String,
         private val contentSources: Set<String>?,
         override val name: String
     ) : Exporter {
 
+        /** [Resolver] instance. */
+        private val resolver: Resolver = this.context.resolver[resolverName] ?: throw IllegalStateException("Unknown resolver with name $resolverName.")
+
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
             try {
-                val resolvable = this.context.resolver.resolve(retrievable.id, ".wav")
+                val resolvable = this.context.resolver.values.first().resolve(retrievable.id, ".wav")
                 val contentIds = this.contentSources?.let {
                     retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it)
                 }
