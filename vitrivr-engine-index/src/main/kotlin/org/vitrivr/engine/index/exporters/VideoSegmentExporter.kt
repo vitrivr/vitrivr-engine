@@ -23,6 +23,7 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Exporter
 import org.vitrivr.engine.core.operators.general.ExporterFactory
 import org.vitrivr.engine.core.resolver.Resolvable
+import org.vitrivr.engine.core.resolver.Resolver
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Metadata
 import org.vitrivr.engine.core.source.Source
@@ -72,10 +73,11 @@ class VideoSegmentExporter : ExporterFactory {
         val audio = context[name, "audio"]?.let { it.lowercase() == "true" } ?: true
         val useGrabber = context[name, "useGrabber"]?.let { it.lowercase() == "true" } ?: true
         val keyFrames = context[name, "keyFrames"]?.let { it.lowercase() == "true" } ?: false
+        val resolverName = context[name, "resolver"]?: "default"
         logger.debug {
             "Creating new VideoSegmentExporter with mimeType=$mimeType."
         }
-        return Instance(input, context, mimeType, video, audio, keyFrames, name, useGrabber)
+        return Instance(input, context, mimeType, video, audio, keyFrames, name, resolverName, useGrabber)
     }
 
 
@@ -88,6 +90,7 @@ class VideoSegmentExporter : ExporterFactory {
         private val audio: Boolean = true,
         private val keyFrames: Boolean = false,
         override val name: String,
+        private val resolverName: String,
         private val useGrabber: Boolean? = false
     ) : Exporter {
 
@@ -100,6 +103,9 @@ class VideoSegmentExporter : ExporterFactory {
             }
         }
 
+        val resolver: Resolver = this.context.resolver[resolverName] ?: throw IllegalStateException("Unknown resolver with name $resolverName.")
+
+
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
 
             val source = retrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@onEach
@@ -109,7 +115,8 @@ class VideoSegmentExporter : ExporterFactory {
             }
             val startTimestamp = retrievable.filteredAttribute(TimeRangeAttribute::class.java)?.startNs!! / 1000
             val endTimestamp = retrievable.filteredAttribute(TimeRangeAttribute::class.java)?.endNs!! / 1000
-            val resolvable = this.context.resolver.resolve(retrievable.id, this.mimeType.fileExtension)!!
+            val resolvable = resolver.resolve(retrievable.id, this.mimeType.fileExtension)!!
+
 
 
             // Decide `useGrabber` using grabber from source or using content from retrievable
