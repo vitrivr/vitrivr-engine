@@ -22,7 +22,7 @@ class IngestionPipelineBuilderTest {
                 "test-schema",
                 context = IngestionContextConfig(
                     "InMemoryContentFactory",
-                    "disk",
+                    listOf("disk"),
                     global = mapOf("location" to "./thumbnails/testing")
                 ),
                 operators = mapOf(
