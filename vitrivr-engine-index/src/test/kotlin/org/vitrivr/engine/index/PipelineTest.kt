@@ -42,7 +42,7 @@ class PipelineTest {
 
 
         val contextConfig = IngestionContextConfig(
-            "CachedContentFactory", "test", global = emptyMap(),
+            "CachedContentFactory", listOf("test"), global = emptyMap(),
             local = mapOf(
                 "enumerator" to mapOf("path" to "./src/test/resources/"),
                 "decoder" to mapOf("timeWindowMs" to "1000"),
