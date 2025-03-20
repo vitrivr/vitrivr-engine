@@ -53,7 +53,7 @@ class WaveExporter : ExporterFactory {
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
             try {
-                val resolvable = this.context.resolver.values.first().resolve(retrievable.id, ".wav")
+                val resolvable = this.resolver.resolve(retrievable.id, ".wav")
                 val contentIds = this.contentSources?.let {
                     retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it)
                 }
