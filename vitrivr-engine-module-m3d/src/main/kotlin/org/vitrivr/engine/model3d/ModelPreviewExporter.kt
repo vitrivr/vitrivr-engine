@@ -222,7 +222,7 @@ class ModelPreviewExporter : ExporterFactory {
                 val source =
                     retrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@onEach
                 if (source.type == MediaType.MESH) {
-                    val resolvable = this.context.resolver.values.first().resolve(retrievable.id, ".${this.format.fileExtension}")
+                    val resolvable = this.resolver.resolve(retrievable.id, ".${this.format.fileExtension}")
 
                     val model = retrievable.content[0].content as Model3d
                     if (resolvable != null) {
