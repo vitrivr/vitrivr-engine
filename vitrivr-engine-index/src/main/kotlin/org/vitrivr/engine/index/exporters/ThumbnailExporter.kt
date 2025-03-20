@@ -15,6 +15,7 @@ import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribu
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Exporter
 import org.vitrivr.engine.core.operators.general.ExporterFactory
+import org.vitrivr.engine.core.resolver.Resolver
 import org.vitrivr.engine.core.source.file.MimeType
 
 private val logger: KLogger = KotlinLogging.logger {}
@@ -38,6 +39,7 @@ class ThumbnailExporter : ExporterFactory {
      * @param context The [IndexContext] to use.
      */
     override fun newExporter(name: String, input: Operator<Retrievable>, context: IndexContext): Exporter {
+        val resolverName = context[name, "resolver"]?: "default"
         val maxSideResolution = context[name, "maxSideResolution"]?.toIntOrNull() ?: 400
         val mimeType = context[name, "mimeType"]?.let {
             try {
@@ -47,7 +49,7 @@ class ThumbnailExporter : ExporterFactory {
             }
         } ?: MimeType.JPG
         logger.debug { "Creating new ThumbnailExporter with maxSideResolution=$maxSideResolution and mimeType=$mimeType." }
-        return Instance(input, context, maxSideResolution, mimeType, context[name, "contentSources"]?.split(",")?.toSet(), name)
+        return Instance(input, context, resolverName, maxSideResolution, mimeType, context[name, "contentSources"]?.split(",")?.toSet(), name)
     }
 
     /**
@@ -56,6 +58,7 @@ class ThumbnailExporter : ExporterFactory {
     private class Instance(
         override val input: Operator<Retrievable>,
         private val context: IndexContext,
+        resolverName: String,
         private val maxResolution: Int,
         private val mimeType: MimeType,
         private val contentSources: Set<String>?,
@@ -65,14 +68,16 @@ class ThumbnailExporter : ExporterFactory {
             require(mimeType in SUPPORTED) { "ThumbnailExporter only support image formats JPEG and PNG." }
         }
 
+        /** [Resolver] instance. */
+        private val resolver: Resolver = this.context.resolver[resolverName] ?: throw IllegalStateException("Unknown resolver with name $resolverName.")
+
         /** [KLogger] instance. */
         private val logger: KLogger = KotlinLogging.logger {}
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
             try {
 
-                val resolvable = this.context.resolver.resolve(retrievable.id, ".${this.mimeType.fileExtension}")
-
+                val resolvable = this.resolver.resolve(retrievable.id, ".${this.mimeType.fileExtension}")
                 val contentIds = this.contentSources?.let {
                     retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it)
                 }

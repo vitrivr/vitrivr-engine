@@ -19,8 +19,8 @@ class IngestionContextConfig(
     /** The simple or fully qualified class name of the [ContentFactory] to be used to construct the [IndexContext] */
     val contentFactory: String,
 
-    /** The name of the [Resolver] to be used during ingestion */
-    val resolverName: String,
+    /** The name of the [Resolver]s to be used during ingestion */
+    val resolvers: List<String>,
 
     /** [Map] of local parameters (applied to one operator). */
     override val local: Map<String, Map<String, String>> = emptyMap(),
