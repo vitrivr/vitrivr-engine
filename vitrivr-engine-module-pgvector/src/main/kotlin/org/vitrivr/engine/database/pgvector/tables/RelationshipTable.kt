@@ -14,13 +14,13 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
  */
 object RelationshipTable: Table("relationships") {
     /** The reference to th [Retrievable] in object position of the [Relationship]. */
-    val objectId = reference("objectId", RetrievableTable, onDelete = ReferenceOption.CASCADE)
+    val objectId = reference("objectId", RetrievableTable, onDelete = ReferenceOption.CASCADE).index()
 
     /** The reference to th [Retrievable] in subject position of the [Relationship]. */
-    val subjectId = reference("subjectId", RetrievableTable, onDelete = ReferenceOption.CASCADE)
+    val subjectId = reference("subjectId", RetrievableTable, onDelete = ReferenceOption.CASCADE).index()
 
     /** The predicate of the [Relationship]. */
-    val predicate = varchar("predicate", 255)
+    val predicate = varchar("predicate", 255).index()
 
     /** The [Retrievable] in object position of the [Relationship]. */
     override val primaryKey = PrimaryKey(this.subjectId, this.predicate, this.objectId)
