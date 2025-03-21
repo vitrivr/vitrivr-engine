@@ -6,11 +6,9 @@ import org.vitrivr.engine.base.features.external.api.ImageCaptioningApi
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.base.features.external.common.FesExtractor
 import org.vitrivr.engine.base.features.external.implementations.caption.ImageCaption.Companion.PROMPT_PARAMETER_NAME
-import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryTextContent
-import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
@@ -79,7 +77,7 @@ class ImageCaptionExtractor : FesExtractor<ImageContent, TextDescriptor> {
 
     override fun extract(retrievables: List<Retrievable>): List<List<TextDescriptor>> {
 
-        val content = retrievables.map { this.filterContent(it) }
+        val content = retrievables.flatMap { it.content.filterIsInstance<ImageContent>() }
         val imageContents = content.map { it.filterIsInstance<ImageContent>() }
 
         val texts : List<List<String?>> = content.map { it.filterIsInstance<TextContent>().map { it.content } }.mapIndexed { index, text -> if (text.isEmpty()) {

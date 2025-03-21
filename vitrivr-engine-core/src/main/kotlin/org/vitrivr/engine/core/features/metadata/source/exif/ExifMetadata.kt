@@ -6,12 +6,10 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.struct.AnyMapStructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
-import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -41,7 +39,7 @@ class ExifMetadata : Analyser<ContentElement<*>, AnyMapStructDescriptor> {
      *
      * @return A new [Extractor] instance for this [Analyser]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ExifMetadataExtractor(input, this, context[name, CONTENT_AUTHORS_KEY]?.split(",")?.toSet(), name)
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ExifMetadataExtractor(input, this, name)
 
     /**
      * Generates and returns a new [ExifMetadataExtractor] instance for this [ExifMetadata].
@@ -52,7 +50,7 @@ class ExifMetadata : Analyser<ContentElement<*>, AnyMapStructDescriptor> {
      *
      * @return A new [Extractor] instance for this [Analyser]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, input: Operator<Retrievable>, context: IndexContext) = ExifMetadataExtractor(input, this, context[field.fieldName, CONTENT_AUTHORS_KEY]?.split(",")?.toSet(), field)
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, input: Operator<Retrievable>, context: IndexContext) = ExifMetadataExtractor(input, this, field)
 
     /**
      *

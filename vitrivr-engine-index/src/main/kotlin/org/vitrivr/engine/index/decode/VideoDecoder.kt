@@ -18,11 +18,13 @@ import org.bytedeco.javacv.Java2DFrameConverter
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.AudioContent
+import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
 import org.vitrivr.engine.core.operators.ingest.Decoder
@@ -41,7 +43,7 @@ import java.util.concurrent.TimeUnit
  * A [Decoder] that can decode [ImageContent] and [AudioContent] from a [Source] of [MediaType.VIDEO].
  *
  * @author Ralph Gasser
- * @version 2.1.0
+ * @version 2.2.0
  */
 class VideoDecoder : DecoderFactory {
 
@@ -255,10 +257,16 @@ class VideoDecoder : DecoderFactory {
             }
 
             /* Prepare ingested with relationship to source. */
-            val ingested = Ingested(UUID.randomUUID(), "SEGMENT", false)
-            source.filteredAttribute(SourceAttribute::class.java)?.let { ingested.addAttribute(it) }
-            ingested.addRelationship(Relationship.ByRef(ingested, "partOf", source, false))
-            ingested.addAttribute(
+            val retrievableId = UUID.randomUUID()
+            val source = source.filteredAttribute(SourceAttribute::class.java)
+            val relationship = source?.let { Relationship.ById(retrievableId, "partOf", it.source.sourceId, false) }
+
+            /* Prepare attributes and content lists. */
+            val attributes = mutableSetOf<RetrievableAttribute>()
+            val content = mutableListOf<ContentElement<*>>()
+
+            /* Add time range. */
+            attributes.add(
                 TimeRangeAttribute(
                     timestampEnd - TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs),
                     timestampEnd,
@@ -267,7 +275,7 @@ class VideoDecoder : DecoderFactory {
             )
 
             /* Prepare and append audio content element. */
-            if (emitAudio.size > 0) {
+            if (emitAudio.isNotEmpty()) {
                 val samples = ShortBuffer.allocate(audioSize)
                 for (frame in emitAudio) {
                     frame.clear()
@@ -279,21 +287,21 @@ class VideoDecoder : DecoderFactory {
                     grabber.sampleRate,
                     samples
                 )
-                ingested.addContent(audio)
-                ingested.addAttribute(ContentAuthorAttribute(audio.id, name))
+                content.add(audio)
+                attributes.add(ContentAuthorAttribute(audio.id, name))
             }
 
             /* Prepare and append image content element. */
             for (image in emitImage) {
-                val imageContent = this.context.contentFactory.newImageContent(image)
-                ingested.addContent(imageContent)
-                ingested.addAttribute(ContentAuthorAttribute(imageContent.id, name))
+                val imageContent = this@Instance.context.contentFactory.newImageContent(image)
+                content.add(imageContent)
+                attributes.add(ContentAuthorAttribute(imageContent.id, name))
             }
 
-            logger.debug { "Emitting ingested ${ingested.id} with ${emitImage.size} images and ${emitAudio.size} audio samples: ${ingested.id}" }
+            logger.debug { "Emitting ingested $retrievableId with ${emitImage.size} images and ${emitAudio.size} audio samples." }
 
             /* Emit ingested. */
-            channel.send(ingested)
+            channel.send(Ingested(retrievableId, "SEGMENT", content = content, attributes = attributes, relationships = relationship?.let { setOf(it) } ?: emptySet(), transient = false))
         }
     }
 }

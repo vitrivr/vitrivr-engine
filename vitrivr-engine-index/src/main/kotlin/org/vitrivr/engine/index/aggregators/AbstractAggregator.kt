@@ -6,19 +6,18 @@ import kotlinx.coroutines.flow.map
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
-import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 
 /**
- * An abstract [Transformer] implementation for aggregators; aggregators are used to aggregate the content of [Ingested] objects.
+ * An abstract [Transformer] implementation for aggregators.
+ *
+ * Aggregators are used to aggregate the content of [Ingested] objects, i.e., they typically merge [ContentElement]s together.
  *
  * @author Ralph Gasser
  * @version 1.1.0
  */
-abstract class AbstractAggregator(override val input: Operator<out Retrievable>, protected open val context: Context, override val name: String, val newContent: Boolean = false) :
-    Transformer {
+abstract class AbstractAggregator(override val input: Operator<out Retrievable>, protected open val context: Context, override val name: String) : Transformer {
     /**
      *  Creates a flow for this [AbstractAggregator].
      *
@@ -27,19 +26,9 @@ abstract class AbstractAggregator(override val input: Operator<out Retrievable>,
      *  @param scope [CoroutineScope] to use for the [Flow].
      */
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).map {
-        val contentSources = context.getProperty(name, CONTENT_AUTHORS_KEY)?.split(",")?.toSet()
-        val contentIds = contentSources?.flatMap { source -> it.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(source) ?: emptySet() }?.toSet()
-
-
         if (it.content.isNotEmpty()) {
-            val aggregated = this.aggregate(it.content.filter { c -> contentIds?.contains(c.id) ?: true})
-            aggregated.forEach { c ->
-                if (newContent) {
-                    it.addContent(c)
-                }
-                it.addAttribute(ContentAuthorAttribute(c.id, name))
-            }
-            it
+            val aggregated = this.aggregate(it.content)
+            it.copy(content = aggregated)
         } else {
             it
         }
@@ -48,7 +37,11 @@ abstract class AbstractAggregator(override val input: Operator<out Retrievable>,
     /**
      * Performs aggregation on a [List] of [ContentElement]s.
      *
-     * @param content The [List] of [ContentElement]s.
+     * The behaviour of this methods should adhere to the following rules:
+     * - [ContentElement]s that are compatible with the aggregation should be merged together. Only the merged [ContentElement] are included in the result.
+     * - [ContentElement]s that are not compatible with the aggregation should be passed through unchanged and thus be included in the result.
+     *
+     * @param content The resulting [List] of [ContentElement]s.
      */
     abstract fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>>
 }
