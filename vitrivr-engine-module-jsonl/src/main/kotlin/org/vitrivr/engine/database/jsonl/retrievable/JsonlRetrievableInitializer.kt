@@ -1,21 +1,28 @@
 package org.vitrivr.engine.database.jsonl.retrievable
 
 import org.vitrivr.engine.core.database.retrievable.RetrievableInitializer
+import org.vitrivr.engine.core.model.relationship.Relationship
+import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.database.jsonl.RELATIONSHIPS_FILE_NAME
 import org.vitrivr.engine.database.jsonl.JsonlConnection
 import org.vitrivr.engine.database.jsonl.LOGGER
+import org.vitrivr.engine.database.jsonl.RETRIEVABLES_FILE_NAME
 import java.io.IOException
 import kotlin.io.path.*
 
 class JsonlRetrievableInitializer(private val connection: JsonlConnection) : RetrievableInitializer {
 
-    private val retrievablePath = connection.schemaRoot.resolve("retrievables.jsonl")
-    private val connectionPath = connection.schemaRoot.resolve("retrievable_connections.jsonl")
+    /** Path to the file containing [Retrievable]s. */
+    private val retrievablePath = this.connection.schemaRoot.resolve(RETRIEVABLES_FILE_NAME)
+
+    /** Path to the file containing [Relationship]s. */
+    private val connectionPath = this.connection.schemaRoot.resolve(RELATIONSHIPS_FILE_NAME)
 
     override fun initialize() {
         try {
-            connection.schemaRoot.createDirectories()
-            retrievablePath.createFile()
-            connectionPath.createFile()
+            this.connection.schemaRoot.createDirectories()
+            this.retrievablePath.createFile()
+            this.connectionPath.createFile()
         } catch (ioe: IOException) {
             LOGGER.error(ioe) { "Cannot initialize '${connection.schemaRoot.absolutePathString()}'" }
         }
@@ -23,8 +30,8 @@ class JsonlRetrievableInitializer(private val connection: JsonlConnection) : Ret
 
     override fun deinitialize() {
         try {
-            retrievablePath.deleteIfExists()
-            connectionPath.deleteIfExists()
+            this.retrievablePath.deleteIfExists()
+            this.connectionPath.deleteIfExists()
         } catch (ioe: IOException) {
             LOGGER.error(ioe) { "Cannot delete '${connection.schemaRoot.absolutePathString()}'" }
         }
@@ -34,10 +41,10 @@ class JsonlRetrievableInitializer(private val connection: JsonlConnection) : Ret
 
     override fun truncate() {
         try {
-            retrievablePath.deleteIfExists()
-            retrievablePath.createFile()
-            connectionPath.deleteIfExists()
-            connectionPath.createFile()
+            this.retrievablePath.deleteIfExists()
+            this.retrievablePath.createFile()
+            this.connectionPath.deleteIfExists()
+            this.connectionPath.createFile()
         } catch (ioe: IOException) {
             LOGGER.error(ioe) { "Cannot truncate '${connection.schemaRoot.absolutePathString()}'" }
         }

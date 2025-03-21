@@ -117,7 +117,7 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*,
             val scoreIndex = tuple.indexOf(DISTANCE_COLUMN_NAME)
             val descriptor = tupleToDescriptor(tuple)
             descriptor to if (scoreIndex > -1) {
-                tuple.asDouble(DISTANCE_COLUMN_NAME)?.let { DistanceAttribute.Local(it.toFloat(), descriptor.retrievableId!!) }
+                tuple.asDouble(DISTANCE_COLUMN_NAME)?.let { DistanceAttribute.Local(it, descriptor.retrievableId!!) }
             } else {
                 null
             }

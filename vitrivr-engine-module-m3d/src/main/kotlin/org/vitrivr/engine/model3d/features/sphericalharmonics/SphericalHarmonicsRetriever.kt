@@ -24,10 +24,10 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
  */
 class SphericalHarmonicsRetriever(override val field: Schema.Field<Model3dContent, FloatVectorDescriptor>, private val query: ProximityQuery<*>, private val context: QueryContext) : Retriever<Model3dContent, FloatVectorDescriptor> {
     companion object {
-        private const val MAXIMUM_DISTANCE = 1.0f
-        fun scoringFunction(retrieved: Retrieved) : Float {
-            val distance = retrieved.filteredAttribute<DistanceAttribute>()?.distance ?: return 0f
-            return 1f - (distance / MAXIMUM_DISTANCE)
+        private const val MAXIMUM_DISTANCE = 1.0
+        fun scoringFunction(retrieved: Retrieved) : Double {
+            val distance = retrieved.filteredAttribute<DistanceAttribute>()?.distance ?: return 0.0
+            return 1.0 - (distance / MAXIMUM_DISTANCE)
         }
     }
 

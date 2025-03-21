@@ -78,10 +78,10 @@ abstract class AbstractDescriptorInitializerTest(schemaPath: String) : AbstractD
      */
     @AfterEach
     open fun cleanup() {
-        this.testSchema.connection.getRetrievableInitializer().deinitialize()
         for (field in this.testSchema.fields()) {
             this.testSchema.connection.getDescriptorInitializer(field).deinitialize()
         }
+        this.testSchema.connection.getRetrievableInitializer().deinitialize()
     }
 
     /**

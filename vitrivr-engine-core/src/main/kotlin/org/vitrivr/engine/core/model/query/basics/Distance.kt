@@ -14,8 +14,8 @@ import kotlin.math.sqrt
  */
 enum class Distance {
     MANHATTAN {
-        override fun invoke(v1: Value.FloatVector, v2: Value.FloatVector): Float {
-            var sum = 0.0f
+        override fun invoke(v1: Value.FloatVector, v2: Value.FloatVector): Double {
+            var sum = 0.0
             for (i in v1.value.indices) {
                 sum += abs(v1.value[i] - v2.value[i])
             }
@@ -31,8 +31,8 @@ enum class Distance {
         }
     },
     EUCLIDEAN {
-        override fun invoke(v1: Value.FloatVector, v2: Value.FloatVector): Float {
-            var sum = 0.0f
+        override fun invoke(v1: Value.FloatVector, v2: Value.FloatVector): Double {
+            var sum = 0.0
             for (i in v1.value.indices) {
                 sum += (v1.value[i] - v2.value[i]).pow(2)
             }
@@ -48,39 +48,52 @@ enum class Distance {
         }
     },
     COSINE {
-        override fun invoke(v1: Value.FloatVector, v2: Value.FloatVector): Float {
-            var dotProduct = 0.0f
-            var normV1 = 0.0f
-            var normV2 = 0.0f
+        override fun invoke(v1: Value.FloatVector, v2: Value.FloatVector): Double {
+            var dotProduct = 0.0
+            var sumV1 = 0.0
+            var sumV2 = 0.0
             for (i in v1.value.indices) {
                 dotProduct += v1.value[i] * v2.value[i]
-                normV1 += v1.value[i].pow(2)
-                normV2 += v2.value[i].pow(2)
+                sumV1 += v1.value[i].pow(2)
+                sumV2 += v2.value[i].pow(2)
             }
-            normV1 = sqrt(normV1)
-            normV2 = sqrt(normV2)
-            return 1f - (dotProduct / (normV1 * normV2))
+            return 1 - (dotProduct / (sqrt(sumV1) * sqrt(sumV2)))
         }
 
         override fun invoke(v1: Value.DoubleVector, v2: Value.DoubleVector): Double {
             var dotProduct = 0.0
-            var normV1 = 0.0
-            var normV2 = 0.0
+            var sumV1 = 0.0
+            var sumV2 = 0.0
             for (i in v1.value.indices) {
                 dotProduct += v1.value[i] * v2.value[i]
-                normV1 += v1.value[i].pow(2)
-                normV2 += v2.value[i].pow(2)
+                sumV1 += v1.value[i].pow(2)
+                sumV2 += v2.value[i].pow(2)
             }
-            normV1 = sqrt(normV1)
-            normV2 = sqrt(normV2)
-            return 1.0 - (dotProduct / (normV1 * normV2))
+            return 1.0 - (dotProduct / (sqrt(sumV1) * sqrt(sumV2)))
+        }
+    },
+    IP {
+        override fun invoke(v1: Value.FloatVector, v2: Value.FloatVector): Double {
+            var innerProduct = 0.0
+            for (i in v1.value.indices) {
+                innerProduct += v1.value[i] * v2.value[i]
+            }
+            return -1.0 * innerProduct
+        }
+
+        override fun invoke(v1: Value.DoubleVector, v2: Value.DoubleVector): Double {
+            var innerProduct = 0.0
+            for (i in v1.value.indices) {
+                innerProduct += v1.value[i] * v2.value[i]
+            }
+            return -1.0 * innerProduct
         }
     },
     HAMMING {
-        override fun invoke(v1: Value.FloatVector, v2: Value.FloatVector): Float {
-            var sum = 0.0f
+        override fun invoke(v1: Value.FloatVector, v2: Value.FloatVector): Double {
+            var sum = 0.0
             for (i in v1.value.indices) {
-                sum += if (v1.value[i] != v2.value[i]) 1.0f else 0.0f
+                sum += if (v1.value[i] != v2.value[i]) 1.0 else 0.0
             }
             return sum
         }
@@ -94,7 +107,7 @@ enum class Distance {
         }
     },
     JACCARD {
-        override fun invoke(v1: Value.FloatVector, v2: Value.FloatVector): Float = throw UnsupportedOperationException("Jaccard distance is not supported for float vectors.")
+        override fun invoke(v1: Value.FloatVector, v2: Value.FloatVector): Double = throw UnsupportedOperationException("Jaccard distance is not supported for float vectors.")
         override fun invoke(v1: Value.DoubleVector, v2: Value.DoubleVector): Double = throw UnsupportedOperationException("Jaccard distance is not supported for float vectors.")
     };
 
@@ -104,9 +117,9 @@ enum class Distance {
      *
      * @param v1 [Value.FloatVector] First vector for distance calculation.
      * @param v2 [Value.FloatVector] Second vector for distance calculation.
-     * @return [Float]
+     * @return [Double]
      */
-    abstract operator fun invoke(v1: Value.FloatVector, v2: Value.FloatVector): Float
+    abstract operator fun invoke(v1: Value.FloatVector, v2: Value.FloatVector): Double
 
     /**
      * Calculates this [Distance] between two [Value.DoubleVector].

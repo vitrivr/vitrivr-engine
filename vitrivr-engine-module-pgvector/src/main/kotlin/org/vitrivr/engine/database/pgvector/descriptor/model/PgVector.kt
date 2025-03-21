@@ -16,28 +16,16 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class PgVector(private var vec: FloatArray? = null) : PGobject(), PGBinaryObject, Serializable, Cloneable {
+class PgVector(vec: FloatArray? = null) : PGobject(), PGBinaryObject, Serializable, Cloneable {
 
     init {
         this.type = "vector"
     }
 
-    /**
-     * Constructor
-     *
-     * @param <T> number
-     * @param v list of numbers
-     */
-    constructor(vector: List<Any>) : this(FloatArray(vector.size) {
-        when (val v = vector[it]) {
-            is Number -> v.toFloat()
-            is Value.Float-> v.value
-            is Value.Double-> v.value.toFloat()
-            is Value.Int-> v.value.toFloat()
-            is Value.Long-> v.value.toFloat()
-            else -> throw IllegalArgumentException("Could not convert $v to float.")
-        }
-    })
+    /** The vector represented as a [FloatArray]. */
+    var vec: FloatArray? = vec
+        private set
+
 
     /**
      * Constructor

@@ -14,15 +14,15 @@ import kotlin.math.pow
 
 class WeightedScoreFusion(
     override val inputs: List<Operator<out Retrievable>>,
-    weights: List<Float>,
-    private val p: Float,
+    weights: List<Double>,
+    private val p: Double,
     private val normalize: Boolean,
     override val name: String
 ) : Aggregator {
 
-    private val weights: List<Float> = when {
+    private val weights: List<Double> = when {
         weights.size > inputs.size -> weights.subList(0, inputs.size - 1)
-        weights.size < inputs.size -> weights + List(inputs.size - weights.size) { 1f }
+        weights.size < inputs.size -> weights + List(inputs.size - weights.size) { 1.0 }
         else -> weights
     }
 
@@ -58,20 +58,20 @@ class WeightedScoreFusion(
             }
 
             for ((_, retrieveds) in scoreMap) {
-
-                var score: Float
+                var score: Double
                 val first: Retrievable
 
-                if (p == Float.POSITIVE_INFINITY) {
+                if (p == Double.POSITIVE_INFINITY) {
                     // Max score selection when p = infinity
-                    score = retrieveds.map { (it.second.filteredAttribute(ScoreAttribute::class.java)?.score ?: 0f) }
-                        .maxOrNull() ?: 0f
+                    score = retrieveds.maxOfOrNull {
+                        (it.second.filteredAttribute(ScoreAttribute::class.java)?.score ?: 0.0)
+                    } ?: 0.0
 
                     first = retrieveds.first().second
                 } else {
                     // Compute weighted p-norm score without normalization
                     score = retrieveds.map {
-                        (it.second.filteredAttribute(ScoreAttribute::class.java)?.score ?: 0f).pow(p) * weights[it.first]
+                        (it.second.filteredAttribute(ScoreAttribute::class.java)?.score ?: 0.0).pow(p) * weights[it.first]
                     }.sum().pow(1 / p)
 
                     first = retrieveds.first().second

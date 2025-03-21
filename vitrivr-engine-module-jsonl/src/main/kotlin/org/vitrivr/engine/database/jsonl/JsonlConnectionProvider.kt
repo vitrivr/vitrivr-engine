@@ -24,11 +24,8 @@ class JsonlConnectionProvider : AbstractConnectionProvider() {
     override val version = "1.0.0"
 
     override fun openConnection(schemaName: String, parameters: Map<String, String>): Connection {
-
         val rootPath = parameters["root"] ?: "."
-
         return JsonlConnection(schemaName, this, Path.of(rootPath))
-
     }
 
     override fun initialize() {
@@ -58,5 +55,4 @@ class JsonlConnectionProvider : AbstractConnectionProvider() {
         this.register(MediaDimensionsDescriptor::class, StructJsonlProvider)
         this.register(AnyMapStructDescriptor::class, StructJsonlProvider)
     }
-
 }

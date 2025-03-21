@@ -97,7 +97,7 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
     override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, context: QueryContext): DenseRetriever<ImageContent> {
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
         @Suppress("UNCHECKED_CAST")
-        return DenseRetriever(field, query as ProximityQuery<Value.FloatVector>, context, BoundedCorrespondence(0.0f, 2.0f))
+        return DenseRetriever(field, query as ProximityQuery<Value.FloatVector>, context, BoundedCorrespondence(0.0, 2.0))
     }
 
     /**

@@ -10,6 +10,11 @@ repositories {
 dependencies {
     api project(':vitrivr-engine-core')
 
+    /** Exposed */
+    implementation group: 'org.jetbrains.exposed', name: 'exposed-core', version: version_exposed
+    implementation group: 'org.jetbrains.exposed', name: 'exposed-jdbc', version: version_exposed
+    implementation group: 'org.jetbrains.exposed', name: 'exposed-java-time', version: version_exposed
+
     /** PostgreSQL driver. */
     implementation group: 'org.postgresql', name: 'postgresql', version: version_jdbc_postgres
 

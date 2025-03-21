@@ -14,20 +14,21 @@ import kotlin.io.path.absolutePathString
 
 internal val LOGGER = logger("org.vitrivr.engine.database.jsonl.JsonlConnection")
 
-class JsonlConnection(
-    override val schemaName: String,
-    connectionProvider: JsonlConnectionProvider,
-    private val root: Path
-) : AbstractConnection(schemaName, connectionProvider) {
+class JsonlConnection(override val schemaName: String, connectionProvider: JsonlConnectionProvider, private val root: Path) : AbstractConnection(schemaName, connectionProvider) {
 
-    override fun <T> withTransaction(action: (Unit) -> T): T {
-        LOGGER.warn { "Transactions are not supported by the JsonlConnection" }
-        return action(Unit)
+    companion object {
+
+        /** The column name of a retrievable ID. */
+        const val RETRIEVABLE_ID_COLUMN_NAME = "retrievableid"
+
+        /** The column name of a descriptor ID. */
+        const val DESCRIPTOR_ID_COLUMN_NAME = "descriptorid"
     }
 
-    internal val schemaRoot = root.resolve(schemaName)
-
-    fun getPath(field: Schema.Field<*, *>) = schemaRoot.resolve("${field.fieldName}.jsonl")
+    override fun <T> withTransaction(action: () -> T): T {
+        LOGGER.warn { "Transactions are not supported by the JsonlConnection" }
+        return action()
+    }
 
     override fun getRetrievableInitializer(): RetrievableInitializer = JsonlRetrievableInitializer(this)
 
@@ -42,16 +43,19 @@ class JsonlConnection(
     override fun description(): String = "JsonlConnection on '${root.absolutePathString()}'"
 
     override fun close() {
-        writer.close()
+
     }
 
-    companion object {
+    /**
+     * The [Path] to the root directory of the JSONL connection.
+     */
+    internal val schemaRoot: Path = this.root.resolve(schemaName)
 
-        /** The column name of a retrievable ID. */
-        const val RETRIEVABLE_ID_COLUMN_NAME = "retrievableid"
-
-        /** The column name of a descriptor ID. */
-        const val DESCRIPTOR_ID_COLUMN_NAME = "descriptorid"
-    }
-
+    /**
+     * Resolves the [Path] to the file that contains the [Schema.Field] with the given name.
+     *
+     * @param field [Schema.Field] to resolve.
+     * @return [Path] to the file that contains the [Schema.Field].
+     */
+    internal fun resolve(field: Schema.Field<*, *>): Path = this.schemaRoot.resolve("${field.fieldName}.jsonl")
 }
