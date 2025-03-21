@@ -33,7 +33,7 @@ data class VectorIndex(val column: Column<*>, val type: String, val distance: Di
      * @return [List] of SQL statements.
      */
     override fun createStatement(): List<String> {
-        val baseStatement = "CREATE INDEX ${this.customName ?: "${this.type.lowercase()}_${this.column.nameInDatabaseCase()}"} ON ${this.column.table.nameInDatabaseCase()} USING ${this.type.lowercase()}(${this.column.nameInDatabaseCase()} ${distance.toIndexName()})"
+        val baseStatement = "CREATE INDEX IF NOT EXISTS ${this.customName ?: "${this.type.lowercase()}_${this.column.nameInDatabaseCase()}"} ON ${this.column.table.nameInDatabaseCase()} USING ${this.type.lowercase()}(${this.column.nameInDatabaseCase()} ${distance.toIndexName()})"
         if (parameters.isNotEmpty()) {
             val hyperparameters = parameters.entries.joinToString(", ") { "${it.key} = ${it.value}" }
             return listOf("$baseStatement WITH ($hyperparameters);")
