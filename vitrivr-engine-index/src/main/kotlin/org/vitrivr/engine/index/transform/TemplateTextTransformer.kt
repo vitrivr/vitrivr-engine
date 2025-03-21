@@ -23,7 +23,7 @@ private const val DEFAULT_VALUE = "No content available."
  * A [Transformer] that takes an input template with placeholders and inserts content from fields in their place.
  *
  * @author Laura Rettig
- * @version 1.0.0
+ * @version 1.1.0
  */
 class TemplateTextTransformer : TransformerFactory {
     override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
@@ -64,11 +64,11 @@ class TemplateTextTransformer : TransformerFactory {
 
                 if (mergedContent.isNotBlank()) {
                     val content = contentFactory.newTextContent(mergedContent.trim())
-                    retrievable.addContent(content)
-                    retrievable.addAttribute(ContentAuthorAttribute(content.id, name))
                     logger.debug { "Contents from retrievable ${retrievable.id} have been merged into a single content element using template." }
+                    emit(retrievable.copy(content = retrievable.content + content, attributes = retrievable.attributes + ContentAuthorAttribute(content.id, name)))
+                } else {
+                    emit(retrievable)
                 }
-                emit(retrievable)
             }
         }
     }

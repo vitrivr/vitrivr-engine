@@ -12,7 +12,6 @@ import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.BooleanQuery
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -90,13 +89,13 @@ class DominantColor : Analyser<ImageContent, LabelDescriptor> {
         field: Schema.Field<ImageContent, LabelDescriptor>,
         input: Operator<Retrievable>,
         context: IndexContext
-    ): Extractor<ImageContent, LabelDescriptor> = DominantColorExtractor(input, this, context[field.fieldName, CONTENT_AUTHORS_KEY]?.split(",")?.toSet(), field)
+    ): Extractor<ImageContent, LabelDescriptor> = DominantColorExtractor(input, this,  field)
 
     override fun newExtractor(
         name: String,
         input: Operator<Retrievable>,
         context: IndexContext
-    ): Extractor<ImageContent, LabelDescriptor> = DominantColorExtractor(input, this, context[name, CONTENT_AUTHORS_KEY]?.split(",")?.toSet(), name)
+    ): Extractor<ImageContent, LabelDescriptor> = DominantColorExtractor(input, this, name)
 
     /**
      * Performs the [DominantColor] analysis on the provided [List] of [ImageContent] elements.

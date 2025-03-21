@@ -24,10 +24,10 @@ class CLIPExtractor : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor
 
     private val host: String
 
-    constructor(input: Operator<Retrievable>, analyser: CLIP, contentSources : Set<String>?, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, host: String) : super(input, analyser, contentSources, field) {
+    constructor(input: Operator<Retrievable>, analyser: CLIP, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, host: String) : super(input, analyser, field) {
         this.host = host
     }
-    constructor(input: Operator<Retrievable>, analyser: CLIP, contentSources : Set<String>?, name: String, host: String) : super(input, analyser, contentSources, name) {
+    constructor(input: Operator<Retrievable>, analyser: CLIP, name: String, host: String) : super(input, analyser, name) {
         this.host = host
     }
 
@@ -46,10 +46,7 @@ class CLIPExtractor : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor
      * @param retrievable The [Retrievable] to process.
      * @return List of resulting [Descriptor]s.
      */
-    override fun extract(retrievable: Retrievable): List<FloatVectorDescriptor> {
-        val content = this.filterContent(retrievable)
-        return content.map { c ->
-            CLIP.analyse(c, this.host).copy(retrievableId = retrievable.id, field = this@CLIPExtractor.field)
-        }
+    override fun extract(retrievable: Retrievable) = retrievable.content.filterIsInstance<ImageContent>().map { c ->
+        CLIP.analyse(c, this.host).copy(retrievableId = retrievable.id, field = this@CLIPExtractor.field)
     }
 }
