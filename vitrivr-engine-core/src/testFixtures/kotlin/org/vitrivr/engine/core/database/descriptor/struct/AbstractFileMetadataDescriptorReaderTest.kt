@@ -252,7 +252,7 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
      */
     @AfterEach
     open fun cleanup() {
-        this.testConnection.getRetrievableInitializer().deinitialize()
         this.testConnection.getDescriptorInitializer(this.field).deinitialize()
+        this.testConnection.getRetrievableInitializer().deinitialize()
     }
 }

@@ -5,12 +5,10 @@ import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
-import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.CONTENT_AUTHORS_KEY
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 
@@ -41,7 +39,7 @@ class FileSourceMetadata : Analyser<ContentElement<*>, FileSourceMetadataDescrip
      *
      * @return [FileSourceMetadataExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext) = FileSourceMetadataExtractor(input, this, context[field.fieldName, CONTENT_AUTHORS_KEY]?.split(",")?.toSet(), field)
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext) = FileSourceMetadataExtractor(input, this, field)
 
     /**
      * Generates and returns a new [FileSourceMetadataExtractor] for the provided [Schema.Field].
@@ -52,7 +50,7 @@ class FileSourceMetadata : Analyser<ContentElement<*>, FileSourceMetadataDescrip
      *
      * @return [FileSourceMetadataExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = FileSourceMetadataExtractor(input, this, context[name, CONTENT_AUTHORS_KEY]?.split(",")?.toSet(), name)
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = FileSourceMetadataExtractor(input, this, name)
 
     /**
      * Generates and returns a new [FileSourceMetadataRetriever] for the provided [Schema.Field].

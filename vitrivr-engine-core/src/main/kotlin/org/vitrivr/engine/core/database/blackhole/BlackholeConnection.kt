@@ -26,7 +26,7 @@ internal val LOGGER: KLogger = logger {}
  * An [AbstractConnection] that swallows all data and does not store anything. However, it can be used to log operations.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 class BlackholeConnection(schemaName: String, provider: ConnectionProvider, private val log: Boolean = false) : AbstractConnection(schemaName, provider) {
 
@@ -43,9 +43,9 @@ class BlackholeConnection(schemaName: String, provider: ConnectionProvider, priv
 
     override fun initialize() = this.logIf("Initializing schema '$schemaName'.")
     override fun truncate() = this.logIf("Truncating schema '$schemaName'.")
-    override fun <T> withTransaction(action: (Unit) -> T): T {
+    override fun <T> withTransaction(action: () -> T): T {
         LOGGER.warn { "Transactions are not supported by blackhole connection. Ignoring transaction." }
-        return action(Unit)
+        return action()
     }
 
     override fun getRetrievableInitializer(): RetrievableInitializer = BlackholeRetrievableInitializer(this)

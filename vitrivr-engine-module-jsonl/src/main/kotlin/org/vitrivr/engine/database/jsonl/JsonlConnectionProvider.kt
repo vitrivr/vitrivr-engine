@@ -7,6 +7,7 @@ import org.vitrivr.engine.core.model.descriptor.struct.AnyMapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.MediaDimensionsDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.Rectangle2DMetadataDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.metadata.ShotBoundaryDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.VideoSourceMetadataDescriptor
@@ -23,11 +24,8 @@ class JsonlConnectionProvider : AbstractConnectionProvider() {
     override val version = "1.0.0"
 
     override fun openConnection(schemaName: String, parameters: Map<String, String>): Connection {
-
         val rootPath = parameters["root"] ?: "."
-
         return JsonlConnection(schemaName, this, Path.of(rootPath))
-
     }
 
     override fun initialize() {
@@ -52,9 +50,9 @@ class JsonlConnectionProvider : AbstractConnectionProvider() {
         this.register(FileSourceMetadataDescriptor::class, StructJsonlProvider)
         this.register(VideoSourceMetadataDescriptor::class, StructJsonlProvider)
         this.register(TemporalMetadataDescriptor::class, StructJsonlProvider)
+        this.register(ShotBoundaryDescriptor::class, StructJsonlProvider)
         this.register(Rectangle2DMetadataDescriptor::class, StructJsonlProvider)
         this.register(MediaDimensionsDescriptor::class, StructJsonlProvider)
         this.register(AnyMapStructDescriptor::class, StructJsonlProvider)
     }
-
 }

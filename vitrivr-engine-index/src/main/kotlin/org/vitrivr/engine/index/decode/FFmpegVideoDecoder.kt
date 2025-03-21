@@ -15,11 +15,13 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.runBlocking
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.AudioContent
+import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
 import org.vitrivr.engine.core.operators.ingest.Decoder
@@ -42,7 +44,7 @@ import java.util.concurrent.TimeUnit
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 class FFmpegVideoDecoder : DecoderFactory {
 
@@ -262,10 +264,16 @@ class FFmpegVideoDecoder : DecoderFactory {
                 }
 
                 /* Prepare ingested with relationship to source. */
-                val ingested = Ingested(UUID.randomUUID(), "SEGMENT", false)
-                this.source.filteredAttribute(SourceAttribute::class.java)?.let { ingested.addAttribute(it) }
-                ingested.addRelationship(Relationship.ByRef(ingested, "partOf", source, false))
-                ingested.addAttribute(
+                val retrievableId = UUID.randomUUID()
+                val source = this.source.filteredAttribute(SourceAttribute::class.java)
+                val relationship = source?.let { Relationship.ById(retrievableId, "partOf", it.source.sourceId, false) }
+
+                /* Prepare attributes and content lists. */
+                val attributes = mutableSetOf<RetrievableAttribute>()
+                val content = mutableListOf<ContentElement<*>>()
+
+                /* Add time range. */
+                attributes.add(
                     TimeRangeAttribute(
                         this.windowEnd - TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs),
                         this.windowEnd,
@@ -286,21 +294,21 @@ class FFmpegVideoDecoder : DecoderFactory {
                         this.audioStream!!.sampleRate.toInt(),
                         samples
                     )
-                    ingested.addContent(audio)
-                    ingested.addAttribute(ContentAuthorAttribute(audio.id, name))
+                    content.add(audio)
+                    attributes.add(ContentAuthorAttribute(audio.id, name))
                 }
 
                 /* Prepare and append image content element. */
                 for (image in emitImage) {
                     val imageContent = this@Instance.context.contentFactory.newImageContent(image)
-                    ingested.addContent(imageContent)
-                    ingested.addAttribute(ContentAuthorAttribute(imageContent.id, name))
+                    content.add(imageContent)
+                    attributes.add(ContentAuthorAttribute(imageContent.id, name))
                 }
 
-                logger.debug { "Emitting ingested ${ingested.id} with ${emitImage.size} images and ${emitAudio.size} audio samples: ${ingested.id}" }
+                logger.debug { "Emitting ingested $retrievableId with ${emitImage.size} images and ${emitAudio.size} audio samples." }
 
                 /* Emit ingested. */
-                this.channel.send(ingested)
+                this.channel.send(Ingested(retrievableId, "SEGMENT", content = content, attributes = attributes, relationships = relationship?.let { setOf(it) } ?: emptySet(), transient = false))
             }
         }
     }

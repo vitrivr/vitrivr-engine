@@ -1,3 +1,4 @@
 org.vitrivr.engine.index.exporters.ThumbnailExporter
 org.vitrivr.engine.index.exporters.WaveExporter
 org.vitrivr.engine.index.exporters.VideoPreviewExporter
+org.vitrivr.engine.index.exporters.VideoSegmentExporter

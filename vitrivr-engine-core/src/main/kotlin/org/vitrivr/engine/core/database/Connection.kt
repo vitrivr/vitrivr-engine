@@ -30,7 +30,7 @@ sealed interface Connection: Closeable {
      *
      * @param action The action to execute within the transaction.
      */
-    fun <T> withTransaction(action: (Unit) -> T): T
+    fun <T> withTransaction(action: () -> T): T
 
     /**
      * Initializes the database layer with the [Schema] used by this [Connection].

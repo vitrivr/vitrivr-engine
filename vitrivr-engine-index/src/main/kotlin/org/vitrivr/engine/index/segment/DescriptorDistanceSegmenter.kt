@@ -31,38 +31,31 @@ class DescriptorDistanceSegmenter : TransformerFactory {
 
         val distance = Distance.valueOf(context[name, "distance"] ?: throw IllegalArgumentException("Property 'distance' must be specified"))
         val authorName = context[name, "authorName"] ?: throw IllegalArgumentException("Property 'authorName' must be specified")
-        val atMost = context[name, "atMost"]?.toFloatOrNull()
-        val atLeast = context[name, "atLeast"]?.toFloatOrNull()
+        val atMost = context[name, "atMost"]?.toDoubleOrNull()
+        val atLeast = context[name, "atLeast"]?.toDoubleOrNull()
 
         if (atMost == null && atLeast == null) {
             throw IllegalArgumentException("Property 'atLeast' or 'atMost' must be specified.")
         }
 
-        return Instance(input, authorName, distance, atLeast ?: Float.NEGATIVE_INFINITY, atMost ?: Float.POSITIVE_INFINITY, name)
+        return Instance(input, authorName, distance, atLeast ?: Double.NEGATIVE_INFINITY, atMost ?: Double.POSITIVE_INFINITY, name)
     }
 
     private class Instance(
         override val input: Operator<out Retrievable>,
         private val authorName: String,
         private val distance: Distance,
-        private val atLeast: Float,
-        private val atMost: Float,
+        private val atLeast: Double,
+        private val atMost: Double,
         override val name: String
     ) : Transformer {
 
         private fun compare(comparisonAnchor: Value.Vector<*>, descriptor: VectorDescriptor<*, *>): Boolean {
             val dist = when (comparisonAnchor) {
-                is Value.FloatVector -> {
-                    distance(comparisonAnchor, (descriptor as FloatVectorDescriptor).vector)
-                }
-
-                is Value.DoubleVector -> {
-                    distance(comparisonAnchor, (descriptor as DoubleVectorDescriptor).vector).toFloat()
-                }
-
+                is Value.FloatVector -> distance(comparisonAnchor, (descriptor as FloatVectorDescriptor).vector)
+                is Value.DoubleVector -> distance(comparisonAnchor, (descriptor as DoubleVectorDescriptor).vector)
                 else -> throw UnsupportedOperationException("Unsupported value type ${comparisonAnchor::class.java.name}")
             }
-
             return dist in atLeast..atMost
         }
 
