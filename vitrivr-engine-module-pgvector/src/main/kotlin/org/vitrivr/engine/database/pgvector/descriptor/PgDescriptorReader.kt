@@ -12,6 +12,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.database.pgvector.LOGGER
 import org.vitrivr.engine.database.pgvector.PgVectorConnection
 import org.vitrivr.engine.database.pgvector.exposed.ops.DistanceOps
@@ -193,19 +194,20 @@ class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, 
 
         val grouped = sqlQuery.groupBy { it[this@PgDescriptorReader.table.retrievableId] }
         grouped.map { (_, rows) ->
-            val retrieved = rows.first().toRetrieved()
+            val descriptors = mutableSetOf<Descriptor<*>>()
+            val attributes = mutableSetOf<RetrievableAttribute>()
             for (row in rows) {
                 val distance = row.fieldIndex.keys.filterIsInstance<DistanceOps>().firstOrNull()
                 if (distance != null) {
-                    retrieved.addAttribute(DistanceAttribute.Local(row[distance], row[this@PgDescriptorReader.table.id].value))
+                    attributes.add(DistanceAttribute.Local(row[distance], row[this@PgDescriptorReader.table.id].value))
                 }
                 try {
-                    retrieved.addDescriptor(this@PgDescriptorReader.table.rowToDescriptor(row))
+                    descriptors.add(this@PgDescriptorReader.table.rowToDescriptor(row))
                 } catch (e: Throwable) {
                     /* No operation */
                 }
             }
-            retrieved
+            rows.first().toRetrieved(descriptors, attributes)
         }.asSequence()
     }
 }
