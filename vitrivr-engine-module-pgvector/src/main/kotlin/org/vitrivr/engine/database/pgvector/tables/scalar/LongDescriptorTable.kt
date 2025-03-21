@@ -22,6 +22,12 @@ internal class LongDescriptorTable(field: Schema.Field<*, LongDescriptor>): Abst
         this.initializeIndexes()
     }
 
+    /**
+     * Converts a [ResultRow] to a [LongDescriptor].
+     *
+     * @param row The [ResultRow] to convert.
+     * @return The [LongDescriptor] represented by the [ResultRow].
+     */
     override fun rowToDescriptor(row: ResultRow) = LongDescriptor(
         id = row[id].value,
         retrievableId = row[retrievableId].value,
@@ -35,7 +41,7 @@ internal class LongDescriptorTable(field: Schema.Field<*, LongDescriptor>): Abst
      * @param query The [SimpleBooleanQuery] to convert.
      * @return The [Query] that can be executed against the database.
      */
-    override fun parseQuery(query: SimpleBooleanQuery<*>): Query = this.selectAll().where {
+    override fun parse(query: SimpleBooleanQuery<*>): Query = this.selectAll().where {
         val value = query.value.value as? Long ?: throw IllegalArgumentException("Failed to execute query on ${nameInDatabaseCase()}. Comparison value of wrong type.")
         when(query.comparison) {
             ComparisonOperator.EQ -> descriptor eq value

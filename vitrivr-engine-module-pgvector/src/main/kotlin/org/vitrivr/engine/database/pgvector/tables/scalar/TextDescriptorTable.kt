@@ -26,6 +26,12 @@ internal class TextDescriptorTable(field: Schema.Field<*, TextDescriptor>): Abst
         this.initializeIndexes()
     }
 
+    /**
+     * Converts a [ResultRow] to a [TextDescriptor].
+     *
+     * @param row The [ResultRow] to convert.
+     * @return The [TextDescriptor] represented by the [ResultRow].
+     */
     override fun rowToDescriptor(row: ResultRow) = TextDescriptor(
         id = row[id].value,
         retrievableId = row[retrievableId].value,
@@ -34,12 +40,25 @@ internal class TextDescriptorTable(field: Schema.Field<*, TextDescriptor>): Abst
     )
 
     /**
+     * Converts a [org.vitrivr.engine.core.model.query.Query] into a [Query] that can be executed against the database.
+     *
+     * @param query The [org.vitrivr.engine.core.model.query.Query] to convert.
+     * @return The [Query] that can be executed against the database.
+     * @throws UnsupportedOperationException If the query is not supported.
+     */
+    override fun parse(query: org.vitrivr.engine.core.model.query.Query): Query = when(query) {
+        is SimpleBooleanQuery<*> -> this.parse(query)
+        is SimpleFulltextQuery -> this.parse(query)
+        else -> throw UnsupportedOperationException("Unsupported query type: ${query::class.simpleName}")
+    }
+
+    /**
      * Converts a [SimpleFulltextQuery] into a [Query] that can be executed against the database.
      *
      * @param query [SimpleFulltextQuery] to convert.
      * @return The [Query] that can be executed against the database.
      */
-    override fun parseQuery(query: SimpleFulltextQuery): Query = this.selectAll().where {
+    private fun parse(query: SimpleFulltextQuery): Query = this.selectAll().where {
         descriptor tsMatches toTsQuery(stringParam(query.value.value))
     }
 
@@ -49,7 +68,7 @@ internal class TextDescriptorTable(field: Schema.Field<*, TextDescriptor>): Abst
      * @param query The [SimpleBooleanQuery] to convert.
      * @return The [Query] that can be executed against the database.
      */
-    override fun parseQuery(query: SimpleBooleanQuery<*>): Query = this.selectAll().where {
+    override fun parse(query: SimpleBooleanQuery<*>): Query = this.selectAll().where {
         val value = query.value.value as? String ?: throw IllegalArgumentException("Failed to execute query on ${nameInDatabaseCase()}. Comparison value of wrong type.")
         when(query.comparison) {
             ComparisonOperator.EQ -> descriptor eq value
