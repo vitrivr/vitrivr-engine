@@ -30,7 +30,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.2.0
  */
 class FileSystemEnumerator : EnumeratorFactory {
 
@@ -114,10 +114,7 @@ class FileSystemEnumerator : EnumeratorFactory {
 
                     /* Create source ingested and emit it. */
                     val typeName = this@Instance.typeName ?: "SOURCE:${file.type}"
-                    val ingested = Ingested(file.sourceId, typeName, false)
-                    ingested.addAttribute(SourceAttribute(file))
-
-                    emit(ingested)
+                    emit(Ingested(file.sourceId, typeName, attributes = setOf(SourceAttribute(file)), transient = false))
                     logger.debug { "In flow: Emitting source ${element.fileName} (${element.toUri()})" }
                 }
             }
