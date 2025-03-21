@@ -9,4 +9,4 @@ import org.vitrivr.engine.database.pgvector.PgVectorConnection
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class RetrievableWriterTest : AbstractRetrievableWriterTest("test-schema-postgres.json")
+class PgRetrievableWriterTest : AbstractRetrievableWriterTest("test-schema-postgres.json")
