@@ -162,7 +162,7 @@ abstract class AbstractDescriptorTable<D : Descriptor<*>>(protected val field: S
         super.createStatement() + this.vectorIndexes.flatMap { it.createStatement() }
 
     /**
-     * Creates the SQL statement to create the table.
+     * Creates the SQL statement to drop the table.
      */
     override fun dropStatement(): List<String> =
         super.dropStatement() + this.vectorIndexes.flatMap { it.dropStatement() }
