@@ -97,9 +97,9 @@ class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, 
      */
     override fun exists(descriptorId: DescriptorId): Boolean = transaction(this.connection.database) {
         try {
-            this@PgDescriptorReader.table.selectAll().where {
+            !this@PgDescriptorReader.table.selectAll().where {
                 this@PgDescriptorReader.table.id eq descriptorId
-            }.count() > 0
+            }.empty()
         } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to check for descriptor $descriptorId from '$tableName' due to error." }
             false
