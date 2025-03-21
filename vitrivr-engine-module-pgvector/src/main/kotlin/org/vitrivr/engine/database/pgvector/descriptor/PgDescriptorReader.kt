@@ -9,17 +9,16 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
-import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
-import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
-import org.vitrivr.engine.database.pgvector.*
+import org.vitrivr.engine.database.pgvector.LOGGER
+import org.vitrivr.engine.database.pgvector.PgVectorConnection
 import org.vitrivr.engine.database.pgvector.exposed.ops.DistanceOps
 import org.vitrivr.engine.database.pgvector.tables.AbstractDescriptorTable
 import org.vitrivr.engine.database.pgvector.tables.RetrievableTable
 import org.vitrivr.engine.database.pgvector.tables.RetrievableTable.toRetrieved
+import org.vitrivr.engine.database.pgvector.toTable
 import java.util.*
 
 /**
@@ -45,7 +44,7 @@ class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, 
      */
     override fun query(query: org.vitrivr.engine.core.model.query.Query): Sequence<D> = transaction(this.connection.database) {
         try {
-            this@PgDescriptorReader.parseQuery(query).map { this@PgDescriptorReader.table.rowToDescriptor(it) }.asSequence()
+            this@PgDescriptorReader.table.parse(query).map { this@PgDescriptorReader.table.rowToDescriptor(it) }.asSequence()
         } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to execute query on '$tableName' due to error." }
             throw e
@@ -184,7 +183,7 @@ class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, 
      * @return [Sequence] of [Retrieved].
      */
     override fun queryAndJoin(query: org.vitrivr.engine.core.model.query.Query) = transaction(this.connection.database) {
-        val sqlQuery = parseQuery(query)
+        val sqlQuery = this@PgDescriptorReader.table.parse(query)
         sqlQuery.adjustColumnSet {
             innerJoin(RetrievableTable, { this@PgDescriptorReader.table.retrievableId }, { RetrievableTable.id })
         }
@@ -208,19 +207,5 @@ class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, 
             }
             retrieved
         }.asSequence()
-    }
-
-
-    /**
-     * Parses the provided [Query] and returns a [Query] that can be executed against the database.
-     *
-     * @param query The [org.vitrivr.engine.core.model.query.Query] to parse.
-     * @return The Exposed [Query] that can be executed against the database.
-     */
-    private fun parseQuery(query: org.vitrivr.engine.core.model.query.Query): Query = when (query) {
-        is SimpleFulltextQuery -> this@PgDescriptorReader.table.parseQuery(query)
-        is SimpleBooleanQuery<*> -> this@PgDescriptorReader.table.parseQuery(query)
-        is ProximityQuery<*> -> this@PgDescriptorReader.table.parseQuery(query)
-        else -> throw IllegalArgumentException("Query of type ${query::class} is not supported by ScalarDescriptorReader.")
     }
 }

@@ -104,13 +104,26 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
     }
 
     /**
+     * Converts a [org.vitrivr.engine.core.model.query.Query] into a [Query] that can be executed against the database.
+     *
+     * @param query The [org.vitrivr.engine.core.model.query.Query] to convert.
+     * @return The [Query] that can be executed against the database.
+     * @throws UnsupportedOperationException If the query is not supported.
+     */
+    override fun parse(query: org.vitrivr.engine.core.model.query.Query): Query = when(query) {
+        is SimpleFulltextQuery -> this.parse(query)
+        is SimpleBooleanQuery<*> -> this.parse(query)
+        else -> throw UnsupportedOperationException("Unsupported query type: ${query::class.simpleName}")
+    }
+
+    /**
      * Converts a [SimpleFulltextQuery] into a [Query] that can be executed against the database.
      *
      * @param query [SimpleFulltextQuery] to convert.
      * @return The [Query] that can be executed against the database.
      */
     @Suppress("UNCHECKED_CAST")
-    override fun parseQuery(query: SimpleFulltextQuery): Query = this.selectAll().where {
+    private fun parse(query: SimpleFulltextQuery): Query = this.selectAll().where {
         require(query.attributeName != null) { "Attribute name of boolean query must not be null!" }
         val value = query.value.value as? String ?: throw IllegalArgumentException("Attribute value of fulltext query must be a string")
         val descriptor = this@StructDescriptorTable.valueColumns.find { it.name == query.attributeName } as Column<String>
@@ -124,7 +137,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
      * @return The [Query] that can be executed against the database.
      */
     @Suppress("UNCHECKED_CAST")
-    override fun parseQuery(query: SimpleBooleanQuery<*>): Query = this.selectAll().where {
+    private fun parse(query: SimpleBooleanQuery<*>): Query = this.selectAll().where {
         require(query.attributeName != null) { "Attribute name of boolean query must not be null!" }
         val value = query.value.value ?: throw IllegalArgumentException("Attribute value of boolean query must not be null")
         val descriptor = this@StructDescriptorTable.valueColumns.find { it.name == query.attributeName } as Column<Any>

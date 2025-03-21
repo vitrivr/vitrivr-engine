@@ -11,9 +11,6 @@ import org.vitrivr.engine.core.database.Initializer.Companion.INDEX_TYPE_PARAMET
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.basics.Distance
-import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
-import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
-import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.database.pgvector.DESCRIPTOR_ENTITY_PREFIX
 import org.vitrivr.engine.database.pgvector.DESCRIPTOR_ID_COLUMN_NAME
 import org.vitrivr.engine.database.pgvector.RETRIEVABLE_ID_COLUMN_NAME
@@ -121,31 +118,13 @@ abstract class AbstractDescriptorTable<D : Descriptor<*>>(protected val field: S
     }
 
     /**
-     * Converts a [ProximityQuery] into a [Query] that can be executed against the database.
+     * Converts a [org.vitrivr.engine.core.model.query.Query] into a [Query] that can be executed against the database.
      *
-     * @param query The [ProximityQuery] to convert.
+     * @param query The [org.vitrivr.engine.core.model.query.Query] to convert.
      * @return The [Query] that can be executed against the database.
+     * @throws UnsupportedOperationException If the query is not supported.
      */
-    open fun parseQuery(query: ProximityQuery<*>): Query
-        = throw UnsupportedOperationException("Proximity query is not supported on table '${this.nameInDatabaseCase()}'.")
-
-    /**
-     * Converts a [SimpleFulltextQuery] into a [Query] that can be executed against the database.
-     *
-     * @param query The [SimpleFulltextQuery] to convert.
-     * @return The [Query] that can be executed against the database.
-     */
-    open fun parseQuery(query: SimpleFulltextQuery): Query
-        = throw UnsupportedOperationException("Fulltext query is not supported on table '${this.nameInDatabaseCase()}'.")
-
-    /**
-     * Converts a [SimpleBooleanQuery] into a [Query] that can be executed against the database.
-     *
-     * @param query The [SimpleBooleanQuery] to convert.
-     * @return The [Query] that can be executed against the database.
-     */
-    open fun parseQuery(query: SimpleBooleanQuery<*>): Query
-        = throw UnsupportedOperationException("Simple Boolean query is not supported on table '${this.nameInDatabaseCase()}'.")
+    abstract fun parse(query: org.vitrivr.engine.core.model.query.Query): Query
 
     /**
      * Converts a [ResultRow] to a [Descriptor].

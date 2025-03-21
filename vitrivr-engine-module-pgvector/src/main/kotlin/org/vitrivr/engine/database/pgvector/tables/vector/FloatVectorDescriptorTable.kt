@@ -36,7 +36,7 @@ class FloatVectorDescriptorTable(field: Schema.Field<*, FloatVectorDescriptor>):
      * @param query The [ProximityQuery] to convert.
      * @return The [Query] that can be executed against the database.
      */
-    override fun parseQuery(query: ProximityQuery<*>): Query {
+    override fun parse(query: ProximityQuery<*>): Query {
         val value = query.value.value as? FloatArray ?: throw IllegalArgumentException("Failed to execute query on ${nameInDatabaseCase()}. Comparison value of wrong type.")
         val expression = when (query.distance) {
             Distance.EUCLIDEAN -> descriptor euclidean value
