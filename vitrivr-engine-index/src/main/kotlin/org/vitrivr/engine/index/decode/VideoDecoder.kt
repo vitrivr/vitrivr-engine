@@ -14,7 +14,6 @@ import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.Frame
 import org.bytedeco.javacv.FrameGrabber
 import org.bytedeco.javacv.Java2DFrameConverter
-
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.AudioContent
@@ -23,7 +22,6 @@ import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
@@ -258,8 +256,8 @@ class VideoDecoder : DecoderFactory {
 
             /* Prepare ingested with relationship to source. */
             val retrievableId = UUID.randomUUID()
-            val source = source.filteredAttribute(SourceAttribute::class.java)
-            val relationship = source?.let { Relationship.ById(retrievableId, "partOf", it.source.sourceId, false) }
+            val src = source.filteredAttribute(SourceAttribute::class.java)
+            val relationship = src?.let { Relationship.ById(retrievableId, "partOf", it.source.sourceId, false) }
 
             /* Prepare attributes and content lists. */
             val attributes = mutableSetOf<RetrievableAttribute>()
@@ -288,14 +286,12 @@ class VideoDecoder : DecoderFactory {
                     samples
                 )
                 content.add(audio)
-                attributes.add(ContentAuthorAttribute(audio.id, name))
             }
 
             /* Prepare and append image content element. */
             for (image in emitImage) {
                 val imageContent = this@Instance.context.contentFactory.newImageContent(image)
                 content.add(imageContent)
-                attributes.add(ContentAuthorAttribute(imageContent.id, name))
             }
 
             logger.debug { "Emitting ingested $retrievableId with ${emitImage.size} images and ${emitAudio.size} audio samples." }

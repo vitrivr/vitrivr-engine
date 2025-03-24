@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.operators.ingest.DecoderFactory
@@ -62,7 +61,7 @@ class ImageDecoder : DecoderFactory {
                 logger.info { "Finished decoding image from source '${source.name}' (${source.sourceId})." }
 
                 /* Return ingested. */
-                retrievable.copy(content = retrievable.content + content, attributes = retrievable.attributes + ContentAuthorAttribute(content.id, this.name))
+                retrievable.copy(content = retrievable.content + content, attributes = retrievable.attributes)
             } catch (e: IOException) {
                 logger.error(e) { "Failed to decode image from source '${source.name}' (${source.sourceId}) due to IO exception: ${e.message}" }
                 null

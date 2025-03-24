@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.onEach
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Exporter
 import org.vitrivr.engine.core.operators.general.ExporterFactory
@@ -24,7 +23,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  * An [Exporter] that generates thumbnails from videos and images.
  *
  * @author Finn Faber
- * @version 1.0.1
+ * @version 1.0.2
  */
 class ThumbnailExporter : ExporterFactory {
     companion object {
@@ -49,7 +48,7 @@ class ThumbnailExporter : ExporterFactory {
             }
         } ?: MimeType.JPG
         logger.debug { "Creating new ThumbnailExporter with maxSideResolution=$maxSideResolution and mimeType=$mimeType." }
-        return Instance(input, context, resolverName, maxSideResolution, mimeType, context[name, "contentSources"]?.split(",")?.toSet(), name)
+        return Instance(input, context, resolverName, maxSideResolution, mimeType, name)
     }
 
     /**
@@ -61,7 +60,6 @@ class ThumbnailExporter : ExporterFactory {
         resolverName: String,
         private val maxResolution: Int,
         private val mimeType: MimeType,
-        private val contentSources: Set<String>?,
         override val name: String
     ) : Exporter {
         init {
@@ -76,21 +74,15 @@ class ThumbnailExporter : ExporterFactory {
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
             try {
-
                 val resolvable = this.resolver.resolve(retrievable.id, ".${this.mimeType.fileExtension}")
-                val contentIds = this.contentSources?.let {
-                    retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(it)
-                }
-
-            val content =
-                retrievable.content.filterIsInstance<ImageContent>().filter { contentIds?.contains(it.id) ?: true }
-            if (resolvable != null && content.isNotEmpty()) {
-                val writer = when (mimeType) {
-                    MimeType.JPEG,
-                    MimeType.JPG -> JpegWriter()
-                    MimeType.PNG -> PngWriter()
-                    else -> throw IllegalArgumentException("Unsupported mime type $mimeType")
-                }
+                val content = retrievable.content.filterIsInstance<ImageContent>()
+                if (resolvable != null && content.isNotEmpty()) {
+                    val writer = when (mimeType) {
+                        MimeType.JPEG,
+                        MimeType.JPG -> JpegWriter()
+                        MimeType.PNG -> PngWriter()
+                        else -> throw IllegalArgumentException("Unsupported mime type $mimeType")
+                    }
 
                     logger.debug { "Generating thumbnail(s) for ${retrievable.id} with ${retrievable.type} and resolution $maxResolution. Storing it with ${resolvable::class.simpleName}." }
 

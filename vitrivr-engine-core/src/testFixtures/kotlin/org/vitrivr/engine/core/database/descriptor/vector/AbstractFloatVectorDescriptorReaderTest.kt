@@ -22,7 +22,7 @@ import java.util.*
  * A series of test cases the test the functionality of the [VectorDescriptorReader].
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.0.1
  */
 @Suppress("UNCHECKED_CAST")
 abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : AbstractDatabaseTest(schemaPath) {
@@ -200,7 +200,7 @@ abstract class AbstractFloatVectorDescriptorReaderTest(schemaPath: String) : Abs
 
         /* Generate and store test data. */
         val retrievables = (0 until size).map {
-            Ingested(UUID.randomUUID(), "SOURCE:TEST", true)
+            Ingested(UUID.randomUUID(), "SOURCE:TEST", emptyList(), emptySet(), emptySet(), emptySet(), true)
         }
         Assertions.assertTrue(this.testConnection.getRetrievableWriter().addAll(retrievables))
 

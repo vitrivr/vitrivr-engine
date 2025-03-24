@@ -14,7 +14,10 @@ import org.vitrivr.engine.core.operators.general.TransformerFactory
 import java.util.*
 
 /**
- * Aggregates [VectorDescriptor]s from a common author, in case there are multiple.
+ * Aggregates [VectorDescriptor]s in case there are multiple.
+ *
+ * @author Luca Rossetto
+ * @version 1.0.0
  */
 class VectorDescriptorAggregator : TransformerFactory {
 
@@ -96,35 +99,28 @@ class VectorDescriptorAggregator : TransformerFactory {
         private val strategy: AggregationStrategy
     ) : Transformer {
 
-
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).map { ingested ->
+            val descriptorIds = ingested.filteredAttribute(DescriptorAuthorAttribute::class.java)?.getDescriptorIds(authorName) ?: emptySet()
+            val newDescriptors = ingested.descriptors.toMutableSet()
+            val toAggregate = ingested.descriptors.filter { it.id in descriptorIds }.filterIsInstance<VectorDescriptor<*, *>>()
 
-            val descriptorIds =
-                ingested.filteredAttribute(DescriptorAuthorAttribute::class.java)?.getDescriptorIds(authorName)
-                    ?: emptySet()
-            val descriptors =
-                ingested.descriptors.filter { it.id in descriptorIds }.filterIsInstance<VectorDescriptor<*, *>>()
-
-            if (descriptors.isEmpty()) {
+            if (toAggregate.isEmpty()) {
                 return@map ingested //nothing to do
             }
 
-            val aggregated = if (descriptors.size == 1) {
-                descriptors.first()
+            /* Perform aggregation. */
+            val aggregated = if (toAggregate.size == 1) {
+                toAggregate.first()
             } else {
-                strategy.aggregate(descriptors)
+                strategy.aggregate(toAggregate)
             }
+            newDescriptors.add(aggregated)
 
-            descriptors.forEach {
-                ingested.removeDescriptor(it)
-            }
+            /* Remove the descriptors that were aggregated. */
+            newDescriptors.removeIf { toAggregate.contains(it) }
 
-            ingested.addDescriptor(aggregated)
-            ingested.addAttribute(DescriptorAuthorAttribute(aggregated.id, this.name))
-
-            ingested
+            /* Return copy. */
+            ingested.copy(descriptors = newDescriptors)
         }
-
     }
-
 }
