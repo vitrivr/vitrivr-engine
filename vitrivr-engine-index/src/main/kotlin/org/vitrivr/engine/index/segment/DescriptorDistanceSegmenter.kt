@@ -5,6 +5,8 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.vector.DoubleVectorDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.VectorDescriptor
@@ -13,6 +15,7 @@ import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAuthorAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
 import org.vitrivr.engine.core.model.types.Value
@@ -128,28 +131,36 @@ class DescriptorDistanceSegmenter : TransformerFactory {
             downstream: ProducerScope<Retrievable>,
             cache: List<Retrievable>
         ) {
-            val ingested = Ingested(UUID.randomUUID(), cache.first().type, false)
+            val retrievableId = UUID.randomUUID()
+            val content = mutableListOf<ContentElement<*>>()
+            val descriptors = mutableSetOf<Descriptor<*>>()
+            val attributes = mutableSetOf<RetrievableAttribute>()
+            val relationships = mutableSetOf<Relationship>()
+
             val ranges = mutableSetOf<TimeRangeAttribute>()
             for (emitted in cache) {
-                emitted.content.forEach { ingested.addContent(it) }
-                emitted.descriptors.forEach { ingested.addDescriptor(it) }
+                emitted.content.forEach { content.add(it) }
+                emitted.descriptors.forEach { descriptors.add(it) }
                 emitted.attributes.forEach {
                     if (it is TimeRangeAttribute) {
                         ranges.add(it)
                     } else {
-                        ingested.addAttribute(it)
+                        attributes.add(it)
                     }
                 }
                 emitted.relationships.forEach { relationship ->
-                    ingested.addRelationship(relationship.exchange(emitted.id, ingested))
+                    /*
+                     * TODO @lucaro:
+                     * relationships.add(relationship.exchange(emitted.id, retrievableId))
+                     */
                 }
             }
             if (ranges.isNotEmpty()) {
-                ingested.addAttribute(TimeRangeAttribute.merge(ranges))
+                attributes.add(TimeRangeAttribute.merge(ranges))
             }
 
             /* Send retrievable downstream. */
-            downstream.send(ingested)
+            downstream.send(Ingested(retrievableId, cache.first().type,  content, descriptors, attributes, relationships, false))
         }
 
     }
