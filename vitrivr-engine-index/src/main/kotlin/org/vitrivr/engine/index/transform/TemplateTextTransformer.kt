@@ -7,25 +7,33 @@ import kotlinx.coroutines.flow.flow
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.ContentType
+import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.content.factory.ContentFactory
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 import org.vitrivr.engine.core.operators.general.TransformerFactory
 
 private val logger = KotlinLogging.logger {}
 
-private val TEMPLATE_REGEX = "\\$\\{([^}]+)\\}".toRegex()
-private const val DEFAULT_VALUE = "No content available."
 
 /**
  * A [Transformer] that takes an input template with placeholders and inserts content from fields in their place.
  *
  * @author Laura Rettig
- * @version 1.0.0
+ * @version 1.2.0
  */
 class TemplateTextTransformer : TransformerFactory {
+
+    companion object {
+        /** [Regex] used by [TemplateTextTransformer]. */
+        private val TEMPLATE_REGEX: Regex = "\\$\\{([^}]+)\\}".toRegex()
+
+        /** Default value for [TemplateTextTransformer]. */
+        private const val DEFAULT_VALUE = "No content available."
+    }
+
+
     override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
         val template = context[name, "template"] ?: throw IllegalArgumentException("The template text transformer requires a template.")
         val contentFields = TEMPLATE_REGEX.findAll(template).map { it.groupValues[1] }.toList()
@@ -47,13 +55,11 @@ class TemplateTextTransformer : TransformerFactory {
 
                 contentFields.forEach { fieldName ->
                     val placeholder = "\${${fieldName}}"
-                    val contentIds = retrievable.filteredAttribute(ContentAuthorAttribute::class.java)?.getContentIds(fieldName)
+                    val contentIds = retrievable.content.filterIsInstance<TextContent>().map { it.id }
 
                     val fieldContent = StringBuilder()
-                    contentIds?.forEach{ id ->
-                        retrievable.content.find {
-                            it.id == id && it.type == ContentType.TEXT
-                        }?.content?.let {
+                    contentIds.forEach{ id ->
+                        retrievable.content.find { it.id == id && it.type == ContentType.TEXT }?.content?.let {
                             fieldContent.append(it)
                         }
                     }
@@ -64,11 +70,11 @@ class TemplateTextTransformer : TransformerFactory {
 
                 if (mergedContent.isNotBlank()) {
                     val content = contentFactory.newTextContent(mergedContent.trim())
-                    retrievable.addContent(content)
-                    retrievable.addAttribute(ContentAuthorAttribute(content.id, name))
                     logger.debug { "Contents from retrievable ${retrievable.id} have been merged into a single content element using template." }
+                    emit(retrievable.copy(content = retrievable.content + content, attributes = retrievable.attributes))
+                } else {
+                    emit(retrievable)
                 }
-                emit(retrievable)
             }
         }
     }

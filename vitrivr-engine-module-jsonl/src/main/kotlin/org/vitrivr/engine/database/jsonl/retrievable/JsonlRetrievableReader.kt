@@ -6,6 +6,7 @@ import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
+import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.database.jsonl.JsonlConnection
 import org.vitrivr.engine.database.jsonl.LOGGER
 import org.vitrivr.engine.database.jsonl.RELATIONSHIPS_FILE_NAME
@@ -24,11 +25,11 @@ class JsonlRetrievableReader(override val connection: JsonlConnection) : Retriev
     /** Path to the file containing [Relationship]s. */
     private val connectionPath = this.connection.schemaRoot.resolve(RELATIONSHIPS_FILE_NAME)
 
-    override fun get(id: RetrievableId): Retrievable? = getAll().firstOrNull { it.id == id }
+    override fun get(id: RetrievableId): Retrieved? = getAll().firstOrNull { it.id == id }
 
     override fun exists(id: RetrievableId): Boolean = get(id) != null
 
-    override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrievable> {
+    override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrieved> {
         val idSet = ids.toSet()
         return getAll().filter { idSet.contains(it.id) }
     }
@@ -59,7 +60,7 @@ class JsonlRetrievableReader(override val connection: JsonlConnection) : Retriev
         }.map { it.toRelationship() }
     }
 
-    override fun getAll(): Sequence<Retrievable> {
+    override fun getAll(): Sequence<Retrieved> {
         return BufferedReader(InputStreamReader(this.retrievablePath.inputStream())).lineSequence().mapNotNull {
             try {
                 Json.decodeFromString<JsonlRetrievable>(it).toRetrieved()

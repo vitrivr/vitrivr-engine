@@ -11,7 +11,6 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.Retrieved
-import org.vitrivr.engine.core.model.retrievable.attributes.PropertyAttribute
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
@@ -64,7 +63,6 @@ class FieldLookupLateFilter(
         inputRetrieved.forEach { retrieved ->
             val descriptor = descriptors[retrieved.id]
             if (descriptor != null) {
-                //retrieved.addDescriptor(descriptor)
                 /* Somewhat experimental. Goal: Attach information in a meaningful manner, such that it can be serialised */
                 val values = descriptor.values().toMap()
                 val attribute = keys.map {
@@ -83,15 +81,13 @@ class FieldLookupLateFilter(
                     })
                 }
 
-                retrieved.takeIf { append == true }?.let {
-                    retrieved.addDescriptor(descriptor)
-                    retrieved.addAttribute(PropertyAttribute(attribute.map { it.first.first.toString() to it.first.second!!.value.toString() }
-                        .toMap()))
-                }
-
                 attribute[0].takeIf { it.first.second != null && it.second != null }?.let {
                     it.takeIf { ++emitted <= limit && comparison.compare(it.first.second!!, it.second!!) }?.let {
-                        emit(retrieved)
+                        if (append) {
+                            emit(retrieved.copy(descriptors = retrieved.descriptors + descriptor))
+                        } else {
+                            emit(retrieved)
+                        }
                     }
                 }
             }

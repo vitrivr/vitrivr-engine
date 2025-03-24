@@ -6,7 +6,9 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
-import org.vitrivr.engine.database.pgvector.*
+import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.database.pgvector.LOGGER
+import org.vitrivr.engine.database.pgvector.PgVectorConnection
 import org.vitrivr.engine.database.pgvector.tables.RelationshipTable
 import org.vitrivr.engine.database.pgvector.tables.RelationshipTable.toRelationship
 import org.vitrivr.engine.database.pgvector.tables.RetrievableTable
@@ -22,9 +24,9 @@ import java.util.*
  */
 class PgRetrievableReader(override val connection: PgVectorConnection): RetrievableReader {
     /**
-     * Returns the [Retrievable]s that matches the provided [RetrievableId]
+     * Returns the [Retrieved]s that matches the provided [RetrievableId]
      */
-    override fun get(id: RetrievableId): Retrievable? = try {
+    override fun get(id: RetrievableId): Retrieved? = try {
         transaction(this.connection.database) {
             RetrievableTable.selectAll().where {
                 RetrievableTable.id eq id
@@ -53,12 +55,12 @@ class PgRetrievableReader(override val connection: PgVectorConnection): Retrieva
     }
 
     /**
-     * Returns all [Retrievable]s that match any of the provided [RetrievableId]
+     * Returns all [Retrieved]s that match any of the provided [RetrievableId]
      *
      * @param ids A [Iterable] of [RetrievableId]s to return.
-     * @return A [Sequence] of all [Retrievable].
+     * @return A [Sequence] of all [Retrieved].
      */
-    override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrievable> = transaction(this.connection.database) {
+    override fun getAll(ids: Iterable<RetrievableId>): Sequence<Retrieved> = transaction(this.connection.database) {
         try {
             RetrievableTable.selectAll().where { RetrievableTable.id inList ids }.map { row ->
                 row.toRetrieved()
@@ -74,7 +76,7 @@ class PgRetrievableReader(override val connection: PgVectorConnection): Retrieva
      *
      * @return A [Sequence] of all [Retrievable]s in the database.
      */
-    override fun getAll(): Sequence<Retrievable> = transaction(this.connection.database)  {
+    override fun getAll(): Sequence<Retrieved> = transaction(this.connection.database)  {
         try {
             RetrievableTable.selectAll().map { row ->
                 row.toRetrieved()
