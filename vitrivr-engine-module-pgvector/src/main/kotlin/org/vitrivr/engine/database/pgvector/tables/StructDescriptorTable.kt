@@ -89,7 +89,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
                 Type.Long -> Value.Long(row[column] as Long)
                 Type.Short -> Value.Short(row[column] as Short)
                 Type.String -> Value.String(row[column] as String)
-                Type.Text -> Value.String(row[column] as String)
+                Type.Text -> Value.Text(row[column] as String)
                 Type.UUID -> Value.UUIDValue(row[column] as UUID)
                 is Type.BooleanVector -> Value.BooleanVector(row[column] as BooleanArray)
                 is Type.DoubleVector -> Value.DoubleVector(row[column] as DoubleArray)
