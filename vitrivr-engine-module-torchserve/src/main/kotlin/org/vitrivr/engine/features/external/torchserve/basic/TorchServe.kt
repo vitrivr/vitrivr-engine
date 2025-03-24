@@ -94,7 +94,7 @@ abstract class TorchServe<C : ContentElement<*>, D : Descriptor<*>> : Analyser<C
         val port = ((context.local[field.fieldName]?.get(TORCHSERVE_PORT_KEY) ?: field.parameters[TORCHSERVE_PORT_KEY]))?.toIntOrNull() ?: TORCHSERVE_PORT_DEFAULT
         val token = context.local[field.fieldName]?.get(TORCHSERVE_TOKEN_KEY) ?: field.parameters[TORCHSERVE_TOKEN_KEY]
         val model = context.local[field.fieldName]?.get(TORCHSERVE_MODEL_KEY) ?: field.parameters[TORCHSERVE_MODEL_KEY] ?: throw IllegalArgumentException("Missing model for TorchServe model.")
-        return TorchServeExtractor(host, port, token, model, input, this, field, emptySet(), field.fieldName)
+        return TorchServeExtractor(host, port, token, model, input, this, field, field.fieldName)
     }
 
     /**
@@ -111,7 +111,7 @@ abstract class TorchServe<C : ContentElement<*>, D : Descriptor<*>> : Analyser<C
         val port = context.local[name]?.get(TORCHSERVE_PORT_KEY)?.toIntOrNull() ?: TORCHSERVE_PORT_DEFAULT
         val token = context.local[name]?.get(TORCHSERVE_TOKEN_KEY)
         val model = context.local[name]?.get(TORCHSERVE_MODEL_KEY) ?: throw IllegalArgumentException("Missing model for TorchServe model.")
-        return TorchServeExtractor(host, port, token, model, input, this, null, emptySet(), name)
+        return TorchServeExtractor(host, port, token, model, input, this, null, name)
     }
 
     /**

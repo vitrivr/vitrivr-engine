@@ -20,7 +20,6 @@ import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
@@ -295,14 +294,12 @@ class FFmpegVideoDecoder : DecoderFactory {
                         samples
                     )
                     content.add(audio)
-                    attributes.add(ContentAuthorAttribute(audio.id, name))
                 }
 
                 /* Prepare and append image content element. */
                 for (image in emitImage) {
                     val imageContent = this@Instance.context.contentFactory.newImageContent(image)
                     content.add(imageContent)
-                    attributes.add(ContentAuthorAttribute(imageContent.id, name))
                 }
 
                 logger.debug { "Emitting ingested $retrievableId with ${emitImage.size} images and ${emitAudio.size} audio samples." }

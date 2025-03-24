@@ -77,7 +77,7 @@ class ImageCaptionExtractor : FesExtractor<ImageContent, TextDescriptor> {
 
     override fun extract(retrievables: List<Retrievable>): List<List<TextDescriptor>> {
 
-        val content = retrievables.flatMap { it.content.filterIsInstance<ImageContent>() }
+        val content = retrievables.map { it.content }
         val imageContents = content.map { it.filterIsInstance<ImageContent>() }
 
         val texts : List<List<String?>> = content.map { it.filterIsInstance<TextContent>().map { it.content } }.mapIndexed { index, text -> if (text.isEmpty()) {
@@ -95,13 +95,13 @@ class ImageCaptionExtractor : FesExtractor<ImageContent, TextDescriptor> {
         var index = 0
 
         return retrievables.map { retrievable ->
-            this.filterContent(retrievable).map {
+            retrievables.map { it.content }.mapNotNull {
                 if (it !is ImageContent) {
                     null
-                } else{
-                flatResults[index++].let { TextDescriptor(it.id, retrievable.id, it.value, it.field) }
+                } else {
+                    flatResults[index++].let { TextDescriptor(it.id, retrievable.id, it.value, it.field) }
                 }
-            }.filterNotNull()
+            }
         }
     }
 }

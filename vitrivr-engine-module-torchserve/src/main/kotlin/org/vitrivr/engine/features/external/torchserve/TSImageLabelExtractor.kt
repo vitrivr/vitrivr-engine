@@ -25,9 +25,8 @@ class TSImageLabelExtractor(
     input: Operator<Retrievable>,
     analyser: TSImageLabel,
     field: Schema.Field<ImageContent, LabelDescriptor>? = null,
-    contentSources: Set<String>? = null,
     name: String
-) : TorchServeExtractor<ImageContent, LabelDescriptor>(host, port, token, model, input, analyser, field, contentSources, name) {
+) : TorchServeExtractor<ImageContent, LabelDescriptor>(host, port, token, model, input, analyser, field, name) {
     /**
      * Extracts [Descriptor]s from the provided [Retrievable].
      *
