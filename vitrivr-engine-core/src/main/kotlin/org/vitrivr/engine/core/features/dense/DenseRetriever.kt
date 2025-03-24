@@ -30,7 +30,7 @@ class DenseRetriever<C : ContentElement<*>>(field: Schema.Field<C, FloatVectorDe
         this@DenseRetriever.reader.queryAndJoin(this@DenseRetriever.query).forEach {
             val distances = it.filteredAttributes<DistanceAttribute>()
             for (d in distances) {
-                it.addAttribute(d)
+                it.addAttribute(this@DenseRetriever.correspondence.invoke(d))
             }
             emit(it)
         }
