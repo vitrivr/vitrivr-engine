@@ -6,6 +6,7 @@ import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.basics.SortOrder
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.util.knn.FixedSizePriorityQueue
 import org.vitrivr.engine.database.jsonl.AbstractJsonlReader
@@ -79,9 +80,7 @@ class VectorJsonlReader(
 
         return queue.map {
             val retrieved = retrievables[it.first.retrievableId]!!
-            // TODO: retrieved.addDescriptor(it.first)
-            // TODO: retrieved.addAttribute(DistanceAttribute(it.second))
-            retrieved
+            retrieved.copy(descriptors = retrieved.descriptors + it.first, attributes = retrieved.attributes + DistanceAttribute.Local(it.second, it.first.id))
         }.asSequence()
 
     }
