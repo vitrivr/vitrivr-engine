@@ -79,23 +79,29 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
 
         /* Add the values. */
         for ((column, attribute) in this.valueColumns.zip(this.prototype.layout())) {
-            values[attribute.name] = when (attribute.type) {
-                Type.Boolean -> Value.Boolean(row[column] as Boolean)
-                Type.Byte -> Value.Byte(row[column] as Byte)
-                Type.Datetime -> Value.DateTime(row[column] as Date)
-                Type.Double -> Value.Double(row[column] as Double)
-                Type.Float -> Value.Float(row[column] as Float)
-                Type.Int -> Value.Int(row[column] as Int)
-                Type.Long -> Value.Long(row[column] as Long)
-                Type.Short -> Value.Short(row[column] as Short)
-                Type.String -> Value.String(row[column] as String)
-                Type.Text -> Value.Text(row[column] as String)
-                Type.UUID -> Value.UUIDValue(row[column] as UUID)
-                is Type.BooleanVector -> Value.BooleanVector(row[column] as BooleanArray)
-                is Type.DoubleVector -> Value.DoubleVector(row[column] as DoubleArray)
-                is Type.FloatVector -> Value.FloatVector(row[column] as FloatArray)
-                is Type.LongVector -> Value.LongVector(row[column] as LongArray)
-                is Type.IntVector -> Value.IntVector(row[column] as IntArray)
+            val value = row[column]
+            if (value == null) {
+                values[attribute.name] = null
+                continue
+            } else {
+                values[attribute.name] = when (attribute.type) {
+                    Type.Boolean -> Value.Boolean(value as Boolean)
+                    Type.Byte -> Value.Byte(value as Byte)
+                    Type.Datetime -> Value.DateTime(value as Date)
+                    Type.Double -> Value.Double(value as Double)
+                    Type.Float -> Value.Float(value as Float)
+                    Type.Int -> Value.Int(value as Int)
+                    Type.Long -> Value.Long(value as Long)
+                    Type.Short -> Value.Short(value as Short)
+                    Type.String -> Value.String(value as String)
+                    Type.Text -> Value.Text(value as String)
+                    Type.UUID -> Value.UUIDValue(value as UUID)
+                    is Type.BooleanVector -> Value.BooleanVector(value as BooleanArray)
+                    is Type.DoubleVector -> Value.DoubleVector(value as DoubleArray)
+                    is Type.FloatVector -> Value.FloatVector(value as FloatArray)
+                    is Type.LongVector -> Value.LongVector(value as LongArray)
+                    is Type.IntVector -> Value.IntVector(value as IntArray)
+                }
             }
         }
 
