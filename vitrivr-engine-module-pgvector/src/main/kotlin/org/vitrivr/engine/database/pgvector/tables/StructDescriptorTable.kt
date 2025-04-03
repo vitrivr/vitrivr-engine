@@ -82,7 +82,6 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
             val value = row[column]
             if (value == null) {
                 values[attribute.name] = null
-                continue
             } else {
                 values[attribute.name] = when (attribute.type) {
                     Type.Boolean -> Value.Boolean(value as Boolean)
