@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.operators.ingest.DecoderFactory
@@ -22,7 +21,7 @@ import javax.imageio.ImageIO
  * A [Decoder] that can decode [ImageContent] from a [Source] of [MediaType.IMAGE].
  *
  * @author Luca Rossetto
- * @version 1.1.1
+ * @version 1.2.0
  */
 class ImageDecoder : DecoderFactory {
 
@@ -43,8 +42,8 @@ class ImageDecoder : DecoderFactory {
         /** [KLogger] instance. */
         private val logger: KLogger = KotlinLogging.logger {}
 
-        override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).mapNotNull { sourceRetrievable ->
-            val source = sourceRetrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@mapNotNull null
+        override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).mapNotNull { retrievable ->
+            val source = retrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@mapNotNull null
             if (source.type != MediaType.IMAGE) {
                 logger.debug { "Skipping source ${source.name} (${source.sourceId}) because it is not of type IMAGE." }
                 return@mapNotNull null
@@ -59,12 +58,10 @@ class ImageDecoder : DecoderFactory {
                     }
                     this.context.contentFactory.newImageContent(image)
                 }
-                sourceRetrievable.addContent(content)
-                sourceRetrievable.addAttribute(ContentAuthorAttribute(content.id, this.name))
                 logger.info { "Finished decoding image from source '${source.name}' (${source.sourceId})." }
 
                 /* Return ingested. */
-                sourceRetrievable
+                retrievable.copy(content = retrievable.content + content, attributes = retrievable.attributes)
             } catch (e: IOException) {
                 logger.error(e) { "Failed to decode image from source '${source.name}' (${source.sourceId}) due to IO exception: ${e.message}" }
                 null

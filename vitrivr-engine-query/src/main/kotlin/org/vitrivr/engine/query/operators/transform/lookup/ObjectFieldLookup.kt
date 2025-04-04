@@ -15,7 +15,7 @@ import org.vitrivr.engine.core.operators.general.Transformer
 /**
  * Appends [DescriptorAttribute] to a [Retrieved] in a specified object [Relationship] based on lookup values of a [Schema.Field], if available.
  *
- * @version 1.0.2
+ * @version 1.1.0
  * @author Luca Rossetto
  * @author Ralph Gasser
  */
@@ -33,29 +33,27 @@ class ObjectFieldLookup(override val input: Operator<out Retrievable>,
         val enrich = inputRetrieved.flatMap { retrieved ->
             retrieved.relationships.filterIsInstance<Relationship.ByRef>().filter { this@ObjectFieldLookup.predicates.isEmpty() || it.predicate in this@ObjectFieldLookup.predicates }.map {
                 if (retrieved == it.`object`) {
-                    it.subject.id to it.subject
+                    it.subject.id
                 } else {
-                    it.`object`.id to it.`object`
+                    it.`object`.id
                 }
             }
-        }.toMap()
+        }.toSet()
 
         /* Fetch descriptors for retrievables that should be enriched. */
         val descriptors = if (enrich.isNotEmpty()) {
-            this@ObjectFieldLookup.reader.getAllForRetrievable(enrich.keys).associateBy { it.retrievableId!! }
+            this@ObjectFieldLookup.reader.getAllForRetrievable(enrich).associateBy { it.retrievableId!! }
         } else {
             emptyMap()
         }
 
-        /* Emit retrievable with added attribute. */
-        enrich.forEach { (k, v) ->
-            val descriptor = descriptors[k]
-            if (descriptor != null) {
-                v.addDescriptor(descriptor)
+        /* Emit input. */
+        inputRetrieved.forEach {
+            if (descriptors.containsKey(it.id)) {
+                emit(it.copy(descriptors = it.descriptors + descriptors[it.id]!!))
+            } else {
+                emit(it)
             }
         }
-
-        /* Emit input. */
-        inputRetrieved.forEach { emit(it) }
     }
 }

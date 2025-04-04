@@ -208,7 +208,7 @@ abstract class AbstractFileMetadataDescriptorReaderTest(schemaPath: String) : Ab
 
         /* Generate and store test data. */
         val retrievables = (0 until size).map {
-            Ingested(UUID.randomUUID(), "SOURCE:TEST", true)
+            Ingested(UUID.randomUUID(), "SOURCE:TEST", emptyList(), emptySet(), emptySet(), emptySet(), true)
         }
         Assertions.assertTrue(this.testConnection.getRetrievableWriter().addAll(retrievables))
 

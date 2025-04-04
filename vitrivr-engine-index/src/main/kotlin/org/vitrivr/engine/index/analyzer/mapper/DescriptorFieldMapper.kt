@@ -6,20 +6,11 @@ import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
-import org.vitrivr.engine.core.model.descriptor.scalar.DoubleDescriptor
-import org.vitrivr.engine.core.model.descriptor.scalar.FloatDescriptor
-import org.vitrivr.engine.core.model.descriptor.scalar.IntDescriptor
-import org.vitrivr.engine.core.model.descriptor.scalar.LongDescriptor
-import org.vitrivr.engine.core.model.descriptor.vector.DoubleVectorDescriptor
-import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.descriptor.vector.IntVectorDescriptor
-import org.vitrivr.engine.core.model.descriptor.vector.LongVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAuthorAttribute
-import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
@@ -69,7 +60,7 @@ abstract class DescriptorFieldMapper<D : Descriptor<*>> : Analyser<ContentElemen
                 cast(it, field)
             }
 
-            descriptors.forEach {
+            /* descriptors.forEach {
                 retrievable.removeDescriptor(it)
             }
 
@@ -80,8 +71,9 @@ abstract class DescriptorFieldMapper<D : Descriptor<*>> : Analyser<ContentElemen
                 authorAttribute.add(it, this.name)
             }
 
-            retrievable.addAttribute(authorAttribute)
+            retrievable.addAttribute(authorAttribute) */
 
+            /** TODO: @lucaro. */
         }
 
     }

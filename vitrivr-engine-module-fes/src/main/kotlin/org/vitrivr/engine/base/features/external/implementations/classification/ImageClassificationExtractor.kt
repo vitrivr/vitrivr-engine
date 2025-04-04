@@ -55,7 +55,7 @@ class ImageClassificationExtractor : FesExtractor<ImageContent, LabelDescriptor>
         val threshold = this.parameters[THRESHOLD_PARAMETER_NAME]?.toFloat() ?: 0.0f
 
         val content = retrievables.mapIndexed { idx, retrievable ->
-            this.filterContent(retrievable).filterIsInstance<ImageContent>().map { idx to (it to classes) }
+            retrievable.content.filterIsInstance<ImageContent>().map { idx to (it to classes) }
         }.flatten()
 
         return this.api.analyseBatched(content.map{it.second}).zip(content.map{it.first}).map { (result, idx) ->
