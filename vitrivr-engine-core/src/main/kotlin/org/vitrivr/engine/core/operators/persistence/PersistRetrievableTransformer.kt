@@ -3,14 +3,17 @@ package org.vitrivr.engine.core.operators.persistence
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 import org.vitrivr.engine.core.operators.general.TransformerFactory
@@ -48,22 +51,35 @@ class PersistRetrievableTransformer: TransformerFactory {
             this.context.schema.connection.getRetrievableWriter()
         }
 
+        /** The [RetrievableWriter] instance used by this [PersistRetrievableTransformer]. */
+        private val reader: RetrievableReader by lazy {
+            this.context.schema.connection.getRetrievableReader()
+        }
+
         /**
          * Converts this [PersistRetrievableTransformer] to a [Flow]
          *
          * @param scope The [CoroutineScope] to use.
          * @return [Flow]
          */
-        override fun toFlow(scope: CoroutineScope) = this.input.toFlow(scope).onEach {
-            this.persist(it)
+        override fun toFlow(scope: CoroutineScope): Flow<Retrievable> {
+            val cache = mutableMapOf<RetrievableId, MutableList<Relationship>>()
+            return this.input.toFlow(scope).onEach {
+                this.persist(it, cache)
+            }.onCompletion {
+                if (cache.isNotEmpty()) {
+                    this@Instance.logger.warn { " ${cache.map { it.value.size }.sum()} relationships that could not be persisted due to missing retrievables." }
+                }
+            }
         }
 
         /**
          * This method persists [Retrievable]s and all associated [Descriptor]s and [Relationship]s.
          *
          * @param retrievable [Retrievable] to persist.
+         * @param cache A [MutableMap] of [RetrievableId] to a list of [Relationship]s that are pending persistence.
          */
-        private fun persist(retrievable: Retrievable) {
+        private fun persist(retrievable: Retrievable, cache: MutableMap<RetrievableId, MutableList<Relationship>>) {
             /* Transient retrievable and retrievable that have already been persisted are ignored. */
             if (retrievable.transient) {
                 this@Instance.logger.debug { "Skipped transient retrievable $retrievable for persistence." }
@@ -73,10 +89,29 @@ class PersistRetrievableTransformer: TransformerFactory {
             /* Write retrievable to database. */
             this.writer.add(retrievable)
 
-            /* Write relationships to database. */
-            for (r in retrievable.relationships) {
-                if (r.transient) continue
-                this.writer.connect(r)
+            /* If there are relationships that wait for retrievable to be persisted, persist them now. */
+            val pendingRelationships = cache.remove(retrievable.id)
+            if (pendingRelationships != null) {
+                 this.writer.connectAll(pendingRelationships)
+            }
+
+            /* Now write relationships to database or cache them. */
+            for (relationship in retrievable.relationships) {
+                if (relationship.transient) continue
+
+                if (relationship.subjectId == retrievable.id) {
+                    if (this.reader.exists(relationship.objectId)) {
+                        this.writer.connect(relationship)
+                    } else {
+                        cache.computeIfAbsent(relationship.objectId) { mutableListOf() }.add(relationship)
+                    }
+                } else if (relationship.objectId == retrievable.id) {
+                    if (this.reader.exists(relationship.subjectId)) {
+                        this.writer.connect(relationship)
+                    } else {
+                        cache.computeIfAbsent(relationship.subjectId) { mutableListOf() }.add(relationship)
+                    }
+                }
             }
 
             /* Write descriptors to database. */
