@@ -1,3 +1,4 @@
 org.vitrivr.engine.core.operators.transform.map.MapRelationshipTransformer
 org.vitrivr.engine.core.operators.transform.filter.TypeFilterTransformer
 org.vitrivr.engine.core.operators.transform.filter.DistinctTransformer
+org.vitrivr.engine.core.operators.persistence.PersistRetrievableTransformer

@@ -17,7 +17,6 @@ import org.vitrivr.engine.core.operators.general.ExporterFactory
 import org.vitrivr.engine.core.operators.general.Transformer
 import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.operators.ingest.*
-import org.vitrivr.engine.core.operators.persistence.PersistingSink
 import org.vitrivr.engine.core.operators.sinks.DefaultSink
 import org.vitrivr.engine.core.operators.transform.shape.BroadcastOperator
 import org.vitrivr.engine.core.operators.transform.shape.CombineOperator
