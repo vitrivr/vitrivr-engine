@@ -64,8 +64,7 @@ class SchemaManager {
             schema.addExporter(
                 exporterName,
                 loadServiceForName<ExporterFactory>(exporterConfig.factory) ?: throw IllegalArgumentException("Failed to find exporter factory implementation for '${exporterConfig.factory}'."),
-                exporterConfig.parameters,
-                exporterConfig.resolverName
+                exporterConfig.parameters
             )
         }
         config.extractionPipelines.forEach { (extractionPipelineName, extractionPipelineConfig) ->
