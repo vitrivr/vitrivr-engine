@@ -1,7 +1,5 @@
 package org.vitrivr.engine.core.model.metamodel
 
-import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -21,39 +19,6 @@ import kotlin.reflect.KClass
  * @version 1.4.0
  */
 interface Analyser<C : ContentElement<*>, D : Descriptor<*>> : ExtractorFactory<C, D> {
-
-
-    companion object {
-        /**
-         * Merges the parameters of a [Schema.Field] with the parameters of the [IndexContext].
-         *
-         * @param field The [Schema.Field] to merge parameters for.
-         * @param context The [IndexContext] to merge parameters with.
-         * @return Merged parameter map.
-         */
-        fun merge(field: Schema.Field<*, *>, context: IndexContext): Map<String, String> {
-            val fieldParameters = field.parameters
-            val contextParameters = context.local[field.fieldName] ?: emptyMap()
-            val merged = HashMap<String, String>(fieldParameters)
-            merged.putAll(contextParameters)
-            return merged
-        }
-
-        /**
-         * Merges the parameters of a [Schema.Field] with the parameters of the [IndexContext].
-         *
-         * @param field The [Schema.Field] to merge parameters for.
-         * @param context The [QueryContext] to merge parameters with.
-         * @return Merged parameter map.
-         */
-        fun merge(field: Schema.Field<*, *>, context: QueryContext): Map<String, String> {
-            val fieldParameters = field.parameters
-            val contextParameters = context.local[field.fieldName] ?: emptyMap()
-            val merged = HashMap<String, String>(fieldParameters)
-            merged.putAll(contextParameters)
-            return merged
-        }
-    }
 
     /** The [KClass]es of the [ContentElement] accepted by this [Analyser].  */
     val contentClasses: Set<KClass<out ContentElement<*>>>
@@ -83,7 +48,7 @@ interface Analyser<C : ContentElement<*>, D : Descriptor<*>> : ExtractorFactory<
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    fun newRetrieverForQuery(field: Schema.Field<C, D>, query: Query, context: QueryContext): Retriever<C, D>
+    fun newRetrieverForQuery(field: Schema.Field<C, D>, query: Query, properties: Map<String, String>): Retriever<C, D>
 
     /**
      * Generates and returns a new [Retriever] instance for this [Analyser].
@@ -98,7 +63,7 @@ interface Analyser<C : ContentElement<*>, D : Descriptor<*>> : ExtractorFactory<
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance from [Content].
      */
-    fun newRetrieverForContent(field: Schema.Field<C, D>, content: Collection<C>, context: QueryContext): Retriever<C, D> {
+    fun newRetrieverForContent(field: Schema.Field<C, D>, content: Collection<C>, properties: Map<String, String>): Retriever<C, D> {
         throw UnsupportedOperationException("This Analyser does not support the creation of a retriever from a collection of descriptors.")
     }
 
@@ -115,7 +80,7 @@ interface Analyser<C : ContentElement<*>, D : Descriptor<*>> : ExtractorFactory<
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance from [Descriptor]s.
      */
-    fun newRetrieverForDescriptors(field: Schema.Field<C, D>, descriptors: Collection<D>, context: QueryContext): Retriever<C, D> {
+    fun newRetrieverForDescriptors(field: Schema.Field<C, D>, descriptors: Collection<D>, properties: Map<String, String>): Retriever<C, D> {
         throw UnsupportedOperationException("This Analyser does not support the creation of a retriever from a collection of descriptors.")
     }
 }

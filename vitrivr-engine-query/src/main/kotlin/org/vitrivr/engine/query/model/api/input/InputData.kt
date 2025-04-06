@@ -3,6 +3,7 @@ package org.vitrivr.engine.query.model.api.input
 import io.javalin.openapi.Discriminator
 import io.javalin.openapi.DiscriminatorProperty
 import io.javalin.openapi.OneOf
+import io.javalin.openapi.OpenApiIgnore
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -18,43 +19,30 @@ import java.util.*
  */
 @Serializable(with = InputDataSerializer::class)
 @OneOf(
-    discriminator = Discriminator(DiscriminatorProperty("type", type = InputType::class)),
+    discriminator = Discriminator(DiscriminatorProperty("type", type = String::class)),
     value = [
         TextInputData::class,
         ImageInputData::class,
-        VectorInputData::class,
+        FloatVectorInputData::class,
         RetrievableIdInputData::class,
         BooleanInputData::class,
         NumericInputData::class,
         DateInputData::class
     ]
 )
-sealed class InputData() {
+abstract class InputData() {
     /**
-     * The [InputType] of this [InputType]. Required for polymorphic deserialisation.
+     * The type name of this [InputData]. Required for polymorphic deserialisation.
      */
-    abstract val type: InputType
+    abstract val type: String
 
-    /**
-     * Converts the given [InputData] to a [ContentElement] if supported.
-     *
-     * @throws UnsupportedOperationException If there is no way to convert the input to a content
-     */
+}
+
+abstract class ContentInputData : InputData() {
+
+    @OpenApiIgnore
     abstract fun toContent() : ContentElement<*>
 
-    /**
-     * Optional comparison to apply.
-     *
-     * Currently supported comparisons use Kotlin notation:
-     * - `<`: less than
-     * - `<=`: less or equal than
-     * - `==`: equal
-     * - `!=`: not equal
-     * - `>=`: greater or equal than
-     * - `>` : greater than
-     * - `~=`: LIKE
-     */
-    abstract val comparison: String?
 }
 
 /**
@@ -62,8 +50,9 @@ sealed class InputData() {
  * Can be converted to a [ContentElement], specifically a [TextContent].
  */
 @Serializable
-data class TextInputData(val data: String, override val comparison: String? = "==") : InputData() {
-    override val type = InputType.TEXT
+data class TextInputData(val data: String) : ContentInputData() {
+    override val type = "TEXT"
+    @OpenApiIgnore
     override fun toContent(): TextContent = InMemoryTextContent(data)
 }
 
@@ -72,11 +61,8 @@ data class TextInputData(val data: String, override val comparison: String? = "=
  * Cannot be converted to a [ContentElement]
  */
 @Serializable
-data class VectorInputData(val data: List<Float>, override val comparison: String? = "==") : InputData(){
-    override val type = InputType.VECTOR
-    override fun toContent(): ContentElement<*> {
-        throw UnsupportedOperationException("Cannot derive content from VectorInputData")
-    }
+data class FloatVectorInputData(val data: List<Float>) : InputData(){
+    override val type = "FLOAT_VECTOR"
 }
 
 /**
@@ -84,8 +70,9 @@ data class VectorInputData(val data: List<Float>, override val comparison: Strin
  * Can be converted to a [ContentElement], specifically to a [InMemoryImageContent].
  */
 @Serializable
-data class ImageInputData(val data: String, override val comparison: String? = "==") : InputData() {
-    override val type = InputType.VECTOR
+data class ImageInputData(val data: String) : ContentInputData() {
+    override val type = "IMAGE"
+    @OpenApiIgnore
     override fun toContent(): ImageContent = InMemoryImageContent(BufferedImage(data))
 }
 
@@ -94,14 +81,8 @@ data class ImageInputData(val data: String, override val comparison: String? = "
  * Cannot be converted to a [ContentElement]
  */
 @Serializable
-data class RetrievableIdInputData(val id: String, override val comparison: String? = "==") : InputData() {
-
-    override val type = InputType.ID
-
-    override fun toContent(): ContentElement<*> {
-        throw UnsupportedOperationException("Cannot derive content from RetrievableInputData")
-    }
-
+data class RetrievableIdInputData(val id: String) : InputData() {
+    override val type = "ID"
 }
 
 /**
@@ -109,11 +90,8 @@ data class RetrievableIdInputData(val id: String, override val comparison: Strin
  * Cannot be converted to a [ContentElement]
  */
 @Serializable
-data class BooleanInputData(val data: Boolean, override val comparison: String? = "=="): InputData(){
-    override val type = InputType.BOOLEAN
-    override fun toContent(): ContentElement<*> {
-        throw UnsupportedOperationException("Cannot derive content from BooleanInputData")
-    }
+data class BooleanInputData(val data: Boolean): InputData(){
+    override val type = "BOOLEAN"
 }
 
 /**
@@ -121,11 +99,8 @@ data class BooleanInputData(val data: Boolean, override val comparison: String? 
  * Cannot be converted to a [ContentElement]
  */
 @Serializable
-data class NumericInputData(val data: Double, override val comparison: String? = "==") : InputData(){
-    override val type = InputType.NUMERIC
-    override fun toContent(): ContentElement<*> {
-        throw UnsupportedOperationException("Cannot derive content from NumericInputData")
-    }
+data class NumericInputData(val data: Double) : InputData(){
+    override val type = "NUMERIC"
 }
 
 /**
@@ -133,15 +108,25 @@ data class NumericInputData(val data: Double, override val comparison: String? =
  * Cannot be converted to a [ContentElement]
  */
 @Serializable
-data class DateInputData(val data: String, override val comparison: String? = "==") : InputData() {
-    override val type = InputType.DATE
-    override fun toContent(): ContentElement<*> {throw UnsupportedOperationException("Cannot derive content from DateInputData")}
+data class DateInputData(val data: String) : InputData() {
+    override val type = "DATE"
 
     /**
      * Parses the input in YYYY-mm-dd format.
      */
+    @OpenApiIgnore
     fun parseDate(): Date {
         val formatter = SimpleDateFormat("YYYY-mm-dd", Locale.ENGLISH)
         return formatter.parse(data)
     }
+}
+
+@Serializable
+data class ListInputData(val data: List<InputData>) : InputData() {
+    override val type = "LIST"
+}
+
+@Serializable
+data class StructInputData(val data: Map<String, InputData>) : InputData() {
+    override val type = "STRUCT"
 }

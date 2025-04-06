@@ -1,6 +1,7 @@
 package org.vitrivr.engine.server.api.rest
 
 import io.javalin.json.JsonMapper
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.modules.SerializersModule
@@ -55,6 +56,8 @@ object KotlinxJsonMapper : JsonMapper {
      * @param targetType The target [Type]
      * @return Object [T]
      */
+    @Suppress("UNCHECKED_CAST")
+    @OptIn(ExperimentalSerializationApi::class)
     override fun <T : Any> fromJsonStream(json: InputStream, targetType: Type): T {
         val deserializer = this.projectModule.serializer(targetType)
         return this.json.decodeFromStream(deserializer, json) as T
