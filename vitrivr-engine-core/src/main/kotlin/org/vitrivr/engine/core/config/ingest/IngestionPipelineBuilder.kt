@@ -69,14 +69,14 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
             val output = this.config.output.map { (built[it] as? Operator<Retrievable>) ?: throw IllegalArgumentException("Output operation $it not found in pipeline!") }
             if (output.isEmpty()) throw IllegalStateException("No output operators found in pipeline!")
             if (output.size == 1) {
-                DefaultSink(output.first(),"output", this.context.log)
+                DefaultSink(output.first(),"output")
             } else {
                 DefaultSink(when (this.config.mergeType) {
                     MERGE -> MergeOperator(output)
                     COMBINE -> CombineOperator(output)
                     CONCAT -> ConcatOperator(output)
                     null -> throw IllegalStateException("Merge type must be specified if multiple outputs are defined.")
-                }, "output", this.context.log)
+                }, "output")
             }
         }
     }
