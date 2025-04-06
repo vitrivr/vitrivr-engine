@@ -17,9 +17,6 @@ data class IndexContext(
     /** The [ContentFactory] used by this [IndexContext] */
     val contentFactory: ContentFactory,
 
-    /** Flag indicating, that verbose logging should be enabled. */
-    val log: Boolean = false,
-
     /** A [Map] of named [Resolver]s. */
     val resolver: Map<String,Resolver> = emptyMap(),
 

@@ -14,7 +14,7 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class DefaultSink(override val input: Operator<Retrievable>, override val name: String, private val log: Boolean = false): Operator.Sink<Retrievable> {
+class DefaultSink(override val input: Operator<Retrievable>, override val name: String): Operator.Sink<Retrievable> {
     /** The [KLogger] used by this [DefaultSink]. */
     private val logger: KLogger = KotlinLogging.logger("DefaultSink#${this.name}")
 
@@ -26,8 +26,9 @@ class DefaultSink(override val input: Operator<Retrievable>, override val name: 
     override fun toFlow(scope: CoroutineScope): Flow<Unit> = flow {
         var counter = 0L
         this@DefaultSink.input.toFlow(scope).collect { retrievable ->
-            if (this@DefaultSink.log) this@DefaultSink.logger.info { "Successfully processed retrievable ${retrievable.id}." }
+            this@DefaultSink.logger.trace { "Successfully processed retrievable ${retrievable.id}." }
             counter++
         }
+        this@DefaultSink.logger.info { "Processing completed. Successfully processed $counter retrievables." }
     }
 }
