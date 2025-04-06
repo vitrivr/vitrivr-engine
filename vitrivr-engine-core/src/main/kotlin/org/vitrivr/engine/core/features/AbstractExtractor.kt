@@ -5,6 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.vitrivr.engine.core.database.descriptor.DescriptorWriter
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
@@ -18,7 +19,7 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * An abstract [Extractor] implementation that is suitable for most default [Extractor] implementations.
  *
  * @author Ralph Gasser
- * @version 1.4.0
+ * @version 1.5.0
  */
 abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>>(
     final override val input: Operator<Retrievable>,
@@ -41,7 +42,10 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>>(
     }
 
     /** The [KLogger] instance used by this [AbstractExtractor]. */
-    protected val logger: KLogger = KotlinLogging.logger {}
+    protected val logger: KLogger = KotlinLogging.logger("Extractor#${this.name}")
+
+    /** The [DescriptorWriter] backing this [AbstractExtractor]. */
+    protected val writer: DescriptorWriter<D>? by lazy { this.field?.getWriter() }
 
     /**
      * A default [Extractor] implementation. It executes the following steps:
@@ -57,7 +61,7 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>>(
             if (this.matches(retrievable)) {
                 /* Perform extraction. */
                 val descriptors = try {
-                    logger.debug{"Extraction on field ${field?.fieldName} for retrievable: $retrievable" }
+                    logger.trace {"Extraction on field ${field?.fieldName} for retrievable: $retrievable" }
                     extract(retrievable)
                 } catch (e: Throwable) {
                     logger.error(e) { "Error during extraction of $retrievable" }
@@ -71,6 +75,11 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>>(
                     for (d in descriptors) {
                         authorAttribute.add(d, this.name)
                     }
+
+                    /* Persist descriptors. */
+                    this@AbstractExtractor.writer?.addAll(descriptors)
+
+                    /* Append descriptors to retrievable and emit. */
                     retrievable.copy(descriptors = retrievable.descriptors + descriptors, attributes = retrievable.attributes + authorAttribute)
                 } else {
                     retrievable
