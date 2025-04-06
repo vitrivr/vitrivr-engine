@@ -65,7 +65,7 @@ class PersistRetrievableTransformer: TransformerFactory {
          */
         private fun persist(retrievable: Retrievable) {
             /* Transient retrievable and retrievable that have already been persisted are ignored. */
-            if (!retrievable.transient) {
+            if (retrievable.transient) {
                 this@Instance.logger.debug { "Skipped transient retrievable $retrievable for persistence." }
                 return
             }
