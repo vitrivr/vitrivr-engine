@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.vitrivr.engine.core.config.IndexContextFactory
 import org.vitrivr.engine.core.context.IngestionContextConfig
@@ -27,6 +28,7 @@ import kotlin.time.Duration
  */
 class FFmpegVideoDecoderTest {
     @Test
+    @Disabled("Local only! Missing binary in GitHub action.")
     fun test() = runTest(timeout = Duration.INFINITE) {
         /* Prepare schema. */
         val schema = Schema("test", BlackholeConnection("test", BlackholeConnectionProvider()))
