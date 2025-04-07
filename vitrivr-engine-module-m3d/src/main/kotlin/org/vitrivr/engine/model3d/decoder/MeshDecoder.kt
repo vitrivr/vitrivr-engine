@@ -20,7 +20,7 @@ import java.io.IOException
  * A [Decoder] that can decode [MeshDecoder] from a [Source] of [MediaType.MESH].
  *
  * @author Rahel Arnold
- * @version 1.1.1
+ * @version 1.1.2
  */
 class MeshDecoder : DecoderFactory {
     /**
@@ -46,10 +46,10 @@ class MeshDecoder : DecoderFactory {
          * @return [Flow] of [Retrievable ]
          */
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).mapNotNull { retrievable ->
-            val source = retrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@mapNotNull null
-            if (source.type != MediaType.MESH) {
-                logger.debug { "In flow: Skipping source ${source.name} (${source.sourceId}) because it is not of type IMAGE." }
-                return@mapNotNull null
+            val source = retrievable.filteredAttribute(SourceAttribute::class.java)?.source
+            if (source?.type != MediaType.MESH) {
+                logger.debug { "Skipping retrievable ${retrievable.id} because it is not of type MESH." }
+                return@mapNotNull retrievable
             }
 
             logger.info { "Decoding source ${source.name} (${source.sourceId})" }
