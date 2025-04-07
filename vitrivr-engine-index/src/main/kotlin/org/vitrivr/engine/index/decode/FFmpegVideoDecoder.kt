@@ -6,12 +6,14 @@ import com.github.kokorin.jaffree.ffprobe.FFprobe
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel.Factory.RENDEZVOUS
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runBlocking
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.AudioContent
@@ -86,7 +88,7 @@ class FFmpegVideoDecoder : DecoderFactory {
                     return@collect
                 }
 
-                val probeResult = ffprobe.setShowStreams(true).also {
+                val probeResult = this@Instance.ffprobe.setShowStreams(true).also {
                     if (source is FileSource) {
                         it.setInput(source.path)
                     } else {
@@ -130,7 +132,6 @@ class FFmpegVideoDecoder : DecoderFactory {
                         }
                     }
 
-
                     /* Emit final frames. */
                     if (!consumer.isEmpty()) {
                         consumer.emit()
@@ -142,7 +143,7 @@ class FFmpegVideoDecoder : DecoderFactory {
                     logger.error(e) { "Error while decoding source ${source.name} (${source.sourceId})." }
                 }
             }
-        }.buffer(capacity = RENDEZVOUS, onBufferOverflow = BufferOverflow.SUSPEND)
+        }.buffer(capacity = RENDEZVOUS, onBufferOverflow = BufferOverflow.SUSPEND).flowOn(Dispatchers.IO)
 
 
         /**

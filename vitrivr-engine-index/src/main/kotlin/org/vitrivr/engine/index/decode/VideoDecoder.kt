@@ -3,12 +3,14 @@ package org.vitrivr.engine.index.decode
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel.Factory.RENDEZVOUS
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flowOn
 import org.bytedeco.javacpp.PointerScope
 import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.Frame
@@ -101,7 +103,7 @@ class VideoDecoder : DecoderFactory {
                     }
                 }
             }
-        }.buffer(capacity = RENDEZVOUS, onBufferOverflow = BufferOverflow.SUSPEND)
+        }.buffer(capacity = RENDEZVOUS, onBufferOverflow = BufferOverflow.SUSPEND).flowOn(Dispatchers.IO)
 
 
         /**
