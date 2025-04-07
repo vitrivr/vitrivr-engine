@@ -3,7 +3,9 @@ package org.vitrivr.engine.index.decode
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapNotNull
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -69,6 +71,6 @@ class ImageDecoder : DecoderFactory {
                 logger.error(e) { "Failed to decode image from source '${source.name}' (${source.sourceId}) due to exception: ${e.message}" }
                 null
             }
-        }
+        }.flowOn(Dispatchers.IO)
     }
 }
