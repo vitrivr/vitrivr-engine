@@ -79,23 +79,24 @@ class VideoDecoder : DecoderFactory {
          */
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = channelFlow {
             val channel = this
-            this@Instance.input.toFlow(scope).collect { sourceRetrievable ->
+            this@Instance.input.toFlow(scope).collect { retrievable ->
                 /* Extract source. */
-                val source = sourceRetrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@collect
-                if (source.type != MediaType.VIDEO) {
-                    logger.debug { "In flow: Skipping source ${source.name} (${source.sourceId}) because it is not of type VIDEO." }
+                val source = retrievable.filteredAttribute(SourceAttribute::class.java)?.source
+                if (source?.type != MediaType.VIDEO) {
+                    logger.debug { "Skipping retrievable ${retrievable.id} because it is not of type VIDEO." }
+                    channel.send(retrievable)
                     return@collect
                 }
 
                 /* Decode video and audio; make distinction between FileSource and other types of sources. */
                 if (source is FileSource) {
                     FFmpegFrameGrabber(source.path.toFile()).use { grabber ->
-                        decodeFromGrabber(source, sourceRetrievable, grabber, channel)
+                        decodeFromGrabber(source, retrievable, grabber, channel)
                     }                }
                 else {
                     source.newInputStream().use { input ->
                         FFmpegFrameGrabber(input).use { grabber ->
-                            decodeFromGrabber(source, sourceRetrievable, grabber, channel)
+                            decodeFromGrabber(source, retrievable, grabber, channel)
                         }
                     }
                 }

@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.flowOn
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.TerminalRetrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.operators.ingest.EnumeratorFactory
@@ -118,6 +119,9 @@ class FileSystemEnumerator : EnumeratorFactory {
                     logger.debug { "In flow: Emitting source ${element.fileName} (${element.toUri()})" }
                 }
             }
+
+            /* Emit terminal retrievable to signal, that processing has completed. */
+            emit(TerminalRetrievable)
         }.flowOn(Dispatchers.IO)
     }
 }

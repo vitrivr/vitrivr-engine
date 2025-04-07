@@ -5,7 +5,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.takeWhile
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.TerminalRetrievable
 import org.vitrivr.engine.core.operators.Operator
 
 /**
@@ -25,7 +27,9 @@ class DefaultSink(override val input: Operator<Retrievable>, override val name: 
      */
     override fun toFlow(scope: CoroutineScope): Flow<Unit> = flow {
         var counter = 0L
-        this@DefaultSink.input.toFlow(scope).collect { retrievable ->
+        this@DefaultSink.input.toFlow(scope).takeWhile {
+            it != TerminalRetrievable
+        }.collect { retrievable ->
             this@DefaultSink.logger.trace { "Successfully processed retrievable ${retrievable.id}." }
             counter++
         }

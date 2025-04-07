@@ -43,10 +43,10 @@ class ImageDecoder : DecoderFactory {
         private val logger: KLogger = KotlinLogging.logger {}
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).mapNotNull { retrievable ->
-            val source = retrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@mapNotNull null
-            if (source.type != MediaType.IMAGE) {
-                logger.debug { "Skipping source ${source.name} (${source.sourceId}) because it is not of type IMAGE." }
-                return@mapNotNull null
+            val source = retrievable.filteredAttribute(SourceAttribute::class.java)?.source
+            if (source?.type != MediaType.IMAGE) {
+                logger.debug { "Skipping retrievable ${retrievable.id} because it is not of type IMAGE." }
+                return@mapNotNull retrievable
             }
             logger.debug { "Decoding source ${source.name} (${source.sourceId})" }
             try {
