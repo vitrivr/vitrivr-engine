@@ -27,10 +27,16 @@
         }
       },
       "resolvers": {
-        "disk": {
+        "thumbnails": {
           "factory": "DiskResolver",
           "parameters": {
-            "location": "./thumbnails/vitrivr"
+            "location": "Y:/vitrivr-engine/out/thumbnails"
+          }
+        },
+        "previews": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "Y:/vitrivr-engine/out/previews"
           }
         }
       }
