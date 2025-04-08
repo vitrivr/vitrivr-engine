@@ -1,5 +1,4 @@
 org.vitrivr.engine.index.decode.VideoDecoder
 org.vitrivr.engine.index.decode.FFmpegVideoDecoder
-org.vitrivr.engine.index.decode.ShotBoundaryFFmpegVideoDecoder
 org.vitrivr.engine.index.decode.ImageDecoder
 org.vitrivr.engine.index.decode.VideoDecoder

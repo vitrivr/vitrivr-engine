@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.mapNotNull
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.attributes.ContentAuthorAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.operators.ingest.DecoderFactory
@@ -21,7 +20,7 @@ import java.io.IOException
  * A [Decoder] that can decode [MeshDecoder] from a [Source] of [MediaType.MESH].
  *
  * @author Rahel Arnold
- * @version 1.1.0
+ * @version 1.1.2
  */
 class MeshDecoder : DecoderFactory {
     /**
@@ -46,11 +45,11 @@ class MeshDecoder : DecoderFactory {
          * @param scope The [CoroutineScope] used for conversion.
          * @return [Flow] of [Retrievable ]
          */
-        override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).mapNotNull { sourceRetrievable ->
-            val source = sourceRetrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@mapNotNull null
-            if (source.type != MediaType.MESH) {
-                logger.debug { "In flow: Skipping source ${source.name} (${source.sourceId}) because it is not of type IMAGE." }
-                return@mapNotNull null
+        override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).mapNotNull { retrievable ->
+            val source = retrievable.filteredAttribute(SourceAttribute::class.java)?.source
+            if (source?.type != MediaType.MESH) {
+                logger.debug { "Skipping retrievable ${retrievable.id} because it is not of type MESH." }
+                return@mapNotNull retrievable
             }
 
             logger.info { "Decoding source ${source.name} (${source.sourceId})" }
@@ -61,10 +60,8 @@ class MeshDecoder : DecoderFactory {
                     handler.loadModel(source.sourceId.toString(), it) // Pass InputStream directly
                 }
                 val modelContent = this.context.contentFactory.newMeshContent(model!!)
-                sourceRetrievable.addContent(modelContent)
-                sourceRetrievable.addAttribute(ContentAuthorAttribute(modelContent.id, this.name))
                 logger.info { "Model decoded successfully for source ${source.name} (${source.sourceId})" }
-                sourceRetrievable
+                retrievable.copy(content = retrievable.content + modelContent)
             } catch (e: IOException) {
                 logger.error(e) { "Failed to decode 3D model from $source due to an IO exception." }
                 null

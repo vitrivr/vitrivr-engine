@@ -7,6 +7,9 @@ import org.vitrivr.engine.core.resolver.Resolver
 
 /**
  * The [ExporterConfig] describes an [Exporter], how it is to be constructed by an [ExporterFactory].
+ *
+ * @author Ralph Gasser
+ * @version 1.0.0
  */
 @Serializable
 data class ExporterConfig(
@@ -14,10 +17,7 @@ data class ExporterConfig(
      * The simple or fully qualified class name of the [ExporterFactory]
      */
     val factory: String,
-    /**
-     * The name the [Resolver] the [Exporter] will have access to.
-     */
-    val resolverName: String,
+
     /**
      * A list of key-value pairs to further configure the [Exporter]
      */
