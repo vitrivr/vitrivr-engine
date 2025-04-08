@@ -25,7 +25,6 @@ class ScoreAggregator(
         if (retrieved.filteredAttribute(ScoreAttribute::class.java) != null) { //pass through if score is already set
             return@map retrieved
         }
-
         val relationships = retrieved.relationships.filterIsInstance<Relationship.ByRef>()
         if (relationships.isNotEmpty()) {
             val scores = relationships.filter { rel -> rel.predicate in this.relations && rel.objectId == retrieved.id }.map { it.subject.filteredAttribute(ScoreAttribute::class.java)?.score ?: 0.0 }
@@ -38,10 +37,9 @@ class ScoreAggregator(
                     AggregationMode.MIN -> scores.min()
                 }
             }
-            retrieved.addAttribute(ScoreAttribute.Unbound(score))
+            retrieved.copy(attributes = retrieved.attributes + ScoreAttribute.Unbound(score))
         } else {
-            retrieved.addAttribute(ScoreAttribute.Unbound(0.0))
+            retrieved.copy(attributes = retrieved.attributes + ScoreAttribute.Unbound(0.0))
         }
-        retrieved
     }
 }

@@ -17,7 +17,7 @@ import java.util.*
  * A collection of tests to make sure that serialization works properly-
  *
  * @author Fynn Faber
- * @version 1.0.0
+ * @version 1.1.0
  */
 class KotlinxJsonMapperTest {
 
@@ -32,12 +32,11 @@ class KotlinxJsonMapperTest {
     private val errorStatusStr = """{"message":"Error"}"""
 
     init {
-        val retrieveds = listOf(Retrieved(UUID.randomUUID(), "SOURCE:IMAGE", false),
-            Retrieved(UUID.randomUUID(), "SOURCE:IMAGE", false))
+        val r1 = Retrieved(UUID.randomUUID(), "SOURCE:IMAGE", emptyList(), emptySet(), emptySet(), emptySet(), false)
+        val r2 = Retrieved(UUID.randomUUID(), "SOURCE:IMAGE", emptyList(), emptySet(), emptySet(), emptySet(), false)
+        val rel = Relationship.ByRef(r1, "partOf", r2, false)
 
-        retrieveds[0].addRelationship(Relationship.ByRef(retrieveds[0], "partOf", retrieveds[1], false))
-
-        queryResult = QueryResult(retrieveds)
+        queryResult = QueryResult(listOf(r1.copy(relationships = listOf(rel)), r2))
 
     }
 

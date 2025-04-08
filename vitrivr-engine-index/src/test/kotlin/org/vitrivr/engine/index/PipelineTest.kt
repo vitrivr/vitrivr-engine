@@ -1,6 +1,6 @@
 package org.vitrivr.engine.index
 
-import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions
@@ -12,6 +12,7 @@ import org.vitrivr.engine.core.database.blackhole.BlackholeConnectionProvider
 import org.vitrivr.engine.core.features.averagecolor.AverageColor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.retrievable.TerminalRetrievable
 import org.vitrivr.engine.core.operators.transform.shape.BroadcastOperator
 import org.vitrivr.engine.core.operators.transform.shape.CombineOperator
 import org.vitrivr.engine.core.resolver.impl.DiskResolver
@@ -69,7 +70,7 @@ class PipelineTest {
         val mergeOp = CombineOperator(listOf(averageColorAll, averageColorAgg))
 
         /* We expect three results (6s video, 1000ms window). */
-        val out = mergeOp.toFlow(this).take(3).toList()
+        val out = mergeOp.toFlow(this).takeWhile { it != TerminalRetrievable }.toList()
 
         /* Now extract all content elements and descriptors for each branch. */
         val aggDescriptors = out.flatMap { it.descriptors }.filterIsInstance<FloatVectorDescriptor>().filter { it.field?.fieldName == "averageColorAgg" }

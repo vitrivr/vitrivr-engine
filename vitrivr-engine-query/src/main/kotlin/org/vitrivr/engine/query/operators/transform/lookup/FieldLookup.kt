@@ -30,7 +30,7 @@ class FieldLookup(
 
         /* Fetch entries for the provided IDs. */
         val ids = inputRetrieved.map { it.id }.toSet()
-        val descriptorMap = if (ids.isEmpty()) {
+        val descriptors = if (ids.isEmpty()) {
             emptyMap()
         } else {
             this@FieldLookup.reader.getAllForRetrievable(ids).groupBy { it.retrievableId!! }
@@ -38,13 +38,12 @@ class FieldLookup(
 
         /* Emit retrievable with added attribute. */
         inputRetrieved.forEach { retrieved ->
-            val descriptors = descriptorMap[retrieved.id] ?: emptySet()
-            for (descriptor in descriptors) {
-                if (retrieved.descriptors.none { it.id == descriptor.id }) {
-                    retrieved.addDescriptor(descriptor)
-                }
+            val descriptor = descriptors[retrieved.id]
+            if (descriptor != null) {
+                emit(retrieved.copy(descriptors = retrieved.descriptors + descriptor))
+            } else {
+                emit(retrieved)
             }
-            emit(retrieved)
         }
     }
 }

@@ -17,7 +17,7 @@ import org.vitrivr.engine.core.operators.general.ExporterFactory
 import org.vitrivr.engine.core.operators.general.Transformer
 import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.operators.ingest.*
-import org.vitrivr.engine.core.operators.persistence.PersistingSink
+import org.vitrivr.engine.core.operators.sinks.DefaultSink
 import org.vitrivr.engine.core.operators.transform.shape.BroadcastOperator
 import org.vitrivr.engine.core.operators.transform.shape.CombineOperator
 import org.vitrivr.engine.core.operators.transform.shape.ConcatOperator
@@ -34,7 +34,7 @@ private val logger: KLogger = KotlinLogging.logger { }
  *
  *  @author Loris Sauter
  *  @author Ralph Gasser
- *  @version 2.0.0
+ *  @version 2.1.0
  */
 class IngestionPipelineBuilder(val config: IngestionConfig) {
 
@@ -69,14 +69,14 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
             val output = this.config.output.map { (built[it] as? Operator<Retrievable>) ?: throw IllegalArgumentException("Output operation $it not found in pipeline!") }
             if (output.isEmpty()) throw IllegalStateException("No output operators found in pipeline!")
             if (output.size == 1) {
-                PersistingSink(output.first(), this.context)
+                DefaultSink(output.first(),"output")
             } else {
-                when (this.config.mergeType) {
-                    MERGE -> PersistingSink(MergeOperator(output), this.context)
-                    COMBINE -> PersistingSink(CombineOperator(output), this.context)
-                    CONCAT -> PersistingSink(ConcatOperator(output), this.context)
+                DefaultSink(when (this.config.mergeType) {
+                    MERGE -> MergeOperator(output)
+                    COMBINE -> CombineOperator(output)
+                    CONCAT -> ConcatOperator(output)
                     null -> throw IllegalStateException("Merge type must be specified if multiple outputs are defined.")
-                }
+                }, "output")
             }
         }
     }

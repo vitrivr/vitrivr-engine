@@ -18,7 +18,7 @@ import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorRead
  * An [AbstractDescriptorReader] for [FloatVectorDescriptor]s.
  *
  * @author Ralph Gasser
- * @version 1.3.1
+ * @version 1.4.0
  */
 internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*, *>>, connection: CottontailConnection) : AbstractDescriptorReader<VectorDescriptor<*, *>>(field, connection) {
 
@@ -130,9 +130,11 @@ internal class VectorDescriptorReader(field: Schema.Field<*, VectorDescriptor<*,
             val retrievable = retrievables[descriptor.first.retrievableId] ?: return@mapNotNull null
 
             /* Append descriptor and distance attribute. */
-            retrievable.addDescriptor(descriptor.first)
-            descriptor.second?.let { retrievable.addAttribute(it) }
-            retrievable
+            if (descriptor.second != null) {
+                retrievable.copy(descriptors = retrievable.descriptors + descriptor.first, attributes = retrievable.attributes + descriptor.second!!)
+            } else {
+                retrievable.copy(descriptors = retrievable.descriptors + descriptor.first)
+            }
         }
     }
 
