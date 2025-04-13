@@ -1,6 +1,7 @@
 package org.vitrivr.engine.query.operators.transform.relation
 
 import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
@@ -20,10 +21,11 @@ class RelationResolverFactory: TransformerFactory {
     override fun newTransformer(
         name: String,
         input: Operator<out Retrievable>,
-        context: Context
+        schema: Schema,
+        properties: Map<String, String>
     ): Transformer {
-        val retrievableReader = context.schema.connection.getRetrievableReader()
-        val predicate = context[name, "predicate"]
+        val retrievableReader = schema.connection.getRetrievableReader()
+        val predicate = properties["predicate"]
         require(predicate?.isNotBlank() == true){"Requires a non-blank predicate!"}
         return RelationResolver(input, predicate!! , retrievableReader, name)
     }

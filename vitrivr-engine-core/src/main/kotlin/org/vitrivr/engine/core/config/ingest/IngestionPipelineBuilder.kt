@@ -248,7 +248,7 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
      */
     private fun buildTransformer(name: String, parent: Operator<Retrievable>, config: OperatorConfig.Transformer): Transformer {
         val factory = loadFactory<TransformerFactory>(config.factory)
-        return factory.newTransformer(name, parent, context).apply {
+        return factory.newTransformer(name, parent, context.schema, emptyMap()).apply { //FIXME properties
             logger.info { "Built transformer: ${this.javaClass.name} with name $name" }
         }
     }

@@ -2,7 +2,6 @@ package org.vitrivr.engine.core.features.dense
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flow
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.AbstractRetriever
 import org.vitrivr.engine.core.math.correspondence.CorrespondenceFunction
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -26,7 +25,7 @@ import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
  * @author Fynn Faber
  * @version 1.1.0
  */
-class DenseRetriever<C : ContentElement<*>>(field: Schema.Field<C, FloatVectorDescriptor>, query: ProximityQuery<*>, context: QueryContext, val correspondence: CorrespondenceFunction) : AbstractRetriever<C, FloatVectorDescriptor>(field, query, context) {
+class DenseRetriever<C : ContentElement<*>>(field: Schema.Field<C, FloatVectorDescriptor>, query: ProximityQuery<*>, properties: Map<String, String>, val correspondence: CorrespondenceFunction) : AbstractRetriever<C, FloatVectorDescriptor>(field, query, properties) {
     override fun toFlow(scope: CoroutineScope) = flow {
         this@DenseRetriever.reader.queryAndJoin(this@DenseRetriever.query).forEach {
             val distance = it.filteredAttribute<DistanceAttribute>()

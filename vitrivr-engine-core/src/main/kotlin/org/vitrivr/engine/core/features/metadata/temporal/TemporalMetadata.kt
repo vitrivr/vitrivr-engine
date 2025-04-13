@@ -1,7 +1,6 @@
 package org.vitrivr.engine.core.features.metadata.temporal
 
 import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadata
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataExtractor
 import org.vitrivr.engine.core.model.content.decorators.TemporalContent
@@ -64,10 +63,10 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
      *
      * @return [TemporalMetadataRetriever]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, query: Query, context: QueryContext): TemporalMetadataRetriever {
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, query: Query, properties: Map<String, String>): TemporalMetadataRetriever {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         require(query is BooleanQuery) { "Query is not a Boolean query." }
-        return TemporalMetadataRetriever(field, query, context)
+        return TemporalMetadataRetriever(field, query, properties)
     }
 
     /**
@@ -75,7 +74,7 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
      *
      * This method will always throw an [UnsupportedOperationException]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): TemporalMetadataRetriever {
+    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, content: Collection<ContentElement<*>>, properties: Map<String, String>): TemporalMetadataRetriever {
         throw UnsupportedOperationException("TemporalMetadataDescriptor does not support the creation of a Retriever instance from content.")
     }
 }

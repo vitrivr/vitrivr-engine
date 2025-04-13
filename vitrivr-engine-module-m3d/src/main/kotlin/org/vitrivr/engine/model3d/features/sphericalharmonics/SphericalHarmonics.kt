@@ -5,7 +5,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.math3.complex.Complex
 import org.apache.commons.math3.util.FastMath
 import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.LinearCorrespondence
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -167,22 +166,22 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
         return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(FloatArray(vectorSize)))
     }
 
-    override fun newRetrieverForQuery(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, query: Query, context: QueryContext): Retriever<Model3dContent, FloatVectorDescriptor> {
+    override fun newRetrieverForQuery(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, query: Query, properties: Map<String, String>): Retriever<Model3dContent, FloatVectorDescriptor> {
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { }
-        return  DenseRetriever(field, query, context, LinearCorrespondence(1.0f))
+        return  DenseRetriever(field, query, properties, LinearCorrespondence(1.0f))
     }
 
-    override fun newRetrieverForDescriptors(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): Retriever<Model3dContent, FloatVectorDescriptor> {
+    override fun newRetrieverForDescriptors(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, properties: Map<String, String>): Retriever<Model3dContent, FloatVectorDescriptor> {
         /* Extract parameters from field and context. */
-        val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        val returnDescriptor = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+        val k = properties["limit"]?.toLongOrNull() ?: 1000L
+        val returnDescriptor = properties["returnDescriptor"]?.toBooleanStrictOrNull() ?: false
 
         /* Construct query and return retriever. */
         val query = ProximityQuery(value = descriptors.first().vector, k = k, distance = Distance.EUCLIDEAN, fetchVector = returnDescriptor)
-        return this.newRetrieverForQuery(field, query, context)
+        return this.newRetrieverForQuery(field, query, properties)
     }
 
-    override fun newRetrieverForContent(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, content: Collection<Model3dContent>, context: QueryContext): Retriever<Model3dContent, FloatVectorDescriptor> {
+    override fun newRetrieverForContent(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, content: Collection<Model3dContent>, properties: Map<String, String>): Retriever<Model3dContent, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
 
         /* Extract parameters from field and context. */
@@ -193,7 +192,7 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
         val descriptors = content.map { analyse(it.content.getMaterials().first().materialMeshes.first(), gridSize, cap, minL, maxL) }
 
         /* Return retriever. */
-        return this.newRetrieverForDescriptors(field, descriptors, context)
+        return this.newRetrieverForDescriptors(field, descriptors, properties)
     }
 
     /**

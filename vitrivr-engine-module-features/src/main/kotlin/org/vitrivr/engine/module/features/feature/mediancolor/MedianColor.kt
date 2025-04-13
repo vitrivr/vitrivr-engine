@@ -1,7 +1,6 @@
 package org.vitrivr.engine.module.features.feature.mediancolor
 
 import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.LinearCorrespondence
 import org.vitrivr.engine.core.model.color.RGBColorContainer
@@ -80,10 +79,10 @@ class MedianColor : Analyser<ImageContent, FloatVectorDescriptor> {
      *
      * @return A new [Retriever] instance for this [Analyser]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, context: QueryContext): DenseRetriever<ImageContent> {
+    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, properties: Map<String, String>): DenseRetriever<ImageContent> {
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
         @Suppress("UNCHECKED_CAST")
-        return DenseRetriever(field, query as ProximityQuery<Value.FloatVector>, context, LinearCorrespondence(3f))
+        return DenseRetriever(field, query as ProximityQuery<Value.FloatVector>, properties, LinearCorrespondence(3f))
     }
 
     /**
@@ -95,13 +94,13 @@ class MedianColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): DenseRetriever<ImageContent> {
+    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, properties: Map<String, String>): DenseRetriever<ImageContent> {
         /* Prepare query parameters. */
-        val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+        val k = properties["limit"]?.toLongOrNull() ?: 1000L
+        val fetchVector = properties["returnDescriptor"]?.toBooleanStrictOrNull() ?: false
 
         /* Return retriever. */
-        return this.newRetrieverForQuery(field, ProximityQuery(value = descriptors.first().vector, k = k, fetchVector = fetchVector), context)
+        return this.newRetrieverForQuery(field, ProximityQuery(value = descriptors.first().vector, k = k, fetchVector = fetchVector), properties)
     }
 
     /**
@@ -114,8 +113,8 @@ class MedianColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param content An array of [Content] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext): DenseRetriever<ImageContent> =
-        this.newRetrieverForDescriptors(field, content.map { this.analyse(it) }, context)
+    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, properties: Map<String, String>): DenseRetriever<ImageContent> =
+        this.newRetrieverForDescriptors(field, content.map { this.analyse(it) }, properties)
 
     /**
      * Performs the [MedianColor] analysis on the provided [List] of [ImageContent] elements.

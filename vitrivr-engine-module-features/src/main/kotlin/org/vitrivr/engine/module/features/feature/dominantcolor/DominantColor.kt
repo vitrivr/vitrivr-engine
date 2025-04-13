@@ -1,7 +1,6 @@
 package org.vitrivr.engine.module.features.feature.dominantcolor
 
 import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.color.RGBColorContainer
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
@@ -48,20 +47,20 @@ class DominantColor : Analyser<ImageContent, LabelDescriptor> {
     override fun newRetrieverForQuery(
         field: Schema.Field<ImageContent, LabelDescriptor>,
         query: Query,
-        context: QueryContext
+        properties: Map<String, String>
     ): Retriever<ImageContent, LabelDescriptor> {
 
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is BooleanQuery) { "The query is not a BooleanQuery." }
 
-        return DominantColorRetriever(field, query, context)
+        return DominantColorRetriever(field, query, properties)
 
     }
 
     override fun newRetrieverForDescriptors(
         field: Schema.Field<ImageContent, LabelDescriptor>,
         descriptors: Collection<LabelDescriptor>,
-        context: QueryContext
+        properties: Map<String, String>
     ): Retriever<ImageContent, LabelDescriptor> {
 
         val labels = descriptors.mapNotNull {
@@ -74,14 +73,14 @@ class DominantColor : Analyser<ImageContent, LabelDescriptor> {
 
         val query = SimpleBooleanQuery(Value.String(labels.first()), attributeName = "label")
 
-        return newRetrieverForQuery(field, query, context)
+        return newRetrieverForQuery(field, query, properties)
     }
 
     override fun newRetrieverForContent(
         field: Schema.Field<ImageContent, LabelDescriptor>,
         content: Collection<ImageContent>,
-        context: QueryContext
-    ): Retriever<ImageContent, LabelDescriptor> = newRetrieverForDescriptors(field, analyse(content), context)
+        properties: Map<String, String>
+    ): Retriever<ImageContent, LabelDescriptor> = newRetrieverForDescriptors(field, analyse(content), properties)
 
 
 

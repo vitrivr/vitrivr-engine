@@ -1,7 +1,6 @@
 package org.vitrivr.engine.core.features.metadata.source.exif
 
 import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.struct.AnyMapStructDescriptor
@@ -55,16 +54,16 @@ class ExifMetadata : Analyser<ContentElement<*>, AnyMapStructDescriptor> {
     /**
      *
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, AnyMapStructDescriptor> {
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, query: Query, properties: Map<String, String>): Retriever<ContentElement<*>, AnyMapStructDescriptor> {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         require(query is SimpleBooleanQuery<*>) { "Query is not a Query." }
-        return ExifMetadataRetriever(field, query, context)
+        return ExifMetadataRetriever(field, query, properties)
     }
 
     /**
      *
      */
-    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): ExifMetadataRetriever {
+    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, content: Collection<ContentElement<*>>, properties: Map<String, String>): ExifMetadataRetriever {
         throw UnsupportedOperationException("ExifMetadata does not support the creation of a Retriever instance from content.")
     }
 }

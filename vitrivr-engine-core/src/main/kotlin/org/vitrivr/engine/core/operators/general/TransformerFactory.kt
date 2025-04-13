@@ -1,6 +1,7 @@
 package org.vitrivr.engine.core.operators.general
 
 import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 
@@ -16,7 +17,8 @@ interface TransformerFactory {
      *
      * @param name The name of the [Transformer]
      * @param input The input [Operator].
-     * @param context The [Context] to use.
+     * @param schema The [Schema] to be used.
+     * @param properties the properties of the transformer.
      */
-    fun newTransformer(name: String, input: Operator<out Retrievable>, properties: Map<String, String>): Transformer
+    fun newTransformer(name: String, input: Operator<out Retrievable>, schema: Schema, properties: Map<String, String>): Transformer
 }

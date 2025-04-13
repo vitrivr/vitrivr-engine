@@ -1,6 +1,5 @@
 package org.vitrivr.engine.core.features.metadata.temporal
 
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.AbstractRetriever
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadataDescriptor
@@ -14,4 +13,4 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class TemporalMetadataRetriever(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, query: Query, context: QueryContext) : AbstractRetriever<ContentElement<*>, TemporalMetadataDescriptor>(field, query, context)
+class TemporalMetadataRetriever(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, query: Query, properties: Map<String, String>) : AbstractRetriever<ContentElement<*>, TemporalMetadataDescriptor>(field, query, properties)

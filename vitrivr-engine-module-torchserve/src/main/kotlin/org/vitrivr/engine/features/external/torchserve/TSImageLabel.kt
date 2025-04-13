@@ -3,7 +3,6 @@ package org.vitrivr.engine.features.external.torchserve
 import com.google.protobuf.ByteString
 import kotlinx.serialization.json.Json
 import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.bool.StructBooleanRetriever
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -56,9 +55,9 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      *
      * @return A new [StructBooleanRetriever] instance for this [TSImageLabel]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, LabelDescriptor>, query: Query, context: QueryContext): StructBooleanRetriever<ImageContent, LabelDescriptor> {
+    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, LabelDescriptor>, query: Query, properties: Map<String, String>): StructBooleanRetriever<ImageContent, LabelDescriptor> {
         require(query is SimpleBooleanQuery<*>) { "TSImageLabel only supports boolean queries." }
-        return StructBooleanRetriever(field, query, context)
+        return StructBooleanRetriever(field, query, properties)
     }
 
     /**
@@ -68,10 +67,10 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      * @param descriptors An array of [LabelDescriptor] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, LabelDescriptor>, descriptors: Collection<LabelDescriptor>, context: QueryContext): StructBooleanRetriever<ImageContent, LabelDescriptor> {
+    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, LabelDescriptor>, descriptors: Collection<LabelDescriptor>, properties: Map<String, String>): StructBooleanRetriever<ImageContent, LabelDescriptor> {
         val values = descriptors.map { it.label }
         val query = SimpleBooleanQuery(values.first(), ComparisonOperator.EQ, LabelDescriptor.LABEL_FIELD_NAME) /* TODO: An IN query would make more sense here. */
-        return this.newRetrieverForQuery(field, query, context)
+        return this.newRetrieverForQuery(field, query, properties)
     }
 
     /**
@@ -82,14 +81,14 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      * @param context The [QueryContext] to use with the [Retriever]
      * @return [Retriever]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ImageContent, LabelDescriptor>, content: Collection<ImageContent>, context: QueryContext): Retriever<ImageContent, LabelDescriptor> {
+    override fun newRetrieverForContent(field: Schema.Field<ImageContent, LabelDescriptor>, content: Collection<ImageContent>, properties: Map<String, String>): Retriever<ImageContent, LabelDescriptor> {
         val host = field.parameters[TORCHSERVE_HOST_KEY] ?: TORCHSERVE_HOST_DEFAULT
         val port = field.parameters[TORCHSERVE_PORT_KEY]?.toIntOrNull() ?: TORCHSERVE_PORT_DEFAULT
         val token = field.parameters[TORCHSERVE_TOKEN_KEY]
         val model = field.parameters[TORCHSERVE_MODEL_KEY] ?: throw IllegalArgumentException("Missing model for TorchServe model.")
         val threshold = field.parameters[TORCHSERVE_THRESHOLD_KEY]?.toFloatOrNull() ?: 0.0f
         val descriptors = this.analyse(content, model, host, port, token).filter({ it.confidence.value >= threshold })
-        return this.newRetrieverForDescriptors(field, descriptors, context)
+        return this.newRetrieverForDescriptors(field, descriptors, properties)
     }
 
     /**

@@ -150,7 +150,7 @@ class QueryParser(val schema: Schema) {
         val input = operators[operation.input] ?: throw IllegalArgumentException("Input '${operation.input}' for operation '$operatorName' not found")
         val factory = loadServiceForName<TransformerFactory>(operation.transformerName + "Factory")
             ?: throw IllegalArgumentException("No factory found for '${operation.transformerName}'")
-        return factory.newTransformer(operatorName, input, operation.properties)
+        return factory.newTransformer(operatorName, input, schema, operation.properties)
     }
 
     /**

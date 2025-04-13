@@ -1,7 +1,6 @@
 package org.vitrivr.engine.core.features.metadata.source.video
 
 import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadata
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataExtractor
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataRetriever
@@ -65,10 +64,10 @@ class VideoSourceMetadata : Analyser<ContentElement<*>, VideoSourceMetadataDescr
      *
      * @return [VideoSourceMetadataRetriever]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>, query: Query, context: QueryContext): VideoSourceMetadataRetriever {
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>, query: Query, properties: Map<String, String>): VideoSourceMetadataRetriever {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         require(query is BooleanQuery) { "Query is not a Boolean query." }
-        return VideoSourceMetadataRetriever(field, query, context)
+        return VideoSourceMetadataRetriever(field, query, properties)
     }
 
     /**
@@ -76,7 +75,7 @@ class VideoSourceMetadata : Analyser<ContentElement<*>, VideoSourceMetadataDescr
      *
      * This method will always throw an [UnsupportedOperationException]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): VideoSourceMetadataRetriever {
+    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>, content: Collection<ContentElement<*>>, properties: Map<String, String>): VideoSourceMetadataRetriever {
         throw UnsupportedOperationException("FileSourceMetadata does not support the creation of a Retriever instance from content.")
     }
 }

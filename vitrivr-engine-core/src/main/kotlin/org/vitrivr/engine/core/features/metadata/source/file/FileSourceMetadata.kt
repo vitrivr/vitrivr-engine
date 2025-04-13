@@ -1,7 +1,6 @@
 package org.vitrivr.engine.core.features.metadata.source.file
 
 import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.FileSourceMetadataDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
@@ -61,10 +60,10 @@ class FileSourceMetadata : Analyser<ContentElement<*>, FileSourceMetadataDescrip
      *
      * @return [FileSourceMetadataRetriever]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, FileSourceMetadataDescriptor> {
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, query: Query, properties: Map<String, String>): Retriever<ContentElement<*>, FileSourceMetadataDescriptor> {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         require(query is SimpleBooleanQuery<*>) { "Query is not a Query." }
-        return FileSourceMetadataRetriever(field, query, context)
+        return FileSourceMetadataRetriever(field, query, properties)
     }
 
     /**
@@ -72,7 +71,7 @@ class FileSourceMetadata : Analyser<ContentElement<*>, FileSourceMetadataDescrip
      *
      * This method will always throw an [UnsupportedOperationException
      */
-    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): FileSourceMetadataRetriever {
+    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, content: Collection<ContentElement<*>>, properties: Map<String, String>): FileSourceMetadataRetriever {
         throw UnsupportedOperationException("FileSourceMetadata does not support the creation of a Retriever instance from content.")
     }
 }

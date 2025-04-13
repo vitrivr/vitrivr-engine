@@ -2,7 +2,6 @@ package org.vitrivr.engine.core.features.bool
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flow
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.AbstractRetriever
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
@@ -15,7 +14,7 @@ import org.vitrivr.engine.core.model.query.bool.BooleanQuery
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class StructBooleanRetriever<C : ContentElement<*>, D : StructDescriptor<*>>(field: Schema.Field<C, D>, query: BooleanQuery, context: QueryContext) : AbstractRetriever<C, D>(field, query, context) {
+class StructBooleanRetriever<C : ContentElement<*>, D : StructDescriptor<*>>(field: Schema.Field<C, D>, query: BooleanQuery, properties: Map<String, String>) : AbstractRetriever<C, D>(field, query, properties) {
     override fun toFlow(scope: CoroutineScope) = flow {
         val reader = this@StructBooleanRetriever.reader
         reader.queryAndJoin(this@StructBooleanRetriever.query).forEach {

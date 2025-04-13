@@ -1,7 +1,6 @@
 package org.vitrivr.engine.module.features.feature.external.implementations.dino
 
 import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.BoundedCorrespondence
 import org.vitrivr.engine.core.model.content.Content
@@ -93,10 +92,10 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, context: QueryContext): DenseRetriever<ImageContent> {
+    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, properties: Map<String, String>): DenseRetriever<ImageContent> {
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
         @Suppress("UNCHECKED_CAST")
-        return DenseRetriever(field, query as ProximityQuery<Value.FloatVector>, context, BoundedCorrespondence(0.0, 2.0))
+        return DenseRetriever(field, query as ProximityQuery<Value.FloatVector>, properties, BoundedCorrespondence(0.0, 2.0))
     }
 
     /**
@@ -109,13 +108,13 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): DenseRetriever<ImageContent> {
+    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, properties: Map<String, String>): DenseRetriever<ImageContent> {
         /* Prepare query parameters. */
-        val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+        val k = properties["limit"]?.toLongOrNull() ?: 1000L
+        val fetchVector = properties["returnDescriptor"]?.toBooleanStrictOrNull() ?: false
 
         /* Return retriever. */
-        return this.newRetrieverForQuery(field, ProximityQuery(value = descriptors.first().vector, k = k, fetchVector = fetchVector), context)
+        return this.newRetrieverForQuery(field, ProximityQuery(value = descriptors.first().vector, k = k, fetchVector = fetchVector), properties)
     }
 
     /**
@@ -128,7 +127,7 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext): DenseRetriever<ImageContent> {
+    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, properties: Map<String, String>): DenseRetriever<ImageContent> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
 
@@ -136,6 +135,6 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
         val vectors = content.map { analyse(it, host) }
 
         /* Return retriever. */
-        return this.newRetrieverForDescriptors(field, vectors, context)
+        return this.newRetrieverForDescriptors(field, vectors, properties)
     }
 }

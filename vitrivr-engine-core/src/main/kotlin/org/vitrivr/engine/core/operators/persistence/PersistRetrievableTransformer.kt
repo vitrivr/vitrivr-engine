@@ -10,6 +10,7 @@ import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
@@ -32,28 +33,29 @@ class PersistRetrievableTransformer: TransformerFactory {
      * @param input The input [Operator].
      * @param context The [IndexContext] to use.
      */
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer = Instance(
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, schema: Schema, properties: Map<String, String>): Transformer = Instance(
         input as Operator<Retrievable>,
-        context as IndexContext,
+        schema,
+        properties,
         name
     )
 
     /**
      * The [PersistRetrievableTransformer] [Transformer] implementation.
      */
-    private class Instance(override val input: Operator<Retrievable>, val context: IndexContext, override val name: String): Transformer {
+    private class Instance(override val input: Operator<Retrievable>, val schema: Schema, val properties: Map<String, String>, override val name: String): Transformer {
 
         /** Logger instance. */
         private val logger = KotlinLogging.logger("RetrievablePersister#${this.name}")
 
         /** The [RetrievableWriter] instance used by this [PersistRetrievableTransformer]. */
         private val writer: RetrievableWriter by lazy {
-            this.context.schema.connection.getRetrievableWriter()
+            schema.connection.getRetrievableWriter()
         }
 
         /** The [RetrievableWriter] instance used by this [PersistRetrievableTransformer]. */
         private val reader: RetrievableReader by lazy {
-            this.context.schema.connection.getRetrievableReader()
+            schema.connection.getRetrievableReader()
         }
 
         /**
