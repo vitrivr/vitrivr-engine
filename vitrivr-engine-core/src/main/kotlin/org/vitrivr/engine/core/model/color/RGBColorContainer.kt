@@ -1,6 +1,5 @@
 package org.vitrivr.engine.core.model.color
 
-import kotlinx.serialization.json.internal.decodeStringToJsonTree
 import org.vitrivr.engine.core.model.types.Value
 import java.awt.color.ColorSpace
 import kotlin.math.max
@@ -24,7 +23,7 @@ value class RGBColorContainer(private val rgb: FloatArray) {
         require(this.rgb[3] in 0.0f..1.0f) { "RGBFloatColorContainer components must be between 0.0 and 1.0." }
     }
 
-    constructor(rgb: Int) : this((rgb shr 16 and 0xFF).toUByte(), (rgb shr 8 and 0xFF).toUByte(), (rgb and 0xFF).toUByte())
+    constructor(rgb: Int) : this(((rgb shr 16) and 0xFF), ((rgb shr 8) and 0xFF), (rgb and 0xFF), ((rgb shr 24) and 0xFF))
     constructor(red: UByte, green: UByte, blue: UByte, alpha: UByte = UByte.MAX_VALUE) : this(red.toFloat() / 255f, green.toFloat() / 255f, blue.toFloat() / 255f, alpha.toFloat() / 255f)
     constructor(red: Int, green: Int, blue: Int, alpha: Int = 255) : this(red.toFloat() / 255f, green.toFloat() / 255f, blue.toFloat() / 255f, alpha.toFloat() / 255f)
     constructor(r: Double, g: Double, b: Double, alpha: Double = 1.0) : this(r.toFloat(), g.toFloat(), b.toFloat(), alpha.toFloat())

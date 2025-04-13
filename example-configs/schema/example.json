@@ -35,7 +35,7 @@
         }
       },
       "resolvers": {
-        "disk": {
+        "thumbnails": {
           "factory": "DiskResolver",
           "parameters": {
             "location": "./example/thumbs"
@@ -45,8 +45,8 @@
       "exporters": {
         "thumbnail": {
           "factory": "ThumbnailExporter",
-          "resolverName": "disk",
           "parameters": {
+            "resolver": "thumbnails",
             "maxSideResolution": "300",
             "mimeType": "JPG"
           }

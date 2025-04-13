@@ -3,7 +3,9 @@ package org.vitrivr.engine.index.decode
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapNotNull
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -43,10 +45,10 @@ class ImageDecoder : DecoderFactory {
         private val logger: KLogger = KotlinLogging.logger {}
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).mapNotNull { retrievable ->
-            val source = retrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@mapNotNull null
-            if (source.type != MediaType.IMAGE) {
-                logger.debug { "Skipping source ${source.name} (${source.sourceId}) because it is not of type IMAGE." }
-                return@mapNotNull null
+            val source = retrievable.filteredAttribute(SourceAttribute::class.java)?.source
+            if (source?.type != MediaType.IMAGE) {
+                logger.debug { "Skipping retrievable ${retrievable.id} because it is not of type IMAGE." }
+                return@mapNotNull retrievable
             }
             logger.debug { "Decoding source ${source.name} (${source.sourceId})" }
             try {
@@ -69,6 +71,6 @@ class ImageDecoder : DecoderFactory {
                 logger.error(e) { "Failed to decode image from source '${source.name}' (${source.sourceId}) due to exception: ${e.message}" }
                 null
             }
-        }
+        }.flowOn(Dispatchers.IO)
     }
 }

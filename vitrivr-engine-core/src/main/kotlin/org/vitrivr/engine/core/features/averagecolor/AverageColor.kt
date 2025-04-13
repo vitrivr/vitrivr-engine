@@ -17,7 +17,6 @@ import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
-import org.vitrivr.engine.core.util.extension.getRGBArray
 import java.util.*
 
 /**
@@ -118,17 +117,21 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return [List] of [FloatVectorDescriptor]s.
      */
     fun analyse(content: ImageContent): FloatVectorDescriptor {
-        val color = floatArrayOf(0f, 0f, 0f)
-        val rgb = content.content.getRGBArray()
-        for (c in rgb) {
-            val container = RGBColorContainer(c)
-            color[0] += container.red
-            color[1] += container.green
-            color[2] += container.blue
+        var r = 0.0
+        var g = 0.0
+        var b = 0.0
+        val size = content.content.width * content.content.height
+        for (x in 0 until content.content.width) {
+            for (y in 0 until content.content.height) {
+                val color = RGBColorContainer(content.content.getRGB(x, y))
+                r += color.red
+                g += color.green
+                b += color.blue
+            }
         }
 
         /* Generate descriptor. */
-        val averageColor = RGBColorContainer(color[0] / rgb.size, color[1] / rgb.size, color[2] / rgb.size)
+        val averageColor = RGBColorContainer(r / size, g / size, b / size)
         return FloatVectorDescriptor(UUID.randomUUID(), null, averageColor.toVector(false))
     }
 }

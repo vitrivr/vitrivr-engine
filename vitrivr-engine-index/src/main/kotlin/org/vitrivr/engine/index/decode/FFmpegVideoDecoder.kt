@@ -6,12 +6,14 @@ import com.github.kokorin.jaffree.ffprobe.FFprobe
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel.Factory.RENDEZVOUS
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runBlocking
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.AudioContent
@@ -76,15 +78,17 @@ class FFmpegVideoDecoder : DecoderFactory {
             get() = if (this.ffmpegPath != null) FFmpeg.atPath(this.ffmpegPath) else FFmpeg.atPath()
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = channelFlow {
-            this@Instance.input.toFlow(scope).collect { sourceRetrievable ->
+            val channel = this
+            this@Instance.input.toFlow(scope).collect { retrievable ->
                 /* Extract source. */
-                val source = sourceRetrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@collect
-                if (source.type != MediaType.VIDEO) {
-                    logger.debug { "In flow: Skipping source ${source.name} (${source.sourceId}) because it is not of type VIDEO." }
+                val source = retrievable.filteredAttribute(SourceAttribute::class.java)?.source
+                if (source?.type != MediaType.VIDEO) {
+                    logger.debug { "Skipping retrievable ${retrievable.id} because it is not of type VIDEO." }
+                    channel.send(retrievable)
                     return@collect
                 }
 
-                val probeResult = ffprobe.setShowStreams(true).also {
+                val probeResult = this@Instance.ffprobe.setShowStreams(true).also {
                     if (source is FileSource) {
                         it.setInput(source.path)
                     } else {
@@ -109,7 +113,7 @@ class FFmpegVideoDecoder : DecoderFactory {
                 }
 
                 /* Create consumer. */
-                val consumer = InFlowFrameConsumer(this, sourceRetrievable)
+                val consumer = InFlowFrameConsumer(channel, retrievable)
 
                 /* Execute. */
                 try {
@@ -128,19 +132,18 @@ class FFmpegVideoDecoder : DecoderFactory {
                         }
                     }
 
-
                     /* Emit final frames. */
                     if (!consumer.isEmpty()) {
                         consumer.emit()
                     }
 
                     /* Emit source retrievable. */
-                    send(sourceRetrievable)
+                    send(retrievable)
                 } catch (e: Throwable) {
                     logger.error(e) { "Error while decoding source ${source.name} (${source.sourceId})." }
                 }
             }
-        }.buffer(capacity = RENDEZVOUS, onBufferOverflow = BufferOverflow.SUSPEND)
+        }.buffer(capacity = RENDEZVOUS, onBufferOverflow = BufferOverflow.SUSPEND).flowOn(Dispatchers.IO)
 
 
         /**
