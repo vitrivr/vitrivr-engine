@@ -4,7 +4,6 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import org.joml.Vector3f
 import org.vitrivr.engine.core.context.IndexContext
@@ -249,8 +248,6 @@ class ModelPreviewExporter : ExporterFactory {
                         }
                     }
                 }
-            }.onCompletion {
-                renderer.close()
             }
         }
 
