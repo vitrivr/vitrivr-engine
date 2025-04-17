@@ -3,6 +3,9 @@ package org.vitrivr.engine.model3d.lwjglrender.window
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.lwjgl.glfw.*
+import org.lwjgl.glfw.GLFW.GLFW_COCOA_RETINA_FRAMEBUFFER
+import org.lwjgl.glfw.GLFW.GLFW_FALSE
+import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL30
 import org.lwjgl.system.MemoryUtil
 import java.util.concurrent.Callable
@@ -129,6 +132,13 @@ class Window(
         }
 
         GLFW.glfwMakeContextCurrent(this.windowHandle)
+        GL.createCapabilities()
+
+        val fbWidth = IntArray(1)
+        val fbHeight = IntArray(1)
+        GLFW.glfwGetFramebufferSize(this.windowHandle, fbWidth, fbHeight)
+        GL30.glViewport(0, 0, fbWidth[0], fbHeight[0])
+
 
         if (opts.fps > 0) {
             GLFW.glfwSwapInterval(0)
@@ -140,12 +150,6 @@ class Window(
         if (!opts.hideWindow) {
             GLFW.glfwShowWindow(this.windowHandle)
         }
-
-        val arrWidth = IntArray(1)
-        val arrHeight = IntArray(1)
-        GLFW.glfwGetFramebufferSize(this.windowHandle, arrWidth, arrHeight)
-        this.width = arrWidth[0]
-        this.height = arrHeight[0]
     }
 
     /**
@@ -184,6 +188,9 @@ class Window(
     protected fun resized(width: Int, height: Int) {
         this.width = width
         this.height = height
+
+        GL30.glViewport(0, 0, width, height)
+
         try {
             resizeFunc.call()
         } catch (ex: Exception) {
