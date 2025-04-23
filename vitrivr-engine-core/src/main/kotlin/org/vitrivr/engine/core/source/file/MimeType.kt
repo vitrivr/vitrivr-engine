@@ -58,6 +58,7 @@ enum class MimeType(val fileExtension: String, val mimeType: String, val mediaTy
     OBJ("obj", "application/3d-obj", MediaType.MESH),
     OFF("off", "application/3d-off", MediaType.MESH),
     GLTF("gltf", "model/gltf+json", MediaType.MESH),
+    GLB("glb", "model/gltf-binary", MediaType.MESH),
 
     //Unknown type
     UNKNOWN("", "", MediaType.NONE);
