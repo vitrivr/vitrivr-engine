@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.flowOn
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.TerminalRetrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.operators.ingest.EnumeratorFactory
@@ -30,7 +31,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.2.0
  */
 class FileSystemEnumerator : EnumeratorFactory {
 
@@ -114,13 +115,13 @@ class FileSystemEnumerator : EnumeratorFactory {
 
                     /* Create source ingested and emit it. */
                     val typeName = this@Instance.typeName ?: "SOURCE:${file.type}"
-                    val ingested = Ingested(file.sourceId, typeName, false)
-                    ingested.addAttribute(SourceAttribute(file))
-
-                    emit(ingested)
+                    emit(Ingested(file.sourceId, typeName, attributes = setOf(SourceAttribute(file)), transient = false))
                     logger.debug { "In flow: Emitting source ${element.fileName} (${element.toUri()})" }
                 }
             }
+
+            /* Emit terminal retrievable to signal, that processing has completed. */
+            emit(TerminalRetrievable)
         }.flowOn(Dispatchers.IO)
     }
 }

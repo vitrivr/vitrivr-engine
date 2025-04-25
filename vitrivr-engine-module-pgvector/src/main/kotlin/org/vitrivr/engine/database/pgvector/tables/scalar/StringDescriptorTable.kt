@@ -10,14 +10,14 @@ import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
 import org.vitrivr.engine.core.model.types.Value
-import org.vitrivr.engine.database.pgvector.exposed.functions.toTsQuery
+import org.vitrivr.engine.database.pgvector.exposed.functions.plainToTsQuery
 import org.vitrivr.engine.database.pgvector.exposed.ops.tsMatches
 
 /**
  * Table definition for the [StringDescriptor] entity.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.0.1
  */
 internal class StringDescriptorTable(field: Schema.Field<*, StringDescriptor>): AbstractScalarDescriptorTable<StringDescriptor, Value.String, String>(field) {
     override val descriptor = varchar("descriptor", 255)
@@ -59,7 +59,7 @@ internal class StringDescriptorTable(field: Schema.Field<*, StringDescriptor>): 
      * @return The [Query] that can be executed against the database.
      */
     private fun parse(query: SimpleFulltextQuery): Query = this.selectAll().where {
-        descriptor tsMatches toTsQuery(stringParam(query.value.value))
+        descriptor tsMatches plainToTsQuery(stringParam(query.value.value))
     }
 
     /**

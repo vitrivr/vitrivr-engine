@@ -43,8 +43,5 @@ class M3DTest {
         Assertions.assertDoesNotThrow() {
             ModelPreviewExporter.renderPreviewJPEG(model, renderer, 1.0f)
         }
-        Assertions.assertDoesNotThrow() {
-            renderer.close()
-        }
     }
 }

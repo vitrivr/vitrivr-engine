@@ -14,7 +14,7 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @see [TorchServe]
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 open class TorchServeExtractor<C : ContentElement<*>, D : Descriptor<*>>(
     val host: String,
@@ -24,9 +24,8 @@ open class TorchServeExtractor<C : ContentElement<*>, D : Descriptor<*>>(
     input: Operator<Retrievable>,
     analyser: TorchServe<C, D>,
     field: Schema.Field<C, D>? = null,
-    contentSources: Set<String>? = null,
     name: String
-) : AbstractExtractor<C, D>(input, analyser, field, contentSources, name) {
+) : AbstractExtractor<C, D>(input, analyser, field, name) {
 
     /**
      * Extracts [Descriptor]s from the provided [Retrievable].

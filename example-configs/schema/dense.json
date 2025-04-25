@@ -118,8 +118,8 @@
       "exporters": {
         "thumbnail": {
           "factory": "ThumbnailExporter",
-          "resolverName": "disk",
           "parameters": {
+            "resolver": "disk",
             "maxSideResolution": "400",
             "mimeType": "JPG"
           }

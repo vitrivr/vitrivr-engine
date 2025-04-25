@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.retrievable.Ingested
+import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.TerminalRetrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.operators.ingest.EnumeratorFactory
@@ -17,7 +19,7 @@ import java.util.stream.Stream
  * A [Enumerator] that allows a caller to explicitly prepare a list of [Source]s to enumerate.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 class ListEnumerator : EnumeratorFactory {
 
@@ -51,14 +53,15 @@ class ListEnumerator : EnumeratorFactory {
         /** List of [Source]s that should be enumerated. */
         private val list: LinkedList<Source> = LinkedList()
 
-        override fun toFlow(scope: CoroutineScope): Flow<Ingested> = flow {
+        override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
             for (s in this@Instance.list) {
                 /* Create source ingested and emit it. */
                 val typeName = this@Instance.typeName ?: "SOURCE:${s.type}"
-                val ingested = Ingested(s.sourceId, typeName, false)
-                ingested.addAttribute(SourceAttribute(s))
-                emit(ingested)
+                emit(Ingested(s.sourceId, typeName, attributes = setOf(SourceAttribute(s)), transient = false))
             }
+
+            /* Emit terminal retrievable to signal, that processing has completed. */
+            emit(TerminalRetrievable)
         }
 
         /**
