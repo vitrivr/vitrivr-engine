@@ -1,6 +1,5 @@
 package org.vitrivr.engine.core.context
 
-import kotlinx.serialization.Transient
 import org.vitrivr.engine.core.model.content.factory.ContentFactory
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.resolver.Resolver
@@ -12,13 +11,18 @@ import org.vitrivr.engine.core.resolver.Resolver
  * @version 1.1.0
  */
 data class IndexContext(
-    @Transient
+    /** The [Schema] used by this [IndexContext] */
     override val schema: Schema,
 
+    /** The [ContentFactory] used by this [IndexContext] */
     val contentFactory: ContentFactory,
 
     /** A [Map] of named [Resolver]s. */
-    val resolver: Map<String,Resolver>,
-    override val local: Map<String, Map<String, String>>,
-    override val global: Map<String, String>
+    val resolver: Map<String,Resolver> = emptyMap(),
+
+    /** Local (per-operator) configuration parameters. */
+    override val local: Map<String, Map<String, String>> = emptyMap(),
+
+    /** Global configuration parameters. */
+    override val global: Map<String, String> = emptyMap(),
 ) : Context()

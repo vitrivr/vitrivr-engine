@@ -80,9 +80,7 @@ class VectorJsonlReader(
 
         return queue.map {
             val retrieved = retrievables[it.first.retrievableId]!!
-            retrieved.addDescriptor(it.first)
-            retrieved.addAttribute(DistanceAttribute.Local(it.second, it.first.retrievableId!!))
-            retrieved as Retrieved
+            retrieved.copy(descriptors = retrieved.descriptors + it.first, attributes = retrieved.attributes + DistanceAttribute.Local(it.second, it.first.id))
         }.asSequence()
 
     }

@@ -4,7 +4,6 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import org.joml.Vector3f
 import org.vitrivr.engine.core.context.IndexContext
@@ -46,7 +45,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  */
 class ModelPreviewExporter : ExporterFactory {
     companion object {
-        val SUPPORTED_INPUT = setOf(MimeType.GLTF)
+        val SUPPORTED_INPUT = setOf(MimeType.GLTF, MimeType.GLB)
 
         /** Set of supported output formats. */
         val SUPPORTED_OUTPUT = setOf(MimeType.GIF, MimeType.JPG, MimeType.JPEG)
@@ -209,7 +208,7 @@ class ModelPreviewExporter : ExporterFactory {
         override val name: String
     ) : Exporter {
         init {
-            require(mimeType in SUPPORTED_INPUT) { "ModelPreviewExporter only supports models of format GLTF." }
+            require(mimeType in SUPPORTED_INPUT) { "ModelPreviewExporter only supports models of format GLTF or GLB." }
             require(this.format in SUPPORTED_OUTPUT) { "ModelPreviewExporter only supports exporting a gif of jpg." }
         }
 
@@ -249,8 +248,6 @@ class ModelPreviewExporter : ExporterFactory {
                         }
                     }
                 }
-            }.onCompletion {
-                renderer.close()
             }
         }
 

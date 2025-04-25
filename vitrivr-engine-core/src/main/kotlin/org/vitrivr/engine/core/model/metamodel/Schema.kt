@@ -65,11 +65,11 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      * @param name The name of the [Exporter]. Must be unique.
      * @param factory The [ExporterFactory] used to generated instance.
      * @param parameters The parameters used to configure the [Exporter].
-     * @param resolver The name of a previously registered [Resolver].
      *
      * @throws IllegalArgumentException In case the [resolver] named [Resolver] is not found.
      */
-    fun addExporter(name: String, factory: ExporterFactory, parameters: Map<String, String>, resolver: String) {
+    fun addExporter(name: String, factory: ExporterFactory, parameters: Map<String, String>) {
+        val resolver = parameters["resolver"] ?: "default"
         this.exporters.add(Exporter(name, factory, parameters, (this.resolvers[resolver] ?: throw IllegalArgumentException("There is no resolver '$resolver' defined on the schema '${this.name}'"))))
     }
 

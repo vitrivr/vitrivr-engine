@@ -5,14 +5,14 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.features.metadata.source.exif.logger
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
-import org.vitrivr.engine.core.model.retrievable.attributes.time.TimePointAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
@@ -83,16 +83,17 @@ class FixedDurationSegmenter : TransformerFactory {
             this@Instance.input.toFlow(scope).collect { ingested ->
 
                 if (srcRetrievable == null) {
-                    srcRetrievable = Ingested(UUID.randomUUID(), "SOURCE:VIDEO", false)
+                    srcRetrievable = Ingested(UUID.randomUUID(), "SOURCE:VIDEO", emptyList(), emptySet(), emptySet(), emptySet(), true)
                 }
 
+                /* Final element of a single video. */
                 if (ingested.type == "SOURCE:VIDEO") {
-                    ingested.content.forEach { srcRetrievable!!.addContent(it) }
-                    ingested.descriptors.forEach { srcRetrievable!!.addDescriptor(it) }
-                    ingested.attributes.forEach { srcRetrievable!!.addAttribute(it) }
+                    /* Send remaining segments in cache. */
                     sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos, srcRetrievable!!)
-                    downstream.send(srcRetrievable!!)
-                    srcRetrievable = Ingested(UUID.randomUUID(), "SOURCE:VIDEO", false)
+
+                    /* Send source retrievable. */
+                    downstream.send(srcRetrievable!!.copy(content = ingested.content, descriptors = ingested.descriptors, attributes = ingested.attributes))
+                    srcRetrievable = Ingested(UUID.randomUUID(), "SOURCE:VIDEO", emptyList(), emptySet(), emptySet(), emptySet(), true)
                     return@collect
                 }
 
@@ -146,30 +147,36 @@ class FixedDurationSegmenter : TransformerFactory {
                 }
             }
 
-            /* Prepare new ingested. */
-            val ingested = Ingested(UUID.randomUUID(), emit.first().type, false)
+            /* Prepare new retrievable ID and collections. */
+            val retrievableId = UUID.randomUUID()
+            val content = mutableListOf<ContentElement<*>>()
+            val descriptors = mutableSetOf<Descriptor<*>>()
+            val relationships = mutableSetOf<Relationship>()
+            val attributes = mutableSetOf<RetrievableAttribute>()
+
+            /* Values to track time range. */
             var (min, max) = Long.MAX_VALUE to Long.MIN_VALUE
 
             for (emitted in emit) {
-                emitted.content.forEach { ingested.addContent(it) }
-                emitted.descriptors.forEach { ingested.addDescriptor(it) }
+                emitted.content.forEach { content.add(it) }
+                emitted.descriptors.forEach { descriptors.add(it) }
                 emitted.relationships.forEach {
-                    Relationship.BySubRefObjId(ingested, it.predicate, srcRetrievable.id, false).let {
-                        ingested.addRelationship(it)
-                        srcRetrievable.addRelationship(it)
+                    Relationship.ById(retrievableId, it.predicate, srcRetrievable.id, true).let {
+                        relationships.add(it)
                     }
                 }
                 emitted.attributes.forEach {
-                    it.takeUnless { it is TimeRangeAttribute }?.let { ingested.addAttribute(it) }
+                    it.takeUnless { it is TimeRangeAttribute }?.let { attributes.add(it) }
                     it.takeIf { it is TimeRangeAttribute }?.let {
                         min = (it as TimeRangeAttribute).takeIf { it.startNs < min }?.startNs ?: min
-                        max = (it as TimeRangeAttribute).takeIf { it.endNs > max }?. endNs ?: max
+                        max = it.takeIf { it.endNs > max }?.endNs ?: max
                     }
                 }
             }
-            ingested.addAttribute(TimeRangeAttribute(min, max))
+            attributes.add(TimeRangeAttribute(min, max))
+
             /* Send retrievable downstream. */
-            downstream.send(ingested)
+            downstream.send(Ingested(retrievableId, emit.first().type, content, descriptors, attributes, relationships, true))
         }
     }
 }

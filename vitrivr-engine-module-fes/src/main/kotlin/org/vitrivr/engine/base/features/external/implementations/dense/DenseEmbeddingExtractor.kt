@@ -9,7 +9,6 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.Descriptor
-import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
@@ -51,7 +50,7 @@ class DenseEmbeddingExtractor : FesExtractor<ContentElement<*>, FloatVectorDescr
      * @return List of resulting [Descriptor]s grouped by [Retrievable].
      */
     override fun extract(retrievables: List<Retrievable>): List<List<FloatVectorDescriptor>> {
-        val content = retrievables.flatMap { this.filterContent(it) }
+        val content = retrievables.flatMap { it.content }
         val textContent = content.mapIndexed { index, contentElement -> if (contentElement is TextContent) index to contentElement else null }.filterNotNull().toMap()
         val imageContent = content.mapIndexed { index, contentElement -> if (contentElement is ImageContent) index to contentElement else null }.filterNotNull().toMap()
 

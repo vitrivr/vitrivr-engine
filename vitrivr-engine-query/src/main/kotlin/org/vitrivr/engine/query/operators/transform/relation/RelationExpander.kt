@@ -56,8 +56,6 @@ class RelationExpander(
             this@RelationExpander.retrievableReader.getAll(fetchIds.toList())
         } else {
             emptySequence()
-        }.map {
-            Retrieved(it)
         }.associateBy {
             it.id
         }
@@ -65,10 +63,11 @@ class RelationExpander(
         /* Iterate over input and emit each retrievable with expanded relationships. */
         inputRetrieved.forEach {
             /* Expand incoming relationships. */
+            var copy = it
             for (obj in (objects[it.id] ?: emptyList())) {
                 val subject = fetched[obj.subjectId]
                 if (subject != null) {
-                    it.addRelationship(Relationship.ByRef(subject, obj.predicate, it, false))
+                    copy = copy.copy(relationships = copy.relationships + Relationship.ByRef(subject, obj.predicate, it, false))
                 }
             }
 
@@ -76,13 +75,12 @@ class RelationExpander(
             for (sub in (subjects[it.id] ?: emptyList())) {
                 val `object` = fetched[sub.objectId]
                 if (`object` != null) {
-                    it.addRelationship(Relationship.ByRef(it, sub.predicate, `object`, false))
-
+                    copy = copy.copy(relationships = copy.relationships + Relationship.ByRef(it, sub.predicate, `object`, false))
                 }
             }
 
             /* Emit. */
-            emit(it)
+            emit(copy)
         }
     }
 }

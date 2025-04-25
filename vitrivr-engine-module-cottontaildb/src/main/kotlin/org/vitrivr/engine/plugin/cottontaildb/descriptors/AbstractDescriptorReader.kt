@@ -22,7 +22,7 @@ import java.util.*
  * An abstract implementation of a [DescriptorReader] for Cottontail DB.
  *
  * @author Ralph Gasser
- * @version 1.0.1
+ * @version 1.1.0
  */
 abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val field: Schema.Field<*, D>, override val connection: CottontailConnection) : DescriptorReader<D> {
 
@@ -178,12 +178,7 @@ abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val fi
         val retrievables = this.fetchRetrievable(descriptors.mapNotNull { it.retrievableId }.toSet())
         return descriptors.asSequence().mapNotNull { descriptor ->
             val retrievable = retrievables[descriptor.retrievableId]
-            if (retrievable != null) {
-                retrievable.addDescriptor(descriptor)
-                retrievable
-            } else {
-                null
-            }
+            retrievable?.copy(descriptors = retrievable.descriptors + descriptor)
         }
     }
 
@@ -206,10 +201,10 @@ abstract class AbstractDescriptorReader<D : Descriptor<*>>(final override val fi
 
         return this.connection.client.query(query).asSequence().associate { tuple ->
             val retrievableId = tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '$RETRIEVABLE_ID_COLUMN_NAME'.")
-            val type = tuple.asString(RETRIEVABLE_TYPE_COLUMN_NAME)
+            val type = tuple.asString(RETRIEVABLE_TYPE_COLUMN_NAME) ?: throw IllegalArgumentException("The provided tuple is missing the required field '$RETRIEVABLE_TYPE_COLUMN_NAME'.")
 
             /* Prepare the retrieved. */
-            val retrieved = Retrieved(retrievableId, type, false)
+            val retrieved = Retrieved(retrievableId, type, transient = false)
             retrievableId to retrieved
         }
     }

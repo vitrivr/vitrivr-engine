@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import org.vitrivr.engine.core.database.descriptor.DescriptorReader
+import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
@@ -13,9 +14,9 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
 
 /**
- * Appends [DescriptorAttribute] to a [Retrieved] in a specified object [Relationship] based on lookup values of a [Schema.Field], if available.
+ * Appends [Descriptor]s to a [Retrieved] in a specified object [Relationship] based on lookup values of a [Schema.Field], if available.
  *
- * @version 1.0.2
+ * @version 1.2.0
  * @author Luca Rossetto
  * @author Ralph Gasser
  */
@@ -23,8 +24,7 @@ class ObjectFieldLookup(override val input: Operator<out Retrievable>,
                         private val reader: DescriptorReader<*>,
                         private val predicates: Set<String>,
                         override val name: String
-) :
-    Transformer {
+) : Transformer {
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
         /* Parse input IDs.*/
         val inputRetrieved = this@ObjectFieldLookup.input.toFlow(scope).toList()
@@ -33,29 +33,44 @@ class ObjectFieldLookup(override val input: Operator<out Retrievable>,
         val enrich = inputRetrieved.flatMap { retrieved ->
             retrieved.relationships.filterIsInstance<Relationship.ByRef>().filter { this@ObjectFieldLookup.predicates.isEmpty() || it.predicate in this@ObjectFieldLookup.predicates }.map {
                 if (retrieved == it.`object`) {
-                    it.subject.id to it.subject
+                    it.subjectId
                 } else {
-                    it.`object`.id to it.`object`
+                    it.objectId
                 }
             }
-        }.toMap()
+        }.toSet()
 
         /* Fetch descriptors for retrievables that should be enriched. */
         val descriptors = if (enrich.isNotEmpty()) {
-            this@ObjectFieldLookup.reader.getAllForRetrievable(enrich.keys).associateBy { it.retrievableId!! }
+            this@ObjectFieldLookup.reader.getAllForRetrievable(enrich).associateBy { it.retrievableId!! }
         } else {
             emptyMap()
         }
 
-        /* Emit retrievable with added attribute. */
-        enrich.forEach { (k, v) ->
-            val descriptor = descriptors[k]
-            if (descriptor != null) {
-                v.addDescriptor(descriptor)
+        /* Emit input. */
+        inputRetrieved.forEach { it ->
+            val relationships = it.relationships.toMutableList() /* This is a hack to work around the immutability of Retrievables. */
+            val new = mutableListOf<Relationship.ByRef>()
+            val retrievable = it.copy(relationships = relationships)
+            relationships.removeIf { rel ->
+                if (rel is Relationship.ByRef && (this@ObjectFieldLookup.predicates.isEmpty() || rel.predicate in this@ObjectFieldLookup.predicates)) {
+                    if (descriptors.containsKey(rel.objectId)) {
+                        new.add(Relationship.ByRef(retrievable, rel.predicate, rel.`object`.copy(descriptors = rel.`object`.descriptors + descriptors[rel.objectId]!!), rel.transient))
+                        true
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                }
+            }
+
+            if (new.isNotEmpty()) {
+                relationships.addAll(new)
+                emit(retrievable)
+            } else {
+                emit(it)
             }
         }
-
-        /* Emit input. */
-        inputRetrieved.forEach { emit(it) }
     }
 }

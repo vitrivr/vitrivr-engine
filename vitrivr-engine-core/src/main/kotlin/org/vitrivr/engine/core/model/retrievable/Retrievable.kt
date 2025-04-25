@@ -18,26 +18,26 @@ typealias RetrievableId = @Serializable(UUIDSerializer::class) UUID
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.3.0
+ * @version 2.0.0
  */
 interface Retrievable : Persistable {
     /** The [RetrievableId] held by this [Retrievable]. */
     val id: RetrievableId
 
     /** The type of this [Retrievable]. This is basically a string that can help to keep apart different types of [Retrievable]. */
-    val type: String?
+    val type: String
 
     /** The [ContentElement]s held by this [Retrievable]. */
     val content: List<ContentElement<*>>
 
     /** The [Descriptor]s held by this [Retrievable]- */
-    val descriptors: Collection<Descriptor<*>>
+    val descriptors: Set<Descriptor<*>>
 
     /** The [RetrievableAttribute]s held by this [Retrievable]. */
-    val attributes: Collection<RetrievableAttribute>
+    val attributes: Set<RetrievableAttribute>
 
     /** The [Relationship]s held by [Retrievable]. */
-    val relationships: Collection<Relationship>
+    val relationships: Set<Relationship>
 
     /**
      * Checks if this [Retrievable] has a [RetrievableAttribute] of the given type.
@@ -46,20 +46,6 @@ interface Retrievable : Persistable {
      * @return True, if [RetrievableAttribute]
      */
     fun <T : RetrievableAttribute> hasAttribute(c: Class<T>): Boolean
-
-    /**
-     * Adds a [RetrievableAttribute] to this [Retrievable].
-     *
-     * @param attribute The [RetrievableAttribute] to add.
-     */
-    fun addAttribute(attribute: RetrievableAttribute)
-
-    /**
-     * Removes all [RetrievableAttribute]s  of a certain type from this [Retrievable].
-     *
-     * @param c The [Class] of the [RetrievableAttribute] to remove.
-     */
-    fun <T : RetrievableAttribute> removeAttributes(c: Class<T>)
 
     /**
      * Returns all [RetrievableAttribute] of a certain type.
@@ -78,27 +64,6 @@ interface Retrievable : Persistable {
     fun <T : RetrievableAttribute> filteredAttribute(c: Class<T>): T?
 
     /**
-     * Adds a [ContentElement] to this [Retrievable].
-     *
-     * @param content The [ContentElement] to add.
-     * @return True on success, false otherwise.
-     */
-    fun addContent(content: ContentElement<*>): Boolean
-
-    /**
-     * Removes a [ContentElement] from this [Retrievable].
-     *
-     * @param content The [ContentElement] to remove.
-     * @return True on success, false otherwise.
-     */
-    fun removeContent(content: ContentElement<*>): Boolean
-
-    /**
-     * Removes all [ContentElement]s associated with this [Retrievable].
-     */
-    fun clearContent()
-
-    /**
      * Finds all [ContentElement]s held by this [Retrievable] that satisfy the given [Predicate].
      *
      * @param predicate The [Predicate] to test the [ContentElement]s against.
@@ -107,44 +72,12 @@ interface Retrievable : Persistable {
     fun findContent(predicate: Predicate<ContentElement<*>>): List<ContentElement<*>> = this.content.filter { predicate.test(it) }
 
     /**
-     * Adds a [Descriptor] to this [Retrievable].
-     *
-     * @param descriptor The [Descriptor] to add.
-     * @return True on success, false otherwise.
-     */
-    fun addDescriptor(descriptor: Descriptor<*>): Boolean
-
-    /**
-     * Removes a [Descriptor] from this [Retrievable].
-     *
-     * @param descriptor The [Descriptor] to remove.
-     * @return True on success, false otherwise.
-     */
-    fun removeDescriptor(descriptor: Descriptor<*>): Boolean
-
-    /**
      * Finds all [Descriptor]s held by this [Retrievable] that satisfy the given [Predicate].
      *
      * @param predicate The [Predicate] to test the [Descriptor]s against.
      * @return List of matching [Descriptor]s
      */
     fun findDescriptor(predicate: Predicate<Descriptor<*>>): List<Descriptor<*>> = this.descriptors.filter { predicate.test(it) }
-
-    /**
-     * Adds a [Relationship] to this [Retrievable].
-     *
-     * @param relationship The [Relationship] to add.
-     * @return True on success, false otherwise.
-     */
-    fun addRelationship(relationship: Relationship): Boolean
-
-    /**
-     * Removes all [Relationship]s from this [Retrievable].
-     *
-     * @param relationship The [Relationship] to remove.
-     * @return True on success, false otherwise.
-     */
-    fun removeRelationship(relationship: Relationship): Boolean
 
     /**
      * Finds all [Relationship]s held by this [Retrievable] that satisfy the given [Predicate]
@@ -157,5 +90,5 @@ interface Retrievable : Persistable {
     /**
      * Creates a copy of this [Retrievable]
      */
-    fun copy(): Retrievable
+    fun copy(id: RetrievableId? = null, type: String? = null, content: List<ContentElement<*>>? = null, descriptors: Collection<Descriptor<*>>? = null, attributes: Collection<RetrievableAttribute>? = null, relationships: Collection<Relationship>? = null, transient: Boolean? = null): Retrievable
 }
