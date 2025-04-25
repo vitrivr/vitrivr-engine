@@ -99,18 +99,4 @@ interface Retrievable : Persistable {
      * @return Copy of this [Retrieved] with replaced attributes.
      */
     fun copy(id: RetrievableId? = null, type: String? = null, content: List<ContentElement<*>>? = null, descriptors: Set<Descriptor<*>>? = null, attributes: Set<RetrievableAttribute>? = null, relationships: Set<Relationship>? = null, transient: Boolean? = null): Retrievable
-
-    /**
-     * Creates and returns a copy of this [Retrieved] but replaces provided attributes.
-     *
-     * @param id [RetrievableId] of the new [Retrieved]. Null if existing [RetrievableId] should be re-used.
-     * @param content [List] of [ContentElement]s of the new [Retrieved]. Null if existing [ContentElement]s should be re-used.
-     * @param descriptors [Collection] of [Descriptor]s of the new [Retrieved]. Null if existing [Descriptor]s should be re-used.
-     * @param attributes [Collection] of [RetrievableAttribute]s of the new [Retrieved]. Null if existing [RetrievableAttribute]s should be re-used.
-     * @param relationships [Collection] of [Relationship]s of the new [Retrieved]. Null if existing [Relationship]s should be re-used.
-     *
-     * @return Copy of this [Retrieved] with replaced attributes.
-     */
-    fun copy(id: RetrievableId? = null, type: String? = null, content: Collection<ContentElement<*>>? = null, descriptors: Collection<Descriptor<*>>? = null, attributes: Collection<RetrievableAttribute>? = null, relationships: Collection<Relationship>? = null, transient: Boolean? = null)
-        = this.copy(id, type, content?.toList(), descriptors?.toSet(), attributes?.toSet(), relationships?.toSet(), transient)
 }
