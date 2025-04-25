@@ -23,14 +23,13 @@ data object TerminalRetrievable: Retrievable {
     override fun <T : RetrievableAttribute> hasAttribute(c: Class<T>): Boolean  = false
     override fun <T : RetrievableAttribute> filteredAttributes(c: Class<T>): Collection<T> = emptyList()
     override fun <T : RetrievableAttribute> filteredAttribute(c: Class<T>): T? = null
-
     override fun copy(
         id: RetrievableId?,
         type: String?,
         content: List<ContentElement<*>>?,
-        descriptors: Collection<Descriptor<*>>?,
-        attributes: Collection<RetrievableAttribute>?,
-        relationships: Collection<Relationship>?,
+        descriptors: Set<Descriptor<*>>?,
+        attributes: Set<RetrievableAttribute>?,
+        relationships: Set<Relationship>?,
         transient: Boolean?
     ) = TerminalRetrievable
 }
