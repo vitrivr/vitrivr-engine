@@ -49,8 +49,8 @@ class ObjectFieldLookup(override val input: Operator<out Retrievable>,
 
         /* Emit input. */
         inputRetrieved.forEach { it ->
-            val relationships = it.relationships.toMutableList() /* This is a hack to work around the immutability of Retrievables. */
-            val new = mutableListOf<Relationship.ByRef>()
+            val relationships = it.relationships.toMutableSet() /* This is a hack to work around the immutability of Retrievables. */
+            val new = mutableSetOf<Relationship.ByRef>()
             val retrievable = it.copy(relationships = relationships)
             relationships.removeIf { rel ->
                 if (rel is Relationship.ByRef && (this@ObjectFieldLookup.predicates.isEmpty() || rel.predicate in this@ObjectFieldLookup.predicates)) {
