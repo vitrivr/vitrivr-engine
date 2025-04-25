@@ -36,7 +36,7 @@ class KotlinxJsonMapperTest {
         val r2 = Retrieved(UUID.randomUUID(), "SOURCE:IMAGE", emptyList(), emptySet(), emptySet(), emptySet(), false)
         val rel = Relationship.ByRef(r1, "partOf", r2, false)
 
-        queryResult = QueryResult(listOf(r1.copy(relationships = listOf(rel)), r2))
+        queryResult = QueryResult(listOf(r1.copy(relationships = setOf(rel)), r2))
 
     }
 
