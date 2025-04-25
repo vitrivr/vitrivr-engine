@@ -5,6 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.mapNotNull
+import org.vitrivr.engine.core.config.pipeline.execution.ExecutionStatus
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
@@ -64,10 +65,10 @@ class MeshDecoder : DecoderFactory {
                 retrievable.copy(content = retrievable.content + modelContent)
             } catch (e: IOException) {
                 logger.error(e) { "Failed to decode 3D model from $source due to an IO exception." }
-                null
+                throw e
             } catch (e: Throwable) {
                 logger.error(e) { "Failed to decode 3D model from source '${source.name}' (${source.sourceId}) due to exception: ${e.message}" }
-                null
+                throw e
             }
         }
     }
