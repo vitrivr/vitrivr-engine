@@ -11,6 +11,7 @@ import java.util.*
  * @author Luca Rossetto
  * @version 1.1.0
  */
+@Deprecated("replaced by DescriptorContent")
 interface TextContent: ContentElement<String> {
     /** Length of the [String] held by this [TextContent]. */
     val length: Int
@@ -18,7 +19,7 @@ interface TextContent: ContentElement<String> {
 
     /** The [ContentType] of an [TextContent] is always [ContentType.TEXT]. */
     override val type: ContentType
-        get() = ContentType.TEXT
+        get() = ContentType.DESCRIPTOR
 
     /**
      * Converts this [TextContent] to a data URL representation.
