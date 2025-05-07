@@ -1,5 +1,6 @@
 package org.vitrivr.engine.query.parsing
 
+import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -15,9 +16,6 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.core.util.extension.loadServiceForName
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
 import org.vitrivr.engine.query.model.api.input.*
-import org.vitrivr.engine.query.model.api.operator.AggregatorDescription
-import org.vitrivr.engine.query.model.api.operator.RetrieverDescription
-import org.vitrivr.engine.query.model.api.operator.TransformerDescription
 import org.vitrivr.engine.query.operators.retrieval.RetrievedLookup
 import java.util.*
 
@@ -38,13 +36,24 @@ class QueryParser(val schema: Schema) {
      */
     fun parse(description: InformationNeedDescription): Operator<out Retrievable> {
 
-        description.context.schema = schema
+
+
+        val context = QueryContext(local = description.operations.map { (name, description) ->
+            name to description.parameters
+        }.toMap())
+
+        context.schema = schema
 
         val operators = mutableMapOf<String, Operator<out Retrievable>>()
         val contentCache = mutableMapOf<String, ContentElement<*>>()
 
         /* Parse individual operators and append the to the operators map. */
         description.operations.forEach { (operationName, operationDescription) ->
+
+            if (operationDescription.field != null) { //must be a retriever
+
+            }
+
             operators[operationName] = when (operationDescription) {
                 is RetrieverDescription -> parseRetrieverOperator(description, operationName, contentCache)
                 is TransformerDescription -> parseTransformationOperator(description, operationName, operators)
@@ -65,10 +74,16 @@ class QueryParser(val schema: Schema) {
      *
      * @return [Operator] instance.
      */
-    private fun parseRetrieverOperator(description: InformationNeedDescription, operatorName: String, content: MutableMap<String, ContentElement<*>>): Operator<out Retrievable> {
+    private fun parseRetrieverOperator(description: InformationNeedDescription, operatorName: String, content: MutableMap<String, ContentElement<*>>, context: QueryContext): Operator<out Retrievable> {
         /* Extract necessary information. */
-        val operation = description.operations[operatorName] as? RetrieverDescription ?: throw IllegalArgumentException("Operation '$operatorName' not found in information need description.")
-        val input = description.inputs[operation.input] ?: throw IllegalArgumentException("Input '${operation.input}' for operation '$operatorName' not found")
+        val operation = description.operations[operatorName] ?: throw IllegalArgumentException("Operation '$operatorName' not found in information need description.")
+        val inputs = operation.inputs.map { (k, v) ->
+            val inputData = (description.inputs[v] ?: throw IllegalArgumentException("Input '${v}' for operation '$operatorName' not found"))
+
+            k to inputData.toContent()
+
+        }.toMap()
+
         /* Special case: handle pass-through. */
         if (operation.field == null) { //special case, handle pass-through
             require(input.type == InputType.ID) { "Only inputs of type ID are supported for direct retrievable lookup." }
@@ -90,9 +105,9 @@ class QueryParser(val schema: Schema) {
                 val id = UUID.fromString(input.id)
                 val reader = field.getReader()
                 val descriptor = reader.getForRetrievable(id).firstOrNull() ?: throw IllegalArgumentException("No retrievable with id '$id' present in ${field.fieldName}")
-                field.getRetrieverForDescriptor(descriptor, description.context)
+                field.getRetrieverForDescriptor(descriptor, context)
             }
-            is VectorInputData -> field.getRetrieverForDescriptor(FloatVectorDescriptor(vector = Value.FloatVector(input.data.toFloatArray())), description.context)
+            is VectorInputData -> field.getRetrieverForDescriptor(FloatVectorDescriptor(vector = Value.FloatVector(input.data.toFloatArray())), context)
             else -> {
                 /* Is this a boolean sub-field query ? */
                 if(fieldAndAttributeName.second != null && input.comparison != null){
@@ -126,13 +141,13 @@ class QueryParser(val schema: Schema) {
                         }
                         else -> throw UnsupportedOperationException("Subfield query for $input is currently not supported")
                     }
-                    val limit = description.context.getProperty(operatorName, "limit")?.toLong() ?: Long.MAX_VALUE
+                    val limit = context.getProperty(operatorName, "limit")?.toLong() ?: Long.MAX_VALUE
                     field.getRetrieverForQuery(
                         SimpleBooleanQuery(value, ComparisonOperator.fromString(input.comparison!!), fieldAndAttributeName.second, limit),
-                        description.context)
+                        context)
                 }else{
                     /* no */
-                    field.getRetrieverForContent(content.computeIfAbsent(operation.input) { input.toContent() }, description.context)
+                    field.getRetrieverForContent(content.computeIfAbsent(operation.input) { input.toContent() }, context)
                 }
             }
         }
@@ -148,10 +163,10 @@ class QueryParser(val schema: Schema) {
      * @return [Operator] instance.
      */
     private fun parseTransformationOperator(description: InformationNeedDescription, operatorName: String, operators: Map<String, Operator<out Retrievable>>): Operator<Retrievable> {
-        val operation = description.operations[operatorName] as? TransformerDescription ?: throw IllegalArgumentException("Operation '$operatorName' not found in information need description.")
+        val operation = description.operations[operatorName]  ?: throw IllegalArgumentException("Operation '$operatorName' not found in information need description.")
         val input = operators[operation.input] ?: throw IllegalArgumentException("Input '${operation.input}' for operation '$operatorName' not found")
-        val factory = loadServiceForName<TransformerFactory>(operation.transformerName + "Factory")
-            ?: throw IllegalArgumentException("No factory found for '${operation.transformerName}'")
+        val factory = loadServiceForName<TransformerFactory>(operation.className + "Factory")
+            ?: throw IllegalArgumentException("No factory found for '${operation.className}'")
         return factory.newTransformer(operatorName, input, description.context)
     }
 
@@ -165,7 +180,7 @@ class QueryParser(val schema: Schema) {
      * @return [Operator] instance.
      */
     private fun parseAggregationOperator(description: InformationNeedDescription, operatorName: String, operators: Map<String, Operator<out Retrievable>>): Operator<Retrievable> {
-        val operation = description.operations[operatorName] as? AggregatorDescription ?: throw IllegalArgumentException("Operation '$operatorName' not found in information need description.")
+        val operation = description.operations[operatorName]  ?: throw IllegalArgumentException("Operation '$operatorName' not found in information need description.")
         require(operation.inputs.isNotEmpty()) { "Inputs of an aggregation operator cannot be empty." }
 
         /* Extract input operators from operators map. */
@@ -174,7 +189,7 @@ class QueryParser(val schema: Schema) {
         }
 
         /* Create aggregation operator. */
-        val factory = loadServiceForName<AggregatorFactory>(operation.aggregatorName + "Factory") ?: throw IllegalArgumentException("No factory found for '${operation.aggregatorName}'")
+        val factory = loadServiceForName<AggregatorFactory>(operation.className + "Factory") ?: throw IllegalArgumentException("No factory found for '${operation.className}'")
         return factory.newAggregator(operatorName, inputs, description.context)
     }
 }
