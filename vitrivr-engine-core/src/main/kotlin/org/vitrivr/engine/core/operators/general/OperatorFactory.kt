@@ -6,6 +6,6 @@ import org.vitrivr.engine.core.operators.Operator
 
 interface OperatorFactory {
 
-    fun newOperator(name: String, inputs: List<Operator<out Retrievable>>, context: Context) : Operator<out Retrievable>
+    fun newOperator(name: String, inputs: Map<String, Operator<out Retrievable>>, context: Context) : Operator<out Retrievable>
 
 }

@@ -8,8 +8,8 @@ import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.general.OperatorFactory
 import org.vitrivr.engine.core.operators.general.Transformer
-import org.vitrivr.engine.core.operators.general.TransformerFactory
 
 /**
  * A [Transformer] that resolves a specified relationship for all incoming [Ingested]and emits the [Ingested] reference on the other side of the relationship.
@@ -17,10 +17,10 @@ import org.vitrivr.engine.core.operators.general.TransformerFactory
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class MapRelationshipTransformer : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
+class MapRelationshipTransformer : OperatorFactory {
+    override fun newOperator(name: String, inputs: Map<String, Operator<out Retrievable>>, context: Context): Transformer {
         val predicate = context[name, "predicate"] ?: throw IllegalArgumentException("The relationship transformer requires a predicate to be specified.")
-        return Instance(input, predicate)
+        return Instance(inputs.values.first(), predicate)
     }
 
     /**
