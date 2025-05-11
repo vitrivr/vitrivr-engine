@@ -2,7 +2,6 @@ package org.vitrivr.engine.core.config.schema
 
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.operators.general.Exporter
-import org.vitrivr.engine.core.operators.general.ExporterFactory
 
 /**
  * The [ExporterConfig] describes an [Exporter], how it is to be constructed by an [ExporterFactory].

@@ -72,7 +72,7 @@ class FileSourceMetadata : Analyser<ContentElement<*>, FileSourceMetadataDescrip
      *
      * This method will always throw an [UnsupportedOperationException
      */
-    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): FileSourceMetadataRetriever {
+    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, content: Map<String, ContentElement<*>>, context: QueryContext): FileSourceMetadataRetriever {
         throw UnsupportedOperationException("FileSourceMetadata does not support the creation of a Retriever instance from content.")
     }
 }

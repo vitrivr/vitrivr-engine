@@ -75,7 +75,7 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
      *
      * This method will always throw an [UnsupportedOperationException]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): TemporalMetadataRetriever {
+    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, content: Map<String, ContentElement<*>>, context: QueryContext): TemporalMetadataRetriever {
         throw UnsupportedOperationException("TemporalMetadataDescriptor does not support the creation of a Retriever instance from content.")
     }
 }

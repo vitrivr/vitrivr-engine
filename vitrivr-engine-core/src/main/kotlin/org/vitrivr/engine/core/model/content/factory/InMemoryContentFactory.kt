@@ -8,10 +8,12 @@ import org.vitrivr.engine.core.model.content.impl.memory.InMemoryAudioContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryImageContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryModel3dContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryTextContent
+import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
 import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
 import org.vitrivr.engine.core.model.metamodel.Schema
 import java.awt.image.BufferedImage
 import java.nio.ShortBuffer
+import java.util.UUID
 
 /**
  * A [ContentFactory] that keeps [ContentElement]s in memory.

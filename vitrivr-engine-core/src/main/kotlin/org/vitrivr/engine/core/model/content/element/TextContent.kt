@@ -1,6 +1,8 @@
 package org.vitrivr.engine.core.model.content.element
 
 import org.vitrivr.engine.core.model.content.ContentType
+import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
+import org.vitrivr.engine.core.model.types.Value
 import java.nio.charset.StandardCharsets
 import java.util.*
 
@@ -12,10 +14,10 @@ import java.util.*
  * @version 1.1.0
  */
 @Deprecated("replaced by DescriptorContent")
-interface TextContent: ContentElement<String> {
+interface TextContent: DescriptorContent<TextDescriptor> {
     /** Length of the [String] held by this [TextContent]. */
     val length: Int
-        get() = this.content.length
+        get() = (this.content as Value.Text).value.length //FIXME
 
     /** The [ContentType] of an [TextContent] is always [ContentType.TEXT]. */
     override val type: ContentType
@@ -26,5 +28,5 @@ interface TextContent: ContentElement<String> {
      *
      * @return [String] of the data URL.
      */
-    fun toDataUrl(): String = "data:text/plain;charset=utf-8,${Base64.getEncoder().encodeToString(this.content.toByteArray(StandardCharsets.UTF_8))}"
+    fun toDataUrl(): String = "data:text/plain;charset=utf-8,${Base64.getEncoder().encodeToString((this.content as Value.Text).value.toByteArray(StandardCharsets.UTF_8))}"
 }
