@@ -18,7 +18,7 @@ object IndexContextFactory {
      *
      * @return A [IndexContext] based on the [contextConfig]'s description and for the [schema].
      */
-    fun newContext(contextConfig: IngestionContextConfig): IndexContext {
+    fun newContext(parameters: Map<String, String>, contextConfig: IngestionContextConfig): IndexContext {
         /* Load content factory. */
         val contentFactory = loadServiceForName<ContentFactoriesFactory>(contextConfig.contentFactory) ?: throw IllegalArgumentException("Failed to find content factory implementation for name '${contextConfig.contentFactory}'.")
 
@@ -27,7 +27,7 @@ object IndexContextFactory {
         /* Return new context. */
         return IndexContext(
             schema,
-            contentFactory.newContentFactory(schema, contextConfig),
+            contentFactory.newContentFactory(schema, parameters),
             contextConfig.resolvers.associateWith { k -> schema.getResolver(k) },
         )
     }
