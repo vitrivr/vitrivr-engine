@@ -22,9 +22,9 @@ class IngestionContextConfig(
     /** The name of the [Resolver]s to be used during ingestion */
     val resolvers: List<String>,
 
-) : Context() {
+    ) {
     @Transient
     @get:OpenApiIgnore
     @set:OpenApiIgnore
-    override lateinit var schema: Schema
+    lateinit var schema: Schema
 }
