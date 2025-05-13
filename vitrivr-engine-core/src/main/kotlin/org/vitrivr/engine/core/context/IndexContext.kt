@@ -12,11 +12,16 @@ import org.vitrivr.engine.core.resolver.Resolver
  */
 data class IndexContext(
     /** The [Schema] used by this [IndexContext] */
-    val schema: Schema,
+    override val schema: Schema,
 
     /** The [ContentFactory] used by this [IndexContext] */
     val contentFactory: ContentFactory,
 
     /** A [Map] of named [Resolver]s. */
     val resolver: Map<String,Resolver> = emptyMap(),
-)
+): Context() {
+    @Deprecated("Use parameters instead.")
+    override val local: Map<String, Map<String, String>> = emptyMap()
+    @Deprecated("Use parameters instead.")
+    override val global: Map<String, String> = emptyMap()
+}

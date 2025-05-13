@@ -21,7 +21,7 @@ import java.util.*
  * @version 1.0.0
  */
 class DistinctTransformer : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, parameters: Map<String, String>, context: IndexContext): Transformer = Instance(input, name)
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, parameters: Map<String, String>, context: Context): Transformer = Instance(input, name)
 
     /**
      * [Transformer] that extracts [Retrievable] objects from a [Flow] of [Retrievable] objects based on a given [Relationship].

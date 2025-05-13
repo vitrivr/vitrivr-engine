@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.descriptor.vector.*
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAuthorAttribute
@@ -81,12 +82,12 @@ class VectorDescriptorAggregator : TransformerFactory {
 
     }
 
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, parameters: Map<String, String>, context: Context): Transformer {
 
         val authorName =
-            context[name, "authorName"] ?: throw IllegalArgumentException("Property 'authorName' must be specified")
+            parameters["authorName"] ?: throw IllegalArgumentException("Property 'authorName' must be specified")
         val strategy = AggregationStrategy.valueOf(
-            context[name, "strategy"]?.uppercase() ?: throw IllegalArgumentException("Property 'strategy' must be specified")
+            parameters["strategy"]?.uppercase() ?: throw IllegalArgumentException("Property 'strategy' must be specified")
         )
 
         return Instance(input, name, authorName, strategy)
