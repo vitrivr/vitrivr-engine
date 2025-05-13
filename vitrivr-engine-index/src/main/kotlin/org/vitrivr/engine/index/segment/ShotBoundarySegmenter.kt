@@ -65,7 +65,7 @@ class ShotBoundarySegmenter : TransformerFactory {
             (parameters["lookAheadTime"]
                 ?: throw IllegalArgumentException("Property 'lookAheadTime' must be specified")).toLong()
         )
-        return Instance(input, name, context, sbProvider, sbParams, tolerance, duration, lookAheadTime)
+        return Instance(input, name, parameters, context as IndexContext, sbProvider, sbParams, tolerance, duration, lookAheadTime)
     }
 
     /**
