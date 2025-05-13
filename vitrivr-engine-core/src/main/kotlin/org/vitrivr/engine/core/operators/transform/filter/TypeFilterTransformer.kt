@@ -15,7 +15,7 @@ import org.vitrivr.engine.core.operators.general.TransformerFactory
  * @version 1.0.0
  */
 class TypeFilterTransformer : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, parameters: Map<String, String>, context: IndexContext): Transformer {
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, parameters: Map<String, String>, context: Context): Transformer {
         val predicate = parameters["type"] ?: throw IllegalArgumentException("The type filter transformer requires a type name.")
         return Instance(input, predicate, name)
     }

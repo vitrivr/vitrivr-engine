@@ -7,12 +7,18 @@ import java.time.Duration
 import java.util.*
 
 
-class FileSystemShotBoundaryProvider: ShotBoundaryProviderFactory {
+class FileSystemShotBoundaryProvider : ShotBoundaryProviderFactory {
 
-    override fun newShotBoundaryProvider(name: String, context: Context): ShotBoundaryProvider {
-        val boundaryFilesPath = context[name, "boundaryFilesPath"] ?: throw IllegalArgumentException("Property 'boundaryFilesPath' must be specified")
-        val boundaryFileExtension = context[name, "boundaryFileExtension"] ?: ".tsv"
-        val toNanoScale = context[name, "toNanoScale"]?.toDouble() ?: throw IllegalArgumentException("Property 'toNanoScale' must be specified")
+    override fun newShotBoundaryProvider(
+        name: String,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ): ShotBoundaryProvider {
+        val boundaryFilesPath = parameters["boundaryFilesPath"]
+            ?: throw IllegalArgumentException("Property 'boundaryFilesPath' must be specified")
+        val boundaryFileExtension = parameters["boundaryFileExtension"] ?: ".tsv"
+        val toNanoScale = parameters["toNanoScale"]?.toDouble()
+            ?: throw IllegalArgumentException("Property 'toNanoScale' must be specified")
         return Instance(boundaryFilesPath, boundaryFileExtension, toNanoScale)
     }
 

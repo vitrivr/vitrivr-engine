@@ -20,7 +20,8 @@ import org.vitrivr.engine.core.operators.general.Transformer
  */
 abstract class AbstractAggregator(
     override val input: Operator<out Retrievable>,
-    protected open val context: IndexContext,
+    val parameters: Map<String, String>,
+    protected open val context: Context,
     override val name: String
 ) : Transformer {
     /**

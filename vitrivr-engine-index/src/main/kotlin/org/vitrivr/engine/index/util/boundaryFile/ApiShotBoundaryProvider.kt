@@ -10,6 +10,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.index.util.boundaryFile.JRS.ShotBoundaryDetectionDescriptor
 import org.vitrivr.engine.index.util.boundaryFile.JRS.ShotBoundaryDetectionSubmit
 
@@ -21,10 +22,10 @@ private val logger: KLogger = KotlinLogging.logger {}
  */
 class ApiShotBoundaryProvider: ShotBoundaryProviderFactory {
 
-    override fun newShotBoundaryProvider(name: String, context: Context): ShotBoundaryProvider {
-        val boundaryEndpointUri = context[name, "boundaryEndpointUri"]
+    override fun newShotBoundaryProvider(name: String, parameters: Map<String, String>, context: IndexContext): ShotBoundaryProvider {
+        val boundaryEndpointUri = parameters["boundaryEndpointUri"]
             ?: throw IllegalArgumentException("Property 'boundaryFilesPath' must be specified")
-        val toNanoScale = context[name, "toNanoScale"]?.toDouble()
+        val toNanoScale = parameters["toNanoScale"]?.toDouble()
             ?: throw IllegalArgumentException("Property 'toNanoScale' must be specified")
         return Instance(boundaryEndpointUri, toNanoScale)
     }

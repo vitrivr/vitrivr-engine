@@ -19,8 +19,14 @@ import org.vitrivr.engine.core.operators.general.TransformerFactory
  * @version 1.0.0
  */
 class MapRelationshipTransformer : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, parameters: Map<String, String>,context: IndexContext): Transformer {
-        val predicate = parameters["predicate"] ?: throw IllegalArgumentException("The relationship transformer requires a predicate to be specified.")
+    override fun newTransformer(
+        name: String,
+        input: Operator<out Retrievable>,
+        parameters: Map<String, String>,
+        context: Context
+    ): Transformer {
+        val predicate = parameters["predicate"]
+            ?: throw IllegalArgumentException("The relationship transformer requires a predicate to be specified.")
         return Instance(input, predicate)
     }
 

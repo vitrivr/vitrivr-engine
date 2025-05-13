@@ -23,6 +23,6 @@ interface TransformerFactory {
         name: String,
         input: Operator<out Retrievable>,
         parameters: Map<String, String>,
-        context: IndexContext
+        context: Context
     ): Transformer
 }

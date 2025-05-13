@@ -38,15 +38,18 @@ class AverageImageContentAggregator : TransformerFactory {
         name: String,
         input: Operator<out Retrievable>,
         parameters: Map<String, String>,
-        context: IndexContext
-    ): Transformer = Instance(input, context as IndexContext, name)
+        context: Context
+    ): Transformer = Instance(input, parameters, context, name)
 
     /**
      * The [Instance] returns by the [AverageImageContentAggregator]
      */
     private class Instance(
-        override val input: Operator<out Retrievable>, override val context: IndexContext, name: String
-    ) : AbstractAggregator(input, context, name) {
+        override val input: Operator<out Retrievable>,
+        parameters: Map<String, String>,
+        override val context: IndexContext,
+        name: String
+    ) : AbstractAggregator(input, parameters, context, name) {
         override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> {
             /* Filter out images. */
             val images = content.filterIsInstance<ImageContent>()

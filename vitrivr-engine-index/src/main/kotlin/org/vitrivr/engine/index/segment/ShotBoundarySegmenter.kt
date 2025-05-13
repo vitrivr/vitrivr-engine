@@ -5,6 +5,7 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -24,6 +25,7 @@ import org.vitrivr.engine.index.util.boundaryFile.ShotBoundaryProvider
 import org.vitrivr.engine.index.util.boundaryFile.ShotBoundaryProviderFactory
 import java.time.Duration
 import java.util.*
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Segments a content flow into segments of a specified target temporal duration.
@@ -40,20 +42,28 @@ class ShotBoundarySegmenter : TransformerFactory {
      * @param input The input [Operator].
      * @param context The [Context] to use.
      */
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
+    override fun newTransformer(
+        name: String,
+        input: Operator<out Retrievable>,
+        parameters: Map<String, String>,
+        context: Context
+    ): Transformer {
         /** Path to folder of shotBoundary Files **/
-        val sbProvider = context[name, "sbProvider"]
+        val sbProvider = parameters["sbProvider"]
             ?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
-        val sbParams = context[name, "sbParams"]
+        val sbParams = parameters["sbParams"]
             ?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
         val tolerance = Duration.ofMillis(
-            (context[name, "tolerance"] ?: throw IllegalArgumentException("Property 'duration' must be specified")).toLong()
+            (parameters["tolerance"]
+                ?: throw IllegalArgumentException("Property 'duration' must be specified")).toLong()
         )
         val duration = Duration.ofMillis(
-            (context[name, "duration"] ?: throw IllegalArgumentException("Property 'duration' must be specified")).toLong()
+            (parameters["duration"]
+                ?: throw IllegalArgumentException("Property 'duration' must be specified")).toLong()
         )
         val lookAheadTime = Duration.ofMillis(
-            (context[name, "lookAheadTime"] ?: throw IllegalArgumentException("Property 'lookAheadTime' must be specified")).toLong()
+            (parameters["lookAheadTime"]
+                ?: throw IllegalArgumentException("Property 'lookAheadTime' must be specified")).toLong()
         )
         return Instance(input, name, context, sbProvider, sbParams, tolerance, duration, lookAheadTime)
     }
@@ -66,8 +76,8 @@ class ShotBoundarySegmenter : TransformerFactory {
         override val input: Operator<out Retrievable>,
 
         override val name: String,
-
-        context: Context,
+        parameters: Map<String, String>,
+        context: IndexContext,
 
         /** Path to folder of shotBoundary Files **/
         sbProvider: String,
@@ -86,7 +96,7 @@ class ShotBoundarySegmenter : TransformerFactory {
 
         val factory = loadServiceForName<ShotBoundaryProviderFactory>(sbProvider)
             ?: throw IllegalArgumentException("Failed to find ShotBoundaryProviderFactory for $name")
-        private val sb: ShotBoundaryProvider = factory.newShotBoundaryProvider(sbName, context)
+        private val sb: ShotBoundaryProvider = factory.newShotBoundaryProvider(sbName, parameters, context)
 
         private val tolerance: Long = tolerance.toNanos()
 
@@ -116,16 +126,45 @@ class ShotBoundarySegmenter : TransformerFactory {
             /* Collect upstream flow. */
             this@Instance.input.toFlow(scope).collect { ingested ->
                 if (srcRetrievable == null) {
-                    srcRetrievable = Ingested(UUID.randomUUID(), "SOURCE:VIDEO", emptyList(), emptySet(), emptySet(), emptySet(), true)
+                    srcRetrievable = Ingested(
+                        UUID.randomUUID(),
+                        "SOURCE:VIDEO",
+                        emptyList(),
+                        emptySet(),
+                        emptySet(),
+                        emptySet(),
+                        true
+                    )
                 }
 
                 if (ingested.type == "SOURCE:VIDEO") {
                     /* Send remaining segments in cache. */
-                    sendFromCache(downstream, cache, sbs!!.last().startAbs.toNanos(), sbs!!.last().endAbs.toNanos(), tolerance, srcRetrievable!!)
+                    sendFromCache(
+                        downstream,
+                        cache,
+                        sbs!!.last().startAbs.toNanos(),
+                        sbs!!.last().endAbs.toNanos(),
+                        tolerance,
+                        srcRetrievable!!
+                    )
 
                     /* Send source retrievable. */
-                    downstream.send(srcRetrievable!!.copy(content = ingested.content, descriptors = ingested.descriptors, attributes = ingested.attributes))
-                    srcRetrievable = Ingested(UUID.randomUUID(), "SOURCE:VIDEO", emptyList(), emptySet(), emptySet(), emptySet(), true)
+                    downstream.send(
+                        srcRetrievable!!.copy(
+                            content = ingested.content,
+                            descriptors = ingested.descriptors,
+                            attributes = ingested.attributes
+                        )
+                    )
+                    srcRetrievable = Ingested(
+                        UUID.randomUUID(),
+                        "SOURCE:VIDEO",
+                        emptyList(),
+                        emptySet(),
+                        emptySet(),
+                        emptySet(),
+                        true
+                    )
                     return@collect
                 }
 
@@ -231,7 +270,17 @@ class ShotBoundarySegmenter : TransformerFactory {
             attributes.add(TimeRangeAttribute(min, max))
 
             /* Send retrievable downstream. */
-            downstream.send(Ingested(retrievableId, emit.first().type, content, descriptors, attributes, relationships, true))
+            downstream.send(
+                Ingested(
+                    retrievableId,
+                    emit.first().type,
+                    content,
+                    descriptors,
+                    attributes,
+                    relationships,
+                    true
+                )
+            )
         }
     }
 }

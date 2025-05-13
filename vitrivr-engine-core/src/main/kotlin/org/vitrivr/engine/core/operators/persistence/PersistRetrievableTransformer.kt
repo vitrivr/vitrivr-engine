@@ -36,11 +36,11 @@ class PersistRetrievableTransformer : TransformerFactory {
         name: String,
         input: Operator<out Retrievable>,
         parameters: Map<String, String>,
-        context: IndexContext
+        context: Context
     ): Transformer = Instance(
         input as Operator<Retrievable>,
         parameters,
-        context,
+        context as IndexContext,
         name
     )
 
