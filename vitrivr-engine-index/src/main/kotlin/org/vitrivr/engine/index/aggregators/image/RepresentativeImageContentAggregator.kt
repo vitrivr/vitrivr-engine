@@ -35,14 +35,17 @@ class RepresentativeImageContentAggregator : TransformerFactory {
         input: Operator<out Retrievable>,
         parameters: Map<String, String>,
         context: Context
-    ): Transformer = Instance(input, parameters, context, name)
+    ): Transformer = Instance(input, parameters, context as IndexContext, name)
 
 
     /**
      * The [Instance] returns by the [RepresentativeImageContentAggregator]
      */
     private class Instance(
-        override val input: Operator<out Retrievable>, parameters: Map<String, String>, override val context: IndexContext, name: String
+        override val input: Operator<out Retrievable>,
+        parameters: Map<String, String>,
+        override val context: IndexContext,
+        name: String
     ) : AbstractAggregator(input, parameters, context, name) {
         override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> {
             val images = content.filterIsInstance<ImageContent>()
