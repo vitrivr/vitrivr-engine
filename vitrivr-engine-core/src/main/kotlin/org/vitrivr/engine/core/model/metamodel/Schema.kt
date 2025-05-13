@@ -181,8 +181,8 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * @param context The [IndexContext] to use with the [Extractor].
          * @return [Extractor] instance.
          */
-        fun getExtractor(input: Operator<Retrievable>, context: IndexContext): Extractor<C, D> = this.analyser.newExtractor(this, input, context)
-
+        fun getExtractor(input: Operator<Retrievable>, parameters: Map<String, String>): Extractor<C, D> = this.analyser.newExtractor(this, input, parameters)
+        
         /**
          * Returns a [Retriever] instance for this [Schema.Field] and the provided [Query].
          *
@@ -272,24 +272,21 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * @param context The [IndexContext] to use.
          * @return [DescriptorReader]
          */
-        fun getExporter(input: Operator<Retrievable>, context: IndexContext): org.vitrivr.engine.core.operators.general.Exporter {
-            val newContext = if (parameters.isNotEmpty()) {
+        fun getExporter(input: Operator<Retrievable>, context: IndexContext, params: Map<String, String>): org.vitrivr.engine.core.operators.general.Exporter {
+            val newParameters = if (parameters.isNotEmpty()) {
                 /* Case this is newly defined in the schema */
-                val params = if (context.local.containsKey(name)) {
-                    val map = context.local[name]?.toMutableMap() ?: mutableMapOf()
+                val p = if (params.containsKey(name)) {
+                    val map = params?.toMutableMap() ?: mutableMapOf()
                     map.putAll(parameters)
                     map
                 } else {
                     parameters
                 }
-                val newLocal = context.local.toMutableMap()
-                newLocal[name] = params
-                IndexContext(context.schema, context.contentFactory, context.resolver, newLocal, context.global)
+                p
             } else {
-                /* Other case: this is from the ingestion side of things, but referenced */
-                context
+                params
             }
-            return this.factory.newExporter(name, input, newContext)
+            return this.factory.newExporter(name, input, newParameters)
         }
     }
 }

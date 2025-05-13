@@ -29,8 +29,6 @@ object IndexContextFactory {
             schema,
             contentFactory.newContentFactory(schema, contextConfig),
             contextConfig.resolvers.associateWith { k -> schema.getResolver(k) },
-            contextConfig.local,
-            contextConfig.global
         )
     }
 }
