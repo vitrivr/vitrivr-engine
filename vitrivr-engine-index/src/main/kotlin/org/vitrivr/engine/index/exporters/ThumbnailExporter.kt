@@ -37,10 +37,10 @@ class ThumbnailExporter : ExporterFactory {
      * @param input The [Operator] to acting as an input.
      * @param context The [IndexContext] to use.
      */
-    override fun newExporter(name: String, input: Operator<Retrievable>, context: IndexContext): Exporter {
-        val resolverName = context[name, "resolver"]?: "default"
-        val maxSideResolution = context[name, "maxSideResolution"]?.toIntOrNull() ?: 400
-        val mimeType = context[name, "mimeType"]?.let {
+    override fun newExporter(name: String, input: Operator<Retrievable>, parameters: Map<String, String>, context: IndexContext): Exporter {
+        val resolverName = parameters["resolver"]?: "default"
+        val maxSideResolution = parameters["maxSideResolution"]?.toIntOrNull() ?: 400
+        val mimeType = parameters["mimeType"]?.let {
             try {
                 MimeType.valueOf(it.uppercase())
             } catch (e: java.lang.IllegalArgumentException) {
@@ -48,7 +48,7 @@ class ThumbnailExporter : ExporterFactory {
             }
         } ?: MimeType.JPG
         logger.debug { "Creating new ThumbnailExporter with maxSideResolution=$maxSideResolution and mimeType=$mimeType." }
-        return Instance(input, context, resolverName, maxSideResolution, mimeType, name)
+        return Instance(input,  context, resolverName, maxSideResolution, mimeType, name)
     }
 
     /**

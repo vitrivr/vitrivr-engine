@@ -17,5 +17,5 @@ interface DecoderFactory {
      * @param input The input [Enumerator].
      * @param context The [IndexContext] to use.
      */
-    fun newDecoder(name: String, input: Enumerator, parameters: Map<String, String>): Decoder
+    fun newDecoder(name: String, input: Enumerator, parameters: Map<String, String>, context: IndexContext): Decoder
 }

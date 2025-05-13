@@ -249,7 +249,7 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
      */
     private fun buildTransformer(name: String, parent: Operator<Retrievable>, config: OperatorConfig.Transformer): Transformer {
         val factory = loadFactory<TransformerFactory>(config.factory)
-        return factory.newTransformer(name, parent, config.parameters).apply {
+        return factory.newTransformer(name, parent, config.parameters, this.context).apply {
             logger.info { "Built transformer: ${this.javaClass.name} with name $name" }
         }
     }
@@ -271,7 +271,7 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
         } else if (!config.exporterName.isNullOrBlank()) {
             /* Case exporter name is given. Due to require in ExporterConfig.init, this is fine as an if-else */
             val exporter = context.schema.getExporter(config.exporterName) ?: throw IllegalArgumentException("Exporter '${config.exporterName}' does not exist on schema '${context.schema.name}'")
-            exporter.getExporter(parent, context).apply {
+            exporter.getExporter(parent, config.parameters).apply {
                 logger.info { "Built exporter by name from schema: ${config.exporterName}." }
             }
         } else {
@@ -288,7 +288,7 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
     private fun buildExtractor(name: String, parent: Operator<Retrievable>, config: OperatorConfig.Extractor): Extractor<*, *> {
         if (!config.fieldName.isNullOrBlank()) {
             val field = this.context.schema[config.fieldName] ?: throw IllegalArgumentException("Field '${config.fieldName}' does not exist in schema '${context.schema.name}'")
-            return field.getExtractor(parent, this.context).apply {
+            return field.getExtractor(parent, config.parameters).apply {
                 logger.info { "Built extractor by name field name: ${config.fieldName}" }
             }
         } else if (!config.factory.isNullOrBlank()) {
