@@ -1,6 +1,7 @@
 package org.vitrivr.engine.core.operators.transform.filter
 
 import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
@@ -14,8 +15,8 @@ import org.vitrivr.engine.core.operators.general.TransformerFactory
  * @version 1.0.0
  */
 class TypeFilterTransformer : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
-        val predicate = context[name, "type"] ?: throw IllegalArgumentException("The type filter transformer requires a type name.")
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, parameters: Map<String, String>, context: IndexContext): Transformer {
+        val predicate = parameters["type"] ?: throw IllegalArgumentException("The type filter transformer requires a type name.")
         return Instance(input, predicate, name)
     }
 
