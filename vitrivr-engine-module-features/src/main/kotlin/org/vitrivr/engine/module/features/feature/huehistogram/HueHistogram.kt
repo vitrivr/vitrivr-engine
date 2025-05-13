@@ -46,7 +46,8 @@ class HueHistogram : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param field [Schema.Field] to create the prototype for.
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>): FloatVectorDescriptor = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(VECTOR_SIZE))
+    override fun prototype(field: Schema.Field<*, *>): FloatVectorDescriptor =
+        FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(VECTOR_SIZE))
 
     /**
      * Generates and returns a new [HueHistogramExtractor] instance for this [HueHistogram].
@@ -58,7 +59,12 @@ class HueHistogram : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = HueHistogramExtractor(input, this, name)
+    override fun newExtractor(
+        name: String,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ) = HueHistogramExtractor(input, this, name)
 
     /**
      * Generates and returns a new [HueHistogramExtractor] instance for this [HueHistogram].
@@ -70,7 +76,12 @@ class HueHistogram : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext) = HueHistogramExtractor(input, this,  field)
+    override fun newExtractor(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ) = HueHistogramExtractor(input, this, field)
 
     /**
      * Generates and returns a new [DenseRetriever] instance for this [HueHistogram].
@@ -81,7 +92,11 @@ class HueHistogram : Analyser<ImageContent, FloatVectorDescriptor> {
      *
      * @return A new [DenseRetriever] instance for this [HueHistogram]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, context: QueryContext): DenseRetriever<ImageContent> {
+    override fun newRetrieverForQuery(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        query: Query,
+        context: QueryContext
+    ): DenseRetriever<ImageContent> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
         @Suppress("UNCHECKED_CAST")
@@ -97,7 +112,11 @@ class HueHistogram : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): DenseRetriever<ImageContent> {
+    override fun newRetrieverForDescriptors(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        descriptors: Collection<FloatVectorDescriptor>,
+        context: QueryContext
+    ): DenseRetriever<ImageContent> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
 
         /* Prepare query parameters. */
@@ -105,7 +124,11 @@ class HueHistogram : Analyser<ImageContent, FloatVectorDescriptor> {
         val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
 
         /* Return retriever. */
-        return this.newRetrieverForQuery(field, ProximityQuery(value = descriptors.first().vector, k = k, fetchVector = fetchVector), context)
+        return this.newRetrieverForQuery(
+            field,
+            ProximityQuery(value = descriptors.first().vector, k = k, fetchVector = fetchVector),
+            context
+        )
     }
 
     /**
@@ -118,7 +141,11 @@ class HueHistogram : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param content An array of [Content] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext) = this.newRetrieverForDescriptors(field, content.map { this.analyse(it) }, context)
+    override fun newRetrieverForContent(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        content: Collection<ImageContent>,
+        context: QueryContext
+    ) = this.newRetrieverForDescriptors(field, content.map { this.analyse(it) }, context)
 
     /**
      * Performs the [HueHistogram] analysis on the provided [ImageContent] and returns a [FloatVectorDescriptor] that represents the result.
