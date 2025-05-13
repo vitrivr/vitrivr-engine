@@ -272,7 +272,7 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * @param context The [IndexContext] to use.
          * @return [DescriptorReader]
          */
-        fun getExporter(input: Operator<Retrievable>, context: IndexContext, params: Map<String, String>): org.vitrivr.engine.core.operators.general.Exporter {
+        fun getExporter(input: Operator<Retrievable>, params: Map<String, String>): org.vitrivr.engine.core.operators.general.Exporter {
             val newParameters = if (parameters.isNotEmpty()) {
                 /* Case this is newly defined in the schema */
                 val p = if (params.containsKey(name)) {

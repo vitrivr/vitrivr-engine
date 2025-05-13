@@ -1,6 +1,7 @@
 package org.vitrivr.engine.core.operators.general
 
 import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 
@@ -18,5 +19,5 @@ interface TransformerFactory {
      * @param input The input [Operator].
      * @param context The [Context] to use.
      */
-    fun newTransformer(name: String, input: Operator<out Retrievable>, parameter: Map<String, String>): Transformer
+    fun newTransformer(name: String, input: Operator<out Retrievable>, parameters: Map<String, String>, context: IndexContext): Transformer
 }
