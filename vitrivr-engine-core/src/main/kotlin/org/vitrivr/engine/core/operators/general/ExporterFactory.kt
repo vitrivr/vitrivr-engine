@@ -18,5 +18,5 @@ interface ExporterFactory {
      * @param input The input [Operator].
      * @param context The [IndexContext] to use.
      */
-    fun newExporter(name: String, input: Operator<Retrievable>, parameters: Map<String, String>): Exporter
+    fun newExporter(name: String, input: Operator<Retrievable>, parameters: Map<String, String>, context: IndexContext): Exporter
 }

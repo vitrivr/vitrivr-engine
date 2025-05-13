@@ -31,11 +31,10 @@ interface Analyser<C : ContentElement<*>, D : Descriptor<*>> : ExtractorFactory<
          * @param context The [IndexContext] to merge parameters with.
          * @return Merged parameter map.
          */
-        fun merge(field: Schema.Field<*, *>, context: IndexContext): Map<String, String> {
+        fun merge(field: Schema.Field<*, *>, parameters: Map<String, String>): Map<String, String> {
             val fieldParameters = field.parameters
-            val contextParameters = context.local[field.fieldName] ?: emptyMap()
             val merged = HashMap<String, String>(fieldParameters)
-            merged.putAll(contextParameters)
+            merged.putAll(parameters)
             return merged
         }
 

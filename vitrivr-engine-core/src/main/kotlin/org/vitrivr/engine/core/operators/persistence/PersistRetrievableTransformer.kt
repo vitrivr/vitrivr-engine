@@ -32,16 +32,17 @@ class PersistRetrievableTransformer: TransformerFactory {
      * @param input The input [Operator].
      * @param context The [IndexContext] to use.
      */
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer = Instance(
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, parameters: Map<String, String>, context: IndexContext): Transformer = Instance(
         input as Operator<Retrievable>,
-        context as IndexContext,
+        parameters,
+        context,
         name
     )
 
     /**
      * The [PersistRetrievableTransformer] [Transformer] implementation.
      */
-    private class Instance(override val input: Operator<Retrievable>, val context: IndexContext, override val name: String): Transformer {
+    private class Instance(override val input: Operator<Retrievable>, val parameters: Map<String, String>, val context: IndexContext, override val name: String): Transformer {
 
         /** Logger instance. */
         private val logger = KotlinLogging.logger("RetrievablePersister#${this.name}")

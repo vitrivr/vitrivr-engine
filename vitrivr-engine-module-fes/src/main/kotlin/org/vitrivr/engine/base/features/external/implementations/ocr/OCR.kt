@@ -38,7 +38,8 @@ class OCR : ExternalFesAnalyser<ImageContent, TextDescriptor>() {
      * @param field [Schema.Field] to create the prototype for.
      * @return [TextDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>): TextDescriptor = TextDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.Text(""))
+    override fun prototype(field: Schema.Field<*, *>): TextDescriptor =
+        TextDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.Text(""))
 
     /**
      * Generates and returns a new [ASRExtractor] instance for this [ASR].
@@ -48,7 +49,12 @@ class OCR : ExternalFesAnalyser<ImageContent, TextDescriptor>() {
      * @param context The [IndexContext] to use with the [FesExtractor].
      * @return [ASRExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = OCRExtractor(input, name, this, context.local[name] ?: emptyMap())
+    override fun newExtractor(
+        name: String,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ) = OCRExtractor(input, name, this, parameters)
 
     /**
      * Generates and returns a new [ASRExtractor] instance for this [ASR].
@@ -58,7 +64,12 @@ class OCR : ExternalFesAnalyser<ImageContent, TextDescriptor>() {
      * @param context The [IndexContext] to use with the [FesExtractor].
      * @return [ASRExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, TextDescriptor>, input: Operator<Retrievable>, context: IndexContext) = OCRExtractor(input, field, this, merge(field, context))
+    override fun newExtractor(
+        field: Schema.Field<ImageContent, TextDescriptor>,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ) = OCRExtractor(input, field, this, merge(field, parameters))
 
     /**
      * Generates and returns a new [FulltextRetriever] instance for this [OCR].
@@ -69,7 +80,11 @@ class OCR : ExternalFesAnalyser<ImageContent, TextDescriptor>() {
      *
      * @return A new [FulltextRetriever] instance for this [OCR]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, TextDescriptor>, query: Query, context: QueryContext): FulltextRetriever<ImageContent> {
+    override fun newRetrieverForQuery(
+        field: Schema.Field<ImageContent, TextDescriptor>,
+        query: Query,
+        context: QueryContext
+    ): FulltextRetriever<ImageContent> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is SimpleFulltextQuery) { "The query is not a fulltext query. This is a programmer's error!" }
         return FulltextRetriever(field, query, context)
@@ -83,12 +98,20 @@ class OCR : ExternalFesAnalyser<ImageContent, TextDescriptor>() {
      * @param context The [QueryContext] to use with the [Retriever]
      * @return [FulltextRetriever]
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, TextDescriptor>, descriptors: Collection<TextDescriptor>, context: QueryContext): Retriever<ImageContent, TextDescriptor> {
+    override fun newRetrieverForDescriptors(
+        field: Schema.Field<ImageContent, TextDescriptor>,
+        descriptors: Collection<TextDescriptor>,
+        context: QueryContext
+    ): Retriever<ImageContent, TextDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
 
         /* Prepare query parameters and return retriever. */
         val limit = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        return this.newRetrieverForQuery(field, SimpleFulltextQuery(value = descriptors.first().value, limit = limit), context)
+        return this.newRetrieverForQuery(
+            field,
+            SimpleFulltextQuery(value = descriptors.first().value, limit = limit),
+            context
+        )
     }
 
     /**
@@ -99,13 +122,22 @@ class OCR : ExternalFesAnalyser<ImageContent, TextDescriptor>() {
      * @param context The [QueryContext] to use with the [Retriever]
      * @return [FulltextRetriever]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ImageContent, TextDescriptor>, content: Collection<ImageContent>, context: QueryContext): FulltextRetriever<ImageContent> {
+    override fun newRetrieverForContent(
+        field: Schema.Field<ImageContent, TextDescriptor>,
+        content: Collection<ImageContent>,
+        context: QueryContext
+    ): FulltextRetriever<ImageContent> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
 
         /* Prepare query parameters. */
-        val text = content.filterIsInstance<TextContent>().firstOrNull() ?: throw IllegalArgumentException("No text content found in the provided content.")
+        val text = content.filterIsInstance<TextContent>().firstOrNull()
+            ?: throw IllegalArgumentException("No text content found in the provided content.")
         val limit = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
 
-        return this.newRetrieverForQuery(field, SimpleFulltextQuery(value = Value.Text(text.content), limit = limit), context)
+        return this.newRetrieverForQuery(
+            field,
+            SimpleFulltextQuery(value = Value.Text(text.content), limit = limit),
+            context
+        )
     }
 }
