@@ -42,13 +42,18 @@ class FileSystemEnumerator : EnumeratorFactory {
      * @param name The name of the [Enumerator]
      * @param context The [IndexContext] to use.
      */
-    override fun newEnumerator(name: String, context: IndexContext, mediaTypes: List<MediaType>): Enumerator {
-        val path = Path(context[name, "path"] ?: throw IllegalArgumentException("Path is required."))
-        val depth = (context[name, "depth"] ?: Int.MAX_VALUE.toString()).toInt()
-        val skip = context[name, "skip"]?.toLongOrNull() ?: 0L
-        val limit = context[name, "limit"]?.toLongOrNull() ?: Long.MAX_VALUE
-        val type = context[name, "type"]
-        val regex = context[name, "regex"]
+    override fun newEnumerator(
+        name: String,
+        parameters: Map<String, String>,
+        context: IndexContext,
+        mediaTypes: List<MediaType>
+    ): Enumerator {
+        val path = Path(parameters["path"] ?: throw IllegalArgumentException("Path is required."))
+        val depth = (parameters["depth"] ?: Int.MAX_VALUE.toString()).toInt()
+        val skip = parameters["skip"]?.toLongOrNull() ?: 0L
+        val limit = parameters["limit"]?.toLongOrNull() ?: Long.MAX_VALUE
+        val type = parameters["type"]
+        val regex = parameters["regex"]
         logger.info { "Enumerator: FileSystemEnumerator with path: $path, depth: $depth, mediaTypes: $mediaTypes, skip: $skip, limit: ${if (limit == Long.MAX_VALUE) "none" else limit} and type: $type, regex: $regex" }
         return Instance(path, depth, mediaTypes, skip, limit, type, regex, name)
     }
@@ -61,11 +66,12 @@ class FileSystemEnumerator : EnumeratorFactory {
      */
     override fun newEnumerator(
         name: String,
+        parameters: Map<String, String>,
         context: IndexContext,
         mediaTypes: List<MediaType>,
         inputs: Stream<*>?
     ): Enumerator {
-        return newEnumerator(name, context, mediaTypes)
+        return newEnumerator(name, parameters, context, mediaTypes)
     }
 
     /**
@@ -115,7 +121,14 @@ class FileSystemEnumerator : EnumeratorFactory {
 
                     /* Create source ingested and emit it. */
                     val typeName = this@Instance.typeName ?: "SOURCE:${file.type}"
-                    emit(Ingested(file.sourceId, typeName, attributes = setOf(SourceAttribute(file)), transient = false))
+                    emit(
+                        Ingested(
+                            file.sourceId,
+                            typeName,
+                            attributes = setOf(SourceAttribute(file)),
+                            transient = false
+                        )
+                    )
                     logger.debug { "In flow: Emitting source ${element.fileName} (${element.toUri()})" }
                 }
             }

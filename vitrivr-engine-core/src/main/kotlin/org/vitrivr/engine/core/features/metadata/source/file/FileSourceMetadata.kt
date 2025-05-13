@@ -39,7 +39,12 @@ class FileSourceMetadata : Analyser<ContentElement<*>, FileSourceMetadataDescrip
      *
      * @return [FileSourceMetadataExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, input: Operator<Retrievable>, parameters: Map<String, String>, context: IndexContext) = FileSourceMetadataExtractor(input, this, field)
+    override fun newExtractor(
+        field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ) = FileSourceMetadataExtractor(input, this, field)
 
     /**
      * Generates and returns a new [FileSourceMetadataExtractor] for the provided [Schema.Field].
@@ -50,7 +55,12 @@ class FileSourceMetadata : Analyser<ContentElement<*>, FileSourceMetadataDescrip
      *
      * @return [FileSourceMetadataExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, parameters: Map<String, String>, context: IndexContext) = FileSourceMetadataExtractor(input, this, name)
+    override fun newExtractor(
+        name: String,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ) = FileSourceMetadataExtractor(input, this, name)
 
     /**
      * Generates and returns a new [FileSourceMetadataRetriever] for the provided [Schema.Field].
@@ -61,7 +71,11 @@ class FileSourceMetadata : Analyser<ContentElement<*>, FileSourceMetadataDescrip
      *
      * @return [FileSourceMetadataRetriever]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, FileSourceMetadataDescriptor> {
+    override fun newRetrieverForQuery(
+        field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>,
+        query: Query,
+        context: QueryContext
+    ): Retriever<ContentElement<*>, FileSourceMetadataDescriptor> {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         require(query is SimpleBooleanQuery<*>) { "Query is not a Query." }
         return FileSourceMetadataRetriever(field, query, context)
@@ -72,7 +86,11 @@ class FileSourceMetadata : Analyser<ContentElement<*>, FileSourceMetadataDescrip
      *
      * This method will always throw an [UnsupportedOperationException
      */
-    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): FileSourceMetadataRetriever {
+    override fun newRetrieverForContent(
+        field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>,
+        content: Collection<ContentElement<*>>,
+        context: QueryContext
+    ): FileSourceMetadataRetriever {
         throw UnsupportedOperationException("FileSourceMetadata does not support the creation of a Retriever instance from content.")
     }
 }
