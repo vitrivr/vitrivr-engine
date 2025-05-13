@@ -37,8 +37,13 @@ class ThumbnailExporter : ExporterFactory {
      * @param input The [Operator] to acting as an input.
      * @param context The [IndexContext] to use.
      */
-    override fun newExporter(name: String, input: Operator<Retrievable>, parameters: Map<String, String>, context: IndexContext): Exporter {
-        val resolverName = parameters["resolver"]?: "default"
+    override fun newExporter(
+        name: String,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ): Exporter {
+        val resolverName = parameters["resolver"] ?: "default"
         val maxSideResolution = parameters["maxSideResolution"]?.toIntOrNull() ?: 400
         val mimeType = parameters["mimeType"]?.let {
             try {
@@ -48,7 +53,7 @@ class ThumbnailExporter : ExporterFactory {
             }
         } ?: MimeType.JPG
         logger.debug { "Creating new ThumbnailExporter with maxSideResolution=$maxSideResolution and mimeType=$mimeType." }
-        return Instance(input,  context, resolverName, maxSideResolution, mimeType, name)
+        return Instance(input, context, resolverName, maxSideResolution, mimeType, name)
     }
 
     /**
@@ -67,7 +72,8 @@ class ThumbnailExporter : ExporterFactory {
         }
 
         /** [Resolver] instance. */
-        private val resolver: Resolver = this.context.resolver[resolverName] ?: throw IllegalStateException("Unknown resolver with name $resolverName.")
+        private val resolver: Resolver = this.context.resolver[resolverName]
+            ?: throw IllegalStateException("Unknown resolver with name $resolverName.")
 
         /** [KLogger] instance. */
         private val logger: KLogger = KotlinLogging.logger {}
@@ -80,6 +86,7 @@ class ThumbnailExporter : ExporterFactory {
                     val writer = when (mimeType) {
                         MimeType.JPEG,
                         MimeType.JPG -> JpegWriter()
+
                         MimeType.PNG -> PngWriter()
                         else -> throw IllegalArgumentException("Unsupported mime type $mimeType")
                     }
@@ -101,7 +108,7 @@ class ThumbnailExporter : ExporterFactory {
                     }
                 }
             } catch (e: Exception) {
-                logger.error(e){"Error during thumbnail creation"}
+                logger.error(e) { "Error during thumbnail creation" }
             }
         }
     }

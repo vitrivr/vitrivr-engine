@@ -24,7 +24,7 @@ import org.vitrivr.engine.core.operators.general.TransformerFactory
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class PersistRetrievableTransformer: TransformerFactory {
+class PersistRetrievableTransformer : TransformerFactory {
     /**
      * Creates and returns a new [PersistRetrievableTransformer.Instance] from this [PersistRetrievableTransformer].
      *
@@ -32,7 +32,12 @@ class PersistRetrievableTransformer: TransformerFactory {
      * @param input The input [Operator].
      * @param context The [IndexContext] to use.
      */
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, parameters: Map<String, String>, context: IndexContext): Transformer = Instance(
+    override fun newTransformer(
+        name: String,
+        input: Operator<out Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ): Transformer = Instance(
         input as Operator<Retrievable>,
         parameters,
         context,
@@ -42,7 +47,12 @@ class PersistRetrievableTransformer: TransformerFactory {
     /**
      * The [PersistRetrievableTransformer] [Transformer] implementation.
      */
-    private class Instance(override val input: Operator<Retrievable>, val parameters: Map<String, String>, val context: IndexContext, override val name: String): Transformer {
+    private class Instance(
+        override val input: Operator<Retrievable>,
+        val parameters: Map<String, String>,
+        val context: IndexContext,
+        override val name: String
+    ) : Transformer {
 
         /** Logger instance. */
         private val logger = KotlinLogging.logger("RetrievablePersister#${this.name}")
@@ -69,7 +79,11 @@ class PersistRetrievableTransformer: TransformerFactory {
                 this.persist(it, cache)
             }.onCompletion {
                 if (cache.isNotEmpty()) {
-                    this@Instance.logger.warn { " ${cache.map { it.value.size }.sum()} relationships that could not be persisted due to missing retrievables." }
+                    this@Instance.logger.warn {
+                        " ${
+                            cache.map { it.value.size }.sum()
+                        } relationships that could not be persisted due to missing retrievables."
+                    }
                 }
             }
         }
@@ -93,7 +107,7 @@ class PersistRetrievableTransformer: TransformerFactory {
             /* If there are relationships that wait for retrievable to be persisted, persist them now. */
             val pendingRelationships = cache.remove(retrievable.id)
             if (pendingRelationships != null) {
-                 this.writer.connectAll(pendingRelationships)
+                this.writer.connectAll(pendingRelationships)
             }
 
             /* Now write relationships to database or cache them. */

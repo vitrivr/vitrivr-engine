@@ -57,7 +57,8 @@ class CLD : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param field [Schema.Field] to create the prototype for.
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>): FloatVectorDescriptor = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(VECTOR_SIZE))
+    override fun prototype(field: Schema.Field<*, *>): FloatVectorDescriptor =
+        FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(VECTOR_SIZE))
 
     /**
      * Generates and returns a new [CLDExtractor] instance for this [CLD].
@@ -69,7 +70,12 @@ class CLD : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = CLDExtractor(input, this, name)
+    override fun newExtractor(
+        name: String,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ) = CLDExtractor(input, this, name)
 
     /**
      * Generates and returns a new [CLDExtractor] instance for this [CLD].
@@ -81,7 +87,12 @@ class CLD : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext) = CLDExtractor(input, this, field)
+    override fun newExtractor(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ) = CLDExtractor(input, this, field)
 
     /**
      * Generates and returns a new [DenseRetriever] instance for this [CLD].
@@ -92,7 +103,11 @@ class CLD : Analyser<ImageContent, FloatVectorDescriptor> {
      *
      * @return A new [DenseRetriever] instance for this [CLD]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, context: QueryContext): DenseRetriever<ImageContent> {
+    override fun newRetrieverForQuery(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        query: Query,
+        context: QueryContext
+    ): DenseRetriever<ImageContent> {
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
         @Suppress("UNCHECKED_CAST")
         return DenseRetriever(field, query as ProximityQuery<Value.FloatVector>, context, LinearCorrespondence(490f))
@@ -107,13 +122,21 @@ class CLD : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): DenseRetriever<ImageContent> {
+    override fun newRetrieverForDescriptors(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        descriptors: Collection<FloatVectorDescriptor>,
+        context: QueryContext
+    ): DenseRetriever<ImageContent> {
         /* Prepare query parameters. */
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
         val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
 
         /* Return retriever. */
-        return this.newRetrieverForQuery(field, ProximityQuery(value = descriptors.first().vector, k = k, fetchVector = fetchVector), context)
+        return this.newRetrieverForQuery(
+            field,
+            ProximityQuery(value = descriptors.first().vector, k = k, fetchVector = fetchVector),
+            context
+        )
     }
 
     /**
@@ -126,7 +149,11 @@ class CLD : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param content An array of [Content] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext) = this.newRetrieverForDescriptors(field, content.map { this.analyse(it) }, context)
+    override fun newRetrieverForContent(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        content: Collection<ImageContent>,
+        context: QueryContext
+    ) = this.newRetrieverForDescriptors(field, content.map { this.analyse(it) }, context)
 
     /**
      * Performs the [CLD] analysis on the provided [ImageContent] and returns a [FloatVectorDescriptor] that represents the result.
@@ -170,9 +197,18 @@ class CLD : Analyser<ImageContent, FloatVectorDescriptor> {
         /* Obtain CLD. */
         val cld = Value.FloatVector(
             floatArrayOf(
-                ycbcrs[0][0].toFloat(), ycbcrs[0][1].toFloat(), ycbcrs[0][2].toFloat(), ycbcrs[0][3].toFloat(), ycbcrs[0][4].toFloat(), ycbcrs[0][5].toFloat(),
-                ycbcrs[1][0].toFloat(), ycbcrs[1][1].toFloat(), ycbcrs[1][2].toFloat(),
-                ycbcrs[2][0].toFloat(), ycbcrs[2][1].toFloat(), ycbcrs[2][2].toFloat()
+                ycbcrs[0][0].toFloat(),
+                ycbcrs[0][1].toFloat(),
+                ycbcrs[0][2].toFloat(),
+                ycbcrs[0][3].toFloat(),
+                ycbcrs[0][4].toFloat(),
+                ycbcrs[0][5].toFloat(),
+                ycbcrs[1][0].toFloat(),
+                ycbcrs[1][1].toFloat(),
+                ycbcrs[1][2].toFloat(),
+                ycbcrs[2][0].toFloat(),
+                ycbcrs[2][1].toFloat(),
+                ycbcrs[2][2].toFloat()
             )
         )
         return FloatVectorDescriptor(vector = cld)
