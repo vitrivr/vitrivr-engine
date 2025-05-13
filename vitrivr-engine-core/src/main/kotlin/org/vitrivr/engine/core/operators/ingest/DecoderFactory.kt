@@ -1,6 +1,7 @@
 package org.vitrivr.engine.core.operators.ingest
 
 import org.vitrivr.engine.core.context.IndexContext
+import java.security.SecureRandomParameters
 
 /**
  * A factory object for a specific [Decoder] type.
@@ -16,5 +17,5 @@ interface DecoderFactory {
      * @param input The input [Enumerator].
      * @param context The [IndexContext] to use.
      */
-    fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder
+    fun newDecoder(name: String, input: Enumerator, parameters: Map<String, String>): Decoder
 }

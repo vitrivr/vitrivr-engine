@@ -16,9 +16,9 @@ interface EnumeratorFactory {
      *
      * @param context The [IndexContext] to use.
      */
-    fun newEnumerator(name: String, context: IndexContext, mediaTypes: List<MediaType>): Enumerator {
-        return newEnumerator(name, context, mediaTypes, null)
+    fun newEnumerator(name: String, parameters: Map<String, String>, mediaTypes: List<MediaType>): Enumerator {
+        return newEnumerator(name, parameters, mediaTypes, null)
     }
 
-    fun newEnumerator(name: String, context: IndexContext, mediaTypes: List<MediaType>, inputs: Stream<*>? = null): Enumerator
+    fun newEnumerator(name: String, parameters: Map<String, String>, mediaTypes: List<MediaType>, inputs: Stream<*>? = null): Enumerator
 }

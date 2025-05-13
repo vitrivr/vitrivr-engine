@@ -41,6 +41,7 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
     /** The [IndexContext] */
     private val context = IndexContextFactory.newContext(config.context)
 
+
     /**
      * Build the indexing based this [IngestionPipelineBuilder]'s [config].
      *
@@ -208,9 +209,9 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
     private fun buildEnumerator(name: String, config: OperatorConfig.Enumerator, stream: Stream<*>? = null): Enumerator {
         val factory = loadFactory<EnumeratorFactory>(config.factory)
         return if (stream == null) {
-            factory.newEnumerator(name, context, config.mediaTypes)
+            factory.newEnumerator(name, config.parameters, config.mediaTypes)
         } else {
-            factory.newEnumerator(name, context, config.mediaTypes, stream)
+            factory.newEnumerator(name, config.parameters, config.mediaTypes, stream)
         }.apply {
             logger.info {
                 "Instantiated new ${
@@ -234,7 +235,7 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
      */
     private fun buildDecoder(name: String, parent: Enumerator, config: OperatorConfig.Decoder): Decoder {
         val factory = loadFactory<DecoderFactory>(config.factory)
-        return factory.newDecoder(name, parent, context).apply {
+        return factory.newDecoder(name, parent, config.parameters).apply {
             logger.info { "Instantiated new Decoder: ${this.javaClass.name}" }
         }
     }
@@ -248,7 +249,7 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
      */
     private fun buildTransformer(name: String, parent: Operator<Retrievable>, config: OperatorConfig.Transformer): Transformer {
         val factory = loadFactory<TransformerFactory>(config.factory)
-        return factory.newTransformer(name, parent, context).apply {
+        return factory.newTransformer(name, parent, config.parameters).apply {
             logger.info { "Built transformer: ${this.javaClass.name} with name $name" }
         }
     }
@@ -264,7 +265,7 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
         return if (!config.factory.isNullOrBlank()) {
             /* Case factory is specified */
             val factory = loadFactory<ExporterFactory>(config.factory)
-            factory.newExporter(name, parent, context).apply {
+            factory.newExporter(name, parent, config.parameters).apply {
                 logger.info { "Built exporter from factory: ${config.factory}." }
             }
         } else if (!config.exporterName.isNullOrBlank()) {
@@ -292,7 +293,7 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
             }
         } else if (!config.factory.isNullOrBlank()) {
             val factory = loadFactory<Analyser<ContentElement<*>, Descriptor<*>>>(config.factory)
-            return factory.newExtractor(name, parent, this.context).apply {
+            return factory.newExtractor(name, parent, config.parameters).apply {
                 logger.info { "Built extractor by factory: ${config.factory}" }
             }
         } else {

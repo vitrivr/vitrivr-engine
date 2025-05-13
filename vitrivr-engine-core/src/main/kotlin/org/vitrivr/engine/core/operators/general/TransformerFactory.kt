@@ -18,5 +18,5 @@ interface TransformerFactory {
      * @param input The input [Operator].
      * @param context The [Context] to use.
      */
-    fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer
+    fun newTransformer(name: String, input: Operator<out Retrievable>, parameter: Map<String, String>): Transformer
 }
