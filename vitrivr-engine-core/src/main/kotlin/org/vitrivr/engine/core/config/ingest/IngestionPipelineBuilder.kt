@@ -366,4 +366,5 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
         return loadServiceForName<T>(name)
             ?: throw IllegalArgumentException("Failed to find '${T::class.java.simpleName}' implementation for name '$name'")
     }
+
 }
