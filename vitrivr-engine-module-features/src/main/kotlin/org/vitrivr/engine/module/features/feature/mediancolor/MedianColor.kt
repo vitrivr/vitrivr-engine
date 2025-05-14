@@ -45,7 +45,8 @@ class MedianColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param field [Schema.Field] to create the prototype for.
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(VECTOR_SIZE))
+    override fun prototype(field: Schema.Field<*, *>) =
+        FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(VECTOR_SIZE))
 
     /**
      * Generates and returns a new [MedianColorExtractor] instance for this [MedianColor].
@@ -57,7 +58,12 @@ class MedianColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext) = MedianColorExtractor(input, this,  field)
+    override fun newExtractor(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ) = MedianColorExtractor(input, this, field)
 
     /**
      * Generates and returns a new [MedianColorExtractor] instance for this [MedianColor].
@@ -69,7 +75,12 @@ class MedianColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, FloatVectorDescriptor> = MedianColorExtractor(input, this, name)
+    override fun newExtractor(
+        name: String,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ): Extractor<ImageContent, FloatVectorDescriptor> = MedianColorExtractor(input, this, name)
 
     /**
      * Generates and returns a new [DenseRetriever] instance for this [MedianColor].
@@ -80,7 +91,11 @@ class MedianColor : Analyser<ImageContent, FloatVectorDescriptor> {
      *
      * @return A new [Retriever] instance for this [Analyser]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, context: QueryContext): DenseRetriever<ImageContent> {
+    override fun newRetrieverForQuery(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        query: Query,
+        context: QueryContext
+    ): DenseRetriever<ImageContent> {
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
         @Suppress("UNCHECKED_CAST")
         return DenseRetriever(field, query as ProximityQuery<Value.FloatVector>, context, LinearCorrespondence(3f))
@@ -95,13 +110,21 @@ class MedianColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): DenseRetriever<ImageContent> {
+    override fun newRetrieverForDescriptors(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        descriptors: Collection<FloatVectorDescriptor>,
+        context: QueryContext
+    ): DenseRetriever<ImageContent> {
         /* Prepare query parameters. */
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
         val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
 
         /* Return retriever. */
-        return this.newRetrieverForQuery(field, ProximityQuery(value = descriptors.first().vector, k = k, fetchVector = fetchVector), context)
+        return this.newRetrieverForQuery(
+            field,
+            ProximityQuery(value = descriptors.first().vector, k = k, fetchVector = fetchVector),
+            context
+        )
     }
 
     /**
@@ -114,7 +137,11 @@ class MedianColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param content An array of [Content] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext): DenseRetriever<ImageContent> =
+    override fun newRetrieverForContent(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        content: Collection<ImageContent>,
+        context: QueryContext
+    ): DenseRetriever<ImageContent> =
         this.newRetrieverForDescriptors(field, content.map { this.analyse(it) }, context)
 
     /**

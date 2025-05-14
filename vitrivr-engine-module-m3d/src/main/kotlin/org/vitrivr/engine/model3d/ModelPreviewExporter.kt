@@ -118,7 +118,12 @@ class ModelPreviewExporter : ExporterFactory {
         /**
          *
          */
-        fun createFramesForGif(model: Model3d, renderer: ExternalRenderer, views: Int, distance: Float = 1.0f): List<BufferedImage> {
+        fun createFramesForGif(
+            model: Model3d,
+            renderer: ExternalRenderer,
+            views: Int,
+            distance: Float = 1.0f
+        ): List<BufferedImage> {
             if (model.modelMaterials.isNotEmpty()) {
                 // Set options for the renderer.
                 val windowOptions =
@@ -174,21 +179,22 @@ class ModelPreviewExporter : ExporterFactory {
     override fun newExporter(
         name: String,
         input: Operator<Retrievable>,
+        parameters: Map<String, String>,
         context: IndexContext
     ): Exporter {
-        val resolverName = context[name, "resolver"]?: "default"
-        val maxSideResolution = context[name, "maxSideResolution"]?.toIntOrNull() ?: 800
+        val resolverName = parameters["resolver"] ?: "default"
+        val maxSideResolution = parameters["maxSideResolution"]?.toIntOrNull() ?: 800
         val mimeType =
-            context[name, "mimeType"]?.let {
+            parameters["mimeType"]?.let {
                 try {
                     MimeType.valueOf(it.uppercase())
                 } catch (e: java.lang.IllegalArgumentException) {
                     null
                 }
             } ?: MimeType.GLTF
-        val distance = context[name, "distance"]?.toFloatOrNull() ?: 1f
-        val format = MimeType.valueOf(context[name, "format"]?.uppercase() ?: "GIF")
-        val views = context[name, "views"]?.toIntOrNull() ?: 30
+        val distance = parameters["distance"]?.toFloatOrNull() ?: 1f
+        val format = MimeType.valueOf(parameters["format"]?.uppercase() ?: "GIF")
+        val views = parameters["views"]?.toIntOrNull() ?: 30
         logger.debug {
             "Creating new ModelPreviewExporter with maxSideResolution=$maxSideResolution and mimeType=$mimeType"
         }
@@ -213,7 +219,8 @@ class ModelPreviewExporter : ExporterFactory {
         }
 
         /** [Resolver] instance. */
-        private val resolver: Resolver = this.context.resolver[resolverName] ?: throw IllegalStateException("Unknown resolver with name $resolverName.")
+        private val resolver: Resolver = this.context.resolver[resolverName]
+            ?: throw IllegalStateException("Unknown resolver with name $resolverName.")
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> {
             val renderer = ExternalRenderer()
@@ -238,11 +245,13 @@ class ModelPreviewExporter : ExporterFactory {
                                         ImageIO.write(preview, "jpg", output)
                                     }
                                 }
+
                                 MimeType.GIF -> {
                                     val frames = createFramesForGif(model, renderer, this.views, this.distance)
                                     val gif = createGif(frames, 50)
                                     resolvable.openOutputStream().use { output -> output.write(gif!!.toByteArray()) }
                                 }
+
                                 else -> throw IllegalArgumentException("Unsupported mime type $format")
                             }
                         }

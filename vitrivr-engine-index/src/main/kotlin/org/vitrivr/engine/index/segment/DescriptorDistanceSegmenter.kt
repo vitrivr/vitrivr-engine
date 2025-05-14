@@ -5,6 +5,7 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.vector.DoubleVectorDescriptor
@@ -30,18 +31,33 @@ import java.util.*
  */
 class DescriptorDistanceSegmenter : TransformerFactory {
 
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
+    override fun newTransformer(
+        name: String,
+        input: Operator<out Retrievable>,
+        parameters: Map<String, String>,
+        context: Context
+    ): Transformer {
 
-        val distance = Distance.valueOf(context[name, "distance"] ?: throw IllegalArgumentException("Property 'distance' must be specified"))
-        val authorName = context[name, "authorName"] ?: throw IllegalArgumentException("Property 'authorName' must be specified")
-        val atMost = context[name, "atMost"]?.toDoubleOrNull()
-        val atLeast = context[name, "atLeast"]?.toDoubleOrNull()
+        val distance = Distance.valueOf(
+            parameters["distance"] ?: throw IllegalArgumentException("Property 'distance' must be specified")
+        )
+        val authorName =
+            parameters["authorName"] ?: throw IllegalArgumentException("Property 'authorName' must be specified")
+        val atMost = parameters["atMost"]?.toDoubleOrNull()
+        val atLeast = parameters["atLeast"]?.toDoubleOrNull()
 
         if (atMost == null && atLeast == null) {
             throw IllegalArgumentException("Property 'atLeast' or 'atMost' must be specified.")
         }
 
-        return Instance(input, authorName, distance, atLeast ?: Double.NEGATIVE_INFINITY, atMost ?: Double.POSITIVE_INFINITY, name)
+        return Instance(
+            input,
+            authorName,
+            distance,
+            atLeast ?: Double.NEGATIVE_INFINITY,
+            atMost ?: Double.POSITIVE_INFINITY,
+            name
+        )
     }
 
     private class Instance(
@@ -72,7 +88,7 @@ class DescriptorDistanceSegmenter : TransformerFactory {
             this@Instance.input.toFlow(scope).collect { ingested ->
 
 
-                if(ingested.type !== "SEGMENT") {
+                if (ingested.type !== "SEGMENT") {
                     if (cache.isNotEmpty()) {
                         send(this, cache)
                         cache.clear()
@@ -115,14 +131,14 @@ class DescriptorDistanceSegmenter : TransformerFactory {
                 } else { //if not within range, emit new segment
                     send(this, cache)
                     cache.clear()
-                    comparisonAnchor = descriptors.first{!compare(comparisonAnchor!!, it)}.vector
+                    comparisonAnchor = descriptors.first { !compare(comparisonAnchor!!, it) }.vector
                     cache.add(ingested)
                 }
 
 
             }
 
-            if(cache.isNotEmpty()) {
+            if (cache.isNotEmpty()) {
                 send(this, cache)
             }
         }
@@ -160,7 +176,17 @@ class DescriptorDistanceSegmenter : TransformerFactory {
             }
 
             /* Send retrievable downstream. */
-            downstream.send(Ingested(retrievableId, cache.first().type,  content, descriptors, attributes, relationships, false))
+            downstream.send(
+                Ingested(
+                    retrievableId,
+                    cache.first().type,
+                    content,
+                    descriptors,
+                    attributes,
+                    relationships,
+                    false
+                )
+            )
         }
 
     }

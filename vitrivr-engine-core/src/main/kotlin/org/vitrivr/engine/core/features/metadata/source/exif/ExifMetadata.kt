@@ -39,7 +39,12 @@ class ExifMetadata : Analyser<ContentElement<*>, AnyMapStructDescriptor> {
      *
      * @return A new [Extractor] instance for this [Analyser]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = ExifMetadataExtractor(input, this, name)
+    override fun newExtractor(
+        name: String,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ) = ExifMetadataExtractor(input, this, name)
 
     /**
      * Generates and returns a new [ExifMetadataExtractor] instance for this [ExifMetadata].
@@ -50,12 +55,21 @@ class ExifMetadata : Analyser<ContentElement<*>, AnyMapStructDescriptor> {
      *
      * @return A new [Extractor] instance for this [Analyser]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, input: Operator<Retrievable>, context: IndexContext) = ExifMetadataExtractor(input, this, field)
+    override fun newExtractor(
+        field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ) = ExifMetadataExtractor(input, this, field)
 
     /**
      *
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, AnyMapStructDescriptor> {
+    override fun newRetrieverForQuery(
+        field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>,
+        query: Query,
+        context: QueryContext
+    ): Retriever<ContentElement<*>, AnyMapStructDescriptor> {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         require(query is SimpleBooleanQuery<*>) { "Query is not a Query." }
         return ExifMetadataRetriever(field, query, context)
@@ -64,7 +78,11 @@ class ExifMetadata : Analyser<ContentElement<*>, AnyMapStructDescriptor> {
     /**
      *
      */
-    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): ExifMetadataRetriever {
+    override fun newRetrieverForContent(
+        field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>,
+        content: Collection<ContentElement<*>>,
+        context: QueryContext
+    ): ExifMetadataRetriever {
         throw UnsupportedOperationException("ExifMetadata does not support the creation of a Retriever instance from content.")
     }
 }

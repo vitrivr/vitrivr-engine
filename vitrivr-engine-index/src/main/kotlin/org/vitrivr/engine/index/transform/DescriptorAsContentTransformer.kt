@@ -26,11 +26,11 @@ private val logger = KotlinLogging.logger {}
  * @version 1.1.0
  */
 class DescriptorAsContentTransformer : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer = Instance(
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, parameters: Map<String, String>,  context: Context): Transformer = Instance(
         input = input,
         name = name,
         contentFactory = (context as IndexContext).contentFactory,
-        fieldName = context[name, "field"]  ?: throw IllegalArgumentException("The descriptor as content transformer requires a field name.")
+        fieldName = parameters["field"]  ?: throw IllegalArgumentException("The descriptor as content transformer requires a field name.")
     )
 
     private class Instance(override val input: Operator<out Retrievable>, override val name: String, val contentFactory: ContentFactory, val fieldName : String) : Transformer {

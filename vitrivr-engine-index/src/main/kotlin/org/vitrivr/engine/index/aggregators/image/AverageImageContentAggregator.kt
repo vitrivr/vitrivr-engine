@@ -34,13 +34,22 @@ class AverageImageContentAggregator : TransformerFactory {
      * @param context The [IndexContext] to use.
      * @return [AverageImageContentAggregator.Instance]
      */
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer = Instance(input, context as IndexContext, name)
+    override fun newTransformer(
+        name: String,
+        input: Operator<out Retrievable>,
+        parameters: Map<String, String>,
+        context: Context
+    ): Transformer = Instance(input, parameters, context as IndexContext, name)
 
     /**
      * The [Instance] returns by the [AverageImageContentAggregator]
      */
-    private class Instance(override val input: Operator<out Retrievable>, override val context: IndexContext, name: String
-    ) : AbstractAggregator(input, context, name) {
+    private class Instance(
+        override val input: Operator<out Retrievable>,
+        parameters: Map<String, String>,
+        override val context: IndexContext ,
+        name: String
+    ) : AbstractAggregator(input, parameters, context, name) {
         override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> {
             /* Filter out images. */
             val images = content.filterIsInstance<ImageContent>()
@@ -79,8 +88,10 @@ class AverageImageContentAggregator : TransformerFactory {
             val imageContent = this.context.contentFactory.newImageContent(averageImage)
             val ret = if (images.any { it is SourcedContent.Temporal }) {
                 object : ImageContent by imageContent, TemporalContent.TimeSpan {
-                    override val startNs: Long = images.filterIsInstance<SourcedContent.Temporal>().minOf { it.timepointNs }
-                    override val endNs: Long = images.filterIsInstance<SourcedContent.Temporal>().maxOf { it.timepointNs }
+                    override val startNs: Long =
+                        images.filterIsInstance<SourcedContent.Temporal>().minOf { it.timepointNs }
+                    override val endNs: Long =
+                        images.filterIsInstance<SourcedContent.Temporal>().maxOf { it.timepointNs }
                 }
             } else {
                 imageContent

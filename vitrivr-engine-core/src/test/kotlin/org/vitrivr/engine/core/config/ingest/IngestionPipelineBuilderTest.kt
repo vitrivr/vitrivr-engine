@@ -22,8 +22,7 @@ class IngestionPipelineBuilderTest {
                 "test-schema",
                 context = IngestionContextConfig(
                     "InMemoryContentFactory",
-                    listOf("disk"),
-                    global = mapOf("location" to "./thumbnails/testing")
+                    listOf("disk")
                 ),
                 operators = mapOf(
                     "enumerator" to OperatorConfig.Enumerator("FileSystemEnumerator"),

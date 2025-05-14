@@ -3,6 +3,8 @@ package org.vitrivr.engine.core.model.content.factory
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.context.IngestionContextConfig
 import org.vitrivr.engine.core.model.content.element.*
 import org.vitrivr.engine.core.model.content.impl.cache.*
 import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
@@ -28,8 +30,11 @@ private val logger: KLogger = KotlinLogging.logger {}
 class CachedContentFactory : ContentFactoriesFactory {
 
 
-    override fun newContentFactory(schema: Schema, context: Context): ContentFactory {
-        val basePath = context["content", "location"]?.let { Path.of(it) }
+    override fun newContentFactory(
+        schema: Schema,
+        parameters: Map<String, String>,
+    ): ContentFactory {
+        val basePath = parameters["location"]?.let { Path.of(it) }
         return Instance(basePath)
     }
 

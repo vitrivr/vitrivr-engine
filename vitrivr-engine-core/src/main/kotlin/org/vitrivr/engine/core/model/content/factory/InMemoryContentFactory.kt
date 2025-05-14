@@ -1,6 +1,5 @@
 package org.vitrivr.engine.core.model.content.factory
 
-import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.Model3dContent
 import org.vitrivr.engine.core.model.content.element.TextContent
@@ -20,10 +19,12 @@ import java.nio.ShortBuffer
  * @version 1.0.1
  */
 class InMemoryContentFactory : ContentFactoriesFactory {
-    override fun newContentFactory(schema: Schema, context: Context): ContentFactory = Instance()
+    override fun newContentFactory(schema: Schema, parameters: Map<String, String>): ContentFactory = Instance()
     private class Instance : ContentFactory {
         override fun newImageContent(bufferedImage: BufferedImage) = InMemoryImageContent(bufferedImage)
-        override fun newAudioContent(channels: Short, sampleRate: Int, audio: ShortBuffer) = InMemoryAudioContent(channels, sampleRate, audio)
+        override fun newAudioContent(channels: Short, sampleRate: Int, audio: ShortBuffer) =
+            InMemoryAudioContent(channels, sampleRate, audio)
+
         override fun newTextContent(text: String): TextContent = InMemoryTextContent(text)
         override fun newMeshContent(model3d: Model3d): Model3dContent = InMemoryModel3dContent(model3d)
     }
