@@ -13,9 +13,8 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Exporter
-import org.vitrivr.engine.core.operators.general.ExporterFactory
+import org.vitrivr.engine.core.operators.general.OperatorFactory
 import org.vitrivr.engine.core.operators.general.Transformer
-import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.operators.ingest.*
 import org.vitrivr.engine.core.operators.sinks.DefaultSink
 import org.vitrivr.engine.core.operators.transform.shape.BroadcastOperator
@@ -247,10 +246,10 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
      * @param config The [OperatorConfig.Transformer] describing the to-be-built [Transformer]
      */
     private fun buildTransformer(name: String, parent: Operator<Retrievable>, config: OperatorConfig.Transformer): Transformer {
-        val factory = loadFactory<TransformerFactory>(config.factory)
-        return factory.newTransformer(name, parent, context).apply {
+        val factory = loadFactory<OperatorFactory>(config.factory)
+        return factory.newOperator(name, mapOf("input" to parent), context).apply {
             logger.info { "Built transformer: ${this.javaClass.name} with name $name" }
-        }
+        } as Transformer
     }
 
     /**
@@ -263,10 +262,10 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
     private fun buildExporter(name: String, parent: Operator<Retrievable>, config: OperatorConfig.Exporter): Exporter {
         return if (!config.factory.isNullOrBlank()) {
             /* Case factory is specified */
-            val factory = loadFactory<ExporterFactory>(config.factory)
-            factory.newExporter(name, parent, context).apply {
+            val factory = loadFactory<OperatorFactory>(config.factory)
+            factory.newOperator(name, mapOf("input" to parent), context).apply {
                 logger.info { "Built exporter from factory: ${config.factory}." }
-            }
+            } as Exporter
         } else if (!config.exporterName.isNullOrBlank()) {
             /* Case exporter name is given. Due to require in ExporterConfig.init, this is fine as an if-else */
             val exporter = context.schema.getExporter(config.exporterName) ?: throw IllegalArgumentException("Exporter '${config.exporterName}' does not exist on schema '${context.schema.name}'")

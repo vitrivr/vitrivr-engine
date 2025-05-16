@@ -15,8 +15,8 @@ import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.general.OperatorFactory
 import org.vitrivr.engine.core.operators.general.Transformer
-import org.vitrivr.engine.core.operators.general.TransformerFactory
 
 /**
  * A [Operator.Sink] that persists the [Ingested] it receives.
@@ -24,16 +24,16 @@ import org.vitrivr.engine.core.operators.general.TransformerFactory
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class PersistRetrievableTransformer: TransformerFactory {
+class PersistRetrievableTransformer: OperatorFactory {
     /**
      * Creates and returns a new [PersistRetrievableTransformer.Instance] from this [PersistRetrievableTransformer].
      *
      * @param name The name of this [PersistRetrievableTransformer].
-     * @param input The input [Operator].
+     * @param inputs The input [Operator].
      * @param context The [IndexContext] to use.
      */
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer = Instance(
-        input as Operator<Retrievable>,
+    override fun newOperator(name: String, inputs: Map<String, Operator<out Retrievable>>, context: Context): Transformer = Instance(
+        inputs.values.first() as Operator<Retrievable>,
         context as IndexContext,
         name
     )

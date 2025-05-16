@@ -98,7 +98,7 @@ interface Analyser<C : ContentElement<*>, D : Descriptor<*>> : ExtractorFactory<
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance from [Content].
      */
-    fun newRetrieverForContent(field: Schema.Field<C, D>, content: Collection<C>, context: QueryContext): Retriever<C, D> {
+    fun newRetrieverForContent(field: Schema.Field<C, D>, content: Map<String, ContentElement<*>>, context: QueryContext): Retriever<C, D> {
         throw UnsupportedOperationException("This Analyser does not support the creation of a retriever from a collection of descriptors.")
     }
 

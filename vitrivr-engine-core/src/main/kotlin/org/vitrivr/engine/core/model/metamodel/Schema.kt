@@ -16,7 +16,7 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.general.ExporterFactory
+import org.vitrivr.engine.core.operators.general.OperatorFactory
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.core.resolver.Resolver
@@ -68,7 +68,7 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      *
      * @throws IllegalArgumentException In case the [resolver] named [Resolver] is not found.
      */
-    fun addExporter(name: String, factory: ExporterFactory, parameters: Map<String, String>) {
+    fun addExporter(name: String, factory: OperatorFactory, parameters: Map<String, String>) {
         val resolver = parameters["resolver"] ?: "default"
         this.exporters.add(Exporter(name, factory, parameters, (this.resolvers[resolver] ?: throw IllegalArgumentException("There is no resolver '$resolver' defined on the schema '${this.name}'"))))
     }
@@ -182,7 +182,7 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * @return [Extractor] instance.
          */
         fun getExtractor(input: Operator<Retrievable>, context: IndexContext): Extractor<C, D> = this.analyser.newExtractor(this, input, context)
-
+        
         /**
          * Returns a [Retriever] instance for this [Schema.Field] and the provided [Query].
          *
@@ -195,28 +195,10 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
         /**
          * Returns a [Retriever] instance for this [Schema.Field].
          *
-         * @param content The [Content](s) that should be used with the [Retriever].
-         * @param context The [QueryContext] to use with the [Retriever].
-
-         * @return [Retriever] instance.
-         */
-        fun getRetrieverForContent(content: C, context: QueryContext): Retriever<C, D> = this.getRetrieverForContent(listOf(content), context)
-
-        /**
-         * Returns a [Retriever] instance for this [Schema.Field].
-         *
          * @param content The [Content] element(s) that should be used with the [Retriever].
          * @return [Retriever] instance.
          */
-        fun getRetrieverForContent(content: Collection<C>, queryContext: QueryContext): Retriever<C, D> = this.analyser.newRetrieverForContent(this, content, queryContext)
-
-        /**
-         * Returns a [Retriever] instance for this [Schema.Field].
-         *
-         * @param descriptor The [Descriptor] that should be used with the [Retriever].
-         * @return [Retriever] instance.
-         */
-        fun getRetrieverForDescriptor(descriptor: D, queryContext: QueryContext): Retriever<C, D> = this.getRetrieverForDescriptors(listOf(descriptor), queryContext)
+        fun getRetrieverForContent(content: Map<String, ContentElement<*>>, queryContext: QueryContext): Retriever<C, D> = this.analyser.newRetrieverForContent(this, content, queryContext)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field].
@@ -261,7 +243,7 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      *
      * An [Exporter] always has a unique name and is backed by an existing [ExporterFactory] and an existing [ResolverFactory].
      */
-    inner class Exporter(val name: String, private val factory: ExporterFactory, private val parameters: Map<String, String> = emptyMap(), val resolver: Resolver) {
+    inner class Exporter(val name: String, private val factory: OperatorFactory, private val parameters: Map<String, String> = emptyMap(), val resolver: Resolver) {
         val schema: Schema
             get() = this@Schema
 
@@ -289,7 +271,7 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
                 /* Other case: this is from the ingestion side of things, but referenced */
                 context
             }
-            return this.factory.newExporter(name, input, newContext)
+            return this.factory.newOperator(name, mapOf("input" to input), newContext) as org.vitrivr.engine.core.operators.general.Exporter
         }
     }
 }

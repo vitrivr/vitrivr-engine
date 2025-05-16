@@ -7,8 +7,8 @@ import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.general.OperatorFactory
 import org.vitrivr.engine.core.operators.general.Transformer
-import org.vitrivr.engine.core.operators.general.TransformerFactory
 import java.util.*
 
 /**
@@ -19,8 +19,8 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class DistinctTransformer : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer = Instance(input, name)
+class DistinctTransformer : OperatorFactory {
+    override fun newOperator(name: String, inputs: Map<String, Operator<out Retrievable>>, context: Context): Transformer = Instance(inputs.values.first(), name)
 
     /**
      * [Transformer] that extracts [Retrievable] objects from a [Flow] of [Retrievable] objects based on a given [Relationship].

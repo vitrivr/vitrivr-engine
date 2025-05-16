@@ -7,7 +7,7 @@ import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
-import org.vitrivr.engine.core.operators.general.ExporterFactory
+import org.vitrivr.engine.core.operators.general.OperatorFactory
 import org.vitrivr.engine.core.resolver.ResolverFactory
 import org.vitrivr.engine.core.util.extension.loadServiceForName
 import java.nio.file.Paths
@@ -63,7 +63,7 @@ class SchemaManager {
         config.exporters.forEach { (exporterName, exporterConfig) ->
             schema.addExporter(
                 exporterName,
-                loadServiceForName<ExporterFactory>(exporterConfig.factory) ?: throw IllegalArgumentException("Failed to find exporter factory implementation for '${exporterConfig.factory}'."),
+                loadServiceForName<OperatorFactory>(exporterConfig.factory) ?: throw IllegalArgumentException("Failed to find exporter factory implementation for '${exporterConfig.factory}'."),
                 exporterConfig.parameters
             )
         }

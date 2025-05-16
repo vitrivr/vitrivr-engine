@@ -64,7 +64,7 @@ class ExifMetadata : Analyser<ContentElement<*>, AnyMapStructDescriptor> {
     /**
      *
      */
-    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): ExifMetadataRetriever {
+    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, content: Map<String, ContentElement<*>>, context: QueryContext): ExifMetadataRetriever {
         throw UnsupportedOperationException("ExifMetadata does not support the creation of a Retriever instance from content.")
     }
 }

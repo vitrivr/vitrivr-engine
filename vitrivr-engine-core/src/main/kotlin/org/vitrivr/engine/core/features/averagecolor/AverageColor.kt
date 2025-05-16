@@ -6,6 +6,7 @@ import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.LinearCorrespondence
 import org.vitrivr.engine.core.model.color.RGBColorContainer
 import org.vitrivr.engine.core.model.content.Content
+import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
@@ -107,8 +108,8 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      * @param content An array of [Content] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext): DenseRetriever<ImageContent> =
-        this.newRetrieverForDescriptors(field, content.map { this.analyse(it) }, context)
+    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Map<String, ContentElement<*>>, context: QueryContext): DenseRetriever<ImageContent> =
+        this.newRetrieverForDescriptors(field, content.values.filterIsInstance<ImageContent>().map { this.analyse(it) }, context)
 
     /**
      * Performs the [AverageColor] analysis on the provided [List] of [ImageContent] elements.
