@@ -42,30 +42,23 @@ class PipelineTest {
         schema.addResolver("test", DiskResolver().newResolver(schema, mapOf()))
 
 
-        val contextConfig = IngestionContextConfig(
-            "CachedContentFactory", listOf("test"), global = emptyMap(),
-            local = mapOf(
-                "enumerator" to mapOf("path" to "./src/test/resources/"),
-                "decoder" to mapOf("timeWindowMs" to "1000"),
-                "averageColorAgg" to mapOf("contentSources" to "middleAgg"),
-            )
-        )
+        val contextConfig = IngestionContextConfig("CachedContentFactory", listOf("test"))
 
         contextConfig.schema = schema
 
-        val context = IndexContextFactory.newContext(contextConfig)
+        val context = IndexContextFactory.newContext(emptyMap(), contextConfig)
 
-        val fileSystemEnumerator = FileSystemEnumerator().newEnumerator("enumerator", context, listOf(MediaType.VIDEO))
+        val fileSystemEnumerator = FileSystemEnumerator().newEnumerator("enumerator", mapOf( "path" to "./src/test/resources/"), context, listOf(MediaType.VIDEO))
 
-        val decoder = BroadcastOperator(VideoDecoder().newDecoder("decoder", input = fileSystemEnumerator, context = context))
+        val decoder = BroadcastOperator(VideoDecoder().newDecoder("decoder", input = fileSystemEnumerator, parameters = mapOf( "timeWindowMs" to "1000"), context = context))
 
-        val middleAgg = MiddleContentAggregator().newTransformer("middleAgg", input = decoder, context = context)
+        val middleAgg = MiddleContentAggregator().newTransformer("middleAgg", input = decoder, parameters = emptyMap(), context = context)
 
         val averageColor = AverageColor()
 
-        val averageColorAll = averageColor.newExtractor(schema.Field("averageColorAll", averageColor), input = decoder, context = context)
+        val averageColorAll = averageColor.newExtractor(schema.Field("averageColorAll", averageColor), input = decoder, parameters = emptyMap(), context = context)
 
-        val averageColorAgg = averageColor.newExtractor(schema.Field("averageColorAgg", averageColor), input = middleAgg, context = context)
+        val averageColorAgg = averageColor.newExtractor(schema.Field("averageColorAgg", averageColor), input = middleAgg, parameters = emptyMap(), context = context)
 
         val mergeOp = CombineOperator(listOf(averageColorAll, averageColorAgg))
 

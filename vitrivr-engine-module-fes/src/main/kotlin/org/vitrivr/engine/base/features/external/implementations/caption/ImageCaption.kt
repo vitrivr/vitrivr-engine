@@ -32,6 +32,7 @@ class ImageCaption : ExternalFesAnalyser<ContentElement<*>, TextDescriptor>() {
     companion object {
         const val PROMPT_PARAMETER_NAME = "prompt"
     }
+
     override val contentClasses = setOf(ImageContent::class, TextContent::class)
     override val descriptorClass = TextDescriptor::class
 
@@ -41,7 +42,8 @@ class ImageCaption : ExternalFesAnalyser<ContentElement<*>, TextDescriptor>() {
      * @param field [Schema.Field] to create the prototype for.
      * @return [TextDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>): TextDescriptor = TextDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.Text(""))
+    override fun prototype(field: Schema.Field<*, *>): TextDescriptor =
+        TextDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.Text(""))
 
     /**
      * Generates and returns a new [ImageCaptionExtractor] instance for this [ImageCaption].
@@ -51,7 +53,12 @@ class ImageCaption : ExternalFesAnalyser<ContentElement<*>, TextDescriptor>() {
      * @param context The [IndexContext] to use with the [ImageCaptionExtractor].
      * @return [ImageCaptionExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = TODO("type mismatch") // = ImageCaptionExtractor(input, name, this, emptyMap())
+    override fun newExtractor(
+        name: String,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ) = TODO("type mismatch") // = ImageCaptionExtractor(input, name, this, emptyMap())
 
     /**
      * Generates and returns a new [ImageCaptionExtractor] instance for this [ImageCaption].
@@ -61,7 +68,12 @@ class ImageCaption : ExternalFesAnalyser<ContentElement<*>, TextDescriptor>() {
      * @param context The [IndexContext] to use with the [ImageCaptionExtractor].
      * @return [ImageCaptionExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, TextDescriptor>, input: Operator<Retrievable>, context: IndexContext) = TODO("type mismatch") //ImageCaptionExtractor(input, field, this, merge(field, context) )
+    override fun newExtractor(
+        field: Schema.Field<ContentElement<*>, TextDescriptor>,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ) = TODO("type mismatch") //ImageCaptionExtractor(input, field, this, merge(field, context) )
 
     /**
      * Generates and returns a new [FulltextRetriever] instance for this [ExternalFesAnalyser].
@@ -72,7 +84,11 @@ class ImageCaption : ExternalFesAnalyser<ContentElement<*>, TextDescriptor>() {
      *
      * @return A new [FulltextRetriever] instance for this [ExternalFesAnalyser]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, TextDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, TextDescriptor> {
+    override fun newRetrieverForQuery(
+        field: Schema.Field<ContentElement<*>, TextDescriptor>,
+        query: Query,
+        context: QueryContext
+    ): Retriever<ContentElement<*>, TextDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is SimpleFulltextQuery) { "The query is not a fulltext query. This is a programmer's error!" }
         return FulltextRetriever(field, query, context)
@@ -86,11 +102,20 @@ class ImageCaption : ExternalFesAnalyser<ContentElement<*>, TextDescriptor>() {
      * @param context The [QueryContext] to use with the [Retriever]
      * @return [FulltextRetriever]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, TextDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, TextDescriptor> {
+    override fun newRetrieverForContent(
+        field: Schema.Field<ContentElement<*>, TextDescriptor>,
+        content: Collection<ContentElement<*>>,
+        context: QueryContext
+    ): Retriever<ContentElement<*>, TextDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         /* Prepare query parameters. */
-        val text = content.filterIsInstance<TextContent>().firstOrNull() ?: throw IllegalArgumentException("No text content found in the provided content.")
+        val text = content.filterIsInstance<TextContent>().firstOrNull()
+            ?: throw IllegalArgumentException("No text content found in the provided content.")
         val limit = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        return this.newRetrieverForQuery(field, SimpleFulltextQuery(value = Value.Text(text.content), limit = limit), context)
+        return this.newRetrieverForQuery(
+            field,
+            SimpleFulltextQuery(value = Value.Text(text.content), limit = limit),
+            context
+        )
     }
 }

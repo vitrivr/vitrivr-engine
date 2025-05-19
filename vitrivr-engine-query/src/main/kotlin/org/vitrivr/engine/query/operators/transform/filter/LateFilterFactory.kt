@@ -8,7 +8,10 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.TransformerFactory
 
 class LateFilterFactory() : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): LateFilter {
+    override fun newTransformer(
+        name: String, input: Operator<out Retrievable>, parameters: Map<String, String>,
+        context: Context
+    ): LateFilter {
         require(context is QueryContext)
         val field =
             context[name, "field"] ?: throw IllegalArgumentException("expected 'field' to be defined in properties")
@@ -24,6 +27,15 @@ class LateFilterFactory() : TransformerFactory {
         } else {
             emptyList()
         }
-        return LateFilter(input, field, keys, ComparisonOperator fromString comparison, value, limit, Skip fromString skip, name)
+        return LateFilter(
+            input,
+            field,
+            keys,
+            ComparisonOperator fromString comparison,
+            value,
+            limit,
+            Skip fromString skip,
+            name
+        )
     }
 }

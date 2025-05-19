@@ -47,11 +47,13 @@ import java.util.concurrent.TimeUnit
  */
 class VideoDecoder : DecoderFactory {
 
-    override fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder {
-        val video = context[name, "video"]?.let { it.lowercase() == "true" } ?: true
-        val audio = context[name, "audio"]?.let { it.lowercase() == "true" } ?: true
-        val keyFrames = context[name, "keyFrames"]?.let { it.lowercase() == "true" } ?: false
-        val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
+    override fun newDecoder(
+        name: String, input: Enumerator, parameters: Map<String, String>, context: IndexContext
+    ): Decoder {
+        val video = parameters["video"]?.let { it.lowercase() == "true" } ?: true
+        val audio = parameters["audio"]?.let { it.lowercase() == "true" } ?: true
+        val keyFrames = parameters["keyFrames"]?.let { it.lowercase() == "true" } ?: false
+        val timeWindowMs = parameters["timeWindowMs"]?.toLongOrNull() ?: 500L
         return Instance(input, context, name, video, audio, keyFrames, timeWindowMs)
     }
 
@@ -94,8 +96,8 @@ class VideoDecoder : DecoderFactory {
                 if (source is FileSource) {
                     FFmpegFrameGrabber(source.path.toFile()).use { grabber ->
                         decodeFromGrabber(source, retrievable, grabber, channel)
-                    }                }
-                else {
+                    }
+                } else {
                     source.newInputStream().use { input ->
                         FFmpegFrameGrabber(input).use { grabber ->
                             decodeFromGrabber(source, retrievable, grabber, channel)
@@ -118,8 +120,7 @@ class VideoDecoder : DecoderFactory {
             sourceRetrievable: Retrievable,
             grabber: FFmpegFrameGrabber,
             channel: ProducerScope<Retrievable>
-        ) {
-            /* Determine end of time window. */
+        ) {/* Determine end of time window. */
             var windowEnd = TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
             var error = false
 
@@ -158,12 +159,11 @@ class VideoDecoder : DecoderFactory {
                         Frame.Type.VIDEO -> {
                             imageBuffer.add(
                                 (try {
-                                    PointerScope().use { scope -> Java2DFrameConverter().convert(frame) to frame.timestamp }
-                                } catch (e: Exception) {
-                                    logger.error(e) { "Error converting frame to BufferedImage" }
-                                    null
-                                })!!
-                            )
+                                PointerScope().use { scope -> Java2DFrameConverter().convert(frame) to frame.timestamp }
+                            } catch (e: Exception) {
+                                logger.error(e) { "Error converting frame to BufferedImage" }
+                                null
+                            })!!)
                             if (frame.timestamp > windowEnd) {
                                 videoReady = true
                             }
@@ -232,8 +232,7 @@ class VideoDecoder : DecoderFactory {
             timestampEnd: Long,
             source: Retrievable,
             channel: ProducerScope<Retrievable>
-        ) {
-            /* Audio samples. */
+        ) {/* Audio samples. */
             var audioSize = 0
             val emitImage = mutableListOf<BufferedImage>()
             val emitAudio = mutableListOf<ShortBuffer>()
@@ -284,9 +283,7 @@ class VideoDecoder : DecoderFactory {
                 }
                 samples.clear()
                 val audio = this.context.contentFactory.newAudioContent(
-                    grabber.audioChannels.toShort(),
-                    grabber.sampleRate,
-                    samples
+                    grabber.audioChannels.toShort(), grabber.sampleRate, samples
                 )
                 content.add(audio)
             }
@@ -300,7 +297,14 @@ class VideoDecoder : DecoderFactory {
             logger.debug { "Emitting ingested $retrievableId with ${emitImage.size} images and ${emitAudio.size} audio samples." }
 
             /* Emit ingested. */
-            channel.send(Ingested(retrievableId, "SEGMENT", content = content, attributes = attributes, relationships = relationship?.let { setOf(it) } ?: emptySet(), transient = false))
+            channel.send(
+                Ingested(
+                    retrievableId,
+                "SEGMENT",
+                content = content,
+                attributes = attributes,
+                relationships = relationship?.let { setOf(it) } ?: emptySet(),
+                transient = false))
         }
     }
 }
