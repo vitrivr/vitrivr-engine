@@ -88,12 +88,14 @@ class DominantColor : Analyser<ImageContent, LabelDescriptor> {
     override fun newExtractor(
         field: Schema.Field<ImageContent, LabelDescriptor>,
         input: Operator<Retrievable>,
+        parameters: Map<String, String>,
         context: IndexContext
     ): Extractor<ImageContent, LabelDescriptor> = DominantColorExtractor(input, this,  field)
 
     override fun newExtractor(
         name: String,
         input: Operator<Retrievable>,
+        parameters: Map<String, String>,
         context: IndexContext
     ): Extractor<ImageContent, LabelDescriptor> = DominantColorExtractor(input, this, name)
 

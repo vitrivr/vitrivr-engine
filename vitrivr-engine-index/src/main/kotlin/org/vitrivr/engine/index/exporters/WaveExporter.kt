@@ -31,8 +31,13 @@ class WaveExporter : ExporterFactory {
      * @param input The [Operator] to acting as an input.
      * @param context The [IndexContext] to use.
      */
-    override fun newExporter(name: String, input: Operator<Retrievable>, context: IndexContext): Exporter {
-        val resolverName = context[name, "resolver"]?: "default"
+    override fun newExporter(
+        name: String,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ): Exporter {
+        val resolverName = parameters["resolver"] ?: "default"
         return Instance(input, context, resolverName, name)
     }
 
@@ -47,7 +52,8 @@ class WaveExporter : ExporterFactory {
     ) : Exporter {
 
         /** [Resolver] instance. */
-        private val resolver: Resolver = this.context.resolver[resolverName] ?: throw IllegalStateException("Unknown resolver with name $resolverName.")
+        private val resolver: Resolver = this.context.resolver[resolverName]
+            ?: throw IllegalStateException("Unknown resolver with name $resolverName.")
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
             try {

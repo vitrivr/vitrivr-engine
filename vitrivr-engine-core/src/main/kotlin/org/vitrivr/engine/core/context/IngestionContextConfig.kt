@@ -22,16 +22,9 @@ class IngestionContextConfig(
     /** The name of the [Resolver]s to be used during ingestion */
     val resolvers: List<String>,
 
-    /** [Map] of local parameters (applied to one operator). */
-    override val local: Map<String, Map<String, String>> = emptyMap(),
-
-    /** [Map] of global parameters. */
-    override val global: Map<String, String> = emptyMap()
-) : Context() {
-
+    ) {
     @Transient
     @get:OpenApiIgnore
     @set:OpenApiIgnore
-    override lateinit var schema: Schema
-
+    lateinit var schema: Schema
 }

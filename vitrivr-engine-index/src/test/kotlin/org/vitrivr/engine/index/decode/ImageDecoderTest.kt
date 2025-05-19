@@ -34,21 +34,15 @@ class ImageDecoderTest {
         schema.addResolver("test", DiskResolver().newResolver(schema, mapOf()))
 
         /* Prepare context. */
-        val contextConfig = IngestionContextConfig(
-            "CachedContentFactory", listOf("test"), global = emptyMap(),
-            local = mapOf(
-                "enumerator" to mapOf("path" to "./src/test/resources/images"),
-                "decoder" to mapOf("timeWindowMs" to "1000")
-            )
-        )
+        val contextConfig = IngestionContextConfig("CachedContentFactory", listOf("test"))
         contextConfig.schema = schema
 
         /* Prepare pipeline. */
-        val context = IndexContextFactory.newContext(contextConfig)
-        val fileSystemEnumerator = FileSystemEnumerator().newEnumerator("enumerator", context, listOf(MediaType.IMAGE))
-        val decoder = ImageDecoder().newDecoder("decoder", input = fileSystemEnumerator, context = context)
-        val averageColor =  AverageColor().let { it.newExtractor(schema.Field("averagecolor", it), input = decoder, context = context) }
-        val file =  FileSourceMetadata().let { it.newExtractor(schema.Field("file", it), input = averageColor, context = context) }
+        val context = IndexContextFactory.newContext(emptyMap(), contextConfig)
+        val fileSystemEnumerator = FileSystemEnumerator().newEnumerator("enumerator", mapOf("path" to "./src/test/resources/images"), context, listOf(MediaType.IMAGE))
+        val decoder = ImageDecoder().newDecoder("decoder", input = fileSystemEnumerator, parameters = emptyMap(), context = context)
+        val averageColor =  AverageColor().let { it.newExtractor(schema.Field("averagecolor", it), input = decoder, parameters = emptyMap(), context = context) }
+        val file =  FileSourceMetadata().let { it.newExtractor(schema.Field("file", it), input = averageColor, parameters = emptyMap(), context = context) }
 
         /* Execute pipeline. */
         val results = file.toFlow(this).takeWhile { it != TerminalRetrievable }.toList()

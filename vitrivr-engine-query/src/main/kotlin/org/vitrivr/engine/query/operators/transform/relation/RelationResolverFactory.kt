@@ -9,7 +9,7 @@ import org.vitrivr.engine.core.operators.general.TransformerFactory
 /**
  * [TransformerFactory] for the [RelationResolver]
  */
-class RelationResolverFactory: TransformerFactory {
+class RelationResolverFactory : TransformerFactory {
     /**
      * Creates a new [Transformer] instance from this [TransformerFactory].
      *
@@ -20,11 +20,13 @@ class RelationResolverFactory: TransformerFactory {
     override fun newTransformer(
         name: String,
         input: Operator<out Retrievable>,
+        parameters: Map<String, String>,
+
         context: Context
     ): Transformer {
         val retrievableReader = context.schema.connection.getRetrievableReader()
         val predicate = context[name, "predicate"]
-        require(predicate?.isNotBlank() == true){"Requires a non-blank predicate!"}
-        return RelationResolver(input, predicate!! , retrievableReader, name)
+        require(predicate?.isNotBlank() == true) { "Requires a non-blank predicate!" }
+        return RelationResolver(input, predicate!!, retrievableReader, name)
     }
 }

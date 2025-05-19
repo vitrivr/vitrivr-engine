@@ -5,6 +5,7 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -33,13 +34,18 @@ class FixedDurationSegmenter : TransformerFactory {
      * @param input The input [Operator].
      * @param context The [Context] to use.
      */
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
+    override fun newTransformer(
+        name: String,
+        input: Operator<out Retrievable>,
+        parameters: Map<String, String>,
+        context: Context
+    ): Transformer {
         val duration = Duration.ofMillis(
-            (context[name, "duration"]
+            (parameters["duration"]
                 ?: throw IllegalArgumentException("Property 'duration' must be specified")).toLong()
         )
         val lookAheadTime = Duration.ofMillis(
-            (context[name, "lookAheadTime"]
+            (parameters["lookAheadTime"]
                 ?: throw IllegalArgumentException("Property 'lookAheadTime' must be specified")).toLong()
         )
         return Instance(input, name, duration, lookAheadTime)
@@ -83,7 +89,15 @@ class FixedDurationSegmenter : TransformerFactory {
             this@Instance.input.toFlow(scope).collect { ingested ->
 
                 if (srcRetrievable == null) {
-                    srcRetrievable = Ingested(UUID.randomUUID(), "SOURCE:VIDEO", emptyList(), emptySet(), emptySet(), emptySet(), true)
+                    srcRetrievable = Ingested(
+                        UUID.randomUUID(),
+                        "SOURCE:VIDEO",
+                        emptyList(),
+                        emptySet(),
+                        emptySet(),
+                        emptySet(),
+                        true
+                    )
                 }
 
                 /* Final element of a single video. */
@@ -92,8 +106,22 @@ class FixedDurationSegmenter : TransformerFactory {
                     sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos, srcRetrievable!!)
 
                     /* Send source retrievable. */
-                    downstream.send(srcRetrievable!!.copy(content = ingested.content, descriptors = ingested.descriptors, attributes = ingested.attributes))
-                    srcRetrievable = Ingested(UUID.randomUUID(), "SOURCE:VIDEO", emptyList(), emptySet(), emptySet(), emptySet(), true)
+                    downstream.send(
+                        srcRetrievable!!.copy(
+                            content = ingested.content,
+                            descriptors = ingested.descriptors,
+                            attributes = ingested.attributes
+                        )
+                    )
+                    srcRetrievable = Ingested(
+                        UUID.randomUUID(),
+                        "SOURCE:VIDEO",
+                        emptyList(),
+                        emptySet(),
+                        emptySet(),
+                        emptySet(),
+                        true
+                    )
                     return@collect
                 }
 
@@ -176,7 +204,17 @@ class FixedDurationSegmenter : TransformerFactory {
             attributes.add(TimeRangeAttribute(min, max))
 
             /* Send retrievable downstream. */
-            downstream.send(Ingested(retrievableId, emit.first().type, content, descriptors, attributes, relationships, true))
+            downstream.send(
+                Ingested(
+                    retrievableId,
+                    emit.first().type,
+                    content,
+                    descriptors,
+                    attributes,
+                    relationships,
+                    true
+                )
+            )
         }
     }
 }
