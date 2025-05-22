@@ -55,7 +55,12 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      * @param indexes List of [IndexConfig]s that can be used to configure indexes on the [Field].
      * @return [Field] instance.
      */
-    fun addField(name: String, analyser: Analyser<ContentElement<*>, Descriptor<*>>, parameters: Map<String, String> = emptyMap(), indexes: List<IndexConfig>) {
+    fun addField(
+        name: String,
+        analyser: Analyser<ContentElement<*>, Descriptor<*>>,
+        parameters: Map<String, String> = emptyMap(),
+        indexes: List<IndexConfig>
+    ) {
         this.fields.add(Field(name, analyser, parameters, indexes))
     }
 
@@ -70,7 +75,15 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      */
     fun addExporter(name: String, factory: OperatorFactory, parameters: Map<String, String>) {
         val resolver = parameters["resolver"] ?: "default"
-        this.exporters.add(Exporter(name, factory, parameters, (this.resolvers[resolver] ?: throw IllegalArgumentException("There is no resolver '$resolver' defined on the schema '${this.name}'"))))
+        this.exporters.add(
+            Exporter(
+                name,
+                factory,
+                parameters,
+                (this.resolvers[resolver]
+                    ?: throw IllegalArgumentException("There is no resolver '$resolver' defined on the schema '${this.name}'"))
+            )
+        )
     }
 
     /**
@@ -131,7 +144,8 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      * @param name The name of the ingestion pipeline configuration, essentially the [SchemaConfig]
      * @return [IngestionPipelineBuilder] instance
      */
-    fun getIngestionPipelineBuilder(name: String) = this.ingestionPipelineBuilders[name] ?: throw IllegalArgumentException("No ingestion pipeline builder with the name '$name' found in schema '${this.name}'")
+    fun getIngestionPipelineBuilder(name: String) = this.ingestionPipelineBuilders[name]
+        ?: throw IllegalArgumentException("No ingestion pipeline builder with the name '$name' found in schema '${this.name}'")
 
     /**
      * Closes this [Schema] and the associated database [Connection].
@@ -147,7 +161,8 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      * @throws IllegalArgumentException In case no such named [Resolver] was found.
      */
     fun getResolver(resolverName: String): Resolver {
-        return resolvers[resolverName] ?: throw IllegalArgumentException("No resolver '$resolverName' found on schema '${this.name}'.")
+        return resolvers[resolverName]
+            ?: throw IllegalArgumentException("No resolver '$resolverName' found on schema '${this.name}'.")
     }
 
     /**
@@ -181,8 +196,12 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * @param context The [IndexContext] to use with the [Extractor].
          * @return [Extractor] instance.
          */
-        fun getExtractor(input: Operator<Retrievable>, context: IndexContext): Extractor<C, D> = this.analyser.newExtractor(this, input, context)
-        
+        fun getExtractor(
+            input: Operator<Retrievable>,
+            parameters: Map<String, String>,
+            context: IndexContext
+        ): Extractor<C, D> = this.analyser.newExtractor(this, input, parameters, context)
+
         /**
          * Returns a [Retriever] instance for this [Schema.Field] and the provided [Query].
          *
@@ -190,7 +209,8 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * @param context The [QueryContext] to use with the [Retriever].
          * @return [Retriever] instance.
          */
-        fun getRetrieverForQuery(query: Query, context: QueryContext): Retriever<C, D> = this.analyser.newRetrieverForQuery(this, query, context)
+        fun getRetrieverForQuery(query: Query, context: QueryContext): Retriever<C, D> =
+            this.analyser.newRetrieverForQuery(this, query, context)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field].
@@ -198,7 +218,8 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * @param content The [Content] element(s) that should be used with the [Retriever].
          * @return [Retriever] instance.
          */
-        fun getRetrieverForContent(content: Map<String, ContentElement<*>>, queryContext: QueryContext): Retriever<C, D> = this.analyser.newRetrieverForContent(this, content, queryContext)
+        fun getRetrieverForContent(content: Map<String, ContentElement<*>>, queryContext: QueryContext): Retriever<C, D> =
+            this.analyser.newRetrieverForContent(this, content, queryContext)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field].
@@ -206,7 +227,8 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * @param descriptors The [Descriptor] element(s) that should be used with the [Retriever].
          * @return [Retriever] instance.
          */
-        fun getRetrieverForDescriptors(descriptors: Collection<D>, queryContext: QueryContext): Retriever<C, D> = this.analyser.newRetrieverForDescriptors(this, descriptors, queryContext)
+        fun getRetrieverForDescriptors(descriptors: Collection<D>, queryContext: QueryContext): Retriever<C, D> =
+            this.analyser.newRetrieverForDescriptors(this, descriptors, queryContext)
 
         /**
          * Returns the [DescriptorInitializer] for this [Schema.Field].
@@ -243,7 +265,12 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      *
      * An [Exporter] always has a unique name and is backed by an existing [ExporterFactory] and an existing [ResolverFactory].
      */
-    inner class Exporter(val name: String, private val factory: OperatorFactory, private val parameters: Map<String, String> = emptyMap(), val resolver: Resolver) {
+    inner class Exporter(
+        val name: String,
+        private val factory: OperatorFactory,
+        private val parameters: Map<String, String> = emptyMap(),
+        val resolver: Resolver
+    ) {
         val schema: Schema
             get() = this@Schema
 
@@ -254,24 +281,25 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * @param context The [IndexContext] to use.
          * @return [DescriptorReader]
          */
-        fun getExporter(input: Operator<Retrievable>, context: IndexContext): org.vitrivr.engine.core.operators.general.Exporter {
-            val newContext = if (parameters.isNotEmpty()) {
+        fun getExporter(
+            input: Operator<Retrievable>,
+            params: Map<String, String>,
+            context: IndexContext
+        ): org.vitrivr.engine.core.operators.general.Exporter {
+            val newParameters = if (parameters.isNotEmpty()) {
                 /* Case this is newly defined in the schema */
-                val params = if (context.local.containsKey(name)) {
-                    val map = context.local[name]?.toMutableMap() ?: mutableMapOf()
+                val p = if (params.containsKey(name)) {
+                    val map = params?.toMutableMap() ?: mutableMapOf()
                     map.putAll(parameters)
                     map
                 } else {
                     parameters
                 }
-                val newLocal = context.local.toMutableMap()
-                newLocal[name] = params
-                IndexContext(context.schema, context.contentFactory, context.resolver, newLocal, context.global)
+                p
             } else {
-                /* Other case: this is from the ingestion side of things, but referenced */
-                context
+                params
             }
-            return this.factory.newOperator(name, mapOf("input" to input), newContext) as org.vitrivr.engine.core.operators.general.Exporter
+            return this.factory.newOperator(name, mapOf("input" to input), newParameters, context) as org.vitrivr.engine.core.operators.general.Exporter
         }
     }
 }

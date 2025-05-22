@@ -45,7 +45,8 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      * @param field [Schema.Field] to create the prototype for.
      * @return [LabelDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>) = LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), "", 0.0f, null)
+    override fun prototype(field: Schema.Field<*, *>) =
+        LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), "", 0.0f, null)
 
     /**
      * Generates and returns a new [StructBooleanRetriever] instance for this [TSImageLabel].
@@ -56,7 +57,11 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      *
      * @return A new [StructBooleanRetriever] instance for this [TSImageLabel]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, LabelDescriptor>, query: Query, context: QueryContext): StructBooleanRetriever<ImageContent, LabelDescriptor> {
+    override fun newRetrieverForQuery(
+        field: Schema.Field<ImageContent, LabelDescriptor>,
+        query: Query,
+        context: QueryContext
+    ): StructBooleanRetriever<ImageContent, LabelDescriptor> {
         require(query is SimpleBooleanQuery<*>) { "TSImageLabel only supports boolean queries." }
         return StructBooleanRetriever(field, query, context)
     }
@@ -68,9 +73,17 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      * @param descriptors An array of [LabelDescriptor] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, LabelDescriptor>, descriptors: Collection<LabelDescriptor>, context: QueryContext): StructBooleanRetriever<ImageContent, LabelDescriptor> {
+    override fun newRetrieverForDescriptors(
+        field: Schema.Field<ImageContent, LabelDescriptor>,
+        descriptors: Collection<LabelDescriptor>,
+        context: QueryContext
+    ): StructBooleanRetriever<ImageContent, LabelDescriptor> {
         val values = descriptors.map { it.label }
-        val query = SimpleBooleanQuery(values.first(), ComparisonOperator.EQ, LabelDescriptor.LABEL_FIELD_NAME) /* TODO: An IN query would make more sense here. */
+        val query = SimpleBooleanQuery(
+            values.first(),
+            ComparisonOperator.EQ,
+            LabelDescriptor.LABEL_FIELD_NAME
+        ) /* TODO: An IN query would make more sense here. */
         return this.newRetrieverForQuery(field, query, context)
     }
 
@@ -82,11 +95,16 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      * @param context The [QueryContext] to use with the [Retriever]
      * @return [Retriever]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ImageContent, LabelDescriptor>, content: Collection<ImageContent>, context: QueryContext): Retriever<ImageContent, LabelDescriptor> {
+    override fun newRetrieverForContent(
+        field: Schema.Field<ImageContent, LabelDescriptor>,
+        content: Collection<ImageContent>,
+        context: QueryContext
+    ): Retriever<ImageContent, LabelDescriptor> {
         val host = field.parameters[TORCHSERVE_HOST_KEY] ?: TORCHSERVE_HOST_DEFAULT
         val port = field.parameters[TORCHSERVE_PORT_KEY]?.toIntOrNull() ?: TORCHSERVE_PORT_DEFAULT
         val token = field.parameters[TORCHSERVE_TOKEN_KEY]
-        val model = field.parameters[TORCHSERVE_MODEL_KEY] ?: throw IllegalArgumentException("Missing model for TorchServe model.")
+        val model = field.parameters[TORCHSERVE_MODEL_KEY]
+            ?: throw IllegalArgumentException("Missing model for TorchServe model.")
         val threshold = field.parameters[TORCHSERVE_THRESHOLD_KEY]?.toFloatOrNull() ?: 0.0f
         val descriptors = this.analyse(content, model, host, port, token).filter({ it.confidence.value >= threshold })
         return this.newRetrieverForDescriptors(field, descriptors, context)
@@ -101,12 +119,21 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      *
      * @return A new [TorchServeExtractor] instance for this [Analyser]
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, LabelDescriptor>, input: Operator<Retrievable>, context: IndexContext): TSImageLabelExtractor {
-        val host = context.local[field.fieldName]?.get(TORCHSERVE_HOST_KEY) ?: field.parameters[TORCHSERVE_HOST_KEY] ?: "127.0.0.1"
-        val port = ((context.local[field.fieldName]?.get(TORCHSERVE_PORT_KEY) ?: field.parameters[TORCHSERVE_PORT_KEY]))?.toIntOrNull() ?: 7070
-        val token = context.local[field.fieldName]?.get(TORCHSERVE_TOKEN_KEY) ?: field.parameters[TORCHSERVE_TOKEN_KEY]
-        val model = context.local[field.fieldName]?.get(TORCHSERVE_MODEL_KEY) ?: field.parameters[TORCHSERVE_MODEL_KEY] ?: throw IllegalArgumentException("Missing model for TorchServe model.")
-        val threshold = (context.local[field.fieldName]?.get(TORCHSERVE_THRESHOLD_KEY) ?: field.parameters[TORCHSERVE_THRESHOLD_KEY])?.toFloatOrNull() ?: 0.0f
+    override fun newExtractor(
+        field: Schema.Field<ImageContent, LabelDescriptor>,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ): TSImageLabelExtractor {
+        val host = parameters[TORCHSERVE_HOST_KEY] ?: field.parameters[TORCHSERVE_HOST_KEY]
+        ?: "127.0.0.1"
+        val port = ((parameters[TORCHSERVE_PORT_KEY]
+            ?: field.parameters[TORCHSERVE_PORT_KEY]))?.toIntOrNull() ?: 7070
+        val token = parameters[TORCHSERVE_TOKEN_KEY] ?: field.parameters[TORCHSERVE_TOKEN_KEY]
+        val model = parameters[TORCHSERVE_MODEL_KEY] ?: field.parameters[TORCHSERVE_MODEL_KEY]
+        ?: throw IllegalArgumentException("Missing model for TorchServe model.")
+        val threshold = (parameters[TORCHSERVE_THRESHOLD_KEY]
+            ?: field.parameters[TORCHSERVE_THRESHOLD_KEY])?.toFloatOrNull() ?: 0.0f
         return TSImageLabelExtractor(threshold, host, port, token, model, input, this, field, field.fieldName)
     }
 
@@ -119,12 +146,18 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      *
      * @return A new [TorchServeExtractor] instance for this [TorchServe]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): TSImageLabelExtractor {
-        val host = context.local[name]?.get(TORCHSERVE_HOST_KEY) ?: "127.0.0.1"
-        val port = context.local[name]?.get(TORCHSERVE_PORT_KEY)?.toIntOrNull() ?: 7070
-        val token = context.local[name]?.get(TORCHSERVE_TOKEN_KEY)
-        val model = context.local[name]?.get(TORCHSERVE_MODEL_KEY) ?: throw IllegalArgumentException("Missing model for TorchServe model.")
-        val threshold = context.local[name]?.get(TORCHSERVE_THRESHOLD_KEY)?.toFloatOrNull() ?: 0.0f
+    override fun newExtractor(
+        name: String,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ): TSImageLabelExtractor {
+        val host = parameters[TORCHSERVE_HOST_KEY] ?: "127.0.0.1"
+        val port = parameters[TORCHSERVE_PORT_KEY]?.toIntOrNull() ?: 7070
+        val token = parameters[TORCHSERVE_TOKEN_KEY]
+        val model = parameters[TORCHSERVE_MODEL_KEY]
+            ?: throw IllegalArgumentException("Missing model for TorchServe model.")
+        val threshold = parameters[TORCHSERVE_THRESHOLD_KEY]?.toFloatOrNull() ?: 0.0f
         return TSImageLabelExtractor(threshold, host, port, token, model, input, this, null, name)
     }
 
@@ -161,6 +194,14 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      */
     override fun byteStringToDescriptor(byteString: ByteString): List<LabelDescriptor> {
         val decoded = Json.decodeFromString<Map<String, Float>>(byteString.toString(Charsets.UTF_8))
-        return decoded.map { (label, confidence) -> LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), label, confidence, null) }
+        return decoded.map { (label, confidence) ->
+            LabelDescriptor(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                label,
+                confidence,
+                null
+            )
+        }
     }
 }

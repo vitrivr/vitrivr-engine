@@ -3,6 +3,7 @@ package org.vitrivr.engine.index.transform
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
@@ -20,10 +21,15 @@ private val logger: KLogger = KotlinLogging.logger {}
  */
 class LabelFilterTransformer : TransformerFactory {
 
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
-        val confidenceThreshold = context[name, "confidenceThreshold"]?.toFloat()
-        val label = context[name, "label"]
-        val field = context[name, "field"]
+    override fun newTransformer(
+        name: String,
+        input: Operator<out Retrievable>,
+        parameters: Map<String, String>,
+        context: Context
+    ): Transformer {
+        val confidenceThreshold = parameters["confidenceThreshold"]?.toFloat()
+        val label = parameters["label"]
+        val field = parameters["field"]
         return Instance(input, name, confidenceThreshold, label, field)
     }
 

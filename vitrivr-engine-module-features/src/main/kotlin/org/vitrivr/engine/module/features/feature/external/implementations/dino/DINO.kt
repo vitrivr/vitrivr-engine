@@ -55,7 +55,8 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
      *
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(384))
+    override fun prototype(field: Schema.Field<*, *>) =
+        FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(384))
 
     /**
      * Generates and returns a new [Extractor] instance for this [DINO].
@@ -65,9 +66,14 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
      * @param context The [IndexContext] to use with the [Extractor].
      * @return [DINOExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext): DINOExtractor {
+    override fun newExtractor(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ): DINOExtractor {
         val host: String = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
-        return DINOExtractor(input, this,  field, host)
+        return DINOExtractor(input, this, field, host)
     }
 
     /**
@@ -78,8 +84,13 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
      * @param context The [IndexContext] to use with the [Extractor].
      * @return [DINOExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): DINOExtractor {
-        val host: String = context.getProperty(name, HOST_PARAMETER_NAME) ?: HOST_PARAMETER_DEFAULT
+    override fun newExtractor(
+        name: String,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ): DINOExtractor {
+        val host: String = parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
         return DINOExtractor(input, this, name, host)
     }
 
@@ -93,10 +104,19 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ImageContent, FloatVectorDescriptor>, query: Query, context: QueryContext): DenseRetriever<ImageContent> {
+    override fun newRetrieverForQuery(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        query: Query,
+        context: QueryContext
+    ): DenseRetriever<ImageContent> {
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
         @Suppress("UNCHECKED_CAST")
-        return DenseRetriever(field, query as ProximityQuery<Value.FloatVector>, context, BoundedCorrespondence(0.0, 2.0))
+        return DenseRetriever(
+            field,
+            query as ProximityQuery<Value.FloatVector>,
+            context,
+            BoundedCorrespondence(0.0, 2.0)
+        )
     }
 
     /**
@@ -109,13 +129,21 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ImageContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): DenseRetriever<ImageContent> {
+    override fun newRetrieverForDescriptors(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        descriptors: Collection<FloatVectorDescriptor>,
+        context: QueryContext
+    ): DenseRetriever<ImageContent> {
         /* Prepare query parameters. */
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
         val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
 
         /* Return retriever. */
-        return this.newRetrieverForQuery(field, ProximityQuery(value = descriptors.first().vector, k = k, fetchVector = fetchVector), context)
+        return this.newRetrieverForQuery(
+            field,
+            ProximityQuery(value = descriptors.first().vector, k = k, fetchVector = fetchVector),
+            context
+        )
     }
 
     /**
@@ -128,7 +156,11 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    override fun newRetrieverForContent(field: Schema.Field<ImageContent, FloatVectorDescriptor>, content: Collection<ImageContent>, context: QueryContext): DenseRetriever<ImageContent> {
+    override fun newRetrieverForContent(
+        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
+        content: Collection<ImageContent>,
+        context: QueryContext
+    ): DenseRetriever<ImageContent> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
 

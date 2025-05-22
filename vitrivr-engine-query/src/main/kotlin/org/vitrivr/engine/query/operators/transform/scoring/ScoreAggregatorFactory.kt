@@ -11,6 +11,7 @@ class ScoreAggregatorFactory : TransformerFactory {
     override fun newTransformer(
         name: String,
         input: Operator<out Retrievable>,
+        parameters: Map<String, String>,
         context: Context
     ): Transformer {
 
