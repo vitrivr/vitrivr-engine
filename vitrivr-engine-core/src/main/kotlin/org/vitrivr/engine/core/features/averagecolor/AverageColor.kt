@@ -55,7 +55,6 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
     override fun newExtractor(
         field: Schema.Field<ImageContent, FloatVectorDescriptor>,
         input: Operator<Retrievable>,
-        parameters: Map<String, String>,
         context: IndexContext
     ) = AverageColorExtractor(input, this, field)
 
@@ -72,7 +71,6 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
     override fun newExtractor(
         name: String,
         input: Operator<Retrievable>,
-        parameters: Map<String, String>,
         context: IndexContext
     ): Extractor<ImageContent, FloatVectorDescriptor> = AverageColorExtractor(input, this, name)
 

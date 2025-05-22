@@ -15,6 +15,6 @@ import java.util.UUID
  * @version 1.0.0
  */
 
-data class InMemoryTextContent(override val content: TextDescriptor, override val id: ContentId = ContentId.randomUUID()) : DescriptorContent<TextDescriptor> {
+data class InMemoryTextContent(override val content: TextDescriptor, override val id: ContentId = ContentId.randomUUID()) : TextContent {
     constructor(text: String, id: ContentId = ContentId.randomUUID()) : this(TextDescriptor(id, null, Value.Text(text), null), id)
 }

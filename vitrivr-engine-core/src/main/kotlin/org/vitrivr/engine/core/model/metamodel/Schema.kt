@@ -4,6 +4,7 @@ import org.vitrivr.engine.core.config.ingest.IngestionConfig
 import org.vitrivr.engine.core.config.ingest.IngestionPipelineBuilder
 import org.vitrivr.engine.core.config.schema.IndexConfig
 import org.vitrivr.engine.core.config.schema.SchemaConfig
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.database.Connection
@@ -198,9 +199,8 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          */
         fun getExtractor(
             input: Operator<Retrievable>,
-            parameters: Map<String, String>,
             context: IndexContext
-        ): Extractor<C, D> = this.analyser.newExtractor(this, input, parameters, context)
+        ): Extractor<C, D> = this.analyser.newExtractor(this, input, context)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field] and the provided [Query].
@@ -299,7 +299,7 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
             } else {
                 params
             }
-            return this.factory.newOperator(name, mapOf("input" to input), newParameters, context) as org.vitrivr.engine.core.operators.general.Exporter
+            return this.factory.newOperator(name, mapOf("input" to input), context) as org.vitrivr.engine.core.operators.general.Exporter
         }
     }
 }

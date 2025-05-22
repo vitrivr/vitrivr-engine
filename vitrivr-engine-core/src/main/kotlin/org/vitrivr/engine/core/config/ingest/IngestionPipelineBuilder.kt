@@ -13,9 +13,8 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Exporter
-import org.vitrivr.engine.core.operators.general.ExporterFactory
+import org.vitrivr.engine.core.operators.general.OperatorFactory
 import org.vitrivr.engine.core.operators.general.Transformer
-import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.operators.ingest.*
 import org.vitrivr.engine.core.operators.sinks.DefaultSink
 import org.vitrivr.engine.core.operators.transform.shape.BroadcastOperator
@@ -39,7 +38,7 @@ private val logger: KLogger = KotlinLogging.logger { }
 class IngestionPipelineBuilder(val config: IngestionConfig) {
 
     /** The [IndexContext] */
-    private val context = IndexContextFactory.newContext(emptyMap(), config.context)
+    private val context = IndexContextFactory.newContext(emptyMap(), config.context) //FIXME add parameters to context
 
 
     /**
@@ -297,10 +296,10 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
         parent: Operator<Retrievable>,
         config: OperatorConfig.Transformer
     ): Transformer {
-        val factory = loadFactory<TransformerFactory>(config.factory)
-        return factory.newTransformer(name, parent, config.parameters, this.context).apply {
+        val factory = loadFactory<OperatorFactory>(config.factory)
+        return factory.newOperator(name, mapOf("input" to parent), this.context).apply {
             logger.info { "Built transformer: ${this.javaClass.name} with name $name" }
-        }
+        } as Transformer
     }
 
     /**
@@ -313,10 +312,10 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
     private fun buildExporter(name: String, parent: Operator<Retrievable>, config: OperatorConfig.Exporter): Exporter {
         return if (!config.factory.isNullOrBlank()) {
             /* Case factory is specified */
-            val factory = loadFactory<ExporterFactory>(config.factory)
-            factory.newExporter(name, parent, config.parameters, this.context).apply {
+            val factory = loadFactory<OperatorFactory>(config.factory)
+            factory.newOperator(name, mapOf("input" to parent), this.context).apply {
                 logger.info { "Built exporter from factory: ${config.factory}." }
-            }
+            } as Exporter
         } else if (!config.exporterName.isNullOrBlank()) {
             /* Case exporter name is given. Due to require in ExporterConfig.init, this is fine as an if-else */
             val exporter = context.schema.getExporter(config.exporterName)
@@ -343,12 +342,12 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
         if (!config.fieldName.isNullOrBlank()) {
             val field = this.context.schema[config.fieldName]
                 ?: throw IllegalArgumentException("Field '${config.fieldName}' does not exist in schema '${context.schema.name}'")
-            return field.getExtractor(parent, config.parameters, this.context).apply {
+            return field.getExtractor(parent, this.context).apply {
                 logger.info { "Built extractor by name field name: ${config.fieldName}" }
             }
         } else if (!config.factory.isNullOrBlank()) {
             val factory = loadFactory<Analyser<ContentElement<*>, Descriptor<*>>>(config.factory)
-            return factory.newExtractor(name, parent, config.parameters, this.context).apply {
+            return factory.newExtractor(name, parent, this.context).apply {
                 logger.info { "Built extractor by factory: ${config.factory}" }
             }
         } else {
