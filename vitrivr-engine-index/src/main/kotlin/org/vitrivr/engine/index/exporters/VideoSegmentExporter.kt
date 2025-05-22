@@ -60,20 +60,25 @@ class VideoSegmentExporter : ExporterFactory {
      * @param input The [Operator] to acting as an input.
      * @param context The [IndexContext] to use.
      */
-    override fun newExporter(name: String, input: Operator<Retrievable>, context: IndexContext): Exporter {
+    override fun newExporter(
+        name: String,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ): Exporter {
         val mimeType =
-            context[name, "mimeType"]?.let {
+            parameters["mimeType"]?.let {
                 try {
                     MimeType.valueOf(it.uppercase())
                 } catch (e: java.lang.IllegalArgumentException) {
                     null
                 }
             } ?: MimeType.MP4
-        val video = context[name, "video"]?.let { it.lowercase() == "true" } ?: true
-        val audio = context[name, "audio"]?.let { it.lowercase() == "true" } ?: true
-        val useGrabber = context[name, "useGrabber"]?.let { it.lowercase() == "true" } ?: true
-        val keyFrames = context[name, "keyFrames"]?.let { it.lowercase() == "true" } ?: false
-        val resolverName = context[name, "resolver"]?: "default"
+        val video = parameters["video"]?.let { it.lowercase() == "true" } ?: true
+        val audio = parameters["audio"]?.let { it.lowercase() == "true" } ?: true
+        val useGrabber = parameters["useGrabber"]?.let { it.lowercase() == "true" } ?: true
+        val keyFrames = parameters["keyFrames"]?.let { it.lowercase() == "true" } ?: false
+        val resolverName = parameters["resolver"] ?: "default"
         logger.debug {
             "Creating new VideoSegmentExporter with mimeType=$mimeType."
         }
@@ -103,7 +108,8 @@ class VideoSegmentExporter : ExporterFactory {
             }
         }
 
-        val resolver: Resolver = this.context.resolver[resolverName] ?: throw IllegalStateException("Unknown resolver with name $resolverName.")
+        val resolver: Resolver = this.context.resolver[resolverName]
+            ?: throw IllegalStateException("Unknown resolver with name $resolverName.")
 
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->
@@ -116,7 +122,6 @@ class VideoSegmentExporter : ExporterFactory {
             val startTimestamp = retrievable.filteredAttribute(TimeRangeAttribute::class.java)?.startNs!! / 1000
             val endTimestamp = retrievable.filteredAttribute(TimeRangeAttribute::class.java)?.endNs!! / 1000
             val resolvable = resolver.resolve(retrievable.id, this.mimeType.fileExtension)!!
-
 
 
             // Decide `useGrabber` using grabber from source or using content from retrievable

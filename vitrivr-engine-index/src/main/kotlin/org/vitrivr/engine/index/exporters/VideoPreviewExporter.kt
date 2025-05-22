@@ -44,18 +44,23 @@ class VideoPreviewExporter : ExporterFactory {
      * @param input The [Operator] to acting as an input.
      * @param context The [IndexContext] to use.
      */
-    override fun newExporter(name: String, input: Operator<Retrievable>, context: IndexContext): Exporter {
-        val resolverName = context[name, "resolver"]?: "default"
-        val maxSideResolution = context[name, "maxSideResolution"]?.toIntOrNull() ?: 400
+    override fun newExporter(
+        name: String,
+        input: Operator<Retrievable>,
+        parameters: Map<String, String>,
+        context: IndexContext
+    ): Exporter {
+        val resolverName = parameters["resolver"] ?: "default"
+        val maxSideResolution = parameters["maxSideResolution"]?.toIntOrNull() ?: 400
         val mimeType =
-            context[name, "mimeType"]?.let {
+            parameters["mimeType"]?.let {
                 try {
                     MimeType.valueOf(it.uppercase())
                 } catch (e: java.lang.IllegalArgumentException) {
                     null
                 }
             } ?: MimeType.JPG
-        val previewTimeSec = context[name, "previewTimeSec"]?.toIntOrNull() ?: 5
+        val previewTimeSec = parameters["previewTimeSec"]?.toIntOrNull() ?: 5
         logger.debug {
             "Creating new VideoPreviewExporter with maxSideResolution=$maxSideResolution mimeType=$mimeType, and previewTimeSec=$previewTimeSec."
         }
@@ -79,7 +84,8 @@ class VideoPreviewExporter : ExporterFactory {
         }
 
         /** [Resolver] instance. */
-        private val resolver: Resolver = this.context.resolver[resolverName] ?: throw IllegalStateException("Unknown resolver with name $resolverName.")
+        private val resolver: Resolver = this.context.resolver[resolverName]
+            ?: throw IllegalStateException("Unknown resolver with name $resolverName.")
 
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).onEach { retrievable ->

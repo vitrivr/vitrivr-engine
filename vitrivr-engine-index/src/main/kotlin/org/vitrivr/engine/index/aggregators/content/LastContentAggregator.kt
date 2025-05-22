@@ -26,12 +26,23 @@ class LastContentAggregator : TransformerFactory {
      * @param context The [IndexContext] to use.
      * @return [LastContentAggregator.Instance]
      */
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer = Instance(input, context, name)
+    override fun newTransformer(
+        name: String,
+        input: Operator<out Retrievable>,
+        parameters: Map<String, String>,
+        context: Context
+    ): Transformer = Instance(input, parameters, context, name)
 
     /**
      * The [Instance] returns by the [LastContentAggregator]
      */
-    private class Instance(override val input: Operator<out Retrievable>, context: Context, name: String) : AbstractAggregator(input, context, name) {
-        override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> = content.groupBy { it.type }.mapNotNull { (_, elements) -> elements.lastOrNull() }
+    private class Instance(
+        override val input: Operator<out Retrievable>,
+        parameters: Map<String, String>,
+        context: Context,
+        name: String
+    ) : AbstractAggregator(input, parameters, context, name) {
+        override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> =
+            content.groupBy { it.type }.mapNotNull { (_, elements) -> elements.lastOrNull() }
     }
 }

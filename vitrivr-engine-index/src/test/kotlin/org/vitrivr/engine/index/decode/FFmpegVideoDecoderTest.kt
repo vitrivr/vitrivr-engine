@@ -35,21 +35,15 @@ class FFmpegVideoDecoderTest {
         schema.addResolver("test", DiskResolver().newResolver(schema, mapOf()))
 
         /* Prepare context. */
-        val contextConfig = IngestionContextConfig(
-            "CachedContentFactory", listOf("test"), global = emptyMap(),
-            local = mapOf(
-                "enumerator" to mapOf("path" to "./src/test/resources/videos"),
-                "decoder" to mapOf("timeWindowMs" to "1000")
-            )
-        )
+        val contextConfig = IngestionContextConfig("CachedContentFactory", listOf("test"))
         contextConfig.schema = schema
 
         /* Prepare pipeline. */
-        val context = IndexContextFactory.newContext(contextConfig)
-        val fileSystemEnumerator = FileSystemEnumerator().newEnumerator("enumerator", context, listOf(MediaType.VIDEO))
-        val decoder = FFmpegVideoDecoder().newDecoder("decoder", input = fileSystemEnumerator, context = context)
-        val aggregator = MiddleContentAggregator().newTransformer("middle", input = decoder, context = context)
-        val averageColor =  AverageColor().let { it.newExtractor(schema.Field("averagecolor", it), input = aggregator, context = context) }
+        val context = IndexContextFactory.newContext(emptyMap(), contextConfig)
+        val fileSystemEnumerator = FileSystemEnumerator().newEnumerator("enumerator", mapOf("path" to "./src/test/resources/videos"), context, listOf(MediaType.VIDEO))
+        val decoder = FFmpegVideoDecoder().newDecoder("decoder", input = fileSystemEnumerator, parameters = mapOf("timeWindowMs" to "1000"), context = context)
+        val aggregator = MiddleContentAggregator().newTransformer("middle", input = decoder, parameters = emptyMap(), context = context)
+        val averageColor =  AverageColor().let { it.newExtractor(schema.Field("averagecolor", it), input = aggregator, parameters = emptyMap(), context = context) }
 
         /* Execute pipeline. */
         val results = averageColor.toFlow(this).takeWhile { it != TerminalRetrievable }.toList()

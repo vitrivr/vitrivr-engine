@@ -19,10 +19,9 @@ data class IndexContext(
 
     /** A [Map] of named [Resolver]s. */
     val resolver: Map<String,Resolver> = emptyMap(),
-
-    /** Local (per-operator) configuration parameters. */
-    override val local: Map<String, Map<String, String>> = emptyMap(),
-
-    /** Global configuration parameters. */
-    override val global: Map<String, String> = emptyMap(),
-) : Context()
+): Context() {
+    @Deprecated("Use parameters instead.")
+    override val local: Map<String, Map<String, String>> = emptyMap()
+    @Deprecated("Use parameters instead.")
+    override val global: Map<String, String> = emptyMap()
+}

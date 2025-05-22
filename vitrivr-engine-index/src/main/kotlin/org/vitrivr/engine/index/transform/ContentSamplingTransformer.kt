@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import org.vitrivr.engine.core.context.Context
+import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
@@ -16,7 +17,7 @@ import org.vitrivr.engine.core.operators.general.TransformerFactory
  * @version 1.1.0
  */
 class ContentSamplingTransformer : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer = Instance(input, name, context[name, "sample"]?.toIntOrNull() ?: 10)
+    override fun newTransformer(name: String, input: Operator<out Retrievable>, parameters: Map<String, String>, context: Context): Transformer = Instance(input, name, parameters["sample"]?.toIntOrNull() ?: 10)
 
     private class Instance(
         override val input: Operator<out Retrievable>,

@@ -34,10 +34,16 @@ class TemplateTextTransformer : TransformerFactory {
     }
 
 
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
-        val template = context[name, "template"] ?: throw IllegalArgumentException("The template text transformer requires a template.")
+    override fun newTransformer(
+        name: String,
+        input: Operator<out Retrievable>,
+        parameters: Map<String, String>,
+        context: Context
+    ): Transformer {
+        val template = parameters["template"]
+            ?: throw IllegalArgumentException("The template text transformer requires a template.")
         val contentFields = TEMPLATE_REGEX.findAll(template).map { it.groupValues[1] }.toList()
-        val defaultValue = context[name, "defaultValue"] ?: DEFAULT_VALUE
+        val defaultValue = parameters["defaultValue"] ?: DEFAULT_VALUE
         return Instance(
             input = input,
             contentFactory = (context as IndexContext).contentFactory,
@@ -48,7 +54,14 @@ class TemplateTextTransformer : TransformerFactory {
         )
     }
 
-    private class Instance(override val input: Operator<out Retrievable>, val contentFactory: ContentFactory, val template: String, val contentFields: List<String>, val defaultValue: String, override val name: String) : Transformer {
+    private class Instance(
+        override val input: Operator<out Retrievable>,
+        val contentFactory: ContentFactory,
+        val template: String,
+        val contentFields: List<String>,
+        val defaultValue: String,
+        override val name: String
+    ) : Transformer {
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
             input.toFlow(scope).collect { retrievable: Retrievable ->
                 var mergedContent = template
@@ -58,7 +71,7 @@ class TemplateTextTransformer : TransformerFactory {
                     val contentIds = retrievable.content.filterIsInstance<TextContent>().map { it.id }
 
                     val fieldContent = StringBuilder()
-                    contentIds.forEach{ id ->
+                    contentIds.forEach { id ->
                         retrievable.content.find { it.id == id && it.type == ContentType.TEXT }?.content?.let {
                             fieldContent.append(it)
                         }
