@@ -42,12 +42,7 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
      *
      * @return [TemporalMetadataExtractor]
      */
-    override fun newExtractor(
-        field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>,
-        input: Operator<Retrievable>,
-        parameters: Map<String, String>,
-        context: IndexContext
-    ) = TemporalMetadataExtractor(input, this, field)
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext) = TemporalMetadataExtractor(input, this, field)
 
     /**
      * Generates and returns a new [FileSourceMetadataExtractor] for the provided [Schema.Field].
@@ -58,12 +53,7 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
      *
      * @return [TemporalMetadataExtractor]
      */
-    override fun newExtractor(
-        name: String,
-        input: Operator<Retrievable>,
-        parameters: Map<String, String>,
-        context: IndexContext
-    ) = TemporalMetadataExtractor(input, this, name)
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = TemporalMetadataExtractor(input, this, name)
 
     /**
      * Generates and returns a new [TemporalMetadataRetriever] for the provided [Schema.Field].
@@ -74,11 +64,7 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
      *
      * @return [TemporalMetadataRetriever]
      */
-    override fun newRetrieverForQuery(
-        field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>,
-        query: Query,
-        context: QueryContext
-    ): TemporalMetadataRetriever {
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, query: Query, context: QueryContext): TemporalMetadataRetriever {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         require(query is BooleanQuery) { "Query is not a Boolean query." }
         return TemporalMetadataRetriever(field, query, context)
@@ -89,11 +75,7 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
      *
      * This method will always throw an [UnsupportedOperationException]
      */
-    override fun newRetrieverForContent(
-        field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>,
-        content: Collection<ContentElement<*>>,
-        context: QueryContext
-    ): TemporalMetadataRetriever {
+    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, content: Map<String, ContentElement<*>>, context: QueryContext): TemporalMetadataRetriever {
         throw UnsupportedOperationException("TemporalMetadataDescriptor does not support the creation of a Retriever instance from content.")
     }
 }

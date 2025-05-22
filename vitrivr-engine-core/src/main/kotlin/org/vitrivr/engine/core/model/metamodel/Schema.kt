@@ -4,6 +4,7 @@ import org.vitrivr.engine.core.config.ingest.IngestionConfig
 import org.vitrivr.engine.core.config.ingest.IngestionPipelineBuilder
 import org.vitrivr.engine.core.config.schema.IndexConfig
 import org.vitrivr.engine.core.config.schema.SchemaConfig
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.database.Connection
@@ -16,7 +17,7 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.general.ExporterFactory
+import org.vitrivr.engine.core.operators.general.OperatorFactory
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.core.resolver.Resolver
@@ -73,7 +74,7 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      *
      * @throws IllegalArgumentException In case the [resolver] named [Resolver] is not found.
      */
-    fun addExporter(name: String, factory: ExporterFactory, parameters: Map<String, String>) {
+    fun addExporter(name: String, factory: OperatorFactory, parameters: Map<String, String>) {
         val resolver = parameters["resolver"] ?: "default"
         this.exporters.add(
             Exporter(
@@ -198,9 +199,8 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          */
         fun getExtractor(
             input: Operator<Retrievable>,
-            parameters: Map<String, String>,
             context: IndexContext
-        ): Extractor<C, D> = this.analyser.newExtractor(this, input, parameters, context)
+        ): Extractor<C, D> = this.analyser.newExtractor(this, input, context)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field] and the provided [Query].
@@ -215,29 +215,11 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
         /**
          * Returns a [Retriever] instance for this [Schema.Field].
          *
-         * @param content The [Content](s) that should be used with the [Retriever].
-         * @param context The [QueryContext] to use with the [Retriever].
-
-         * @return [Retriever] instance.
-         */
-        fun getRetrieverForContent(content: C, context: QueryContext): Retriever<C, D> = this.getRetrieverForContent(listOf(content), context)
-
-        /**
-         * Returns a [Retriever] instance for this [Schema.Field].
-         *
          * @param content The [Content] element(s) that should be used with the [Retriever].
          * @return [Retriever] instance.
          */
-        fun getRetrieverForContent(content: Collection<C>, queryContext: QueryContext): Retriever<C, D> =
+        fun getRetrieverForContent(content: Map<String, ContentElement<*>>, queryContext: QueryContext): Retriever<C, D> =
             this.analyser.newRetrieverForContent(this, content, queryContext)
-
-        /**
-         * Returns a [Retriever] instance for this [Schema.Field].
-         *
-         * @param descriptor The [Descriptor] that should be used with the [Retriever].
-         * @return [Retriever] instance.
-         */
-        fun getRetrieverForDescriptor(descriptor: D, queryContext: QueryContext): Retriever<C, D> = this.getRetrieverForDescriptors(listOf(descriptor), queryContext)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field].
@@ -285,7 +267,7 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      */
     inner class Exporter(
         val name: String,
-        private val factory: ExporterFactory,
+        private val factory: OperatorFactory,
         private val parameters: Map<String, String> = emptyMap(),
         val resolver: Resolver
     ) {
@@ -317,7 +299,7 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
             } else {
                 params
             }
-            return this.factory.newExporter(name, input, newParameters, context)
+            return this.factory.newOperator(name, mapOf("input" to input), context) as org.vitrivr.engine.core.operators.general.Exporter
         }
     }
 }

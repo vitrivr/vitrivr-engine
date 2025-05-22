@@ -24,7 +24,6 @@ interface ExtractorFactory<C : ContentElement<*>, D : Descriptor<*>> {
     fun newExtractor(
         field: Schema.Field<C, D>,
         input: Operator<Retrievable>,
-        parameters: Map<String, String>,
         context: IndexContext
     ): Extractor<C, D>
 
@@ -38,7 +37,6 @@ interface ExtractorFactory<C : ContentElement<*>, D : Descriptor<*>> {
     fun newExtractor(
         name: String,
         input: Operator<Retrievable>,
-        parameters: Map<String, String>,
         context: IndexContext
     ): Extractor<C, D>
 }
