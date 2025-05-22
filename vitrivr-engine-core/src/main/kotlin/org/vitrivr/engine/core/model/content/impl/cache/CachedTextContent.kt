@@ -2,10 +2,14 @@ package org.vitrivr.engine.core.model.content.impl.cache
 
 import org.vitrivr.engine.core.model.content.element.ContentId
 import org.vitrivr.engine.core.model.content.element.TextContent
+import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
+import org.vitrivr.engine.core.model.types.Type
 import java.lang.ref.SoftReference
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
+import java.util.UUID
 
 /**
  * A [TextContent] implementation that is backed by a cache file.
@@ -18,19 +22,21 @@ class CachedTextContent(override val path: Path, text: String, override val id: 
     /** The [SoftReference] of the [String] used for caching. */
     private var reference: SoftReference<String> = SoftReference(text)
 
+    private val descriptorId = UUID.randomUUID()
+
     /** The length of the text is stored explicitly.  */
     override val length: Int = text.length
 
     /** The [String] contained in this [CachedTextContent]. */
-    override val content: String
+    override val content: Descriptor<TextDescriptor>
         @Synchronized
         get() {
-            var image = this.reference.get()
-            if (image == null) {
-                image = reload()
-                this.reference = SoftReference(image)
+            var str = this.reference.get()
+            if (str == null) {
+                str = reload()
+                this.reference = SoftReference(str)
             }
-            return image
+            return TextDescriptor(descriptorId, null, str)
         }
 
     init {

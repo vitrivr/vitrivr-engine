@@ -15,8 +15,6 @@ import org.vitrivr.engine.core.config.ingest.operator.OperatorConfig.Transformer
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
-import org.vitrivr.engine.core.operators.general.ExporterFactory
-import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.operators.ingest.DecoderFactory
 import org.vitrivr.engine.core.operators.ingest.EnumeratorFactory
 import org.vitrivr.engine.core.source.MediaType
@@ -30,7 +28,7 @@ import kotlin.collections.find
  * @author Loris Sauter
  * @version 1.0.0
  */
-@Serializable(with = ModuleSerializer::class)
+//@Serializable(with = ModuleSerializer::class)
 sealed class OperatorConfig {
     /**
      * The class name of the factory for the corresponding operator.
@@ -97,28 +95,28 @@ sealed class OperatorConfig {
     }
 }
 
-object ModuleSerializer : JsonContentPolymorphicSerializer<OperatorConfig>(OperatorConfig::class) {
-
-    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<out OperatorConfig> {
-
-        val analyzerCandidates = loadServiceCandidates<Analyser<ContentElement<*>, Descriptor<*>>>()
-        val exporterCandidates = loadServiceCandidates<ExporterFactory>()
-        val transformerCandidates = loadServiceCandidates<TransformerFactory>()
-        val decoderCandidates = loadServiceCandidates<DecoderFactory>()
-        val enumeratorCandidates = loadServiceCandidates<EnumeratorFactory>()
-
-        val factory = element.jsonObject["factory"]?.jsonPrimitive?.content
-        val field = element.jsonObject["fieldName"]?.jsonPrimitive?.content
-        val exporter = element.jsonObject["exporterName"]?.jsonPrimitive?.content
-
-
-        return when {
-            enumeratorCandidates.find { it::class.java.simpleName == factory } != null -> Enumerator.serializer()
-            decoderCandidates.find { it::class.java.simpleName == factory } != null -> Decoder.serializer()
-            transformerCandidates.find { it::class.java.simpleName == factory } != null -> Transformer.serializer()
-            field == null && factory == null && exporter != null -> Exporter.serializer()
-            field != null && factory == null && exporter == null -> Extractor.serializer()
-            else -> throw Exception("Unknown Module: key 'type' not found or does not matches any module type")
-        }
-    }
-}
+//object ModuleSerializer : JsonContentPolymorphicSerializer<OperatorConfig>(OperatorConfig::class) {
+//
+//    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<out OperatorConfig> {
+//
+//        val analyzerCandidates = loadServiceCandidates<Analyser<ContentElement<*>, Descriptor<*>>>()
+//        val exporterCandidates = loadServiceCandidates<ExporterFactory>()
+//        val transformerCandidates = loadServiceCandidates<TransformerFactory>()
+//        val decoderCandidates = loadServiceCandidates<DecoderFactory>()
+//        val enumeratorCandidates = loadServiceCandidates<EnumeratorFactory>()
+//
+//        val factory = element.jsonObject["factory"]?.jsonPrimitive?.content
+//        val field = element.jsonObject["fieldName"]?.jsonPrimitive?.content
+//        val exporter = element.jsonObject["exporterName"]?.jsonPrimitive?.content
+//
+//
+//        return when {
+//            enumeratorCandidates.find { it::class.java.simpleName == factory } != null -> Enumerator.serializer()
+//            decoderCandidates.find { it::class.java.simpleName == factory } != null -> Decoder.serializer()
+//            transformerCandidates.find { it::class.java.simpleName == factory } != null -> Transformer.serializer()
+//            field == null && factory == null && exporter != null -> Exporter.serializer()
+//            field != null && factory == null && exporter == null -> Extractor.serializer()
+//            else -> throw Exception("Unknown Module: key 'type' not found or does not matches any module type")
+//        }
+//    }
+//}
