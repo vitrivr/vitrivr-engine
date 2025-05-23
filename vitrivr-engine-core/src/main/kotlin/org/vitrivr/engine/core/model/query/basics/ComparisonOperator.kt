@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.model.query.basics
 
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.types.Value
+import java.time.LocalDateTime
 import java.util.*
 
 /**
@@ -26,6 +27,7 @@ enum class ComparisonOperator(val value: String) {
                 is Value.Boolean -> v1.value < (v2.value as Boolean)
                 is Value.Byte -> v1.value < (v2.value as Byte)
                 is Value.DateTime -> v1.value < (v2.value as Date)
+                is Value.LocalDateTimeValue -> v1.value < (v2.value as LocalDateTime)
                 is Value.Double -> v1.value < (v2.value as Double)
                 is Value.Float -> v1.value < (v2.value as Float)
                 is Value.Int -> v1.value < (v2.value as Int)
@@ -48,6 +50,7 @@ enum class ComparisonOperator(val value: String) {
                 is Value.Boolean -> v1.value > (v2.value as Boolean)
                 is Value.Byte -> v1.value > (v2.value as Byte)
                 is Value.DateTime -> v1.value > (v2.value as Date)
+                is Value.LocalDateTimeValue -> v1.value > (v2.value as LocalDateTime)
                 is Value.Double -> v1.value > (v2.value as Double)
                 is Value.Float -> v1.value > (v2.value as Float)
                 is Value.Int -> v1.value > (v2.value as Int)
@@ -70,6 +73,7 @@ enum class ComparisonOperator(val value: String) {
                 is Value.Boolean -> v1.value <= (v2.value as Boolean)
                 is Value.Byte -> v1.value <= (v2.value as Byte)
                 is Value.DateTime -> v1.value <= (v2.value as Date)
+                is Value.LocalDateTimeValue -> v1.value <= (v2.value as LocalDateTime)
                 is Value.Double -> v1.value <= (v2.value as Double)
                 is Value.Float -> v1.value <= (v2.value as Float)
                 is Value.Int -> v1.value <= (v2.value as Int)
@@ -92,6 +96,7 @@ enum class ComparisonOperator(val value: String) {
                 is Value.Boolean -> v1.value >= (v2.value as Boolean)
                 is Value.Byte -> v1.value >= (v2.value as Byte)
                 is Value.DateTime -> v1.value >= (v2.value as Date)
+                is Value.LocalDateTimeValue -> v1.value >= (v2.value as LocalDateTime)
                 is Value.Double -> v1.value >= (v2.value as Double)
                 is Value.Float -> v1.value >= (v2.value as Float)
                 is Value.Int -> v1.value >= (v2.value as Int)

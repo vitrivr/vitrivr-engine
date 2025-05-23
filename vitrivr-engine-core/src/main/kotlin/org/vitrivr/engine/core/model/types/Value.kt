@@ -1,8 +1,13 @@
 package org.vitrivr.engine.core.model.types
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.serializer.DateTimeSerializer
+import java.time.LocalDateTime
+import org.vitrivr.engine.core.model.serializer.LocalDateTimeSerializer
+import java.time.ZoneId
 import java.util.*
+
 
 /**
  * A [Value] in vitrivr-engine maps primitive data types.
@@ -36,6 +41,7 @@ sealed interface Value<T> {
             is FloatArray -> FloatVector(value)
             is LongArray -> LongVector(value)
             is IntArray -> IntVector(value)
+            is LocalDateTime -> LocalDateTimeValue(value)
             is Date -> DateTime(value)
             is UUID -> UUIDValue(value)
             else -> throw IllegalArgumentException("Unsupported data type.")
@@ -129,6 +135,14 @@ sealed interface Value<T> {
         override val type: Type
             get() = Type.Datetime
         override fun compareTo(other: ScalarValue<Date>) = this.value.compareTo(other.value)
+    }
+
+    @JvmInline
+    @Serializable(with = LocalDateTimeSerializer::class)
+    value class LocalDateTimeValue(override val value: LocalDateTime)
+        : ScalarValue<LocalDateTime> {
+        override val type get() = Type.Datetime
+        override fun compareTo(other: ScalarValue<LocalDateTime>) = value.compareTo(other.value)
     }
 
     @JvmInline

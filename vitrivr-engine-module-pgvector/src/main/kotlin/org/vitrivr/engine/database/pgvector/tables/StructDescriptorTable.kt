@@ -15,7 +15,11 @@ import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.database.pgvector.exposed.functions.plainToTsQuery
 import org.vitrivr.engine.database.pgvector.exposed.ops.tsMatches
+import java.sql.Timestamp
 import java.util.*
+import org.jetbrains.exposed.sql.javatime.JavaLocalDateTimeColumnType
+import java.time.LocalDateTime
+import java.time.ZoneId
 import kotlin.reflect.full.primaryConstructor
 
 /**
@@ -86,7 +90,12 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
                 values[attribute.name] = when (attribute.type) {
                     Type.Boolean -> Value.Boolean(value as Boolean)
                     Type.Byte -> Value.Byte(value as Byte)
-                    Type.Datetime -> Value.DateTime(value as Date)
+                    Type.Datetime -> when (value) {
+                        is java.time.LocalDateTime -> Value.LocalDateTimeValue(value)
+                        is Timestamp -> Value.LocalDateTimeValue(value.toLocalDateTime())
+                        is Date              -> Value.DateTime(value)
+                        else -> throw IllegalArgumentException("Unsupported date/time type: ${value::class.simpleName}")
+                    }
                     Type.Double -> Value.Double(value as Double)
                     Type.Float -> Value.Float(value as Float)
                     Type.Int -> Value.Int(value as Int)
@@ -158,42 +167,71 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
         }
     }
 
-    /**
-     * Sets the value of the descriptor in the [InsertStatement]t.
-     *
-     * @param d The [Descriptor] to set value for
-     */
+
+
     @Suppress("UNCHECKED_CAST")
     override fun InsertStatement<*>.setValue(d: D) {
         val values = d.values()
         for (c in this@StructDescriptorTable.valueColumns) {
-            this[c as Column<Any?>] = values[c.name]?.value
+            val value = values[c.name]?.value
+            this[c as Column<Any?>] = when {
+                // already a LocalDateTime → pass through
+                value is LocalDateTime && c.columnType is JavaLocalDateTimeColumnType -> value
+
+                // JDBC Timestamp → to LocalDateTime
+                value is Timestamp && c.columnType is JavaLocalDateTimeColumnType -> value.toLocalDateTime()
+
+                // legacy java.util.Date → convert via Instant
+                value is Date && c.columnType is JavaLocalDateTimeColumnType ->
+                    LocalDateTime.ofInstant(value.toInstant(), ZoneId.systemDefault())
+
+                else -> value
+            }
         }
     }
 
-    /**
-     * Sets the value of the descriptor in the [BatchInsertStatement]t.
-     *
-     * @param d The [Descriptor] to set value for
-     */
+
     @Suppress("UNCHECKED_CAST")
     override fun BatchInsertStatement.setValue(d: D) {
         val values = d.values()
         for (c in this@StructDescriptorTable.valueColumns) {
-            this[c as Column<Any?>] = values[c.name]?.value
+            val value = values[c.name]?.value
+            this[c as Column<Any?>] = when {
+                // already a LocalDateTime → pass through
+                value is LocalDateTime && c.columnType is JavaLocalDateTimeColumnType -> value
+
+                // JDBC Timestamp → to LocalDateTime
+                value is Timestamp && c.columnType is JavaLocalDateTimeColumnType -> value.toLocalDateTime()
+
+                // legacy java.util.Date → convert via Instant
+                value is Date && c.columnType is JavaLocalDateTimeColumnType ->
+                    LocalDateTime.ofInstant(value.toInstant(), ZoneId.systemDefault())
+
+                else -> value
+            }
         }
     }
 
-    /**
-     * Sets the value of the descriptor in the [UpdateStatement]t.
-     *
-     * @param d The [Descriptor] to set value for
-     */
+
     @Suppress("UNCHECKED_CAST")
     override fun UpdateStatement.setValue(d: D) {
         val values = d.values()
         for (c in this@StructDescriptorTable.valueColumns) {
-            this[c as Column<Any?>] = values[c.name]?.value
+            val value = values[c.name]?.value
+            this[c as Column<Any?>] = when {
+                // already a LocalDateTime → pass through
+                value is LocalDateTime && c.columnType is JavaLocalDateTimeColumnType -> value
+
+                // JDBC Timestamp → to LocalDateTime
+                value is Timestamp && c.columnType is JavaLocalDateTimeColumnType -> value.toLocalDateTime()
+
+                // legacy java.util.Date → convert via Instant
+                value is Date && c.columnType is JavaLocalDateTimeColumnType ->
+                    LocalDateTime.ofInstant(value.toInstant(), ZoneId.systemDefault())
+
+                else -> value
+            }
         }
     }
+
 }

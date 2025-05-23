@@ -10,6 +10,8 @@ import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.*
 
 /** The name of the retrievable entity. */
@@ -100,6 +102,7 @@ internal fun Any.toCottontailValue(): PublicValue = when (this)  {
     is Float -> FloatValue(this)
     is Double -> DoubleValue(this)
     is Date -> DateValue(this)
+    is LocalDateTime -> DateValue(Date.from(this.atOffset(ZoneOffset.UTC).toInstant()))
     is Value.Boolean -> BooleanValue(this.value)
     is Value.Byte -> ByteValue(this.value)
     is Value.Double -> DoubleValue(this.value)
@@ -109,6 +112,8 @@ internal fun Any.toCottontailValue(): PublicValue = when (this)  {
     is Value.Short -> ShortValue(this.value)
     is Value.String -> StringValue(this.value)
     is Value.DateTime -> DateValue(this.value)
+    is Value.LocalDateTimeValue -> DateValue(Date.from(this.value.atOffset(ZoneOffset.UTC).toInstant()))
+
     else -> throw IllegalArgumentException("Unsupported type for vector value.")
 }
 
@@ -128,6 +133,7 @@ internal fun Value<*>.toCottontailValue(): PublicValue = when (this) {
     is Value.String -> StringValue(this.value)
     is Value.Text -> StringValue(this.value)
     is Value.DateTime -> DateValue(this.value)
+    is Value.LocalDateTimeValue -> DateValue(Date.from(this.value.atOffset(ZoneOffset.UTC).toInstant()))
     is Value.UUIDValue -> UuidValue(this.value)
     is Value.BooleanVector -> BooleanVectorValue(this.value)
     is Value.DoubleVector -> DoubleVectorValue(this.value)

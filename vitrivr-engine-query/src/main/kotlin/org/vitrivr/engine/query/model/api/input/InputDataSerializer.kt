@@ -19,6 +19,7 @@ object InputDataSerializer : JsonContentPolymorphicSerializer<InputData>(InputDa
             InputType.BOOLEAN -> BooleanInputData.serializer()
             InputType.NUMERIC -> NumericInputData.serializer()
             InputType.DATE -> DateInputData.serializer()
+            InputType.DATETIME -> DateTimeInputData.serializer()
         }
     }
 }

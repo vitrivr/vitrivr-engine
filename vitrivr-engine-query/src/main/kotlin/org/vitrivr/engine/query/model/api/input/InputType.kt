@@ -18,6 +18,8 @@ enum class InputType {
     @SerialName("NUMERIC")
     NUMERIC,
     @SerialName("DATE")
-    DATE
+    DATE,
+    @SerialName("DATETIME")
+    DATETIME
 
 }
