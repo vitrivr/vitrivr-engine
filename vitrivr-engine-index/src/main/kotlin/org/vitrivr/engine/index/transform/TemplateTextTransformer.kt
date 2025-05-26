@@ -5,7 +5,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.ContentType
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.content.factory.ContentFactory
@@ -46,7 +45,7 @@ class TemplateTextTransformer : TransformerFactory {
         val defaultValue = parameters["defaultValue"] ?: DEFAULT_VALUE
         return Instance(
             input = input,
-            contentFactory = (context as IndexContext).contentFactory,
+            contentFactory = (context as Context).contentFactory,
             template = template,
             contentFields = contentFields,
             defaultValue = defaultValue,

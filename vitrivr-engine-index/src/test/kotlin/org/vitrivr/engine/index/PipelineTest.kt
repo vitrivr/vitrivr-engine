@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.vitrivr.engine.core.config.IndexContextFactory
+import org.vitrivr.engine.core.config.ContextFactory
 import org.vitrivr.engine.core.context.IngestionContextConfig
 import org.vitrivr.engine.core.database.blackhole.BlackholeConnection
 import org.vitrivr.engine.core.database.blackhole.BlackholeConnectionProvider
@@ -46,9 +46,9 @@ class PipelineTest {
 
         contextConfig.schema = schema
 
-        val context = IndexContextFactory.newContext(emptyMap(), contextConfig)
+        val context = ContextFactory.newContext(emptyMap(), contextConfig)
 
-        val fileSystemEnumerator = FileSystemEnumerator().newEnumerator("enumerator", mapOf( "path" to "./src/test/resources/"), context, listOf(MediaType.VIDEO))
+        val fileSystemEnumerator = FileSystemEnumerator().newOperator("enumerator", mapOf( "path" to "./src/test/resources/"), context, listOf(MediaType.VIDEO))
 
         val decoder = BroadcastOperator(VideoDecoder().newDecoder("decoder", input = fileSystemEnumerator, parameters = mapOf( "timeWindowMs" to "1000"), context = context))
 

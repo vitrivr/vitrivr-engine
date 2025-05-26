@@ -4,7 +4,7 @@ import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.general.OperatorFactory
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.operators.general.Transformer
 
 /**

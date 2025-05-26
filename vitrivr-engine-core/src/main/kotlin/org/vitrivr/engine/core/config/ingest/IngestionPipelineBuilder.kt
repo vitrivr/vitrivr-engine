@@ -2,19 +2,15 @@ package org.vitrivr.engine.core.config.ingest
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.vitrivr.engine.core.config.IndexContextFactory
+import org.vitrivr.engine.core.config.ContextFactory
 import org.vitrivr.engine.core.config.ingest.operation.Operation
 import org.vitrivr.engine.core.config.ingest.operator.OperatorConfig
-import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.descriptor.Descriptor
-import org.vitrivr.engine.core.model.metamodel.Analyser
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.operators.general.Exporter
-import org.vitrivr.engine.core.operators.general.OperatorFactory
-import org.vitrivr.engine.core.operators.general.Transformer
 import org.vitrivr.engine.core.operators.ingest.*
 import org.vitrivr.engine.core.operators.sinks.DefaultSink
 import org.vitrivr.engine.core.operators.transform.shape.BroadcastOperator
@@ -23,7 +19,6 @@ import org.vitrivr.engine.core.operators.transform.shape.ConcatOperator
 import org.vitrivr.engine.core.operators.transform.shape.MergeOperator
 import org.vitrivr.engine.core.operators.transform.shape.MergeType.*
 import org.vitrivr.engine.core.util.extension.loadServiceForName
-import java.util.stream.Stream
 
 /**  Internal [KLogger] instance for logging */
 private val logger: KLogger = KotlinLogging.logger { }
@@ -33,14 +28,9 @@ private val logger: KLogger = KotlinLogging.logger { }
  *
  *  @author Loris Sauter
  *  @author Ralph Gasser
- *  @version 2.1.0
+ *  @version 3.0.0
  */
-class IngestionPipelineBuilder(val config: IngestionConfig) {
-
-    /** The [IndexContext] */
-    private val context = IndexContextFactory.newContext(emptyMap(), config.context) //FIXME add parameters to context
-
-
+class IngestionPipelineBuilder(private val config: IngestionConfig, private val context: Context) {
     /**
      * Build the indexing based this [IngestionPipelineBuilder]'s [config].
      *
@@ -49,18 +39,16 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
      * 2. Validating the configuration
      * 3. Building the operators
      *
-     * @param stream If there is a specific stream the built [Enumerator] should process.
      * @return A [List] of terminal [Operator.Sink], ready to be processed.
      */
     @Suppress("UNCHECKED_CAST")
-    fun build(stream: Stream<*>? = null): List<Operator.Sink<Retrievable>> {
+    fun build(): List<Operator.Sink<Retrievable>> {
         return parseOperations().map { root ->
-
-            val config = root.opConfig as? OperatorConfig.Enumerator
-                ?: throw IllegalArgumentException("Root stage must always be an enumerator!")
-            val built = HashMap<String, Operator<*>>()
-            root.opName ?: throw IllegalArgumentException("Root stage cannot be passthrough!")
-            built[root.name] = buildEnumerator(root.opName, config, stream)
+            val config = root.opConfig ?: throw IllegalArgumentException("Root stage must always be an enumerator!")
+            val built = HashMap<String, Operator<out Retrievable>>()
+            root.opName ?: throw IllegalArgumentException("Root operator must be backed by a factory!")
+            val factory = loadFactory<OperatorFactory>(root.opName)
+            built[root.name] = factory.newOperator(root.opName, this.context)
 
             for (output in root.output) {
                 buildInternal(output, built)
@@ -90,15 +78,11 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
     /**
      * This is an internal function that can be called recursively to build the [Operator] DAG.
      *
-     * @param operation The [BaseOperation] to build.
+     * @param operation The base [Operation] to build.
      * @param memoizationTable The memoization table that holds the already built operators.
      * @return The built [Operator].
      */
-    private fun buildInternal(
-        operation: Operation,
-        memoizationTable: MutableMap<String, Operator<*>>,
-        breakAt: Operation? = null
-    ) {
+    private fun buildInternal(operation: Operation, memoizationTable: MutableMap<String, Operator<out Retrievable>>, breakAt: Operation? = null) {
         /* Find all required input operations and merge them (if necessary). */
         if (operation == breakAt) return
         val inputs = operation.input.map {
@@ -211,148 +195,55 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
      * Build the [Operator] based on the provided [OperatorConfig] at the specified position.
      *
      * @param name The name of the [Operator] to build.
-     * @param parent The [parent [Operator].
+     * @param parent The parent [Operator].
      * @param config The [OperatorConfig] which holds information on how to build the [Operator]
      */
-    @Suppress("UNCHECKED_CAST")
-    private fun buildOperator(name: String, parent: Operator<*>, config: OperatorConfig): Operator<*> {
-        logger.debug { "Building operator for configuration $config" }
-        return when (config) { // the when-on-type is on purpose: It enforces all branches
-            is OperatorConfig.Decoder -> buildDecoder(name, parent as Enumerator, config)
-            is OperatorConfig.Transformer -> buildTransformer(
-                name,
-                parent as Operator<Retrievable>,
-                config
-            ) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
-            is OperatorConfig.Extractor -> buildExtractor(
-                name,
-                parent as Operator<Retrievable>,
-                config
-            ) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
-            is OperatorConfig.Exporter -> buildExporter(
-                name,
-                parent as Operator<Retrievable>,
-                config
-            ) // Unchecked cast SHOULD(tm) be fine due to validation of pipeline
-            else -> throw IllegalStateException("Operator type $config is not supported in this context!")
+    private fun buildOperator(name: String, parent: Operator<out Retrievable>, config: OperatorConfig): Operator<out Retrievable> {
+        logger.debug { "Building operator for configuration: $config" }
+        return when {
+            config.field != null -> buildExtractorForField(parent as Operator<Retrievable>, config.field, config.parameters)
+            config.exporter != null -> buildExporterForName(parent as Operator<Retrievable>, config.exporter, config.parameters)
+            config.factory != null -> buildOperatorForFactory(name, parent, config.factory, config.parameters)
+            else -> throw IllegalStateException("Operator $config is missing required fields!")
         }
     }
 
     /**
-     * Parses and builds the [Enumerator] based on the given [OperatorConfig.Enumerator].
+     * Build the [Operator] based on the provided [OperatorConfig] at the specified position.
      *
-     * @param name The name of the [Enumerator] to build.
-     * @param config The [OperatorConfig.Enumerator] which holds information on how to build the [Enumerator].
-     * @param stream Optional [Stream] the [Enumerator] should process.
-     * @return The built [Enumerator].
+     * @param name The name of the [Operator] to build.
+     * @param parent The parent [Operator].
+     * @param config The [OperatorConfig] which holds information on how to build the [Operator]
      */
-    private fun buildEnumerator(
-        name: String,
-        config: OperatorConfig.Enumerator,
-        stream: Stream<*>? = null
-    ): Enumerator {
-        val factory = loadFactory<EnumeratorFactory>(config.factory)
-        return if (stream == null) {
-            factory.newEnumerator(name, config.parameters, this.context, config.mediaTypes)
-        } else {
-            factory.newEnumerator(name, config.parameters, this.context, config.mediaTypes, stream)
-        }.apply {
-            logger.info {
-                "Instantiated new ${
-                    if (stream != null) {
-                        "stream-input"
-                    } else {
-                        ""
-                    }
-                } Enumerator: ${this.javaClass.name}"
-            }
-        }
+    private fun buildOperatorForFactory(name: String, parent: Operator<out Retrievable>, factoryName: String, parameters: Map<String, String> = emptyMap()): Operator<out Retrievable> {
+        val factory = loadFactory<OperatorFactory>(factoryName)
+        return factory.newOperator(name, parent, this.context)
     }
 
     /**
-     * Parses and builds the [Decoder] based on the given [OperatorConfig.Enumerator].
+     * Builds an [Exporter] based on the [exporterName] in the [Schema].
      *
-     * @param name The name of the [Decoder] to build.
-     * @param parent The parent [Enumerator] that acts as input to the [Decoder].
-     * @param config The [OperatorConfig.Enumerator] which holds information on how to build the [Enumerator].
-     * @return The built [Enumerator].
-     */
-    private fun buildDecoder(name: String, parent: Enumerator, config: OperatorConfig.Decoder): Decoder {
-        val factory = loadFactory<DecoderFactory>(config.factory)
-        return factory.newDecoder(name, parent, config.parameters, this.context).apply {
-            logger.info { "Instantiated new Decoder: ${this.javaClass.name}" }
-        }
-    }
-
-    /**
-     * Builds a [Transformer] based on the [OperatorConfig.Transformer]'s factory.
-     *
-     * @param name The name of the [Transformer]
      * @param parent The preceding parent [Operator]s.
-     * @param config The [OperatorConfig.Transformer] describing the to-be-built [Transformer]
+     * @param exporterName: The name of the exporter.
+     * @param parameters Map of named parameters
      */
-    private fun buildTransformer(
-        name: String,
-        parent: Operator<Retrievable>,
-        config: OperatorConfig.Transformer
-    ): Transformer {
-        val factory = loadFactory<OperatorFactory>(config.factory)
-        return factory.newOperator(name, mapOf("input" to parent), this.context).apply {
-            logger.info { "Built transformer: ${this.javaClass.name} with name $name" }
-        } as Transformer
+    private fun buildExporterForName(parent: Operator<Retrievable>, exporterName: String, parameters: Map<String, String> = emptyMap()): Exporter {
+        /* Case exporter name is given. Due to require in ExporterConfig.init, this is fine as an if-else */
+        val exporter = context.schema.getExporter(exporterName)
+            ?: throw IllegalArgumentException("Exporter '${exporterName}' does not exist on schema '${context.schema.name}'")
+        return exporter.getExporter(parent, parameters, this.context)
     }
 
     /**
-     * Builds an [Exporter] based on the [OperatorConfig.Exporter]'s factory OR the [OperatorConfig.Exporter.exporterName] named [Exporter] in the [Schema].
-     *
-     * @param name The name of the [Exporter]
-     * @param parent The preceding parent [Operator]s.
-     * @param config: The [OperatorConfig.Exporter] describing the to-be-built [Exporter]
-     */
-    private fun buildExporter(name: String, parent: Operator<Retrievable>, config: OperatorConfig.Exporter): Exporter {
-        return if (!config.factory.isNullOrBlank()) {
-            /* Case factory is specified */
-            val factory = loadFactory<OperatorFactory>(config.factory)
-            factory.newOperator(name, mapOf("input" to parent), this.context).apply {
-                logger.info { "Built exporter from factory: ${config.factory}." }
-            } as Exporter
-        } else if (!config.exporterName.isNullOrBlank()) {
-            /* Case exporter name is given. Due to require in ExporterConfig.init, this is fine as an if-else */
-            val exporter = context.schema.getExporter(config.exporterName)
-                ?: throw IllegalArgumentException("Exporter '${config.exporterName}' does not exist on schema '${context.schema.name}'")
-            exporter.getExporter(parent, config.parameters, this.context).apply {
-                logger.info { "Built exporter by name from schema: ${config.exporterName}." }
-            }
-        } else {
-            throw IllegalStateException("OperatorConfig.Exporter must have either a exporter name or a factory name specified!")
-        }
-    }
-
-    /**
-     * Builds an [Extractor] based on the [OperatorConfig.Extractor.fieldName] or the [OperatorConfig.Extractor.factory] named field in the schema.
+     * Builds an [Extractor] based on the [fieldName] in the schema.
      *
      * @param parent The preceding [Operator]. Has to be one of: [Exporter], [Extractor].
-     * @param config: The [OperatorConfig.Extractor] describing the to-be-built [Extractor]
+     * @param fieldName Name of the [Schema.Field]
+     * @param parameters Map of named parameters
      */
-    private fun buildExtractor(
-        name: String,
-        parent: Operator<Retrievable>,
-        config: OperatorConfig.Extractor
-    ): Extractor<*, *> {
-        if (!config.fieldName.isNullOrBlank()) {
-            val field = this.context.schema[config.fieldName]
-                ?: throw IllegalArgumentException("Field '${config.fieldName}' does not exist in schema '${context.schema.name}'")
-            return field.getExtractor(parent, this.context).apply {
-                logger.info { "Built extractor by name field name: ${config.fieldName}" }
-            }
-        } else if (!config.factory.isNullOrBlank()) {
-            val factory = loadFactory<Analyser<ContentElement<*>, Descriptor<*>>>(config.factory)
-            return factory.newExtractor(name, parent, this.context).apply {
-                logger.info { "Built extractor by factory: ${config.factory}" }
-            }
-        } else {
-            throw IllegalStateException("OperatorConfig.Extractor must have either a field name or a factory name specified!")
-        }
+    private fun buildExtractorForField(parent: Operator<Retrievable>, fieldName: String, parameters: Map<String, String> = emptyMap()): Extractor<*, *> {
+        val field = this.context.schema[fieldName] ?: throw IllegalArgumentException("Field '${fieldName}' does not exist in schema '${context.schema.name}'")
+        return field.getExtractor(parent, this.context)
     }
 
     /**
@@ -361,9 +252,6 @@ class IngestionPipelineBuilder(val config: IngestionConfig) {
      * @param name The (fully qualified or simple) class name of a factory.
      * @throws IllegalArgumentException If the class could not be found: Either the simple name is not unique or there exists no such class.
      */
-    private inline fun <reified T : Any> loadFactory(name: String): T {
-        return loadServiceForName<T>(name)
-            ?: throw IllegalArgumentException("Failed to find '${T::class.java.simpleName}' implementation for name '$name'")
-    }
-
+    private inline fun <reified T : Any> loadFactory(name: String): T
+        = loadServiceForName<T>(name) ?: throw IllegalArgumentException("Failed to find '${T::class.java.simpleName}' implementation for name '$name'")
 }

@@ -1,7 +1,6 @@
 package org.vitrivr.engine.query.operators.transform.filter
 
 import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
@@ -12,7 +11,7 @@ class LateFilterFactory() : TransformerFactory {
         name: String, input: Operator<out Retrievable>, parameters: Map<String, String>,
         context: Context
     ): LateFilter {
-        require(context is QueryContext)
+        require(context is Context)
         val field =
             context[name, "field"] ?: throw IllegalArgumentException("expected 'field' to be defined in properties")
         val comparison = context[name, "comparison"]

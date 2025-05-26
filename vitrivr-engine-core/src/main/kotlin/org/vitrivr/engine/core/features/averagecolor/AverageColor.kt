@@ -1,7 +1,6 @@
 package org.vitrivr.engine.core.features.averagecolor
 
-import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.LinearCorrespondence
 import org.vitrivr.engine.core.model.color.RGBColorContainer
@@ -47,7 +46,7 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      *
      * @param field The [Schema.Field] to create an [Extractor] for.
      * @param input The [Operator] that acts as input to the new [Extractor].
-     * @param context The [IndexContext] to use with the [Extractor].
+     * @param context The [Context] to use with the [Extractor].
      *
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
@@ -55,7 +54,7 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
     override fun newExtractor(
         field: Schema.Field<ImageContent, FloatVectorDescriptor>,
         input: Operator<Retrievable>,
-        context: IndexContext
+        context: Context
     ) = AverageColorExtractor(input, this, field)
 
     /**
@@ -63,7 +62,7 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      *
      * @param name The name of the [AverageColorExtractor].
      * @param input The [Operator] that acts as input to the new [Extractor].
-     * @param context The [IndexContext] to use with the [Extractor].
+     * @param context The [Context] to use with the [Extractor].
      *
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
@@ -71,7 +70,7 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
     override fun newExtractor(
         name: String,
         input: Operator<Retrievable>,
-        context: IndexContext
+        context: Context
     ): Extractor<ImageContent, FloatVectorDescriptor> = AverageColorExtractor(input, this, name)
 
     /**
@@ -79,14 +78,14 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param query The [Query] to use with the [Retriever].
-     * @param context The [QueryContext] to use with the [Retriever].
+     * @param context The [Context] to use with the [Retriever].
      *
      * @return A new [Retriever] instance for this [Analyser]
      */
     override fun newRetrieverForQuery(
         field: Schema.Field<ImageContent, FloatVectorDescriptor>,
         query: Query,
-        context: QueryContext
+        context: Context
     ): DenseRetriever<ImageContent> {
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
         @Suppress("UNCHECKED_CAST")
@@ -100,12 +99,12 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
-     * @param context The [QueryContext] to use with the [Retriever]
+     * @param context The [Context] to use with the [Retriever]
      */
     override fun newRetrieverForDescriptors(
         field: Schema.Field<ImageContent, FloatVectorDescriptor>,
         descriptors: Collection<FloatVectorDescriptor>,
-        context: QueryContext
+        context: Context
     ): DenseRetriever<ImageContent> {
         /* Prepare query parameters. */
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
@@ -122,17 +121,17 @@ class AverageColor : Analyser<ImageContent, FloatVectorDescriptor> {
     /**
      * Generates and returns a new [DenseRetriever] instance for this [AverageColor].
      *
-     * Invoking this method involves converting the provided [ImageContent] and the [QueryContext] into a [FloatVectorDescriptor]
+     * Invoking this method involves converting the provided [ImageContent] and the [Context] into a [FloatVectorDescriptor]
      * that can be used to retrieve similar [ImageContent] elements.
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param content An array of [Content] elements to use with the [Retriever]
-     * @param context The [QueryContext] to use with the [Retriever]
+     * @param context The [Context] to use with the [Retriever]
      */
     override fun newRetrieverForContent(
         field: Schema.Field<ImageContent, FloatVectorDescriptor>,
-        content: Map<String, ContentElement<*>>,
-        context: QueryContext
+        content: Map<String, ImageContent>,
+        context: Context
     ): DenseRetriever<ImageContent> =
         this.newRetrieverForDescriptors(field, content.values.filterIsInstance<ImageContent>().map { this.analyse(it) }, context)
 

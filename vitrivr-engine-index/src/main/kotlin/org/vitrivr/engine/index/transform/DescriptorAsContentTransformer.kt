@@ -4,7 +4,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.map
 import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.content.factory.ContentFactory
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -29,7 +28,7 @@ class DescriptorAsContentTransformer : TransformerFactory {
     override fun newTransformer(name: String, input: Operator<out Retrievable>, parameters: Map<String, String>,  context: Context): Transformer = Instance(
         input = input,
         name = name,
-        contentFactory = (context as IndexContext).contentFactory,
+        contentFactory = (context as Context).contentFactory,
         fieldName = parameters["field"]  ?: throw IllegalArgumentException("The descriptor as content transformer requires a field name.")
     )
 

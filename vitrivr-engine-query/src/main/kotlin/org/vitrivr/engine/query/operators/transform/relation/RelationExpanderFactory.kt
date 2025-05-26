@@ -1,7 +1,6 @@
 package org.vitrivr.engine.query.operators.transform.relation
 
 import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.Transformer
@@ -19,7 +18,7 @@ class RelationExpanderFactory : TransformerFactory {
         name: String, input: Operator<out Retrievable>, parameters: Map<String, String>,
         context: Context
     ): Transformer {
-        require(context is QueryContext)
+        require(context is Context)
         val retrievableReader = context.schema.connection.getRetrievableReader()
         val incomingRelations = context[name, "incoming"]?.split(",")?.map { s -> s.trim() } ?: emptyList()
         val outgoingRelations = context[name, "outgoing"]?.split(",")?.map { s -> s.trim() } ?: emptyList()

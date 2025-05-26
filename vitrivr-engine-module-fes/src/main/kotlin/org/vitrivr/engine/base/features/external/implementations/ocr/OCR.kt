@@ -4,8 +4,6 @@ import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.base.features.external.common.FesExtractor
 import org.vitrivr.engine.base.features.external.implementations.asr.ASR
 import org.vitrivr.engine.base.features.external.implementations.asr.ASRExtractor
-import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.fulltext.FulltextRetriever
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -46,14 +44,14 @@ class OCR : ExternalFesAnalyser<ImageContent, TextDescriptor>() {
      *
      * @param name The name of the extractor.
      * @param input The [Operator] that acts as input to the new [FesExtractor].
-     * @param context The [IndexContext] to use with the [FesExtractor].
+     * @param context The [Context] to use with the [FesExtractor].
      * @return [ASRExtractor]
      */
     override fun newExtractor(
         name: String,
         input: Operator<Retrievable>,
         parameters: Map<String, String>,
-        context: IndexContext
+        context: Context
     ) = OCRExtractor(input, name, this, parameters)
 
     /**
@@ -61,14 +59,14 @@ class OCR : ExternalFesAnalyser<ImageContent, TextDescriptor>() {
      *
      * @param field The [Schema.Field] to create an [FesExtractor] for.
      * @param input The [Operator] that acts as input to the new [FesExtractor].
-     * @param context The [IndexContext] to use with the [FesExtractor].
+     * @param context The [Context] to use with the [FesExtractor].
      * @return [ASRExtractor]
      */
     override fun newExtractor(
         field: Schema.Field<ImageContent, TextDescriptor>,
         input: Operator<Retrievable>,
         parameters: Map<String, String>,
-        context: IndexContext
+        context: Context
     ) = OCRExtractor(input, field, this, merge(field, parameters))
 
     /**
@@ -76,14 +74,14 @@ class OCR : ExternalFesAnalyser<ImageContent, TextDescriptor>() {
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param query The [Query] to use with the [Retriever].
-     * @param context The [QueryContext] to use with the [Retriever].
+     * @param context The [Context] to use with the [Retriever].
      *
      * @return A new [FulltextRetriever] instance for this [OCR]
      */
     override fun newRetrieverForQuery(
         field: Schema.Field<ImageContent, TextDescriptor>,
         query: Query,
-        context: QueryContext
+        context: Context
     ): FulltextRetriever<ImageContent> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is SimpleFulltextQuery) { "The query is not a fulltext query. This is a programmer's error!" }
@@ -95,13 +93,13 @@ class OCR : ExternalFesAnalyser<ImageContent, TextDescriptor>() {
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param descriptors An array of [TextDescriptor] elements to use with the [Retriever]
-     * @param context The [QueryContext] to use with the [Retriever]
+     * @param context The [Context] to use with the [Retriever]
      * @return [FulltextRetriever]
      */
     override fun newRetrieverForDescriptors(
         field: Schema.Field<ImageContent, TextDescriptor>,
         descriptors: Collection<TextDescriptor>,
-        context: QueryContext
+        context: Context
     ): Retriever<ImageContent, TextDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
 
@@ -119,13 +117,13 @@ class OCR : ExternalFesAnalyser<ImageContent, TextDescriptor>() {
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param content An array of [Content] elements to use with the [Retriever]
-     * @param context The [QueryContext] to use with the [Retriever]
+     * @param context The [Context] to use with the [Retriever]
      * @return [FulltextRetriever]
      */
     override fun newRetrieverForContent(
         field: Schema.Field<ImageContent, TextDescriptor>,
         content: Collection<ImageContent>,
-        context: QueryContext
+        context: Context
     ): FulltextRetriever<ImageContent> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
 

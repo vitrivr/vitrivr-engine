@@ -1,7 +1,6 @@
 package org.vitrivr.engine.core.features.metadata.temporal
 
-import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadata
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataExtractor
 import org.vitrivr.engine.core.model.content.decorators.TemporalContent
@@ -19,7 +18,7 @@ import org.vitrivr.engine.core.operators.Operator
  * Implementation of the [TemporalMetadata] [Analyser], which derives metadata information [TemporalContent].
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
@@ -38,33 +37,33 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
      *
      * @param field The [Schema.Field] for which to create the [FileSourceMetadataExtractor]. Can be null.
      * @param input The input [Operator]
-     * @param context The [IndexContext]
+     * @param context The [Context]
      *
      * @return [TemporalMetadataExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, input: Operator<Retrievable>, context: IndexContext) = TemporalMetadataExtractor(input, this, field)
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, input: Operator<Retrievable>, context: Context) = TemporalMetadataExtractor(input, this, field)
 
     /**
      * Generates and returns a new [FileSourceMetadataExtractor] for the provided [Schema.Field].
      *
      * @param name The name of the [FileSourceMetadataExtractor].
      * @param input The input [Operator]
-     * @param context The [IndexContext]
+     * @param context The [Context]
      *
      * @return [TemporalMetadataExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext) = TemporalMetadataExtractor(input, this, name)
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: Context) = TemporalMetadataExtractor(input, this, name)
 
     /**
      * Generates and returns a new [TemporalMetadataRetriever] for the provided [Schema.Field].
      *
      * @param field The [Schema.Field] for which to create the [TemporalMetadataRetriever].
      * @param query The [Query] to create [TemporalMetadataRetriever] for.
-     * @param context The [QueryContext]
+     * @param context The [Context]
      *
      * @return [TemporalMetadataRetriever]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, query: Query, context: QueryContext): TemporalMetadataRetriever {
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, query: Query, context: Context): TemporalMetadataRetriever {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         require(query is BooleanQuery) { "Query is not a Boolean query." }
         return TemporalMetadataRetriever(field, query, context)
@@ -75,7 +74,7 @@ class TemporalMetadata : Analyser<ContentElement<*>, TemporalMetadataDescriptor>
      *
      * This method will always throw an [UnsupportedOperationException]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, content: Map<String, ContentElement<*>>, context: QueryContext): TemporalMetadataRetriever {
+    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, TemporalMetadataDescriptor>, content: Map<String, ContentElement<*>>, context: Context): TemporalMetadataRetriever {
         throw UnsupportedOperationException("TemporalMetadataDescriptor does not support the creation of a Retriever instance from content.")
     }
 }

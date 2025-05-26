@@ -1,7 +1,6 @@
 package org.vitrivr.engine.index.util.boundaryFile
 
 import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.context.IndexContext
 import java.nio.file.Path
 import java.time.Duration
 import java.util.*
@@ -12,7 +11,7 @@ class FileSystemShotBoundaryProvider : ShotBoundaryProviderFactory {
     override fun newShotBoundaryProvider(
         name: String,
         parameters: Map<String, String>,
-        context: IndexContext
+        context: Context
     ): ShotBoundaryProvider {
         val boundaryFilesPath = parameters["boundaryFilesPath"]
             ?: throw IllegalArgumentException("Property 'boundaryFilesPath' must be specified")

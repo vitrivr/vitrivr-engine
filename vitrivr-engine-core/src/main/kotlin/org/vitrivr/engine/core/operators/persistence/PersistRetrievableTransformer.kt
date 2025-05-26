@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -15,7 +14,7 @@ import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.general.OperatorFactory
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.operators.general.Transformer
 
 /**
@@ -30,18 +29,18 @@ class PersistRetrievableTransformer: OperatorFactory {
      *
      * @param name The name of this [PersistRetrievableTransformer].
      * @param inputs The input [Operator].
-     * @param context The [IndexContext] to use.
+     * @param context The [Context] to use.
      */
     override fun newOperator(name: String, inputs: Map<String, Operator<out Retrievable>>, context: Context): Transformer = Instance(
         inputs.values.first() as Operator<Retrievable>,
-        context as IndexContext,
+        context as Context,
         name
     )
 
     /**
      * The [PersistRetrievableTransformer] [Transformer] implementation.
      */
-    private class Instance(override val input: Operator<Retrievable>, val context: IndexContext, override val name: String): Transformer {
+    private class Instance(override val input: Operator<Retrievable>, val context: Context, override val name: String): Transformer {
 
         /** Logger instance. */
         private val logger = KotlinLogging.logger("RetrievablePersister#${this.name}")
