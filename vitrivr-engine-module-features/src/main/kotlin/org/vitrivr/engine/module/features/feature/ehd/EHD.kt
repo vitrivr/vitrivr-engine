@@ -2,8 +2,6 @@ package org.vitrivr.engine.module.features.feature.ehd
 
 import boofcv.io.image.ConvertBufferedImage
 import boofcv.struct.image.GrayU8
-import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.LinearCorrespondence
 import org.vitrivr.engine.core.model.content.Content
@@ -85,7 +83,7 @@ class EHD : Analyser<ImageContent, FloatVectorDescriptor> {
      *
      * @param name The name of the [EHDExtractor].
      * @param input The [Operator] that acts as input to the new [Extractor].
-     * @param context The [IndexContext] to use with the [Extractor].
+     * @param context The [Context] to use with the [Extractor].
      *
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
@@ -94,7 +92,7 @@ class EHD : Analyser<ImageContent, FloatVectorDescriptor> {
         name: String,
         input: Operator<Retrievable>,
         parameters: Map<String, String>,
-        context: IndexContext
+        context: Context
     ) = EHDExtractor(input, this, name)
 
     /**
@@ -102,7 +100,7 @@ class EHD : Analyser<ImageContent, FloatVectorDescriptor> {
      *
      * @param field The [Schema.Field] to create an [Extractor] for.
      * @param input The [Operator] that acts as input to the new [Extractor].
-     * @param context The [IndexContext] to use with the [Extractor].
+     * @param context The [Context] to use with the [Extractor].
      *
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
@@ -111,7 +109,7 @@ class EHD : Analyser<ImageContent, FloatVectorDescriptor> {
         field: Schema.Field<ImageContent, FloatVectorDescriptor>,
         input: Operator<Retrievable>,
         parameters: Map<String, String>,
-        context: IndexContext
+        context: Context
     ) = EHDExtractor(input, this, field)
 
     /**
@@ -119,14 +117,14 @@ class EHD : Analyser<ImageContent, FloatVectorDescriptor> {
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param query The [Query] to use with the [Retriever].
-     * @param context The [QueryContext] to use with the [Retriever].
+     * @param context The [Context] to use with the [Retriever].
      *
      * @return A new [DenseRetriever] instance for this [EHD]
      */
     override fun newRetrieverForQuery(
         field: Schema.Field<ImageContent, FloatVectorDescriptor>,
         query: Query,
-        context: QueryContext
+        context: Context
     ): DenseRetriever<ImageContent> {
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
         @Suppress("UNCHECKED_CAST")
@@ -140,12 +138,12 @@ class EHD : Analyser<ImageContent, FloatVectorDescriptor> {
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
-     * @param context The [QueryContext] to use with the [Retriever]
+     * @param context The [Context] to use with the [Retriever]
      */
     override fun newRetrieverForDescriptors(
         field: Schema.Field<ImageContent, FloatVectorDescriptor>,
         descriptors: Collection<FloatVectorDescriptor>,
-        context: QueryContext
+        context: Context
     ): DenseRetriever<ImageContent> {
         /* Prepare query parameters. */
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
@@ -162,17 +160,17 @@ class EHD : Analyser<ImageContent, FloatVectorDescriptor> {
     /**
      * Generates and returns a new [DenseRetriever] instance for this [EHD].
      *
-     * Invoking this method involves converting the provided [ImageContent] and the [QueryContext] into a [FloatVectorDescriptor]
+     * Invoking this method involves converting the provided [ImageContent] and the [Context] into a [FloatVectorDescriptor]
      * that can be used to retrieve similar [ImageContent] elements.
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param content An array of [Content] elements to use with the [Retriever]
-     * @param context The [QueryContext] to use with the [Retriever]
+     * @param context The [Context] to use with the [Retriever]
      */
     override fun newRetrieverForContent(
         field: Schema.Field<ImageContent, FloatVectorDescriptor>,
         content: Collection<ImageContent>,
-        context: QueryContext
+        context: Context
     ) = this.newRetrieverForDescriptors(field, content.map { this.analyse(it) }, context)
 
     /**

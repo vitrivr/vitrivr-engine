@@ -4,7 +4,7 @@ import org.vitrivr.engine.core.model.content.element.ContentId
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
-import org.vitrivr.engine.core.model.types.Type
+import org.vitrivr.engine.core.model.types.Value
 import java.lang.ref.SoftReference
 import java.nio.file.Files
 import java.nio.file.Path
@@ -36,7 +36,7 @@ class CachedTextContent(override val path: Path, text: String, override val id: 
                 str = reload()
                 this.reference = SoftReference(str)
             }
-            return TextDescriptor(descriptorId, null, str)
+            return TextDescriptor(descriptorId, null, Value.Text(str))
         }
 
     init {

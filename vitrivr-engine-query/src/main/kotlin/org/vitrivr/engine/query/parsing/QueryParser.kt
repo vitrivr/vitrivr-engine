@@ -1,25 +1,14 @@
 package org.vitrivr.engine.query.parsing
 
-import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
+import org.vitrivr.engine.core.model.content.factory.InMemoryContentFactory
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
-import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.types.Type
-import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.general.AggregatorFactory
-import org.vitrivr.engine.core.operators.general.OperatorFactory
-import org.vitrivr.engine.core.operators.general.TransformerFactory
-import org.vitrivr.engine.core.operators.retrieve.Retriever
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.util.extension.loadServiceForName
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
-import org.vitrivr.engine.query.model.api.input.*
-import org.vitrivr.engine.query.operators.retrieval.RetrievedLookup
-import java.util.*
-import kotlin.collections.get
 
 /**
  * A class that parses an [InformationNeedDescription] and transforms it into an [Operator]
@@ -37,19 +26,17 @@ class QueryParser(val schema: Schema) {
      * @return The output [Operator] of the query.
      */
     fun parse(description: InformationNeedDescription): Operator<out Retrievable> {
-
-
-
-        val context = QueryContext(local = description.operations.map { (name, description) ->
-            name to description.parameters
-        }.toMap())
-
-        context.schema = schema
+        /* Prepare query context. */
+        val context = Context(
+            schema = this.schema,
+            contentFactory = InMemoryContentFactory().newContentFactory(this.schema, emptyMap()),
+            local = description.operations.map { (name, description) -> name to description.parameters }.toMap()
+        )
 
         val operators = mutableMapOf<String, Operator<out Retrievable>>()
         val contentCache = mutableMapOf<String, ContentElement<*>>()
 
-        /* Parse individual operators and append the to the operators map. */
+        /* Parse individual operators and append the operators map. */
         description.operations.forEach { (operationName, operationDescription) ->
 
             if (operationDescription.field != null) { //must be a retriever
@@ -58,7 +45,7 @@ class QueryParser(val schema: Schema) {
                     val f = operationDescription.field.substringBefore(".")
                     val a = operationDescription.field.substringAfter(".")
                     f to a
-                }else{
+                } else {
                     operationDescription.field to null
                 }
                 val field = this.schema[fieldAndAttributeName.first] ?: throw IllegalArgumentException("Retriever '${operationDescription.field}' not defined in schema")

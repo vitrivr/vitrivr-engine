@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.vitrivr.engine.core.config.IndexContextFactory
+import org.vitrivr.engine.core.config.ContextFactory
 import org.vitrivr.engine.core.context.IngestionContextConfig
 import org.vitrivr.engine.core.database.blackhole.BlackholeConnection
 import org.vitrivr.engine.core.database.blackhole.BlackholeConnectionProvider
@@ -38,8 +38,8 @@ class ImageDecoderTest {
         contextConfig.schema = schema
 
         /* Prepare pipeline. */
-        val context = IndexContextFactory.newContext(emptyMap(), contextConfig)
-        val fileSystemEnumerator = FileSystemEnumerator().newEnumerator("enumerator", mapOf("path" to "./src/test/resources/images"), context, listOf(MediaType.IMAGE))
+        val context = ContextFactory.newContext(emptyMap(), contextConfig)
+        val fileSystemEnumerator = FileSystemEnumerator().newOperator("enumerator", mapOf("path" to "./src/test/resources/images"), context, listOf(MediaType.IMAGE))
         val decoder = ImageDecoder().newDecoder("decoder", input = fileSystemEnumerator, parameters = emptyMap(), context = context)
         val averageColor =  AverageColor().let { it.newExtractor(schema.Field("averagecolor", it), input = decoder, parameters = emptyMap(), context = context) }
         val file =  FileSourceMetadata().let { it.newExtractor(schema.Field("file", it), input = averageColor, parameters = emptyMap(), context = context) }

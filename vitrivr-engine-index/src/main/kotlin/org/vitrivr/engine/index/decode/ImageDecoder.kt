@@ -7,12 +7,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapNotNull
-import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.operators.ingest.Decoder
-import org.vitrivr.engine.core.operators.ingest.DecoderFactory
 import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Source
@@ -32,13 +30,13 @@ class ImageDecoder : DecoderFactory {
      *
      * @param name the name of the [Decoder]
      * @param input The input [Enumerator].
-     * @param context The [IndexContext] to use.
+     * @param context The [Context] to use.
      */
     override fun newDecoder(
         name: String,
         input: Enumerator,
         parameters: Map<String, String>,
-        context: IndexContext
+        context: Context
     ): Decoder = Instance(input, context, name)
 
     /**
@@ -46,7 +44,7 @@ class ImageDecoder : DecoderFactory {
      */
     private class Instance(
         override val input: Enumerator,
-        private val context: IndexContext,
+        private val context: Context,
         override val name: String
     ) : Decoder {
 

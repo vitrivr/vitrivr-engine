@@ -1,12 +1,11 @@
 package org.vitrivr.engine.core.model.metamodel
 
+import org.vitrivr.engine.core.config.ContextFactory
 import org.vitrivr.engine.core.config.ingest.IngestionConfig
 import org.vitrivr.engine.core.config.ingest.IngestionPipelineBuilder
 import org.vitrivr.engine.core.config.schema.IndexConfig
 import org.vitrivr.engine.core.config.schema.SchemaConfig
 import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.database.descriptor.DescriptorInitializer
 import org.vitrivr.engine.core.database.descriptor.DescriptorReader
@@ -17,7 +16,7 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.general.OperatorFactory
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.core.resolver.Resolver
@@ -31,7 +30,7 @@ typealias FieldName = String
  * A [Schema] that defines a particular vitrivr instance's meta data model.
  *
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.2.0
  */
 open class Schema(val name: String = "vitrivr", val connection: Connection) : Closeable {
 
@@ -104,8 +103,9 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      * @param config The actual [IngestionConfig]
      */
     fun addIngestionPipeline(name: String, config: IngestionConfig) {
-        config.context.schema = this
-        ingestionPipelineBuilders[name] = IngestionPipelineBuilder(config)
+        require(config.schema == this.name) { "Ingestion pipeline for schema '${this.name}' cannot have a config for schema '${config.schema}'."}
+        val context = ContextFactory.newContext(this,config.context)
+        this.ingestionPipelineBuilders[name] = IngestionPipelineBuilder(config, context)
     }
 
     /**
@@ -194,32 +194,31 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * Returns an [Extractor] instances for this [Schema.Field].
          *
          * @param input The input [Operator] for the [Extractor].
-         * @param context The [IndexContext] to use with the [Extractor].
+         * @param context The [Context] to use with the [Extractor].
          * @return [Extractor] instance.
          */
-        fun getExtractor(
-            input: Operator<Retrievable>,
-            context: IndexContext
-        ): Extractor<C, D> = this.analyser.newExtractor(this, input, context)
+        fun getExtractor(input: Operator<Retrievable>, context: Context): Extractor<C, D>
+            = this.analyser.newExtractor(this, input, context)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field] and the provided [Query].
          *
          * @param query The [Query](s) that should be used with the [Retriever].
-         * @param context The [QueryContext] to use with the [Retriever].
+         * @param context The [Context] to use with the [Retriever].
          * @return [Retriever] instance.
          */
-        fun getRetrieverForQuery(query: Query, context: QueryContext): Retriever<C, D> =
-            this.analyser.newRetrieverForQuery(this, query, context)
+        fun getRetrieverForQuery(query: Query, context: Context): Retriever<C, D>
+            = this.analyser.newRetrieverForQuery(this, query, context)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field].
          *
          * @param content The [Content] element(s) that should be used with the [Retriever].
+         * @param context The query and retrieval [Context]
          * @return [Retriever] instance.
          */
-        fun getRetrieverForContent(content: Map<String, ContentElement<*>>, queryContext: QueryContext): Retriever<C, D> =
-            this.analyser.newRetrieverForContent(this, content, queryContext)
+        fun getRetrieverForContent(content: Map<String, C>, context: Context): Retriever<C, D> =
+            this.analyser.newRetrieverForContent(this, content, context)
 
         /**
          * Returns a [Retriever] instance for this [Schema.Field].
@@ -227,8 +226,8 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * @param descriptors The [Descriptor] element(s) that should be used with the [Retriever].
          * @return [Retriever] instance.
          */
-        fun getRetrieverForDescriptors(descriptors: Collection<D>, queryContext: QueryContext): Retriever<C, D> =
-            this.analyser.newRetrieverForDescriptors(this, descriptors, queryContext)
+        fun getRetrieverForDescriptors(descriptors: Collection<D>, Context: Context): Retriever<C, D> =
+            this.analyser.newRetrieverForDescriptors(this, descriptors, Context)
 
         /**
          * Returns the [DescriptorInitializer] for this [Schema.Field].
@@ -278,13 +277,13 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * Convenience method to generate and return a [org.vitrivr.engine.core.operators.general.Exporter ] for this [Exporter].
          *
          * @param input The [Operator] to use as input.
-         * @param context The [IndexContext] to use.
+         * @param context The [Context] to use.
          * @return [DescriptorReader]
          */
         fun getExporter(
             input: Operator<Retrievable>,
             params: Map<String, String>,
-            context: IndexContext
+            context: Context
         ): org.vitrivr.engine.core.operators.general.Exporter {
             val newParameters = if (parameters.isNotEmpty()) {
                 /* Case this is newly defined in the schema */

@@ -2,7 +2,6 @@ package org.vitrivr.engine.query.operators.transform.filter
 
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
-import org.vitrivr.engine.core.context.QueryContext
 
 class LateFilterTest {
 
@@ -10,7 +9,7 @@ class LateFilterTest {
 
     @BeforeEach
     fun setUp() {
-        val context = QueryContext()
+        val context = Context()
         val retriever = MockRetrievedLookup(
             name = "retriever",
             type = "test",

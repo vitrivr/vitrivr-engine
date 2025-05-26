@@ -1,7 +1,6 @@
 package org.vitrivr.engine.query.operators.transform.lookup
 
 import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.general.TransformerFactory
@@ -17,7 +16,7 @@ class FieldLookupFactory : TransformerFactory {
         name: String, input: Operator<out Retrievable>, parameters: Map<String, String>,
         context: Context
     ): FieldLookup {
-        require(context is QueryContext)
+        require(context is Context)
         val field =
             context[name, "field"] ?: throw IllegalArgumentException("expected 'field' to be defined in properties")
         val schemaField =

@@ -27,10 +27,6 @@ data class TextDescriptor(
         private val SCHEMA = listOf(Attribute(VALUE_ATTRIBUTE_NAME, Type.Text))
     }
 
-    constructor(id: DescriptorId, retrievableId: RetrievableId?, text: String, field: Schema.Field<*, TextDescriptor>? = null) : this(
-        id, retrievableId, Value.Text(text), field
-    )
-
     /**
      * Returns the [Attribute] [List ]of this [StringDescriptor].
      *
