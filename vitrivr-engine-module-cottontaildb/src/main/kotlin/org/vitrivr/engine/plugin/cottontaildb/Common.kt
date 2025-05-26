@@ -64,6 +64,7 @@ internal fun Type.toCottontailType(): Types<*> = when (this) {
     Type.Double -> Types.Double
     Type.Datetime -> Types.Date
     Type.UUID -> Types.Uuid
+    Type.Geography -> Types.String
     is Type.BooleanVector -> Types.BooleanVector(this.dimensions)
     is Type.DoubleVector -> Types.DoubleVector(this.dimensions)
     is Type.FloatVector -> Types.FloatVector(this.dimensions)
@@ -113,6 +114,7 @@ internal fun Any.toCottontailValue(): PublicValue = when (this)  {
     is Value.String -> StringValue(this.value)
     is Value.DateTime -> DateValue(this.value)
     is Value.LocalDateTimeValue -> DateValue(Date.from(this.value.atOffset(ZoneOffset.UTC).toInstant()))
+    is Value.GeographyValue -> StringValue(this.wkt)
 
     else -> throw IllegalArgumentException("Unsupported type for vector value.")
 }
@@ -135,6 +137,7 @@ internal fun Value<*>.toCottontailValue(): PublicValue = when (this) {
     is Value.DateTime -> DateValue(this.value)
     is Value.LocalDateTimeValue -> DateValue(Date.from(this.value.atOffset(ZoneOffset.UTC).toInstant()))
     is Value.UUIDValue -> UuidValue(this.value)
+    is Value.GeographyValue -> StringValue(this.wkt)
     is Value.BooleanVector -> BooleanVectorValue(this.value)
     is Value.DoubleVector -> DoubleVectorValue(this.value)
     is Value.FloatVector -> FloatVectorValue(this.value)

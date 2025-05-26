@@ -21,6 +21,11 @@ import org.jetbrains.exposed.sql.javatime.JavaLocalDateTimeColumnType
 import java.time.LocalDateTime
 import java.time.ZoneId
 import kotlin.reflect.full.primaryConstructor
+import org.vitrivr.engine.database.pgvector.exposed.types.geography
+import org.vitrivr.engine.core.model.query.spatiotemporal.SpatialOperator
+import org.vitrivr.engine.core.model.query.spatiotemporal.CompoundAndSpatialQuery
+import org.vitrivr.engine.database.pgvector.exposed.types.GeographyColumnType
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
 /**
  * An [AbstractDescriptorTable] for [StructDescriptor]s.
@@ -48,6 +53,11 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
                 Type.String -> varchar(attribute.name, 255)
                 Type.Text -> text(attribute.name)
                 Type.UUID -> uuid(attribute.name)
+                Type.Geography -> geography(
+                    name = attribute.name,
+                    srid = 4326,
+                    columnDefinitionInDb = "GEOGRAPHY(POINT, 4326)"
+                )
                 is Type.FloatVector -> floatVector(attribute.name, type.dimensions)
                 else -> error("Unsupported type $type for attribute ${attribute.name} in ${this.tableName}")
             }.let { column ->
@@ -104,6 +114,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
                     Type.String -> Value.String(value as String)
                     Type.Text -> Value.Text(value as String)
                     Type.UUID -> Value.UUIDValue(value as UUID)
+                    Type.Geography -> Value.GeographyValue(value as String)
                     is Type.BooleanVector -> Value.BooleanVector(value as BooleanArray)
                     is Type.DoubleVector -> Value.DoubleVector(value as DoubleArray)
                     is Type.FloatVector -> Value.FloatVector(value as FloatArray)
@@ -127,8 +138,84 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
     override fun parse(query: org.vitrivr.engine.core.model.query.Query): Query = when(query) {
         is SimpleFulltextQuery -> this.parse(query)
         is SimpleBooleanQuery<*> -> this.parse(query)
+        is CompoundAndSpatialQuery -> this.parse(query)
         else -> throw UnsupportedOperationException("Unsupported query type: ${query::class.simpleName}")
     }
+
+    /**
+     * Converts a [CompoundAndSpatialQuery] into an Exposed [Query] using PostGIS functions.
+     */
+    @Suppress("UNCHECKED_CAST")
+    private fun parse(query: CompoundAndSpatialQuery): org.jetbrains.exposed.sql.Query {
+        val allOps: List<Op<Boolean>> = query.conditions.map { condition ->
+            val column = this.valueColumns.find { it.name == condition.attributeName } as? Column<String>
+                ?: throw IllegalArgumentException("Spatial query attribute '${condition.attributeName}' not found or not a String-based column in table ${this.tableName}.")
+
+            if (column.columnType !is GeographyColumnType && column.columnType !is TextColumnType) {
+                throw IllegalArgumentException(
+                    "Attribute '${condition.attributeName}' in table ${this.tableName} " +
+                            "is not a geography-compatible column. Found: ${column.columnType::class.simpleName}"
+                )
+            }
+
+            val referenceWkt = condition.referenceGeography.wkt
+            val referenceSrid = condition.referenceGeography.srid
+
+            val referenceGeogExpression = CustomFunction<String?>( // Exposed treats our GeographyColumnType as handling String
+                "ST_GeogFromText",
+                column.columnType, // Use the target column's IColumnType
+                stringParam(referenceWkt),
+                intParam(referenceSrid)
+            )
+
+            // Each PostGIS boolean function call is an Expression<Boolean>.
+            // To make it an Op<Boolean> for the WHERE clause, we compare it with true.
+            when (condition.operator) {
+                SpatialOperator.DWITHIN -> {
+                    val distanceMeters = condition.distance?.value
+                        ?: throw IllegalArgumentException("Distance parameter is required for DWITHIN on attribute '${condition.attributeName}'.")
+                    val useSpheroid = condition.useSpheroid?.value ?: true
+
+                    CustomFunction<Boolean>(
+                        "ST_DWithin", BooleanColumnType(),
+                        column, referenceGeogExpression, doubleParam(distanceMeters), booleanParam(useSpheroid)
+                    ) eq true // <--- Make it an Op<Boolean>
+                }
+                SpatialOperator.INTERSECTS -> {
+                    CustomFunction<Boolean>(
+                        "ST_Intersects", BooleanColumnType(),
+                        column, referenceGeogExpression
+                    ) eq true // <--- Make it an Op<Boolean>
+                }
+                SpatialOperator.CONTAINS -> {
+                    CustomFunction<Boolean>(
+                        "ST_Contains", BooleanColumnType(),
+                        column, referenceGeogExpression
+                    ) eq true // <--- Make it an Op<Boolean>
+                }
+                SpatialOperator.WITHIN -> {
+                    CustomFunction<Boolean>(
+                        "ST_Within", BooleanColumnType(),
+                        column, referenceGeogExpression
+                    ) eq true // <--- Make it an Op<Boolean>
+                }
+                SpatialOperator.EQUALS -> { // Spatial equality
+                    CustomFunction<Boolean>(
+                        "ST_Equals", BooleanColumnType(),
+                        column, referenceGeogExpression
+                    ) eq true // <--- Make it an Op<Boolean>
+                }
+            }
+        }
+
+        val finalOp = if (allOps.isEmpty()) {
+            Op.TRUE // Should not be hit due to CompoundAndSpatialQuery init block
+        } else {
+            allOps.reduce { acc, op -> acc.and(op) }
+        }
+        return this.selectAll().where { finalOp }
+    }
+
 
     /**
      * Converts a [SimpleFulltextQuery] into a [Query] that can be executed against the database.
@@ -144,7 +231,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
         descriptor tsMatches plainToTsQuery(stringParam(value))
     }
 
-    /**
+    /**TODO ADD further comparison operators for geography type
      * Converts a [SimpleBooleanQuery] into a [Query] that can be executed against the database.
      *
      * @param query The [SimpleBooleanQuery] to convert.
@@ -168,7 +255,11 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
     }
 
 
-
+    /**
+     * Sets the value of the descriptor in the [InsertStatement]t.
+     *
+     * @param d The [Descriptor] to set value for
+     */
     @Suppress("UNCHECKED_CAST")
     override fun InsertStatement<*>.setValue(d: D) {
         val values = d.values()
@@ -190,7 +281,11 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
         }
     }
 
-
+    /**
+     * Sets the value of the descriptor in the [BatchInsertStatement]t.
+     *
+     * @param d The [Descriptor] to set value for
+     */
     @Suppress("UNCHECKED_CAST")
     override fun BatchInsertStatement.setValue(d: D) {
         val values = d.values()
@@ -212,7 +307,11 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
         }
     }
 
-
+    /**
+     * Sets the value of the descriptor in the [UpdateStatement]t.
+     *
+     * @param d The [Descriptor] to set value for
+     */
     @Suppress("UNCHECKED_CAST")
     override fun UpdateStatement.setValue(d: D) {
         val values = d.values()

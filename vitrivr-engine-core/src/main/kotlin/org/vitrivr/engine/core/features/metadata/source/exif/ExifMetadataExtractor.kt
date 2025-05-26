@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.features.metadata.source.exif
 
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.Directory
+import com.drew.metadata.exif.GpsDirectory
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.SerializationException
@@ -85,6 +86,15 @@ fun Value<*>.convertToType(type: Type): Value<*>? {
             Value.UUIDValue(UUID.fromString(this.value))
         } else null
 
+        Type.Geography -> if (this is Value.String) { // Assumes the string is WKT
+            try {
+                Value.GeographyValue(this.value) // Constructor "Value.GeographyValue(wkt: String, srid: Int = 4326)"
+            } catch (e: IllegalArgumentException) {
+                logger.warn { "Failed to convert WKT string '${this.value}' to GeographyValue: ${e.message}" }
+                null
+            }
+        } else null
+
         else -> null
     }
 }
@@ -155,5 +165,19 @@ private fun convertType(directory: Directory, tagType: Int, type: Type): Value<*
     Type.String -> Value.String(directory.getString(tagType))
     Type.Text -> Value.Text(directory.getString(tagType))  // Ensure Type.Text returns Value.Text
     Type.UUID -> Value.UUIDValue(UUID.fromString(directory.getString(tagType)))
+    Type.Geography -> {
+        // This handles an EXIF tag that directly contains a WKT string.
+        val wktString = directory.getString(tagType)
+        if (wktString != null && wktString.isNotBlank()) {
+            try {
+                Value.GeographyValue(wktString)
+            } catch (e: IllegalArgumentException) {
+                logger.warn { "Failed to parse WKT string '$wktString' from EXIF tag for GeographyValue: ${e.message}" }
+                null
+            }
+        } else {
+            null
+        }
+    }
     is Type.BooleanVector, is Type.DoubleVector, is Type.FloatVector, is Type.IntVector, is Type.LongVector -> throw IllegalArgumentException("Unsupported type: $type")
 }

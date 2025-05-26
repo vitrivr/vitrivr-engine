@@ -25,6 +25,7 @@ sealed class ValueContainer {
             is Value.String -> StringValueContainer(value.value)
             is Value.Text -> TextValueContainer(value.value)
             is Value.UUIDValue -> UuidValueContainer(value.value)
+            is Value.GeographyValue -> GeographyValueContainer(value.wkt, value.srid)
             is Value.BooleanVector -> BooleanVectorValueContainer(value.value)
             is Value.DoubleVector -> DoubleVectorValueContainer(value.value)
             is Value.FloatVector -> FloatVectorValueContainer(value.value)
@@ -99,6 +100,13 @@ class TextValueContainer(private val value: String) : ValueContainer() {
 @Serializable
 class UuidValueContainer(@Serializable(UUIDSerializer::class) private val value: UUID) : ValueContainer() {
     override fun toValue(): Value<UUID> = Value.UUIDValue(value)
+}
+
+@Serializable
+class GeographyValueContainer(private val wkt: String, private val srid: Int) : ValueContainer() {
+    override fun toValue(): Value<String> {
+        return Value.GeographyValue(wkt, srid)
+    }
 }
 
 @Serializable

@@ -3,6 +3,7 @@ package org.vitrivr.engine.core.model.types
 import kotlinx.serialization.Serializable
 import java.util.*
 
+
 /**
  * The [Type]s supported by vitrivr-engine.
  *
@@ -32,6 +33,7 @@ sealed interface Type {
                 "FLOAT" -> Float
                 "DOUBLE" -> Double
                 "DATETIME" -> Datetime
+                "GEOGRAPHY" -> Geography
                 "BOOLEANVECTOR" -> BooleanVector(dimensions)
                 "INTVECTOR" -> IntVector(dimensions)
                 "LONGVECTOR" -> LongVector(dimensions)
@@ -144,6 +146,17 @@ sealed interface Type {
     data object Datetime : Type {
         override val dimensions: kotlin.Int = 1
         override fun defaultValue(): Value<*> = Value.DateTime(Date())
+    }
+
+    /**
+     * A [Type] that represents a geography value.
+     *
+     * This type is intended to represent PostGIS `geography(POINT,4326)` types.
+     */
+    @Serializable
+    data object Geography : Type {
+        override val dimensions: kotlin.Int = 1
+        override fun defaultValue(): Value<*> = Value.GeographyValue("POINT(0 0)")
     }
 
     /**

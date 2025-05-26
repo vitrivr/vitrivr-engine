@@ -91,11 +91,14 @@ class CaptureTimeExtractor : AbstractExtractor<ImageContent, AnyMapStructDescrip
     }
 
     // returns an empty descriptor
-    private fun emptyDescriptor(id: UUID) = AnyMapStructDescriptor(
-        UUID.randomUUID(),
-        id,
-        layout,
-        mapOf("timestamp" to null),
-        this.field
-    )
+    private fun emptyDescriptor(id: UUID): AnyMapStructDescriptor {
+        logger.info { "CaptureTimeExtractor: No timestamp found for $id – using default 1970-01-01T00:00:00Z" }
+        return AnyMapStructDescriptor(
+            UUID.randomUUID(),
+            id,
+            layout,
+            mapOf("timestamp" to Value.LocalDateTimeValue(LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC))),
+            this.field
+        )
+    }
 }

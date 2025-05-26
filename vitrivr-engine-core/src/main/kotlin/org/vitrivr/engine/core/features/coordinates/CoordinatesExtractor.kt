@@ -228,13 +228,14 @@ class CoordinatesExtractor : AbstractExtractor<ImageContent, AnyMapStructDescrip
      * @return An AnyMapStructDescriptor with null values for lat and lon
      */
     private fun createEmptyDescriptor(retrievableId: UUID): AnyMapStructDescriptor {
+        logger.info { "CoordinatesExtractor: No coordinates found for $retrievableId – using default lat=0.0, lon=0.0" }
         return AnyMapStructDescriptor(
             UUID.randomUUID(),
             retrievableId,
             layout,
             mapOf(
-                "lat" to null,
-                "lon" to null
+                "lat" to Value.Double(0.0),
+                "lon" to Value.Double(0.0)
             ),
             this.field
         )

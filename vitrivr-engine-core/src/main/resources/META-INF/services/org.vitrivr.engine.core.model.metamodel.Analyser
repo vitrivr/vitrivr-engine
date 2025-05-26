@@ -5,3 +5,4 @@ org.vitrivr.engine.core.features.metadata.source.video.VideoSourceMetadata
 org.vitrivr.engine.core.features.metadata.temporal.TemporalMetadata
 org.vitrivr.engine.core.features.coordinates.Coordinates
 org.vitrivr.engine.core.features.capturetime.CaptureTime
+org.vitrivr.engine.core.features.coordinates.PostGISCoordinates
