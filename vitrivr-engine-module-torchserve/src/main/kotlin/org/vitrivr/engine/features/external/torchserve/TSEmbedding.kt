@@ -13,6 +13,7 @@ import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
+import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
@@ -105,6 +106,15 @@ class TSEmbedding : TorchServe<ContentElement<*>, FloatVectorDescriptor>() {
         return this.newRetrieverForDescriptors(field, vectors, context)
     }
 
+    /**
+     * Generates and returns a new [TorchServeExtractor] instance for this [TorchServe].
+     *
+     * @param field The [Schema.Field] to create an [TorchServeExtractor] for.
+     * @param input The [Operator] that acts as input to the new [TorchServeExtractor].
+     * @param context The [IndexContext] to use with the [TorchServeExtractor].
+     *
+     * @return A new [TorchServeExtractor] instance for this [Analyser]
+     */
     override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext): TorchServeExtractor<ContentElement<*>, FloatVectorDescriptor> {
         val host = context.local[field.fieldName]?.get(TORCHSERVE_HOST_KEY) ?: field.parameters[TORCHSERVE_HOST_KEY] ?: "127.0.0.1"
         val port = ((context.local[field.fieldName]?.get(TORCHSERVE_PORT_KEY) ?: field.parameters[TORCHSERVE_PORT_KEY]))?.toIntOrNull() ?: 7070
@@ -113,6 +123,15 @@ class TSEmbedding : TorchServe<ContentElement<*>, FloatVectorDescriptor>() {
         return TorchServeExtractor(host, port, token, model, input, this, field, field.fieldName)
     }
 
+    /**
+     * Generates and returns a new [TorchServeExtractor] instance for this [TorchServe].
+     *
+     * @param name The name of the [TorchServeExtractor].
+     * @param input The [Operator] that acts as input to the new [TorchServeExtractor].
+     * @param context The [IndexContext] to use with the [TorchServeExtractor].
+     *
+     * @return A new [TorchServeExtractor] instance for this [TorchServe]
+     */
     override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): TorchServeExtractor<ContentElement<*>, FloatVectorDescriptor> {
         val host = context.local[name]?.get(TORCHSERVE_HOST_KEY) ?: "127.0.0.1"
         val port = context.local[name]?.get(TORCHSERVE_PORT_KEY)?.toIntOrNull() ?: 7070
