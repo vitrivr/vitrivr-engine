@@ -13,7 +13,6 @@ import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
@@ -113,7 +112,7 @@ class TSEmbedding : TorchServe<ContentElement<*>, FloatVectorDescriptor>() {
      * @param input The [Operator] that acts as input to the new [TorchServeExtractor].
      * @param context The [IndexContext] to use with the [TorchServeExtractor].
      *
-     * @return A new [TorchServeExtractor] instance for this [Analyser]
+     * @return A new [TorchServeExtractor] instance for this [TorchServe]
      */
     override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext): TorchServeExtractor<ContentElement<*>, FloatVectorDescriptor> {
         val host = context.local[field.fieldName]?.get(TORCHSERVE_HOST_KEY) ?: field.parameters[TORCHSERVE_HOST_KEY] ?: "127.0.0.1"
