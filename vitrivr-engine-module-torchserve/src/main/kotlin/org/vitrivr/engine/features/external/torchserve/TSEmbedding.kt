@@ -5,7 +5,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
-import org.vitrivr.engine.core.features.bool.StructBooleanRetriever
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.BoundedCorrespondence
 import org.vitrivr.engine.core.model.content.Content
@@ -14,7 +13,6 @@ import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
@@ -38,6 +36,10 @@ import kotlin.reflect.KClass
  */
 class TSEmbedding : TorchServe<ContentElement<*>, FloatVectorDescriptor>() {
 
+    companion object {
+        const val TORCHSERVE_DIMENSIONS = "dimensions"
+    }
+
     override val contentClasses = setOf(ImageContent::class, TextContent::class)
     override val descriptorClass: KClass<FloatVectorDescriptor> = FloatVectorDescriptor::class
 
@@ -47,7 +49,10 @@ class TSEmbedding : TorchServe<ContentElement<*>, FloatVectorDescriptor>() {
      * @param field [Schema.Field] to create the prototype for.
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(FloatArray(0)))
+    override fun prototype(field: Schema.Field<*, *>): FloatVectorDescriptor {
+        val dimensions = field.parameters[TORCHSERVE_DIMENSIONS]?.toIntOrNull() ?: 512
+        return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(FloatArray(dimensions)))
+    }
 
     /**
      * Generates and returns a new [DenseRetriever] instance for this [TSEmbedding].
