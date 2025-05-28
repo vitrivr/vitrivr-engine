@@ -7,6 +7,7 @@ import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.base.features.external.common.FesExtractor
 import org.vitrivr.engine.base.features.external.implementations.asr.ASR
 import org.vitrivr.engine.base.features.external.implementations.asr.ASRExtractor
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.BoundedCorrespondence
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -64,9 +65,8 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
     override fun newExtractor(
         name: String,
         input: Operator<Retrievable>,
-        parameters: Map<String, String>,
         context: Context
-    ) = DenseEmbeddingExtractor(input, name, this, parameters)
+    ) = DenseEmbeddingExtractor(input, name, this, context)
 
     /**
      * Generates and returns a new [ASRExtractor] instance for this [ASR].
@@ -79,9 +79,8 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
     override fun newExtractor(
         field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
         input: Operator<Retrievable>,
-        parameters: Map<String, String>,
         context: Context
-    ) = DenseEmbeddingExtractor(input, field, this, merge(field, parameters))
+    ) = DenseEmbeddingExtractor(input, field, this, context)
 
     /**
      * Generates and returns a new [DenseRetriever] instance for this [DenseEmbedding].

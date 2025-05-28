@@ -86,28 +86,28 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
         return this.newRetrieverForQuery(field, query, context)
     }
 
-    /**
-     * Generates and returns a new [Retriever] instance for this [TSImageLabel].
-     *
-     * @param field The [Schema.Field] to create an [Retriever] for.
-     * @param content An array of [Content] elements to use with the [Retriever]
-     * @param context The [Context] to use with the [Retriever]
-     * @return [Retriever]
-     */
-    override fun newRetrieverForContent(
-        field: Schema.Field<ImageContent, LabelDescriptor>,
-        content: Collection<ImageContent>,
-        context: Context
-    ): Retriever<ImageContent, LabelDescriptor> {
-        val host = field.parameters[TORCHSERVE_HOST_KEY] ?: TORCHSERVE_HOST_DEFAULT
-        val port = field.parameters[TORCHSERVE_PORT_KEY]?.toIntOrNull() ?: TORCHSERVE_PORT_DEFAULT
-        val token = field.parameters[TORCHSERVE_TOKEN_KEY]
-        val model = field.parameters[TORCHSERVE_MODEL_KEY]
-            ?: throw IllegalArgumentException("Missing model for TorchServe model.")
-        val threshold = field.parameters[TORCHSERVE_THRESHOLD_KEY]?.toFloatOrNull() ?: 0.0f
-        val descriptors = this.analyse(content, model, host, port, token).filter({ it.confidence.value >= threshold })
-        return this.newRetrieverForDescriptors(field, descriptors, context)
-    }
+//    /**
+//     * Generates and returns a new [Retriever] instance for this [TSImageLabel].
+//     *
+//     * @param field The [Schema.Field] to create an [Retriever] for.
+//     * @param content An array of [Content] elements to use with the [Retriever]
+//     * @param context The [Context] to use with the [Retriever]
+//     * @return [Retriever]
+//     */
+//    override fun newRetrieverForContent(
+//        field: Schema.Field<ImageContent, LabelDescriptor>,
+//        content: Collection<ImageContent>,
+//        context: Context
+//    ): Retriever<ImageContent, LabelDescriptor> {
+//        val host = field.parameters[TORCHSERVE_HOST_KEY] ?: TORCHSERVE_HOST_DEFAULT
+//        val port = field.parameters[TORCHSERVE_PORT_KEY]?.toIntOrNull() ?: TORCHSERVE_PORT_DEFAULT
+//        val token = field.parameters[TORCHSERVE_TOKEN_KEY]
+//        val model = field.parameters[TORCHSERVE_MODEL_KEY]
+//            ?: throw IllegalArgumentException("Missing model for TorchServe model.")
+//        val threshold = field.parameters[TORCHSERVE_THRESHOLD_KEY]?.toFloatOrNull() ?: 0.0f
+//        val descriptors = this.analyse(content, model, host, port, token).filter({ it.confidence.value >= threshold })
+//        return this.newRetrieverForDescriptors(field, descriptors, context)
+//    }
 
     /**
      * Generates and returns a new [TorchServeExtractor] instance for this [TorchServe].

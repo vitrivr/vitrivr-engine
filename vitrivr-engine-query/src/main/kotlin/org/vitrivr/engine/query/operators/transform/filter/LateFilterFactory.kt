@@ -4,11 +4,12 @@ import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.general.TransformerFactory
+import org.vitrivr.engine.core.operators.OperatorFactory
 
-class LateFilterFactory() : TransformerFactory {
-    override fun newTransformer(
-        name: String, input: Operator<out Retrievable>, parameters: Map<String, String>,
+class LateFilterFactory() : OperatorFactory {
+    override fun newOperator(
+        name: String,
+        inputs: Map<String, Operator<out Retrievable>>,
         context: Context
     ): LateFilter {
         require(context is Context)
@@ -27,7 +28,7 @@ class LateFilterFactory() : TransformerFactory {
             emptyList()
         }
         return LateFilter(
-            input,
+            inputs.values.first(),
             field,
             keys,
             ComparisonOperator fromString comparison,

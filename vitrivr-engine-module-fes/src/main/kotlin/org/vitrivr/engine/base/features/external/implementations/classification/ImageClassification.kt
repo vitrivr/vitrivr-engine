@@ -2,6 +2,7 @@ package org.vitrivr.engine.base.features.external.implementations.classification
 
 import org.vitrivr.engine.base.features.external.api.AbstractApi
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.AbstractRetriever
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -63,9 +64,8 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
     override fun newExtractor(
         name: String,
         input: Operator<Retrievable>,
-        parameters: Map<String, String>,
         context: Context
-    ) = ImageClassificationExtractor(input, name, this, parameters)
+    ) = ImageClassificationExtractor(input, name, this, context)
 
     /**
      * Generates and returns a new [ImageClassification] instance for this [ImageClassification].
@@ -78,9 +78,8 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
     override fun newExtractor(
         field: Schema.Field<ImageContent, LabelDescriptor>,
         input: Operator<Retrievable>,
-        parameters: Map<String, String>,
         context: Context
-    ) = ImageClassificationExtractor(input, field, this, merge(field, parameters))
+    ) = ImageClassificationExtractor(input, field, this, context)
 
     /**
      * Generates and returns a new [Retriever] instance for this [ImageClassification].
@@ -121,24 +120,4 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
         return newRetrieverForQuery(field, query, context)
     }
 
-    /**
-     * Generates and returns a new [Retriever] instance for this [ImageClassification].
-     *
-     * Invoking this method involves converting the provided [ImageContent] and the [Context] into a [FloatVectorDescriptor]
-     * that can be used to retrieve similar [ImageContent] elements.
-     *
-     * @param field The [Schema.Field] to create an [Retriever] for.
-     * @param content An array of [Content] elements to use with the [Retriever]
-     * @param context The [Context] to use with the [Retriever]
-     */
-    override fun newRetrieverForContent(
-        field: Schema.Field<ImageContent, LabelDescriptor>,
-        content: Collection<ImageContent>,
-        context: Context
-    ): Retriever<ImageContent, LabelDescriptor> {
-        val first = content.filterIsInstance<TextContent>().firstOrNull()
-            ?: throw IllegalArgumentException("The content does not contain any text.")
-        val query = SimpleBooleanQuery(value = Value.String(first.content), attributeName = "label")
-        return newRetrieverForQuery(field, query, context)
-    }
 }

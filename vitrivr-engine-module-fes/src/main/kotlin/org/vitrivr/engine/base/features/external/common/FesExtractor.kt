@@ -8,6 +8,7 @@ import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Comp
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.RETRIES_PARAMETER_DEFAULT
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.RETRIES_PARAMETER_NAME
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.TIMEOUT_MS_PARAMETER_DEFAULT
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.AbstractBatchedExtractor
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -24,13 +25,13 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  */
 abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>> : AbstractBatchedExtractor<C, D> {
 
-    protected val parameters: Map<String, String>
+    protected val context: Context
 
     constructor(
         input: Operator<Retrievable>,
         field: Schema.Field<C, D>,
         analyser: ExternalFesAnalyser<C, D>,
-        parameters: Map<String, String>
+        context: Context
     ) : super(input, analyser, field, parameters["batchSize"]?.toIntOrNull() ?: 1) {
         this.parameters = parameters
     }
@@ -39,7 +40,7 @@ abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>> : Abstract
         input: Operator<Retrievable>,
         name: String,
         analyser: ExternalFesAnalyser<C, D>,
-        parameters: Map<String, String>
+        context: Context
     ) : super(input, analyser, name, parameters["batchSize"]?.toIntOrNull() ?: 1) {
         this.parameters = parameters
     }

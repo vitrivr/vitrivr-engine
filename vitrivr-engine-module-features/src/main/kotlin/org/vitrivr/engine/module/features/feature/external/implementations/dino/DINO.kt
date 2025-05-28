@@ -1,5 +1,6 @@
 package org.vitrivr.engine.module.features.feature.external.implementations.dino
 
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.BoundedCorrespondence
 import org.vitrivr.engine.core.model.content.Content
@@ -67,7 +68,6 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
     override fun newExtractor(
         field: Schema.Field<ImageContent, FloatVectorDescriptor>,
         input: Operator<Retrievable>,
-        parameters: Map<String, String>,
         context: Context
     ): DINOExtractor {
         val host: String = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
@@ -85,10 +85,9 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
     override fun newExtractor(
         name: String,
         input: Operator<Retrievable>,
-        parameters: Map<String, String>,
         context: Context
     ): DINOExtractor {
-        val host: String = parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
+        val host: String = context.getProperty(name, HOST_PARAMETER_NAME) ?: HOST_PARAMETER_DEFAULT
         return DINOExtractor(input, this, name, host)
     }
 
@@ -144,28 +143,5 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
         )
     }
 
-    /**
-     * Generates and returns a new [DenseRetriever] instance for this [DINO].
-     *
-     * @param field The [Schema.Field] to create an [Retriever] for.
-     * @param content An array of [Content] elements to use with the [Retriever]
-     * @param context The [Context] to use with the [Retriever]
-     *
-     * @return A new [Retriever] instance for this [Analyser]
-     * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
-     */
-    override fun newRetrieverForContent(
-        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
-        content: Collection<ImageContent>,
-        context: Context
-    ): DenseRetriever<ImageContent> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
 
-        /* Extract vectors from content. */
-        val vectors = content.map { analyse(it, host) }
-
-        /* Return retriever. */
-        return this.newRetrieverForDescriptors(field, vectors, context)
-    }
 }
