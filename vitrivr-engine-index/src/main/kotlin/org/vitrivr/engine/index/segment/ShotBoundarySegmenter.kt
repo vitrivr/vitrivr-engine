@@ -5,7 +5,6 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -65,7 +64,7 @@ class ShotBoundarySegmenter : TransformerFactory {
             (parameters["lookAheadTime"]
                 ?: throw IllegalArgumentException("Property 'lookAheadTime' must be specified")).toLong()
         )
-        return Instance(input, name, parameters, context as IndexContext, sbProvider, sbParams, tolerance, duration, lookAheadTime)
+        return Instance(input, name, parameters, context as Context, sbProvider, sbParams, tolerance, duration, lookAheadTime)
     }
 
     /**
@@ -77,7 +76,7 @@ class ShotBoundarySegmenter : TransformerFactory {
 
         override val name: String,
         parameters: Map<String, String>,
-        context: IndexContext,
+        context: Context,
 
         /** Path to folder of shotBoundary Files **/
         sbProvider: String,

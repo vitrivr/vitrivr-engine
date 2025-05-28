@@ -9,6 +9,7 @@ import org.openapitools.client.models.JobStatus
 import org.vitrivr.engine.base.features.external.api.model.JobResult
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
+import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.types.Value
 
 /**
@@ -40,7 +41,7 @@ class ConditionalImageCaptioningApi(
      */
     override suspend fun startJob(input: Pair<ImageContent, TextContent>): JobStatus {
         logger.debug { "Starting conditional image captioning job for image." }
-        val wrapped = ConditionalImageCaptioningInput(input.first.toDataUrl(), input.second.content)
+        val wrapped = ConditionalImageCaptioningInput(input.first.toDataUrl(), input.second.text)
         return try {
             this.conditionalImageCaptioningApi.newJobApiTasksConditionalImageCaptioningModelJobsPost(
                 this.model,
@@ -61,7 +62,7 @@ class ConditionalImageCaptioningApi(
     override suspend fun startBatchedJob(input: List<Pair<ImageContent, TextContent>>): JobStatus {
         logger.debug { "Starting batched conditional image captioning job for images." }
         val wrapped = BatchedConditionalImageCaptioningInput(image = input.map { it.first.toDataUrl() },
-            text = input.map { it.second.content })
+            text = input.map { it.second.text })
         return try {
             val result =
                 this.conditionalImageCaptioningApi.newBatchedJobApiTasksConditionalImageCaptioningBatchedModelJobsPost(

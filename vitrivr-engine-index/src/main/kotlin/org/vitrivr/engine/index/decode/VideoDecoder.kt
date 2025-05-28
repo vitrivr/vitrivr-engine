@@ -16,7 +16,6 @@ import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.Frame
 import org.bytedeco.javacv.FrameGrabber
 import org.bytedeco.javacv.Java2DFrameConverter
-import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -28,7 +27,6 @@ import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
 import org.vitrivr.engine.core.operators.ingest.Decoder
-import org.vitrivr.engine.core.operators.ingest.DecoderFactory
 import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Metadata
@@ -48,7 +46,7 @@ import java.util.concurrent.TimeUnit
 class VideoDecoder : DecoderFactory {
 
     override fun newDecoder(
-        name: String, input: Enumerator, parameters: Map<String, String>, context: IndexContext
+        name: String, input: Enumerator, parameters: Map<String, String>, context: Context
     ): Decoder {
         val video = parameters["video"]?.let { it.lowercase() == "true" } ?: true
         val audio = parameters["audio"]?.let { it.lowercase() == "true" } ?: true
@@ -62,7 +60,7 @@ class VideoDecoder : DecoderFactory {
      */
     private class Instance(
         override val input: Enumerator,
-        private val context: IndexContext,
+        private val context: Context,
         override val name: String,
         private val video: Boolean = true,
         private val audio: Boolean = true,

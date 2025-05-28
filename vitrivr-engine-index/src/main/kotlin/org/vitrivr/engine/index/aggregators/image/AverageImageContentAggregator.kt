@@ -1,7 +1,6 @@
 package org.vitrivr.engine.index.aggregators.image
 
 import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.color.RGBColorContainer
 import org.vitrivr.engine.core.model.content.decorators.SourcedContent
 import org.vitrivr.engine.core.model.content.decorators.TemporalContent
@@ -31,7 +30,7 @@ class AverageImageContentAggregator : TransformerFactory {
      *
      * @param name The name of the [Transformer]
      * @param input The input [Operator] .
-     * @param context The [IndexContext] to use.
+     * @param context The [Context] to use.
      * @return [AverageImageContentAggregator.Instance]
      */
     override fun newTransformer(
@@ -39,7 +38,7 @@ class AverageImageContentAggregator : TransformerFactory {
         input: Operator<out Retrievable>,
         parameters: Map<String, String>,
         context: Context
-    ): Transformer = Instance(input, parameters, context as IndexContext, name)
+    ): Transformer = Instance(input, parameters, context as Context, name)
 
     /**
      * The [Instance] returns by the [AverageImageContentAggregator]
@@ -47,7 +46,7 @@ class AverageImageContentAggregator : TransformerFactory {
     private class Instance(
         override val input: Operator<out Retrievable>,
         parameters: Map<String, String>,
-        override val context: IndexContext ,
+        override val context: Context ,
         name: String
     ) : AbstractAggregator(input, parameters, context, name) {
         override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> {

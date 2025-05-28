@@ -3,17 +3,19 @@ package org.vitrivr.engine.index.enumerate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.TerminalRetrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
+import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.operators.ingest.Enumerator
-import org.vitrivr.engine.core.operators.ingest.EnumeratorFactory
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Source
 import java.util.*
 import java.util.stream.Stream
+import kotlin.text.split
 
 /**
  * A [Enumerator] that allows a caller to explicitly prepare a list of [Source]s to enumerate.
@@ -21,39 +23,19 @@ import java.util.stream.Stream
  * @author Ralph Gasser
  * @version 1.1.0
  */
-class ListEnumerator : EnumeratorFactory {
+class ListEnumerator : OperatorFactory {
 
     /**
      * Creates a new [Enumerator] instance from this [ListEnumerator].
      *
      * @param name The name of the [Enumerator]
-     * @param context The [IndexContext] to use.
+     * @param context The [Context] to use.
      */
-    override fun newEnumerator(
-        name: String,
-        parameters: Map<String, String>,
-        context: IndexContext,
-        mediaTypes: List<MediaType>
-    ): Enumerator {
-        val type = parameters["type"]
+    override fun newOperator(name: String, inputs: Map<String, Operator<out Retrievable>>, context: Context): Enumerator {
+        require(inputs.isEmpty()) { "FileSystemEnumerator cannot have any input operators." }
+        val parameters = context.local[name] ?: emptyMap()
+        val type = parameters["type"] ?: MediaType.NONE.toString()
         return Instance(type, name)
-    }
-
-    /**
-     * Creates a new [Enumerator] instance from this [ListEnumerator].
-     *
-     * @param name The name of the [Enumerator]
-     * @param context The [IndexContext] to use.
-     * @param inputs Is ignored.
-     */
-    override fun newEnumerator(
-        name: String,
-        parameters: Map<String, String>,
-        context: IndexContext,
-        mediaTypes: List<MediaType>,
-        inputs: Stream<*>?
-    ): Enumerator {
-        return newEnumerator(name, parameters, context, mediaTypes)
     }
 
     /**
@@ -71,7 +53,7 @@ class ListEnumerator : EnumeratorFactory {
                 emit(Ingested(s.sourceId, typeName, attributes = setOf(SourceAttribute(s)), transient = false))
             }
 
-            /* Emit terminal retrievable to signal, that processing has completed. */
+            /* Emit terminal retrievable to signal that processing has completed. */
             emit(TerminalRetrievable)
         }
 

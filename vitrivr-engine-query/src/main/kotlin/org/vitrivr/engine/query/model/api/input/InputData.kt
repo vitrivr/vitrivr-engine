@@ -5,10 +5,16 @@ import io.javalin.openapi.DiscriminatorProperty
 import io.javalin.openapi.OneOf
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.content.element.DescriptorContent
+import org.vitrivr.engine.core.model.content.element.IdContent
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryImageContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryTextContent
+import org.vitrivr.engine.core.model.descriptor.scalar.BooleanDescriptor
+import org.vitrivr.engine.core.model.descriptor.scalar.DoubleDescriptor
+import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
+import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.util.extension.BufferedImage
 import java.text.SimpleDateFormat
 import java.util.*
@@ -42,19 +48,6 @@ sealed class InputData() {
      */
     abstract fun toContent() : ContentElement<*>
 
-    /**
-     * Optional comparison to apply.
-     *
-     * Currently supported comparisons use Kotlin notation:
-     * - `<`: less than
-     * - `<=`: less or equal than
-     * - `==`: equal
-     * - `!=`: not equal
-     * - `>=`: greater or equal than
-     * - `>` : greater than
-     * - `~=`: LIKE
-     */
-    abstract val comparison: String?
 }
 
 /**
@@ -62,9 +55,9 @@ sealed class InputData() {
  * Can be converted to a [ContentElement], specifically a [TextContent].
  */
 @Serializable
-data class TextInputData(val data: String, override val comparison: String? = "==") : InputData() {
+data class TextInputData(val data: String) : InputData() {
     override val type = InputType.TEXT
-    override fun toContent(): TextContent = InMemoryTextContent(data)
+    override fun toContent(): DescriptorContent<TextDescriptor> = InMemoryTextContent(data)
 }
 
 /**
@@ -72,11 +65,9 @@ data class TextInputData(val data: String, override val comparison: String? = "=
  * Cannot be converted to a [ContentElement]
  */
 @Serializable
-data class VectorInputData(val data: List<Float>, override val comparison: String? = "==") : InputData(){
+data class VectorInputData(val data: List<Float>) : InputData(){
     override val type = InputType.VECTOR
-    override fun toContent(): ContentElement<*> {
-        throw UnsupportedOperationException("Cannot derive content from VectorInputData")
-    }
+    override fun toContent(): DescriptorContent<FloatVectorDescriptor> = TODO()
 }
 
 /**
@@ -84,8 +75,8 @@ data class VectorInputData(val data: List<Float>, override val comparison: Strin
  * Can be converted to a [ContentElement], specifically to a [InMemoryImageContent].
  */
 @Serializable
-data class ImageInputData(val data: String, override val comparison: String? = "==") : InputData() {
-    override val type = InputType.VECTOR
+data class ImageInputData(val data: String) : InputData() {
+    override val type = InputType.IMAGE
     override fun toContent(): ImageContent = InMemoryImageContent(BufferedImage(data))
 }
 
@@ -94,13 +85,11 @@ data class ImageInputData(val data: String, override val comparison: String? = "
  * Cannot be converted to a [ContentElement]
  */
 @Serializable
-data class RetrievableIdInputData(val id: String, override val comparison: String? = "==") : InputData() {
+data class RetrievableIdInputData(val id: String) : InputData() {
 
     override val type = InputType.ID
 
-    override fun toContent(): ContentElement<*> {
-        throw UnsupportedOperationException("Cannot derive content from RetrievableInputData")
-    }
+    override fun toContent(): IdContent = IdContent(UUID.fromString(id))
 
 }
 
@@ -109,11 +98,9 @@ data class RetrievableIdInputData(val id: String, override val comparison: Strin
  * Cannot be converted to a [ContentElement]
  */
 @Serializable
-data class BooleanInputData(val data: Boolean, override val comparison: String? = "=="): InputData(){
+data class BooleanInputData(val data: Boolean): InputData(){
     override val type = InputType.BOOLEAN
-    override fun toContent(): ContentElement<*> {
-        throw UnsupportedOperationException("Cannot derive content from BooleanInputData")
-    }
+    override fun toContent(): DescriptorContent<BooleanDescriptor> = TODO()
 }
 
 /**
@@ -121,11 +108,9 @@ data class BooleanInputData(val data: Boolean, override val comparison: String? 
  * Cannot be converted to a [ContentElement]
  */
 @Serializable
-data class NumericInputData(val data: Double, override val comparison: String? = "==") : InputData(){
+data class NumericInputData(val data: Double) : InputData(){
     override val type = InputType.NUMERIC
-    override fun toContent(): ContentElement<*> {
-        throw UnsupportedOperationException("Cannot derive content from NumericInputData")
-    }
+    override fun toContent(): DescriptorContent<DoubleDescriptor> = TODO()
 }
 
 /**
@@ -133,9 +118,9 @@ data class NumericInputData(val data: Double, override val comparison: String? =
  * Cannot be converted to a [ContentElement]
  */
 @Serializable
-data class DateInputData(val data: String, override val comparison: String? = "==") : InputData() {
+data class DateInputData(val data: String) : InputData() {
     override val type = InputType.DATE
-    override fun toContent(): ContentElement<*> {throw UnsupportedOperationException("Cannot derive content from DateInputData")}
+    override fun toContent(): ContentElement<*> = TODO()
 
     /**
      * Parses the input in YYYY-mm-dd format.

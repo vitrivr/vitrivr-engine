@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runBlocking
-import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -26,7 +25,6 @@ import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
 import org.vitrivr.engine.core.operators.ingest.Decoder
-import org.vitrivr.engine.core.operators.ingest.DecoderFactory
 import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Metadata
@@ -53,7 +51,7 @@ class FFmpegVideoDecoder : DecoderFactory {
         name: String,
         input: Enumerator,
         parameters: Map<String, String>,
-        context: IndexContext
+        context: Context
     ): Decoder {
         val video = parameters["video"]?.let { it.lowercase() == "true" } != false
         val audio = parameters["audio"]?.let { it.lowercase() == "true" } != false
@@ -65,7 +63,7 @@ class FFmpegVideoDecoder : DecoderFactory {
 
     private class Instance(
         override val input: Enumerator,
-        private val context: IndexContext,
+        private val context: Context,
         private val video: Boolean = true,
         private val audio: Boolean = true,
         private val timeWindowMs: Long = 500L,

@@ -27,7 +27,7 @@ class TextEmbeddingApi(host: String, model: String, timeoutMs: Long, pollingInte
      * @return The [JobStatus]
      */
     override suspend fun startJob(input: TextContent): JobStatus {
-        val wrapped = TextEmbeddingInput(input.content)
+        val wrapped = TextEmbeddingInput(input.text)
         return try {
             logger.debug { "Starting text embedding for text '${input.content}'." }
             this.textEmbeddingApi.newJobApiTasksTextEmbeddingModelJobsPost(this.model, wrapped).body()
@@ -44,7 +44,7 @@ class TextEmbeddingApi(host: String, model: String, timeoutMs: Long, pollingInte
      * @return The [JobStatus]
      */
     override suspend fun startBatchedJob(input: List<TextContent>): JobStatus {
-        val wrapped = BatchedTextEmbeddingInput(input.map { it.content })
+        val wrapped = BatchedTextEmbeddingInput(input.map { it.text })
         return try {
             logger.debug { "Starting batched text embedding for texts." }
             this.textEmbeddingApi.newBatchedJobApiTasksTextEmbeddingBatchedModelJobsPost(this.model, wrapped).body()

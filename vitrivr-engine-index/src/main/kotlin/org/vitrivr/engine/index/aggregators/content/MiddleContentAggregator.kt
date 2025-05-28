@@ -1,7 +1,6 @@
 package org.vitrivr.engine.index.aggregators.content
 
 import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
@@ -23,7 +22,7 @@ class MiddleContentAggregator : TransformerFactory {
      *
      * @param name The name of the [Aggregator]
      * @param input The [Segmenter] to use as input.
-     * @param context The [IndexContext] to use.
+     * @param context The [Context] to use.
      * @return [MiddleContentAggregator.Instance]
      */
     override fun newTransformer(

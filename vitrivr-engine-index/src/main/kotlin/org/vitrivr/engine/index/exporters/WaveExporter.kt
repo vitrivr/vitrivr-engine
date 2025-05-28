@@ -5,7 +5,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onEach
-import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
@@ -29,13 +28,13 @@ class WaveExporter : ExporterFactory {
      *
      * @param name The name of the [Exporter]
      * @param input The [Operator] to acting as an input.
-     * @param context The [IndexContext] to use.
+     * @param context The [Context] to use.
      */
     override fun newExporter(
         name: String,
         input: Operator<Retrievable>,
         parameters: Map<String, String>,
-        context: IndexContext
+        context: Context
     ): Exporter {
         val resolverName = parameters["resolver"] ?: "default"
         return Instance(input, context, resolverName, name)
@@ -46,7 +45,7 @@ class WaveExporter : ExporterFactory {
      */
     private class Instance(
         override val input: Operator<Retrievable>,
-        private val context: IndexContext,
+        private val context: Context,
         resolverName: String,
         override val name: String
     ) : Exporter {

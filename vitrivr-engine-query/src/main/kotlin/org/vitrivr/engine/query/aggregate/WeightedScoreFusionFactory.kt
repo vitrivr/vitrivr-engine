@@ -4,15 +4,15 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.operators.general.Aggregator
-import org.vitrivr.engine.core.operators.general.AggregatorFactory
 
 val logger = KotlinLogging.logger {}
 
-class WeightedScoreFusionFactory : AggregatorFactory {
-    override fun newAggregator(
+class WeightedScoreFusionFactory : OperatorFactory {
+    override fun newOperator(
         name: String,
-        inputs: List<Operator<out Retrievable>>,
+        inputs: Map<String, Operator<out Retrievable>>,
         context: Context
     ): Aggregator {
         val weights = context[name, "weights"]?.split(",")?.mapNotNull { s -> s.trim().toDoubleOrNull() } ?: emptyList()
@@ -21,6 +21,6 @@ class WeightedScoreFusionFactory : AggregatorFactory {
         if (p == Double.POSITIVE_INFINITY && weights.isNotEmpty()) {
             logger.warn { "Weights are ignored when p is set to infinity" }
         }
-        return WeightedScoreFusion(inputs, weights, p, normalize, name)
+        return WeightedScoreFusion(inputs.values.toList(), weights, p, normalize, name)
     }
 }

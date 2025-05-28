@@ -54,8 +54,6 @@ data class IngestionConfig(
     /** The [MergeType] for the output operations. */
     val mergeType: MergeType? = null
 ) {
-
-
     companion object {
         /** The default config path for [IngestionConfig], which is `./config-index.json` */
         private val logger: KLogger = KotlinLogging.logger("IngestionConfig")
@@ -74,6 +72,5 @@ data class IngestionConfig(
             logger.error(e) { "Failed to read the ingestion configuration from $path due to an exception." }
             null
         }
-
     }
 }

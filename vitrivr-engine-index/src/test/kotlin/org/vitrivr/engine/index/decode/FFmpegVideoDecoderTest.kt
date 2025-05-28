@@ -6,7 +6,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.vitrivr.engine.core.config.IndexContextFactory
+import org.vitrivr.engine.core.config.ContextFactory
 import org.vitrivr.engine.core.context.IngestionContextConfig
 import org.vitrivr.engine.core.database.blackhole.BlackholeConnection
 import org.vitrivr.engine.core.database.blackhole.BlackholeConnectionProvider
@@ -39,8 +39,8 @@ class FFmpegVideoDecoderTest {
         contextConfig.schema = schema
 
         /* Prepare pipeline. */
-        val context = IndexContextFactory.newContext(emptyMap(), contextConfig)
-        val fileSystemEnumerator = FileSystemEnumerator().newEnumerator("enumerator", mapOf("path" to "./src/test/resources/videos"), context, listOf(MediaType.VIDEO))
+        val context = ContextFactory.newContext(emptyMap(), contextConfig)
+        val fileSystemEnumerator = FileSystemEnumerator().newOperator("enumerator", mapOf("path" to "./src/test/resources/videos"), context, listOf(MediaType.VIDEO))
         val decoder = FFmpegVideoDecoder().newDecoder("decoder", input = fileSystemEnumerator, parameters = mapOf("timeWindowMs" to "1000"), context = context)
         val aggregator = MiddleContentAggregator().newTransformer("middle", input = decoder, parameters = emptyMap(), context = context)
         val averageColor =  AverageColor().let { it.newExtractor(schema.Field("averagecolor", it), input = aggregator, parameters = emptyMap(), context = context) }
