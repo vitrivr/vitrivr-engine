@@ -144,7 +144,7 @@ class CLD : Analyser<ImageContent, FloatVectorDescriptor> {
         field: Schema.Field<ImageContent, FloatVectorDescriptor>,
         content: Map<String,ImageContent>,
         context: Context
-    ) = this.newRetrieverForDescriptors(field, content.map { this.analyse(it) }, context)
+    ) = this.newRetrieverForDescriptors(field, content.map { this.analyse(it.value) }, context)
 
     /**
      * Performs the [CLD] analysis on the provided [ImageContent] and returns a [FloatVectorDescriptor] that represents the result.

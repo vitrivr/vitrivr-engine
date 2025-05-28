@@ -1,5 +1,6 @@
 package org.vitrivr.engine.module.features.feature.mediancolor
 
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.LinearCorrespondence
 import org.vitrivr.engine.core.model.color.RGBColorContainer
@@ -59,7 +60,6 @@ class MedianColor : Analyser<ImageContent, FloatVectorDescriptor> {
     override fun newExtractor(
         field: Schema.Field<ImageContent, FloatVectorDescriptor>,
         input: Operator<Retrievable>,
-        parameters: Map<String, String>,
         context: Context
     ) = MedianColorExtractor(input, this, field)
 
@@ -76,7 +76,6 @@ class MedianColor : Analyser<ImageContent, FloatVectorDescriptor> {
     override fun newExtractor(
         name: String,
         input: Operator<Retrievable>,
-        parameters: Map<String, String>,
         context: Context
     ): Extractor<ImageContent, FloatVectorDescriptor> = MedianColorExtractor(input, this, name)
 
@@ -124,23 +123,6 @@ class MedianColor : Analyser<ImageContent, FloatVectorDescriptor> {
             context
         )
     }
-
-    /**
-     * Generates and returns a new [DenseRetriever] instance for this [MedianColor].
-     *
-     * Invoking this method involves converting the provided [ImageContent] and the [Context] into a [FloatVectorDescriptor]
-     * that can be used to retrieve similar [ImageContent] elements.
-     *
-     * @param field The [Schema.Field] to create an [Retriever] for.
-     * @param content An array of [Content] elements to use with the [Retriever]
-     * @param context The [Context] to use with the [Retriever]
-     */
-    override fun newRetrieverForContent(
-        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
-        content: Collection<ImageContent>,
-        context: Context
-    ): DenseRetriever<ImageContent> =
-        this.newRetrieverForDescriptors(field, content.map { this.analyse(it) }, context)
 
     /**
      * Performs the [MedianColor] analysis on the provided [List] of [ImageContent] elements.

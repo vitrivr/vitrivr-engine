@@ -13,11 +13,13 @@ import java.util.*
  * @author Luca Rossetto
  * @version 1.1.0
  */
-@Deprecated("replaced by DescriptorContent")
 interface TextContent: DescriptorContent<TextDescriptor> {
     /** Length of the [String] held by this [TextContent]. */
     val length: Int
-        get() = (this.content as Value.Text).value.length //FIXME
+        get() = (this.content as TextDescriptor).value.value.length
+
+    val text: String
+        get() = (this.content as TextDescriptor).value.value
 
     /** The [ContentType] of an [TextContent] is always [ContentType.TEXT]. */
     override val type: ContentType

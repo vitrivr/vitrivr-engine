@@ -1,5 +1,6 @@
 package org.vitrivr.engine.module.features.feature.huehistogram
 
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.LinearCorrespondence
 import org.vitrivr.engine.core.model.color.HSVColorContainer
@@ -60,7 +61,6 @@ class HueHistogram : Analyser<ImageContent, FloatVectorDescriptor> {
     override fun newExtractor(
         name: String,
         input: Operator<Retrievable>,
-        parameters: Map<String, String>,
         context: Context
     ) = HueHistogramExtractor(input, this, name)
 
@@ -77,9 +77,9 @@ class HueHistogram : Analyser<ImageContent, FloatVectorDescriptor> {
     override fun newExtractor(
         field: Schema.Field<ImageContent, FloatVectorDescriptor>,
         input: Operator<Retrievable>,
-        parameters: Map<String, String>,
         context: Context
     ) = HueHistogramExtractor(input, this, field)
+
 
     /**
      * Generates and returns a new [DenseRetriever] instance for this [HueHistogram].
@@ -128,22 +128,6 @@ class HueHistogram : Analyser<ImageContent, FloatVectorDescriptor> {
             context
         )
     }
-
-    /**
-     * Generates and returns a new [DenseRetriever] instance for this [HueHistogram].
-     *
-     * Invoking this method involves converting the provided [ImageContent] and the [Context] into a [FloatVectorDescriptor]
-     * that can be used to retrieve similar [ImageContent] elements.
-     *
-     * @param field The [Schema.Field] to create an [Retriever] for.
-     * @param content An array of [Content] elements to use with the [Retriever]
-     * @param context The [Context] to use with the [Retriever]
-     */
-    override fun newRetrieverForContent(
-        field: Schema.Field<ImageContent, FloatVectorDescriptor>,
-        content: Collection<ImageContent>,
-        context: Context
-    ) = this.newRetrieverForDescriptors(field, content.map { this.analyse(it) }, context)
 
     /**
      * Performs the [HueHistogram] analysis on the provided [ImageContent] and returns a [FloatVectorDescriptor] that represents the result.

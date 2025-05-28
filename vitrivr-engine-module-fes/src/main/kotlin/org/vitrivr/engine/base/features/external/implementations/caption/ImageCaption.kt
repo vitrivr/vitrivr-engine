@@ -2,6 +2,7 @@ package org.vitrivr.engine.base.features.external.implementations.caption
 
 import org.vitrivr.engine.base.features.external.api.AbstractApi
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.fulltext.FulltextRetriever
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -54,7 +55,6 @@ class ImageCaption : ExternalFesAnalyser<ContentElement<*>, TextDescriptor>() {
     override fun newExtractor(
         name: String,
         input: Operator<Retrievable>,
-        parameters: Map<String, String>,
         context: Context
     ) = TODO("type mismatch") // = ImageCaptionExtractor(input, name, this, emptyMap())
 
@@ -69,7 +69,6 @@ class ImageCaption : ExternalFesAnalyser<ContentElement<*>, TextDescriptor>() {
     override fun newExtractor(
         field: Schema.Field<ContentElement<*>, TextDescriptor>,
         input: Operator<Retrievable>,
-        parameters: Map<String, String>,
         context: Context
     ) = TODO("type mismatch") //ImageCaptionExtractor(input, field, this, merge(field, context) )
 
@@ -92,28 +91,5 @@ class ImageCaption : ExternalFesAnalyser<ContentElement<*>, TextDescriptor>() {
         return FulltextRetriever(field, query, context)
     }
 
-    /**
-     * Generates and returns a new [FulltextRetriever] instance for this [ExternalFesAnalyser].
-     *
-     * @param field The [Schema.Field] to create an [Retriever] for.
-     * @param content An array of [ContentElement] elements to use with the [Retriever]
-     * @param context The [Context] to use with the [Retriever]
-     * @return [FulltextRetriever]
-     */
-    override fun newRetrieverForContent(
-        field: Schema.Field<ContentElement<*>, TextDescriptor>,
-        content: Collection<ContentElement<*>>,
-        context: Context
-    ): Retriever<ContentElement<*>, TextDescriptor> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        /* Prepare query parameters. */
-        val text = content.filterIsInstance<TextContent>().firstOrNull()
-            ?: throw IllegalArgumentException("No text content found in the provided content.")
-        val limit = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        return this.newRetrieverForQuery(
-            field,
-            SimpleFulltextQuery(value = Value.Text(text.content), limit = limit),
-            context
-        )
-    }
+
 }

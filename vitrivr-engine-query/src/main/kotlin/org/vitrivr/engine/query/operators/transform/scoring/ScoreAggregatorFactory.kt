@@ -3,15 +3,14 @@ package org.vitrivr.engine.query.operators.transform.scoring
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.operators.general.Transformer
-import org.vitrivr.engine.core.operators.general.TransformerFactory
 
 
-class ScoreAggregatorFactory : TransformerFactory {
-    override fun newTransformer(
+class ScoreAggregatorFactory : OperatorFactory {
+    override fun newOperator(
         name: String,
-        input: Operator<out Retrievable>,
-        parameters: Map<String, String>,
+        inputs: Map<String, Operator<out Retrievable>>,
         context: Context
     ): Transformer {
 
@@ -25,6 +24,6 @@ class ScoreAggregatorFactory : TransformerFactory {
 
         val relationships = context[name, "relationships"]?.split(",")?.map { s -> s.trim() }?.toSet() ?: setOf("partOf")
 
-        return ScoreAggregator(input, aggregation, relationships, name)
+        return ScoreAggregator(inputs.values.first(), aggregation, relationships, name)
     }
 }
