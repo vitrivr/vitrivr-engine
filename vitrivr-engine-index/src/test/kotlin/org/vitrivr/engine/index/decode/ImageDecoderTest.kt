@@ -16,7 +16,6 @@ import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.TerminalRetrievable
 import org.vitrivr.engine.core.resolver.impl.DiskResolver
-import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.index.enumerate.FileSystemEnumerator
 import kotlin.time.Duration
 
@@ -24,7 +23,7 @@ import kotlin.time.Duration
  * A unit test for the [ImageDecoder].
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 class ImageDecoderTest {
     @Test
@@ -35,14 +34,20 @@ class ImageDecoderTest {
 
         /* Prepare context. */
         val contextConfig = IngestionContextConfig("CachedContentFactory", listOf("test"))
-        contextConfig.schema = schema
+        val context = ContextFactory.newContext(schema, contextConfig).copy(
+            local = mapOf(
+                "enumerator" to mapOf(
+                    "path" to "./src/test/resources/",
+                    "types" to "IMAGE"
+                )
+            )
+        )
 
         /* Prepare pipeline. */
-        val context = ContextFactory.newContext(emptyMap(), contextConfig)
-        val fileSystemEnumerator = FileSystemEnumerator().newOperator("enumerator", mapOf("path" to "./src/test/resources/images"), context, listOf(MediaType.IMAGE))
-        val decoder = ImageDecoder().newDecoder("decoder", input = fileSystemEnumerator, parameters = emptyMap(), context = context)
-        val averageColor =  AverageColor().let { it.newExtractor(schema.Field("averagecolor", it), input = decoder, parameters = emptyMap(), context = context) }
-        val file =  FileSourceMetadata().let { it.newExtractor(schema.Field("file", it), input = averageColor, parameters = emptyMap(), context = context) }
+        val fileSystemEnumerator = FileSystemEnumerator().newOperator("enumerator", context)
+        val decoder = ImageDecoder().newOperator("decoder", input = fileSystemEnumerator, context = context)
+        val averageColor =  AverageColor().let { it.newExtractor(schema.Field("averagecolor", it), input = decoder, context = context) }
+        val file =  FileSourceMetadata().let { it.newExtractor(schema.Field("file", it), input = averageColor, context = context) }
 
         /* Execute pipeline. */
         val results = file.toFlow(this).takeWhile { it != TerminalRetrievable }.toList()

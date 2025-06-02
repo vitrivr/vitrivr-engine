@@ -16,7 +16,6 @@ import org.vitrivr.engine.core.model.retrievable.TerminalRetrievable
 import org.vitrivr.engine.core.operators.transform.shape.BroadcastOperator
 import org.vitrivr.engine.core.operators.transform.shape.CombineOperator
 import org.vitrivr.engine.core.resolver.impl.DiskResolver
-import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.index.aggregators.content.MiddleContentAggregator
 import org.vitrivr.engine.index.decode.VideoDecoder
 import org.vitrivr.engine.index.enumerate.FileSystemEnumerator
@@ -24,6 +23,9 @@ import kotlin.time.Duration
 
 /**
  * Test cases for the extaction pipeline.
+ *
+ * @author Ralph Gasser
+ * @version 1.0.0.
  */
 class PipelineTest {
 
@@ -41,24 +43,31 @@ class PipelineTest {
 
         schema.addResolver("test", DiskResolver().newResolver(schema, mapOf()))
 
+        val contextConfig = IngestionContextConfig(
+            "CachedContentFactory",
+            listOf("test")
+        )
 
-        val contextConfig = IngestionContextConfig("CachedContentFactory", listOf("test"))
+        val context = ContextFactory.newContext(schema, contextConfig).copy(
+            local = mapOf(
+                "enumerator" to mapOf(
+                    "path" to "./src/test/resources/",
+                    "types" to "IMAGE"
+                )
+            )
+        )
 
-        contextConfig.schema = schema
+        val fileSystemEnumerator = FileSystemEnumerator().newOperator("enumerator", context)
 
-        val context = ContextFactory.newContext(emptyMap(), contextConfig)
+        val decoder = BroadcastOperator(VideoDecoder().newOperator("decoder", input = fileSystemEnumerator, context = context))
 
-        val fileSystemEnumerator = FileSystemEnumerator().newOperator("enumerator", mapOf( "path" to "./src/test/resources/"), context, listOf(MediaType.VIDEO))
-
-        val decoder = BroadcastOperator(VideoDecoder().newDecoder("decoder", input = fileSystemEnumerator, parameters = mapOf( "timeWindowMs" to "1000"), context = context))
-
-        val middleAgg = MiddleContentAggregator().newTransformer("middleAgg", input = decoder, parameters = emptyMap(), context = context)
+        val middleAgg = MiddleContentAggregator().newOperator("middleAgg", input = decoder, context = context)
 
         val averageColor = AverageColor()
 
-        val averageColorAll = averageColor.newExtractor(schema.Field("averageColorAll", averageColor), input = decoder, parameters = emptyMap(), context = context)
+        val averageColorAll = averageColor.newExtractor(schema.Field("averageColorAll", averageColor), input = decoder, context = context)
 
-        val averageColorAgg = averageColor.newExtractor(schema.Field("averageColorAgg", averageColor), input = middleAgg, parameters = emptyMap(), context = context)
+        val averageColorAgg = averageColor.newExtractor(schema.Field("averageColorAgg", averageColor), input = middleAgg, context = context)
 
         val mergeOp = CombineOperator(listOf(averageColorAll, averageColorAgg))
 

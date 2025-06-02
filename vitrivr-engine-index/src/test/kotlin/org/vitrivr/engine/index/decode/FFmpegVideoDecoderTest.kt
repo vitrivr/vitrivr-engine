@@ -15,7 +15,6 @@ import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.TerminalRetrievable
 import org.vitrivr.engine.core.resolver.impl.DiskResolver
-import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.index.aggregators.content.MiddleContentAggregator
 import org.vitrivr.engine.index.enumerate.FileSystemEnumerator
 import kotlin.time.Duration
@@ -24,7 +23,7 @@ import kotlin.time.Duration
  * A unit test for the [FFmpegVideoDecoder].
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.10
  */
 class FFmpegVideoDecoderTest {
     @Test
@@ -36,14 +35,23 @@ class FFmpegVideoDecoderTest {
 
         /* Prepare context. */
         val contextConfig = IngestionContextConfig("CachedContentFactory", listOf("test"))
-        contextConfig.schema = schema
+        val context = ContextFactory.newContext(schema, contextConfig).copy(
+            local = mapOf(
+                "enumerator" to mapOf(
+                    "path" to "./src/test/resources/videos",
+                    "types" to "VIDEO"
+                ),
+                "decoder" to mapOf(
+                    "timeWindowMs" to "1000"
+                )
+            )
+        )
 
         /* Prepare pipeline. */
-        val context = ContextFactory.newContext(emptyMap(), contextConfig)
-        val fileSystemEnumerator = FileSystemEnumerator().newOperator("enumerator", mapOf("path" to "./src/test/resources/videos"), context, listOf(MediaType.VIDEO))
-        val decoder = FFmpegVideoDecoder().newDecoder("decoder", input = fileSystemEnumerator, parameters = mapOf("timeWindowMs" to "1000"), context = context)
-        val aggregator = MiddleContentAggregator().newTransformer("middle", input = decoder, parameters = emptyMap(), context = context)
-        val averageColor =  AverageColor().let { it.newExtractor(schema.Field("averagecolor", it), input = aggregator, parameters = emptyMap(), context = context) }
+        val fileSystemEnumerator = FileSystemEnumerator().newOperator("enumerator", context)
+        val decoder = FFmpegVideoDecoder().newOperator("decoder", input = fileSystemEnumerator, context = context)
+        val aggregator = MiddleContentAggregator().newOperator("middle", input = decoder, context = context)
+        val averageColor =  AverageColor().let { it.newExtractor(schema.Field("averagecolor", it), input = aggregator, context = context) }
 
         /* Execute pipeline. */
         val results = averageColor.toFlow(this).takeWhile { it != TerminalRetrievable }.toList()
