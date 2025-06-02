@@ -14,7 +14,6 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.basics.Distance
@@ -117,7 +116,7 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
      */
     override fun newRetrieverForContent(
         field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
-        content: Collection<ContentElement<*>>,
+        content: Map<String, ContentElement<*>>,
         context: Context
     ): Retriever<ContentElement<*>, FloatVectorDescriptor> {
         /* Prepare query parameters. */
@@ -133,7 +132,7 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
         val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
 
         /* Generate vector for content element. */
-        val vector = when (val c = content.first { it is ImageContent || it is TextContent }) {
+        val vector = when (val c = content.values.first { it is ImageContent || it is TextContent }) {
             is ImageContent -> ImageEmbeddingApi(host, model, timeoutSeconds, pollingIntervalMs, retries).analyse(c)
             is TextContent -> TextEmbeddingApi(host, model, timeoutSeconds, pollingIntervalMs, retries).analyse(c)
             else -> throw IllegalArgumentException("Unsupported content type ${c.javaClass.simpleName}.")

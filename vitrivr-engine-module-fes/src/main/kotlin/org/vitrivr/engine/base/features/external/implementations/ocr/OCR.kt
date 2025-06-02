@@ -10,7 +10,6 @@ import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
-import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
@@ -25,7 +24,7 @@ import java.util.*
  *
  * @author Ralph Gasser
  * @author Fynn Faber
- * @version 1.1.0
+ * @version 1.2.0
  */
 class OCR : ExternalFesAnalyser<ImageContent, TextDescriptor>() {
     override val contentClasses = setOf(ImageContent::class)
@@ -121,19 +120,19 @@ class OCR : ExternalFesAnalyser<ImageContent, TextDescriptor>() {
      */
     override fun newRetrieverForContent(
         field: Schema.Field<ImageContent, TextDescriptor>,
-        content: Collection<ImageContent>,
+        content: Map<String, ImageContent>,
         context: Context
     ): FulltextRetriever<ImageContent> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
 
         /* Prepare query parameters. */
-        val text = content.filterIsInstance<TextContent>().firstOrNull()
+        val text = content.values.filterIsInstance<TextContent>().firstOrNull()
             ?: throw IllegalArgumentException("No text content found in the provided content.")
         val limit = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
 
         return this.newRetrieverForQuery(
             field,
-            SimpleFulltextQuery(value = Value.Text(text.content), limit = limit),
+            SimpleFulltextQuery(value = Value.Text(text.text), limit = limit),
             context
         )
     }
