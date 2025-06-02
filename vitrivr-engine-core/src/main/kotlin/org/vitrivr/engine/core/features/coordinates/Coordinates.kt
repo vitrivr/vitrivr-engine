@@ -3,6 +3,7 @@ package org.vitrivr.engine.core.features.coordinates
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.bool.StructBooleanRetriever
+import org.vitrivr.engine.core.features.capturetime.logger
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.struct.AnyMapStructDescriptor
@@ -142,9 +143,8 @@ class Coordinates : Analyser<ImageContent, AnyMapStructDescriptor> {
         field: Schema.Field<ImageContent, AnyMapStructDescriptor>,
         content: Collection<ImageContent>,
         context: QueryContext
-    ): Retriever<ImageContent, AnyMapStructDescriptor> {
-        return newRetrieverForDescriptors(field, content.map { analyse(it) }, context)
-    }
+    ): Retriever<ImageContent, AnyMapStructDescriptor> = newRetrieverForDescriptors(field, content.map { analyse(it) }, context)
+
 
     /**
      * Performs the [Coordinates] analysis on the provided [ImageContent] element.
@@ -157,22 +157,11 @@ class Coordinates : Analyser<ImageContent, AnyMapStructDescriptor> {
      * @return [AnyMapStructDescriptor] containing the GPS coordinates information, or an empty descriptor if metadata cannot be extracted.
      */
     fun analyse(content: ImageContent): AnyMapStructDescriptor {
-        logger.warn { "Coordinates.analyse(): Cannot extract GPS coordinates during query time. Metadata is lost when the image is loaded into memory." }
+        val operationDescription = "Cannot extract EXIF metadata for coordinates during query time. " +
+                "Metadata is lost when the image is loaded into memory (ImageContent)."
 
-        // Return an empty descriptor
-        return emptyDescriptor()
+        logger.warn { "Coordinates.analyse(): $operationDescription" }
+
+        throw UnsupportedOperationException(operationDescription) as Throwable
     }
-
-    /**
-     * Creates an empty [AnyMapStructDescriptor] with the layout for coordinates.
-     *
-     * @return An empty [AnyMapStructDescriptor] with null values for lat and lon.
-     */
-    private fun emptyDescriptor() = AnyMapStructDescriptor(
-        UUID.randomUUID(),
-        null,
-        this.layout,
-        mapOf("lat" to null, "lon" to null),
-        null
-    )
 }

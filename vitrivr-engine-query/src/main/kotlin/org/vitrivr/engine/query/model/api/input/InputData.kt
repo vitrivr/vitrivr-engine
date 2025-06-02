@@ -11,8 +11,6 @@ import org.vitrivr.engine.core.model.content.impl.memory.InMemoryImageContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryTextContent
 import org.vitrivr.engine.core.util.extension.BufferedImage
 import java.text.SimpleDateFormat
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.*
 
 /**
@@ -29,7 +27,6 @@ import java.util.*
         BooleanInputData::class,
         NumericInputData::class,
         DateInputData::class,
-        DateTimeInputData::class,
     ]
 )
 sealed class InputData() {
@@ -149,25 +146,4 @@ data class DateInputData(val data: String, override val comparison: String? = "=
     }
 }
 
-/**
- * [InputData] for a full date-time (ISO-8601).
- * Cannot be converted to a [ContentElement].
- */
-@Serializable
-data class DateTimeInputData(
-    /** ISO-8601 string, e.g. "2025-05-20T19:25:49" **/
-    val data: String,
-    override val comparison: String? = "=="
-) : InputData() {
-    override val type = InputType.DATETIME
 
-    override fun toContent(): ContentElement<*> {
-        throw UnsupportedOperationException("DateTimeInputData cannot be turned into content")
-    }
-
-    /**
-     * Parses the stored ISO-8601 date-time string into a [LocalDateTime].
-     */
-    fun parseDateTime(): LocalDateTime =
-        LocalDateTime.parse(data, DateTimeFormatter.ISO_DATE_TIME)
-}

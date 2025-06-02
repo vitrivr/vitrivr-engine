@@ -1,6 +1,8 @@
 package org.vitrivr.engine.core.features.coordinates
 
 import com.drew.imaging.ImageMetadataReader
+import com.drew.metadata.jpeg.JpegCommentDirectory
+import java.util.regex.Pattern
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.features.AbstractExtractor
@@ -41,7 +43,7 @@ class CoordinatesExtractor : AbstractExtractor<ImageContent, AnyMapStructDescrip
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
-     * [FileSourceMetadataExtractor] implementation only works with [Retrievable] that contain a [FileSource].
+     * [FileSourceMetadataExtractor] implementation only works with [Retrievable]s that contain a [FileSource].
      *
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,
@@ -49,19 +51,18 @@ class CoordinatesExtractor : AbstractExtractor<ImageContent, AnyMapStructDescrip
     override fun matches(retrievable: Retrievable): Boolean = retrievable.content.any { it.type == ContentType.BITMAP_IMAGE }
 
 
+    /**
+     * Applies the extraction process to all [ImageContent] instances of a given [Retrievable].
+     * Only successfully extracted descriptors are returned.
+     *
+     * @param retrievable The [Retrievable] from which the coordinates should be extracted.
+     * @return A list of [AnyMapStructDescriptor]s representing extracted coordinates
+     */
     override fun extract(retrievable: Retrievable): List<AnyMapStructDescriptor> {
         logger.trace { "CoordinatesExtractor: Starting extraction for retrievable ${retrievable.id}" }
 
-        // Get all ImageContent elements from the retrievable
         val imageContents = retrievable.content.filterIsInstance<ImageContent>()
-
-        // Process each ImageContent element and create a descriptor for eahc one
-        return imageContents.map { imageContent ->
-            val descriptor = extractCoordinates(imageContent, retrievable)
-
-            // Set the retrievable ID and field in the descriptor
-            descriptor.copy(retrievableId = retrievable.id, field = this.field)
-        }
+        return imageContents.mapNotNull { imageContent -> extractCoordinates(imageContent, retrievable) }
     }
 
 
@@ -76,17 +77,19 @@ class CoordinatesExtractor : AbstractExtractor<ImageContent, AnyMapStructDescrip
     private fun extractCoordinates(
         imageContent: ImageContent,
         retrievable: Retrievable
-    ): AnyMapStructDescriptor {
+    ): AnyMapStructDescriptor? {
         // first locate file on disk
         val source = retrievable.filteredAttribute(SourceAttribute::class.java)
             ?.source as? FileSource
-            ?: return createEmptyDescriptor(retrievable.id).also {
-                logger.debug { "No FileSource for retrievable ${retrievable.id}" }
+            ?: run {
+                logger.debug { "No FileSource for retrievable ${retrievable.id}. Skipping coordinate extraction." }
+                return null
             }
+
 
         return try {
 
-            val metadata = ImageMetadataReader.readMetadata(source.path.toFile())
+            val metadata = ImageMetadataReader.readMetadata(source.path.toFile())// TODO figure out how to read from stream
             val gpsDir = metadata.getFirstDirectoryOfType(
                 com.drew.metadata.exif.GpsDirectory::class.java
             )
@@ -95,6 +98,7 @@ class CoordinatesExtractor : AbstractExtractor<ImageContent, AnyMapStructDescrip
             var preciseLon: Double? = null
             var latRef: String? = null
             var lonRef: String? = null
+            var sourceOfCoords = "EXIF GPS"
 
             // first, try to extract from rational arrays with high precision
             gpsDir?.let { dir ->
@@ -115,7 +119,7 @@ class CoordinatesExtractor : AbstractExtractor<ImageContent, AnyMapStructDescrip
                     runCatching {
                         val arr = dir.getRationalArray(tag.tagType) // this should return array of 3 rational values
                         if (arr.size == 3) {
-                            // Preserve full precision: degrees + minutes/60 + seconds/3600
+                            //degrees + minutes/60 + seconds/3600
                             preciseLat = arr[0].toDouble() +
                                     arr[1].toDouble() / 60.0 +
                                     arr[2].toDouble() / 3600.0
@@ -144,36 +148,51 @@ class CoordinatesExtractor : AbstractExtractor<ImageContent, AnyMapStructDescrip
                 }
             }
 
-            // If rational array method doesnt work, try parsing the tags
-            if (preciseLat == null) {
-                gpsDir?.tags?.forEach { tag ->
-                    if (tag.tagName.lowercase().contains("latitude") &&
-                        !tag.tagName.lowercase().contains("ref")) {
-                        preciseLat = parseCoordinate(tag.description)
-                    }
-                }
-            }
-
-            if (preciseLon == null) {
-                gpsDir?.tags?.forEach { tag ->
-                    if (tag.tagName.lowercase().contains("longitude") &&
-                        !tag.tagName.lowercase().contains("ref")) {
-                        preciseLon = parseCoordinate(tag.description)
-                    }
-                }
-            }
-
             // Apply reference adjustments
-            val finalLat = preciseLat?.let {
+            var finalLat = preciseLat?.let {
                 if (latRef == "S") -it else it
             }
-            val finalLon = preciseLon?.let {
+            var finalLon = preciseLon?.let {
                 if (lonRef == "W") -it else it
+            }
+
+            if (finalLat == null || finalLon == null) {
+                logger.debug { "Primary EXIF GPS not found or incomplete for ${retrievable.id}. Attempting fallback to JPEG Comment." }
+                // 'metadata' variable is already available from the EXIF GPS part
+                try {
+                    val jpegCommentDir = metadata.getFirstDirectoryOfType(JpegCommentDirectory::class.java)
+                    if (jpegCommentDir != null) {
+                        val jpegComment = jpegCommentDir.getString(JpegCommentDirectory.TAG_COMMENT)
+                        // Basic check if comment exists and might contain relevant keys
+                        if (jpegComment != null && jpegComment.contains("\"latitude\"") && jpegComment.contains("\"longitude\"")) {
+                            logger.trace { "Found JPEG Comment for ${retrievable.id} (length: ${jpegComment.length}): '${jpegComment.take(150)}...'" }
+
+                            val latFromComment = parseJsonNumber(jpegComment, "latitude")
+                            val lonFromComment = parseJsonNumber(jpegComment, "longitude")
+
+                            if (latFromComment != null && lonFromComment != null) {
+                                // Use these values directly as finalLat and finalLon
+                                finalLat = latFromComment
+                                finalLon = lonFromComment
+                                sourceOfCoords = "JPEG Comment" // Update the source
+                                logger.info { "Successfully parsed lat/lon from JPEG Comment for ${retrievable.id}: lat=$finalLat, lon=$finalLon" }
+                            } else {
+                                logger.debug { "Latitude/Longitude keys found but values not parsable or missing in JPEG Comment JSON for ${retrievable.id}."}
+                            }
+                        } else {
+                            logger.debug { "JPEG Comment string is null or does not appear to contain coordinate keywords for ${retrievable.id}." }
+                        }
+                    } else {
+                        logger.debug { "No JpegCommentDirectory found for ${retrievable.id}." }
+                    }
+                } catch (e: Exception) {
+                    logger.warn(e) { "Error during JPEG Comment fallback for GPS coordinates on ${retrievable.id}: ${e.message}" }
+                }
             }
 
             // Create the descriptor
             if (finalLat != null && finalLon != null) {
-                logger.info { "Extracted high-precision coordinates: lat=$finalLat, lon=$finalLon" }
+                logger.info { "Extracted coordinates (Source: $sourceOfCoords): lat=$finalLat, lon=$finalLon" }
 
                 return AnyMapStructDescriptor(
                     UUID.randomUUID(),
@@ -187,170 +206,35 @@ class CoordinatesExtractor : AbstractExtractor<ImageContent, AnyMapStructDescrip
                 )
             }
 
-            // fallback search if no coordinates were found (unlikely for EXIF files)
-            metadata.directories.forEach { dir ->
-                dir.tags.forEach { tag ->
-                    val name = tag.tagName.lowercase()
-                    when {
-                        name.contains("latitude") && !name.contains("ref") -> {
-                            val parsed = parseCoordinate(tag.description)
-                            logger.debug { "Found alternate latitude coordinate: $parsed" }
+            // If no coordinates were found:
+            logger.debug { "No valid GPS coordinates found (after EXIF and JPEG Comment fallback) for retrievable ${retrievable.id}. Skipping descriptor creation." }
+            null
+        } catch (e: Exception) {
+            logger.error(e) { "Error extracting GPS for retrievable ${retrievable.id}. Skipping descriptor creation." }
+            null
+        }
+    }
 
-                            return AnyMapStructDescriptor(
-                                UUID.randomUUID(),
-                                retrievable.id,
-                                layout,
-                                mapOf(
-                                    "lat" to Value.Double(parsed),
-                                    "lon" to Value.Double(parsed)
-                                ),
-                                this.field
-                            )
-                        }
-                    }
+    /**
+     * Helper function to parse a numeric value for a given key from a JSON string using regex.
+     *
+     * @param jsonString The JSON string to parse.
+     * @param key The key whose numeric value is to be extracted.
+     * @return The parsed [Double] value, or null if the key is not found or value is not a valid number.
+     */
+    private fun parseJsonNumber(jsonString: String, key: String): Double? {
+        val pattern = Pattern.compile("\"$key\":\\s*(-?[0-9]+\\.?[0-9]*(?:[eE][-+]?[0-9]+)?)")
+        val matcher = pattern.matcher(jsonString)
+        return if (matcher.find()) {
+            matcher.group(1)?.toDoubleOrNull().also {
+                if (it == null && matcher.group(1) != null) {
+                    // Log if group was found but couldn't be parsed as Double
+                    logger.trace { "Failed to parse value for key '$key': '${matcher.group(1)}' as Double from JSON." }
                 }
             }
-
-            // If no coordinates were found:
-            logger.debug { "No precise GPS coordinates found for retrievable ${retrievable.id}" }
-            createEmptyDescriptor(retrievable.id)
-        } catch (e: Exception) {
-            logger.error(e) { "Error extracting GPS for retrievable ${retrievable.id}" }
-            createEmptyDescriptor(retrievable.id)
+        } else {
+            logger.trace { "Key '$key' not found in JSON string for parsing." }
+            null
         }
-    }
-
-    /**
-     * Creates an empty descriptor with null values for latitude and longitude.
-     * This is used when no GPS coordinates are found in the image metadata.
-     *
-     * @param retrievableId The ID of the retrievable
-     * @return An AnyMapStructDescriptor with null values for lat and lon
-     */
-    private fun createEmptyDescriptor(retrievableId: UUID): AnyMapStructDescriptor {
-        logger.info { "CoordinatesExtractor: No coordinates found for $retrievableId – using default lat=0.0, lon=0.0" }
-        return AnyMapStructDescriptor(
-            UUID.randomUUID(),
-            retrievableId,
-            layout,
-            mapOf(
-                "lat" to Value.Double(0.0),
-                "lon" to Value.Double(0.0)
-            ),
-            this.field
-        )
-    }
-
-    /**
-     * Parses a coordinate string in different formats and converts it to decimal degrees.
-     * This method is used as a fallback when direct access to preferred format values is not possible.
-     *
-     * Handles formats like:
-     * - "52° 13' 26.43\"" (DMS format)
-     * - "52° 13.456'" (DM format)
-     * - "52.123456°" (decimal degrees)
-     * - "52.123456" (plain decimal)
-     * - "52 deg 13 min 26.43 sec" (text format)
-     * - "52 13 26.43" (space-separated DMS)
-     */
-    private fun parseCoordinate(coordStr: String): Double {
-        logger.debug { "Parsing coordinate string: $coordStr" }
-
-        // Try to handle DMS format with direction: "47º 8' 37.51\" N" or similar
-        val dmsPatternWithDirection = Regex("""(\d+)º\s*(\d+)['′]?\s*(\d+(?:\.\d+)?)["″]?\s*([NSEW])""")
-        val dmsMatchWithDirection = dmsPatternWithDirection.find(coordStr)
-        if (dmsMatchWithDirection != null) {
-            val (degrees, minutes, seconds, direction) = dmsMatchWithDirection.destructured
-            var result = degrees.toDouble() + minutes.toDouble() / 60.0 + seconds.toDouble() / 3600.0
-            if (direction == "S" || direction == "W") {
-                result = -result
-            }
-            logger.debug { "Parsed DMS format with direction: $degrees° $minutes' $seconds\" $direction = $result" }
-            return result
-        }
-
-        // Try to handle DMS format with º symbol: "47º 8' 37.51\"" or similar
-        val dmsPatternWithDegreeSymbol = Regex("""(\d+)º\s*(\d+)['′]?\s*(\d+(?:\.\d+)?)["″]?""")
-        val dmsMatchWithDegreeSymbol = dmsPatternWithDegreeSymbol.find(coordStr)
-        if (dmsMatchWithDegreeSymbol != null) {
-            val (degrees, minutes, seconds) = dmsMatchWithDegreeSymbol.destructured
-            val result = degrees.toDouble() + minutes.toDouble() / 60.0 + seconds.toDouble() / 3600.0
-            logger.debug { "Parsed DMS format with º symbol: $degrees° $minutes' $seconds\" = $result" }
-            return result
-        }
-
-        // Try to handle DMS format: "52° 13' 26.43\"" or similar
-        val dmsPattern = Regex("""(\d+(?:\.\d+)?)°\s*(\d+(?:\.\d+)?)['′]?\s*(\d+(?:\.\d+)?)["″]?""")
-        val dmsMatch = dmsPattern.find(coordStr)
-        if (dmsMatch != null) {
-            val (degrees, minutes, seconds) = dmsMatch.destructured
-            val result = degrees.toDouble() + minutes.toDouble() / 60.0 + seconds.toDouble() / 3600.0
-            logger.debug { "Parsed DMS format: $degrees° $minutes' $seconds\" = $result" }
-            return result
-        }
-
-        // Try to handle DM format: "52° 13.456'" or similar
-        val dmPattern = Regex("""(\d+(?:\.\d+)?)°\s*(\d+(?:\.\d+)?)['′]""")
-        val dmMatch = dmPattern.find(coordStr)
-        if (dmMatch != null) {
-            val (degrees, minutes) = dmMatch.destructured
-            val result = degrees.toDouble() + minutes.toDouble() / 60.0
-            logger.debug { "Parsed DM format: $degrees° $minutes' = $result" }
-            return result
-        }
-
-        // Try to handle decimal degrees with symbol: "52.123456°"
-        val decimalDegPattern = Regex("""(\d+(?:\.\d+)?)°""")
-        val decimalDegMatch = decimalDegPattern.find(coordStr)
-        if (decimalDegMatch != null) {
-            val result = decimalDegMatch.groupValues[1].toDouble()
-            logger.debug { "Parsed decimal degrees with symbol: $result°" }
-            return result
-        }
-
-        // Try to handle text format: "52 deg 13 min 26.43 sec"
-        val textPattern = Regex("""(\d+(?:\.\d+)?)\s*deg(?:rees?)?\s*(\d+(?:\.\d+)?)\s*min(?:utes?)?\s*(\d+(?:\.\d+)?)\s*sec(?:onds?)?""", RegexOption.IGNORE_CASE)
-        val textMatch = textPattern.find(coordStr)
-        if (textMatch != null) {
-            val (degrees, minutes, seconds) = textMatch.destructured
-            val result = degrees.toDouble() + minutes.toDouble() / 60.0 + seconds.toDouble() / 3600.0
-            logger.debug { "Parsed text format: $degrees deg $minutes min $seconds sec = $result" }
-            return result
-        }
-
-        // Try to handle space-separated DMS: "52 13 26.43"
-        val spaceDmsPattern = Regex("""^(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)$""")
-        val spaceDmsMatch = spaceDmsPattern.find(coordStr)
-        if (spaceDmsMatch != null) {
-            val (degrees, minutes, seconds) = spaceDmsMatch.destructured
-            val result = degrees.toDouble() + minutes.toDouble() / 60.0 + seconds.toDouble() / 3600.0
-            logger.debug { "Parsed space-separated DMS: $degrees $minutes $seconds = $result" }
-            return result
-        }
-
-        // Try to handle comma-separated rational values: "47/1, 8/1, 3751/100"
-        val rationalPattern = Regex("""(\d+)/(\d+),\s*(\d+)/(\d+),\s*(\d+)/(\d+)""")
-        val rationalMatch = rationalPattern.find(coordStr)
-        if (rationalMatch != null) {
-            val (degNum, degDenom, minNum, minDenom, secNum, secDenom) = rationalMatch.destructured
-            val degrees = degNum.toDouble() / degDenom.toDouble()
-            val minutes = minNum.toDouble() / minDenom.toDouble()
-            val seconds = secNum.toDouble() / secDenom.toDouble()
-            val result = degrees + minutes / 60.0 + seconds / 3600.0
-            logger.debug { "Parsed rational format: $degrees° $minutes' $seconds\" = $result" }
-            return result
-        }
-
-        // Last resort: try to find any decimal number in the string
-        val decimalPattern = Regex("""(\d+(?:\.\d+)?)""")
-        val decimalMatch = decimalPattern.find(coordStr)
-        if (decimalMatch != null) {
-            val result = decimalMatch.groupValues[1].toDouble()
-            logger.debug { "Parsed decimal number: $result" }
-            return result
-        }
-
-        logger.warn { "Could not parse coordinate: $coordStr" }
-        throw IllegalArgumentException("Could not parse coordinate: $coordStr")
     }
 }

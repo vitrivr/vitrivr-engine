@@ -13,7 +13,6 @@ import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
 import org.vitrivr.engine.core.model.query.spatiotemporal.CompoundAndSpatialQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
@@ -81,14 +80,15 @@ class PostGISCoordinates : Analyser<ImageContent, AnyMapStructDescriptor> {
      * @param context The [IndexContext] to use with the [Extractor].
      *
      * @return A new [Extractor] instance for this [Analyser]
+     * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
+     *
      */
     override fun newExtractor(
         field: Schema.Field<ImageContent, AnyMapStructDescriptor>,
         input: Operator<Retrievable>,
         context: IndexContext
-    ): Extractor<ImageContent, AnyMapStructDescriptor> {
-        return PostGISCoordinatesExtractor(input, this, field)
-    }
+    ): Extractor<ImageContent, AnyMapStructDescriptor> = PostGISCoordinatesExtractor(input, this, field)
+
 
     /**
      * Generates and returns a new [PostGISCoordinatesExtractor] instance for this [PostGISCoordinates].
@@ -98,14 +98,14 @@ class PostGISCoordinates : Analyser<ImageContent, AnyMapStructDescriptor> {
      * @param context The [IndexContext] to use with the [Extractor].
      *
      * @return A new [Extractor] instance for this [Analyser]
+     * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
     override fun newExtractor(
         name: String,
         input: Operator<Retrievable>,
         context: IndexContext
-    ): Extractor<ImageContent, AnyMapStructDescriptor> {
-        return PostGISCoordinatesExtractor(input, this, name)
-    }
+    ): Extractor<ImageContent, AnyMapStructDescriptor> = PostGISCoordinatesExtractor(input, this, name)
+
 
     /**
      * Generates and returns a new [Retriever] instance for this [PostGISCoordinates].
@@ -115,6 +115,7 @@ class PostGISCoordinates : Analyser<ImageContent, AnyMapStructDescriptor> {
      * @param context The [QueryContext] to use with the [Retriever].
      *
      * @return A new [Retriever] instance for this [Analyser]
+     * @throws [UnsupportedOperationException]
      */
     override fun newRetrieverForQuery(
         field: Schema.Field<ImageContent, AnyMapStructDescriptor>,
@@ -202,10 +203,8 @@ class PostGISCoordinates : Analyser<ImageContent, AnyMapStructDescriptor> {
         field: Schema.Field<ImageContent, AnyMapStructDescriptor>,
         content: Collection<ImageContent>,
         context: QueryContext
-    ): Retriever<ImageContent, AnyMapStructDescriptor> {
-        logger.warn { "newRetrieverForContent for PostGISCoordinates: Analysing ImageContent at query time typically yields no EXIF GPS data." }
-        return newRetrieverForDescriptors(field, content.mapNotNull { analyse(it, field) }, context)
-    }
+    ): Retriever<ImageContent, AnyMapStructDescriptor> = newRetrieverForDescriptors(field, content.mapNotNull { analyse(it, field) }, context)
+
 
     /**
      * Performs the [PostGISCoordinates] analysis on the provided [ImageContent] element.
@@ -216,26 +215,14 @@ class PostGISCoordinates : Analyser<ImageContent, AnyMapStructDescriptor> {
      *
      * @param content The [ImageContent] element to analyze.
      * @param fieldForContext The [Schema.Field] to create the descriptor for.
-     * @return [AnyMapStructDescriptor] containing the GPS coordinates information, or an empty descriptor if metadata cannot be extracted.
+     * @throws [UnsupportedOperationException]
      */
     fun analyse(content: ImageContent, fieldForContext: Schema.Field<ImageContent, AnyMapStructDescriptor>): AnyMapStructDescriptor? {
-        val attributeName = fieldForContext.fieldName
-        logger.warn { "PostGISCoordinates.analyse(content): EXIF GPS data is typically unavailable from ImageContent at query time for field '$attributeName'. Returning default." }
-        return emptyDescriptor(attributeName, fieldForContext)
-    }
+        val operationDescription = "Cannot extract EXIF metadata for PostGISCoordinates during query time. " +
+        "Metadata is lost when the image is loaded into memory (ImageContent)."
 
-    /**
-     * Creates an empty [AnyMapStructDescriptor] with the layout for geography coordinates.
-     *
-     * @param attributeName The name of the attribute to create.
-     * @param fieldSchema The [Schema.Field] to associate with the descriptor.
-     * @return An empty [AnyMapStructDescriptor] with default geography value.
-     */
-    private fun emptyDescriptor(attributeName: String, fieldSchema: Schema.Field<ImageContent, AnyMapStructDescriptor>?) = AnyMapStructDescriptor(
-        id = UUID.nameUUIDFromBytes("empty-$attributeName".toByteArray()) as DescriptorId,
-        retrievableId = null,
-        layout = listOf(Attribute(name = attributeName, type = Type.Geography, nullable = false)),
-        values = mapOf<String, Value<*>?>(attributeName to Type.Geography.defaultValue()),
-        field = fieldSchema
-    )
+        logger.warn { "PostGISCoordinates.analyse(): $operationDescription" }
+
+        throw UnsupportedOperationException(operationDescription) as Throwable
+    }
 }

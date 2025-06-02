@@ -60,6 +60,7 @@ class CaptureTime : Analyser<ImageContent, AnyMapStructDescriptor> {
      * @param context The [IndexContext] to use with the [Extractor].
      *
      * @return A new [Extractor] instance for this [Analyser]
+     * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
     override fun newExtractor(field: Schema.Field<ImageContent, AnyMapStructDescriptor>, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, AnyMapStructDescriptor> = CaptureTimeExtractor(input, this, field)
 
@@ -71,6 +72,7 @@ class CaptureTime : Analyser<ImageContent, AnyMapStructDescriptor> {
      * @param context The [IndexContext] to use with the [Extractor].
      *
      * @return A new [Extractor] instance for this [Analyser]
+     * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
     override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, AnyMapStructDescriptor> = CaptureTimeExtractor(input, this, name)
 
@@ -110,7 +112,7 @@ class CaptureTime : Analyser<ImageContent, AnyMapStructDescriptor> {
         val timestamp = descriptors.first().values()["timestamp"]
             ?: throw IllegalArgumentException("Descriptor does not contain 'timestamp' value.")
 
-        val query = SimpleBooleanQuery(timestamp, ComparisonOperator.EQ, "timestamp")
+        val query = SimpleBooleanQuery(timestamp, ComparisonOperator.EQ, "timestamp") // TODO find better default case
         return newRetrieverForQuery(field, query, context)
     }
 
@@ -130,9 +132,7 @@ class CaptureTime : Analyser<ImageContent, AnyMapStructDescriptor> {
         field: Schema.Field<ImageContent, AnyMapStructDescriptor>,
         content: Collection<ImageContent>,
         context: QueryContext
-    ): Retriever<ImageContent, AnyMapStructDescriptor> {
-        return newRetrieverForDescriptors(field, content.map { analyse(it) }, context)
-    }
+    ): Retriever<ImageContent, AnyMapStructDescriptor> = newRetrieverForDescriptors(field, content.map { analyse(it) }, context)
 
     /**
      * Performs the [CaptureTime] analysis on the provided [ImageContent] element.
@@ -143,28 +143,15 @@ class CaptureTime : Analyser<ImageContent, AnyMapStructDescriptor> {
      *
      * @param content The [ImageContent] element to analyze.
      * @return [AnyMapStructDescriptor] containing the capture time information, or an empty descriptor if metadata cannot be extracted.
+     * @throws UnsupportedOperationException
      */
     fun analyse(content: ImageContent): AnyMapStructDescriptor {
-        val layout = listOf(Attribute("timestamp", Type.Datetime))
+        val operationDescription = "Cannot extract EXIF metadata for capture time during query time. " +
+                "Metadata is lost when the image is loaded into memory (ImageContent)."
 
-        logger.warn { "CaptureTime.analyse(): Cannot extract EXIF metadata during query time. Metadata is lost when the image is loaded into memory." }
+        logger.warn { "CaptureTime.analyse(): $operationDescription" }
 
-        // Return an empty descriptor
-        return emptyDescriptor(layout)
+        throw UnsupportedOperationException(operationDescription) as Throwable
     }
-
-    /**
-     * Creates an empty [AnyMapStructDescriptor] with the specified layout.
-     *
-     * @param layout The list of [Attribute]s that define the structure of the descriptor.
-     * @return An empty [AnyMapStructDescriptor] with null values.
-     */
-    private fun emptyDescriptor(layout: List<Attribute>) = AnyMapStructDescriptor(
-        UUID.randomUUID(),
-        null,
-        layout,
-        mapOf("timestamp" to null),
-        null
-    )
 
 }

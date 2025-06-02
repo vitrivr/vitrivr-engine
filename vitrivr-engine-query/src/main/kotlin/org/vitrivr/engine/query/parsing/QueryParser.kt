@@ -123,13 +123,7 @@ class QueryParser(val schema: Schema) {
                         is DateInputData -> {
                             require(subfield.type == Type.Datetime) { "The given sub-field ${fieldAndAttributeName.first}.${fieldAndAttributeName.second}'s type is ${subfield.type}, which is not the expected ${Type.Datetime}" }
                             Value.DateTime(input.parseDate())
-                        }
-                        is DateTimeInputData -> {
-                            require(subfield.type == Type.Datetime)
-                            val ldt = input.parseDateTime()
-                            Value.LocalDateTimeValue(ldt)
-                        }
-                        else -> throw UnsupportedOperationException("Subfield query for $input is currently not supported")
+                        }else -> throw UnsupportedOperationException("Subfield query for $input is currently not supported")
                     }
                     val limit = description.context.getProperty(operatorName, "limit")?.toLong() ?: Long.MAX_VALUE
                     field.getRetrieverForQuery(

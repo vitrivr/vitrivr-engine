@@ -6,3 +6,4 @@ org.vitrivr.engine.core.features.metadata.temporal.TemporalMetadata
 org.vitrivr.engine.core.features.coordinates.Coordinates
 org.vitrivr.engine.core.features.capturetime.CaptureTime
 org.vitrivr.engine.core.features.coordinates.PostGISCoordinates
+org.vitrivr.engine.core.features.lsc.LSCTimestamp

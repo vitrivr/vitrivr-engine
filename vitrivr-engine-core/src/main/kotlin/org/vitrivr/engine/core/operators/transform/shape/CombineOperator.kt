@@ -45,7 +45,9 @@ class CombineOperator(override val inputs: List<Operator<Retrievable>>, override
                         send = it.copy(content = it.content + content, descriptors = it.descriptors + descriptors, attributes = it.attributes + attributes, relationships = it.relationships + relationship)
                     }
                     mutex.unlock()
-                    send?.let { send(it) }
+                    send?.let {
+                        send(it)
+                    }
                 }
             }
         }

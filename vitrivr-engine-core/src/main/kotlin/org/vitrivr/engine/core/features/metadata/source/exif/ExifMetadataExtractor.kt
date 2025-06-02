@@ -163,7 +163,7 @@ private fun convertType(directory: Directory, tagType: Int, type: Type): Value<*
     Type.Long -> Value.Long(directory.getLong(tagType))
     Type.Short -> Value.Short(directory.getObject(tagType) as Short)
     Type.String -> Value.String(directory.getString(tagType))
-    Type.Text -> Value.Text(directory.getString(tagType))  // Ensure Type.Text returns Value.Text
+    Type.Text -> Value.Text(directory.getString(tagType))
     Type.UUID -> Value.UUIDValue(UUID.fromString(directory.getString(tagType)))
     Type.Geography -> {
         // This handles an EXIF tag that directly contains a WKT string.

@@ -101,8 +101,6 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
                     Type.Boolean -> Value.Boolean(value as Boolean)
                     Type.Byte -> Value.Byte(value as Byte)
                     Type.Datetime -> when (value) {
-                        is java.time.LocalDateTime -> Value.LocalDateTimeValue(value)
-                        is Timestamp -> Value.LocalDateTimeValue(value.toLocalDateTime())
                         is Date              -> Value.DateTime(value)
                         else -> throw IllegalArgumentException("Unsupported date/time type: ${value::class.simpleName}")
                     }
