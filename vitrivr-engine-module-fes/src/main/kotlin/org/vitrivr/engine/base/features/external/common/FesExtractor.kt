@@ -25,14 +25,14 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  */
 abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>> : AbstractBatchedExtractor<C, D> {
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         field: Schema.Field<C, D>,
         analyser: ExternalFesAnalyser<C, D>,
         context: Context
     ) : super(input, analyser, field, context)
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         name: String,
         analyser: ExternalFesAnalyser<C, D>,
         context: Context

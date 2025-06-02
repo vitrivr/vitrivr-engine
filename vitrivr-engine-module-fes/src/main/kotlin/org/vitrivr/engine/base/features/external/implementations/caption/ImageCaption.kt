@@ -8,15 +8,12 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
-import org.vitrivr.engine.core.model.metamodel.Analyser
-import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
@@ -54,7 +51,7 @@ class ImageCaption : ExternalFesAnalyser<ContentElement<*>, TextDescriptor>() {
      */
     override fun newExtractor(
         name: String,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ) = TODO("type mismatch") // = ImageCaptionExtractor(input, name, this, emptyMap())
 
@@ -68,7 +65,7 @@ class ImageCaption : ExternalFesAnalyser<ContentElement<*>, TextDescriptor>() {
      */
     override fun newExtractor(
         field: Schema.Field<ContentElement<*>, TextDescriptor>,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ) = TODO("type mismatch") //ImageCaptionExtractor(input, field, this, merge(field, context) )
 

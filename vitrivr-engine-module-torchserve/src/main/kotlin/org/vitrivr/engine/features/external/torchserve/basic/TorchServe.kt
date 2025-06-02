@@ -54,7 +54,7 @@ abstract class TorchServe<C : ContentElement<*>, D : Descriptor<*>> : Analyser<C
      */
     fun analyse(content: Collection<C>, model: String, host: String, port: Int = 8080, token: String? = null): List<D> {
         /* Obtain a client. */
-        var client = synchronized(this) {
+        val client = synchronized(this) {
             var localClient = this.cachedClient
             if (localClient == null || localClient.host != host || localClient.port != port) {
                 localClient = InferenceClient(host, port, token)
@@ -91,7 +91,7 @@ abstract class TorchServe<C : ContentElement<*>, D : Descriptor<*>> : Analyser<C
      */
     override fun newExtractor(
         field: Schema.Field<C, D>,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ): TorchServeExtractor<C, D> {
         val parameters = context.local[field.fieldName] ?: emptyMap()
@@ -115,7 +115,7 @@ abstract class TorchServe<C : ContentElement<*>, D : Descriptor<*>> : Analyser<C
      */
     override fun newExtractor(
         name: String,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ): TorchServeExtractor<C, D> {
         val parameters = context.local[name] ?: emptyMap()

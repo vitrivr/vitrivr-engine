@@ -21,14 +21,14 @@ import java.util.*
 class OCRExtractor : FesExtractor<ImageContent, TextDescriptor> {
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         field: Schema.Field<ImageContent, TextDescriptor>,
         analyser: ExternalFesAnalyser<ImageContent, TextDescriptor>,
         context: Context
     ) : super(input, field, analyser, context)
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         name: String,
         analyser: ExternalFesAnalyser<ImageContent, TextDescriptor>,
         context: Context

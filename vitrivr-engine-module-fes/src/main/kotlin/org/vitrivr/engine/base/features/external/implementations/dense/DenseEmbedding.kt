@@ -63,7 +63,7 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
      */
     override fun newExtractor(
         name: String,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ) = DenseEmbeddingExtractor(input, name, this, context)
 
@@ -77,7 +77,7 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
      */
     override fun newExtractor(
         field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ) = DenseEmbeddingExtractor(input, field, this, context)
 

@@ -3,7 +3,6 @@ package org.vitrivr.engine.module.features.feature.external.implementations.dino
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.BoundedCorrespondence
-import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
@@ -67,7 +66,7 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
      */
     override fun newExtractor(
         field: Schema.Field<ImageContent, FloatVectorDescriptor>,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ): DINOExtractor {
         val host: String = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
@@ -84,7 +83,7 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
      */
     override fun newExtractor(
         name: String,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ): DINOExtractor {
         val host: String = context.getProperty(name, HOST_PARAMETER_NAME) ?: HOST_PARAMETER_DEFAULT

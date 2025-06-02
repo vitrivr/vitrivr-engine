@@ -78,7 +78,7 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
      */
     override fun newExtractor(
         field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ): CLIPExtractor {
         val host: String = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
@@ -97,7 +97,7 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
      */
     override fun newExtractor(
         name: String,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ): CLIPExtractor {
         val host: String = context.getProperty(name,HOST_PARAMETER_NAME) ?: HOST_PARAMETER_DEFAULT

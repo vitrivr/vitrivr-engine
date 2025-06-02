@@ -23,14 +23,14 @@ import java.util.*
 class ImageClassificationExtractor : FesExtractor<ImageContent, LabelDescriptor> {
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         field: Schema.Field<ImageContent, LabelDescriptor>,
         analyser: ExternalFesAnalyser<ImageContent, LabelDescriptor>,
         context: Context
     ) : super(input, field, analyser, context)
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         name: String,
         analyser: ExternalFesAnalyser<ImageContent, LabelDescriptor>,
         context: Context

@@ -3,11 +3,8 @@ package org.vitrivr.engine.base.features.external.implementations.asr
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.fulltext.FulltextRetriever
-import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.AudioContent
-import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
-import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
@@ -48,7 +45,7 @@ class ASR : ExternalFesAnalyser<AudioContent, TextDescriptor>() {
      */
     override fun newExtractor(
         name: String,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ) = ASRExtractor(input, name, this, context)
 
@@ -62,7 +59,7 @@ class ASR : ExternalFesAnalyser<AudioContent, TextDescriptor>() {
      */
     override fun newExtractor(
         field: Schema.Field<AudioContent, TextDescriptor>,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ) = ASRExtractor(input, field, this, context)
 

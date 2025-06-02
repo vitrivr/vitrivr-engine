@@ -5,7 +5,6 @@ import boofcv.struct.image.GrayU8
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.LinearCorrespondence
-import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
@@ -91,7 +90,7 @@ class EHD : Analyser<ImageContent, FloatVectorDescriptor> {
      */
     override fun newExtractor(
         name: String,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ) = EHDExtractor(input, this, name)
 
@@ -107,7 +106,7 @@ class EHD : Analyser<ImageContent, FloatVectorDescriptor> {
      */
     override fun newExtractor(
         field: Schema.Field<ImageContent, FloatVectorDescriptor>,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ) = EHDExtractor(input, this, field)
 

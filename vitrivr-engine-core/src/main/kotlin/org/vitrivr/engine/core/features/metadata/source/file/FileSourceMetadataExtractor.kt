@@ -26,13 +26,13 @@ class FileSourceMetadataExtractor :
     AbstractExtractor<ContentElement<*>, FileSourceMetadataDescriptor> {
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         analyser: FileSourceMetadata,
         field: Schema.Field<ContentElement<*>, FileSourceMetadataDescriptor>
     ) : super(input, analyser, field)
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         analyser: FileSourceMetadata,
         name: String
     ) : super(input, analyser, name)

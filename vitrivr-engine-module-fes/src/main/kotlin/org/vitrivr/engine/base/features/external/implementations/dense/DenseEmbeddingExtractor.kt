@@ -24,14 +24,14 @@ import java.util.*
 class DenseEmbeddingExtractor : FesExtractor<ContentElement<*>, FloatVectorDescriptor> {
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
         analyser: ExternalFesAnalyser<ContentElement<*>, FloatVectorDescriptor>,
         context: Context
     ) : super(input, field, analyser, context)
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         name: String,
         analyser: ExternalFesAnalyser<ContentElement<*>, FloatVectorDescriptor>,
         context: Context

@@ -5,7 +5,6 @@ import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.LinearCorrespondence
 import org.vitrivr.engine.core.model.color.HSVColorContainer
 import org.vitrivr.engine.core.model.color.RGBColorContainer
-import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
@@ -60,7 +59,7 @@ class HueHistogram : Analyser<ImageContent, FloatVectorDescriptor> {
      */
     override fun newExtractor(
         name: String,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ) = HueHistogramExtractor(input, this, name)
 
@@ -76,7 +75,7 @@ class HueHistogram : Analyser<ImageContent, FloatVectorDescriptor> {
      */
     override fun newExtractor(
         field: Schema.Field<ImageContent, FloatVectorDescriptor>,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ) = HueHistogramExtractor(input, this, field)
 
