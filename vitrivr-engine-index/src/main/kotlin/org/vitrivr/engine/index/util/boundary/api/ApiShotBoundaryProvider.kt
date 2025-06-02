@@ -1,4 +1,4 @@
-package org.vitrivr.engine.index.util.boundaryFile
+package org.vitrivr.engine.index.util.boundary.api
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -10,29 +10,41 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
-import org.vitrivr.engine.index.util.boundaryFile.JRS.ShotBoundaryDetectionDescriptor
-import org.vitrivr.engine.index.util.boundaryFile.JRS.ShotBoundaryDetectionSubmit
+import org.vitrivr.engine.index.util.boundary.jrs.ShotBoundaryDetectionDescriptor
+import org.vitrivr.engine.index.util.boundary.jrs.ShotBoundaryDetectionSubmit
+import org.vitrivr.engine.index.util.boundary.MediaSegmentDescriptor
+import org.vitrivr.engine.index.util.boundary.ShotBoundaryProvider
+import org.vitrivr.engine.index.util.boundary.ShotBoundaryProviderFactory
 
 private val logger: KLogger = KotlinLogging.logger {}
 
 /**
- * TODO Remove this
  * XReco specific implementation of a [ApiShotBoundaryProvider] that uses an API to detect shot boundaries.
+ *
+ * @author Raphael Waltenspühl
+ * @version 1.1.0
  */
 class ApiShotBoundaryProvider: ShotBoundaryProviderFactory {
-
-    override fun newShotBoundaryProvider(name: String, parameters: Map<String, String>, context: Context): ShotBoundaryProvider {
-        val boundaryEndpointUri = parameters["boundaryEndpointUri"]
+    /**
+     * Creates a new instance of [ShotBoundaryProvider] that uses the API to fetch shot boundaries.
+     *
+     * @param name The name of the provider
+     * @param context A [Context] object containing configuration parameters for the provider
+     * @return An instance of [ShotBoundaryProvider] that can use an API to detect shot boundaries
+     */
+    override fun newShotBoundaryProvider(name: String, context: Context): ShotBoundaryProvider {
+        val boundaryEndpointUri = context[name, "boundaryEndpointUri"]
             ?: throw IllegalArgumentException("Property 'boundaryFilesPath' must be specified")
-        val toNanoScale = parameters["toNanoScale"]?.toDouble()
+        val toNanoScale = context[name, "toNanoScale"]?.toDouble()
             ?: throw IllegalArgumentException("Property 'toNanoScale' must be specified")
         return Instance(boundaryEndpointUri, toNanoScale)
     }
 
     /**
-     * Instance of the [ShotBoundaryProvider] that uses the API to fetch the shot boundaries.
+     * An instance of the [ShotBoundaryProvider] that uses an API to fetch shot boundaries.
+     *
      * @param boundaryEndpointUri The URI of the boundary endpoint
-     * @param toNanoScale Scaling value to convert seconds to nanoseconds
+     * @param toNanoScale Scaling value to convert seconds to nanoseconds (default is 1e9)
      */
     class Instance(
         private val boundaryEndpointUri: String,

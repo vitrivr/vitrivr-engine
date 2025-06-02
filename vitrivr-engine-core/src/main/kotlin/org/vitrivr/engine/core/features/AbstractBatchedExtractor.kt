@@ -19,36 +19,32 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  *
  * @author Fynn Faber
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.2.0
  */
-abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor<*>>
-    private constructor(
-        final override val input: Operator<Retrievable>,
-        final override val analyser: Analyser<C, D>,
-        final override val field: Schema.Field<C, D>? = null,
-        final override val name: String,
-        private val bufferSize: Int
-) :
-    Extractor<C, D> {
+abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor<*>> private constructor(
+    final override val name: String,
+    final override val input: Operator<Retrievable>,
+    final override val analyser: Analyser<C, D>,
+    final override val field: Schema.Field<C, D>? = null,
+
+    private val bufferSize: Int
+) : Extractor<C, D> {
 
     constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, field: Schema.Field<C, D>, bufferSize: Int = 100) : this(
+        field.fieldName,
         input,
         analyser,
         field,
-        field.fieldName,
         bufferSize
     )
 
     constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, name: String, bufferSize: Int = 100) : this(
+        name,
         input,
         analyser,
         null,
-        name,
         bufferSize
     )
-
-
-
 
     companion object {
         const val BATCH_SIZE_KEY = "batchSize"

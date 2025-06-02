@@ -214,7 +214,7 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
         val cap = field.parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
         val minL = field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
         val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
-        val descriptors = content.map { analyse(it.content.getMaterials().first().materialMeshes.first(), gridSize, cap, minL, maxL) }
+        val descriptors = content.values.map { analyse(it.content.getMaterials().first().materialMeshes.first(), gridSize, cap, minL, maxL) }
 
         /* Return retriever. */
         return this.newRetrieverForDescriptors(field, descriptors, context)
@@ -232,7 +232,7 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
         val gridSize = field.parameters[GRID_SIZE_PARAMETER_NAME]?.toIntOrNull() ?: GRID_SIZE_PARAMETER_DEFAULT
         val cap = field.parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
         val minL = field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
-        val maxL = field.parameters[MAXL_PARA METER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
+        val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
         logger.debug { "Creating new SphericalHarmonicsExtract for field '${field.fieldName}' with parameters ($gridSize, $cap, $minL, $maxL)." }
         return SphericalHarmonicsExtractor(input, this, field, gridSize, cap, minL, maxL)
     }
