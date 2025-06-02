@@ -1,15 +1,14 @@
 package org.vitrivr.engine.index.aggregators.image
 
 import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.color.RGBColorContainer
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.operators.general.Transformer
-import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.util.extension.getRGBArray
 import org.vitrivr.engine.index.aggregators.AbstractAggregator
 
@@ -18,35 +17,25 @@ import org.vitrivr.engine.index.aggregators.AbstractAggregator
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.2.0
+ * @version 1.3.0
  */
-class RepresentativeImageContentAggregator : TransformerFactory {
-
+class RepresentativeImageContentAggregator : OperatorFactory {
     /**
-     * Returns an [RepresentativeImageContentAggregator.Instance].
+     * Creates a new [Instance] instance from this [AverageImageContentAggregator].
      *
-     * @param name The name of the [Transformer]
-     * @param input The input [Operator].
-     * @param context The [IndexContext] to use.
-     * @return [RepresentativeImageContentAggregator.Instance]
+     * @param name the name of the [AverageImageContentAggregator.Instance]
+     * @param inputs Map of named input [Operator]s
+     * @param context The [Context] to use.
      */
-    override fun newTransformer(
-        name: String,
-        input: Operator<out Retrievable>,
-        parameters: Map<String, String>,
-        context: Context
-    ): Transformer = Instance(input, parameters, context as IndexContext, name)
-
+    override fun newOperator(name: String, inputs: Map<String, Operator<out Retrievable>>, context: Context): Operator<out Retrievable> {
+        require(inputs.size == 1)  { "The ${this::class.simpleName} only supports one input operator. If you want to combine multiple inputs, use explicit merge strategies." }
+        return Instance(name, inputs.values.first(), context)
+    }
 
     /**
      * The [Instance] returns by the [RepresentativeImageContentAggregator]
      */
-    private class Instance(
-        override val input: Operator<out Retrievable>,
-        parameters: Map<String, String>,
-        override val context: IndexContext,
-        name: String
-    ) : AbstractAggregator(input, parameters, context, name) {
+    private class Instance(name: String, input: Operator<out Retrievable>, context: Context) : AbstractAggregator(name, input, context) {
         override fun aggregate(content: List<ContentElement<*>>): List<ContentElement<*>> {
             val images = content.filterIsInstance<ImageContent>()
             if (images.isEmpty()) {

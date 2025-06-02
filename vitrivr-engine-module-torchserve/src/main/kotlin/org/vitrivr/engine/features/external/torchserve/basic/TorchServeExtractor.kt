@@ -21,7 +21,7 @@ open class TorchServeExtractor<C : ContentElement<*>, D : Descriptor<*>>(
     val port: Int,
     val token: String?,
     val model: String,
-    input: Operator<Retrievable>,
+    input: Operator<out Retrievable>,
     analyser: TorchServe<C, D>,
     field: Schema.Field<C, D>? = null,
     name: String

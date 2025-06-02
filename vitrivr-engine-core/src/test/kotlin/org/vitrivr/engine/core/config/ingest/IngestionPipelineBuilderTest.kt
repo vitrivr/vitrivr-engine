@@ -3,6 +3,7 @@ package org.vitrivr.engine.core.config.ingest
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
+import org.vitrivr.engine.core.config.ContextFactory
 import org.vitrivr.engine.core.config.ingest.operation.OperationConfig
 import org.vitrivr.engine.core.config.ingest.operator.OperatorConfig
 import org.vitrivr.engine.core.context.IngestionContextConfig
@@ -25,13 +26,13 @@ class IngestionPipelineBuilderTest {
                     listOf("disk")
                 ),
                 operators = mapOf(
-                    "enumerator" to OperatorConfig.Enumerator("FileSystemEnumerator"),
-                    "decoder" to OperatorConfig.Decoder(factory = "ImageDecoder"),
-                    "segmenter" to OperatorConfig.Transformer(factory = "PassThroughSegmenter"),
-                    "averagecolor" to OperatorConfig.Extractor(fieldName = "averagecolor"),
-                    "thumbnail" to OperatorConfig.Exporter(exporterName = "thumbnail"),
-                    "file" to OperatorConfig.Extractor(fieldName = "file"),
-                    "filter" to OperatorConfig.Transformer(factory = "TypeFilterTransformer")
+                    "enumerator" to OperatorConfig(factory = "FileSystemEnumerator"),
+                    "decoder" to OperatorConfig(factory = "ImageDecoder"),
+                    "segmenter" to OperatorConfig(factory = "PassThroughSegmenter"),
+                    "averagecolor" to OperatorConfig(field = "averagecolor"),
+                    "thumbnail" to OperatorConfig(exporter = "thumbnail"),
+                    "file" to OperatorConfig(field = "file"),
+                    "filter" to OperatorConfig(factory = "TypeFilterTransformer")
                 ),
                 operations = mapOf(
                     "enumerator" to OperationConfig("enumerator"),
@@ -48,8 +49,8 @@ class IngestionPipelineBuilderTest {
             val provider = BlackholeConnectionProvider()
             val mockSchema = Schema("test-schema", BlackholeConnection("test-schema", provider, true))
             mockSchema.addResolver("disk", DiskResolver().newResolver(mockSchema, mapOf("location" to "./thumbnails/testing")))
-            config.context.schema = mockSchema
-            val testSubject = IngestionPipelineBuilder(config)
+            val context = ContextFactory.newContext(mockSchema, config.context)
+            val testSubject = IngestionPipelineBuilder(config, context)
             testSubject.parseOperations()
         } catch (e: Exception) {
             fail(e)

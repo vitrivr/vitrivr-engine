@@ -2,10 +2,8 @@ package org.vitrivr.engine.features.external.torchserve
 
 import com.google.protobuf.ByteString
 import kotlinx.serialization.json.Json
-import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.bool.StructBooleanRetriever
-import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
@@ -53,14 +51,14 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param query The [Query] to use with the [Retriever].
-     * @param context The [QueryContext] to use with the [Retriever].
+     * @param context The [Context] to use with the [Retriever].
      *
      * @return A new [StructBooleanRetriever] instance for this [TSImageLabel]
      */
     override fun newRetrieverForQuery(
         field: Schema.Field<ImageContent, LabelDescriptor>,
         query: Query,
-        context: QueryContext
+        context: Context
     ): StructBooleanRetriever<ImageContent, LabelDescriptor> {
         require(query is SimpleBooleanQuery<*>) { "TSImageLabel only supports boolean queries." }
         return StructBooleanRetriever(field, query, context)
@@ -71,12 +69,12 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param descriptors An array of [LabelDescriptor] elements to use with the [Retriever]
-     * @param context The [QueryContext] to use with the [Retriever]
+     * @param context The [Context] to use with the [Retriever]
      */
     override fun newRetrieverForDescriptors(
         field: Schema.Field<ImageContent, LabelDescriptor>,
         descriptors: Collection<LabelDescriptor>,
-        context: QueryContext
+        context: Context
     ): StructBooleanRetriever<ImageContent, LabelDescriptor> {
         val values = descriptors.map { it.label }
         val query = SimpleBooleanQuery(
@@ -87,45 +85,45 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
         return this.newRetrieverForQuery(field, query, context)
     }
 
-    /**
-     * Generates and returns a new [Retriever] instance for this [TSImageLabel].
-     *
-     * @param field The [Schema.Field] to create an [Retriever] for.
-     * @param content An array of [Content] elements to use with the [Retriever]
-     * @param context The [QueryContext] to use with the [Retriever]
-     * @return [Retriever]
-     */
-    override fun newRetrieverForContent(
-        field: Schema.Field<ImageContent, LabelDescriptor>,
-        content: Collection<ImageContent>,
-        context: QueryContext
-    ): Retriever<ImageContent, LabelDescriptor> {
-        val host = field.parameters[TORCHSERVE_HOST_KEY] ?: TORCHSERVE_HOST_DEFAULT
-        val port = field.parameters[TORCHSERVE_PORT_KEY]?.toIntOrNull() ?: TORCHSERVE_PORT_DEFAULT
-        val token = field.parameters[TORCHSERVE_TOKEN_KEY]
-        val model = field.parameters[TORCHSERVE_MODEL_KEY]
-            ?: throw IllegalArgumentException("Missing model for TorchServe model.")
-        val threshold = field.parameters[TORCHSERVE_THRESHOLD_KEY]?.toFloatOrNull() ?: 0.0f
-        val descriptors = this.analyse(content, model, host, port, token).filter({ it.confidence.value >= threshold })
-        return this.newRetrieverForDescriptors(field, descriptors, context)
-    }
+//    /**
+//     * Generates and returns a new [Retriever] instance for this [TSImageLabel].
+//     *
+//     * @param field The [Schema.Field] to create an [Retriever] for.
+//     * @param content An array of [Content] elements to use with the [Retriever]
+//     * @param context The [Context] to use with the [Retriever]
+//     * @return [Retriever]
+//     */
+//    override fun newRetrieverForContent(
+//        field: Schema.Field<ImageContent, LabelDescriptor>,
+//        content: Collection<ImageContent>,
+//        context: Context
+//    ): Retriever<ImageContent, LabelDescriptor> {
+//        val host = field.parameters[TORCHSERVE_HOST_KEY] ?: TORCHSERVE_HOST_DEFAULT
+//        val port = field.parameters[TORCHSERVE_PORT_KEY]?.toIntOrNull() ?: TORCHSERVE_PORT_DEFAULT
+//        val token = field.parameters[TORCHSERVE_TOKEN_KEY]
+//        val model = field.parameters[TORCHSERVE_MODEL_KEY]
+//            ?: throw IllegalArgumentException("Missing model for TorchServe model.")
+//        val threshold = field.parameters[TORCHSERVE_THRESHOLD_KEY]?.toFloatOrNull() ?: 0.0f
+//        val descriptors = this.analyse(content, model, host, port, token).filter({ it.confidence.value >= threshold })
+//        return this.newRetrieverForDescriptors(field, descriptors, context)
+//    }
 
     /**
      * Generates and returns a new [TorchServeExtractor] instance for this [TorchServe].
      *
      * @param field The [Schema.Field] to create an [TorchServeExtractor] for.
      * @param input The [Operator] that acts as input to the new [TorchServeExtractor].
-     * @param context The [IndexContext] to use with the [TorchServeExtractor].
+     * @param context The [Context] to use with the [TorchServeExtractor].
      *
      * @return A new [TorchServeExtractor] instance for this [Analyser]
      */
     override fun newExtractor(
         field: Schema.Field<ImageContent, LabelDescriptor>,
-        input: Operator<Retrievable>,
-        parameters: Map<String, String>,
-        context: IndexContext
+        input: Operator<out Retrievable>,
+        context: Context
     ): TSImageLabelExtractor {
-        val host = parameters[TORCHSERVE_HOST_KEY] ?: field.parameters[TORCHSERVE_HOST_KEY]
+        val parameters = field.parameters.toMutableMap()
+        val host = field.parameters[TORCHSERVE_HOST_KEY] ?: field.parameters[TORCHSERVE_HOST_KEY]
         ?: "127.0.0.1"
         val port = ((parameters[TORCHSERVE_PORT_KEY]
             ?: field.parameters[TORCHSERVE_PORT_KEY]))?.toIntOrNull() ?: 7070
@@ -142,22 +140,21 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      *
      * @param name The name of the [TorchServeExtractor].
      * @param input The [Operator] that acts as input to the new [TorchServeExtractor].
-     * @param context The [IndexContext] to use with the [TorchServeExtractor].
+     * @param context The [Context] to use with the [TorchServeExtractor].
      *
      * @return A new [TorchServeExtractor] instance for this [TorchServe]
      */
     override fun newExtractor(
         name: String,
-        input: Operator<Retrievable>,
-        parameters: Map<String, String>,
-        context: IndexContext
+        input: Operator<out Retrievable>,
+        context: Context
     ): TSImageLabelExtractor {
-        val host = parameters[TORCHSERVE_HOST_KEY] ?: "127.0.0.1"
-        val port = parameters[TORCHSERVE_PORT_KEY]?.toIntOrNull() ?: 7070
-        val token = parameters[TORCHSERVE_TOKEN_KEY]
-        val model = parameters[TORCHSERVE_MODEL_KEY]
+        val host = context.getPropertyOrDefault(name, TORCHSERVE_HOST_KEY, "127.0.0.1")
+        val port = context.getPropertyOrDefault(name, TORCHSERVE_PORT_KEY, "7070").toInt()
+        val token = context.getProperty(name, TORCHSERVE_TOKEN_KEY)
+        val model = context.getProperty(name, TORCHSERVE_MODEL_KEY)
             ?: throw IllegalArgumentException("Missing model for TorchServe model.")
-        val threshold = parameters[TORCHSERVE_THRESHOLD_KEY]?.toFloatOrNull() ?: 0.0f
+        val threshold = context.getPropertyOrDefault(name, TORCHSERVE_THRESHOLD_KEY, "0.0").toFloat()
         return TSImageLabelExtractor(threshold, host, port, token, model, input, this, null, name)
     }
 

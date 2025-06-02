@@ -16,7 +16,7 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class DefaultSink(override val input: Operator<Retrievable>, override val name: String): Operator.Sink<Retrievable> {
+class DefaultSink(override val input: Operator<out Retrievable>, override val name: String): Operator.Sink<Retrievable> {
     /** The [KLogger] used by this [DefaultSink]. */
     private val logger: KLogger = KotlinLogging.logger("DefaultSink#${this.name}")
 
