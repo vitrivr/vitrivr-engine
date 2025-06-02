@@ -15,67 +15,60 @@ import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.operators.general.Transformer
-import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.source.Source
 import org.vitrivr.engine.core.util.extension.loadServiceForName
-import org.vitrivr.engine.index.util.boundaryFile.MediaSegmentDescriptor
-import org.vitrivr.engine.index.util.boundaryFile.ShotBoundaryProvider
-import org.vitrivr.engine.index.util.boundaryFile.ShotBoundaryProviderFactory
+import org.vitrivr.engine.index.util.boundary.MediaSegmentDescriptor
+import org.vitrivr.engine.index.util.boundary.ShotBoundaryProvider
+import org.vitrivr.engine.index.util.boundary.ShotBoundaryProviderFactory
 import java.time.Duration
 import java.util.*
-import kotlin.coroutines.CoroutineContext
+import kotlin.text.toLong
 
 /**
  * Segments a content flow into segments of a specified target temporal duration.
  * Discards all non [SourcedContent.Temporal] content.
  *
  * @author Raphael Waltenspuehl
- * @version 1.0.0
+ * @version 1.1.0
  */
-class ShotBoundarySegmenter : TransformerFactory {
+class ShotBoundarySegmenter : OperatorFactory {
+
     /**
-     * Creates a new [Transformer] instance from this [FixedDurationSegmenter].
+     * Creates a new [Instance] instance from this [FixedDurationSegmenter.Instance].
      *
-     * @param name The name of the [Transformer]
-     * @param input The input [Operator].
+     * @param name the name of the [FixedDurationSegmenter.Instance]
+     * @param inputs Map of named input [Operator]s
      * @param context The [Context] to use.
      */
-    override fun newTransformer(
-        name: String,
-        input: Operator<out Retrievable>,
-        parameters: Map<String, String>,
-        context: Context
-    ): Transformer {
-        /** Path to folder of shotBoundary Files **/
-        val sbProvider = parameters["sbProvider"]
-            ?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
-        val sbParams = parameters["sbParams"]
-            ?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
+    override fun newOperator(name: String, inputs: Map<String, Operator<out Retrievable>>, context: Context): Operator<out Retrievable> {
+        require(inputs.size == 1)  { "The ${this::class.simpleName} only supports one input operator. If you want to combine multiple inputs, use explicit merge strategies." }
+        val sbProvider = context[name, "sbProvider"] ?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
+        val sbParams = context[name, "sbParams"] ?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
         val tolerance = Duration.ofMillis(
-            (parameters["tolerance"]
-                ?: throw IllegalArgumentException("Property 'duration' must be specified")).toLong()
+            (context[name, "tolerance"] ?: throw IllegalArgumentException("Property 'duration' must be specified")).toLong()
         )
         val duration = Duration.ofMillis(
-            (parameters["duration"]
-                ?: throw IllegalArgumentException("Property 'duration' must be specified")).toLong()
+            (context[name, "duration"] ?: throw IllegalArgumentException("Property 'duration' must be specified")).toLong()
         )
         val lookAheadTime = Duration.ofMillis(
-            (parameters["lookAheadTime"]
-                ?: throw IllegalArgumentException("Property 'lookAheadTime' must be specified")).toLong()
+            (context[name, "lookAheadTime"] ?: throw IllegalArgumentException("Property 'lookAheadTime' must be specified")).toLong()
         )
-        return Instance(input, name, parameters, context as Context, sbProvider, sbParams, tolerance, duration, lookAheadTime)
+        return Instance(name, inputs.values.first(), context, sbProvider,sbParams, tolerance,duration,lookAheadTime)
     }
 
     /**
      * The [Transformer] returned by this [FixedDurationSegmenter].
      */
     private class Instance(
+        /** Name of this [Operator]. */
+        override val name: String,
+
         /** The input [Operator]. */
         override val input: Operator<out Retrievable>,
 
-        override val name: String,
-        parameters: Map<String, String>,
+        /** The [Context] used by this [Instance]. */
         context: Context,
 
         /** Path to folder of shotBoundary Files **/
@@ -95,7 +88,7 @@ class ShotBoundarySegmenter : TransformerFactory {
 
         val factory = loadServiceForName<ShotBoundaryProviderFactory>(sbProvider)
             ?: throw IllegalArgumentException("Failed to find ShotBoundaryProviderFactory for $name")
-        private val sb: ShotBoundaryProvider = factory.newShotBoundaryProvider(sbName, parameters, context)
+        private val sb: ShotBoundaryProvider = factory.newShotBoundaryProvider(sbName, context)
 
         private val tolerance: Long = tolerance.toNanos()
 
@@ -184,7 +177,7 @@ class ShotBoundarySegmenter : TransformerFactory {
                             sbs!![icSbs].startAbs.toNanos(),
                             sbs!![icSbs].endAbs.toNanos(),
                             tolerance,
-                            srcRetrievable!!
+                            srcRetrievable
                         )
                     }
                     lastSource = source
@@ -196,15 +189,15 @@ class ShotBoundarySegmenter : TransformerFactory {
                 cache.add(ingested)
 
                 /* Check if cut-off time has been exceeded. */
-                val cutOffTime = sbs!![icSbs].endAbs.toNanos() + this@Instance.lookAheadNanos
+                val cutOffTime = sbs[icSbs].endAbs.toNanos() + this@Instance.lookAheadNanos
                 if (timestamp.endNs >= cutOffTime) {
                     sendFromCache(
                         downstream,
                         cache,
-                        sbs!![icSbs].startAbs.toNanos(),
-                        sbs!![icSbs].endAbs.toNanos(),
+                        sbs[icSbs].startAbs.toNanos(),
+                        sbs[icSbs].endAbs.toNanos(),
                         tolerance,
-                        srcRetrievable!!
+                        srcRetrievable
                     )
                     icSbs++
                 }

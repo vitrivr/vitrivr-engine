@@ -30,15 +30,15 @@ typealias FieldName = String
  * A [Schema] that defines a particular vitrivr instance's meta data model.
  *
  * @author Ralph Gasser
- * @version 1.2.0
+ * @version 1.3.0
  */
 open class Schema(val name: String = "vitrivr", val connection: Connection) : Closeable {
 
     /** The [List] of [Field]s contained in this [Schema]. */
-    private val fields: MutableList<Schema.Field<ContentElement<*>, Descriptor<*>>> = mutableListOf()
+    private val fields: MutableList<Field<ContentElement<*>, Descriptor<*>>> = mutableListOf()
 
     /** The [List] of [Exporter]s contained in this [Schema]. */
-    private val exporters: MutableList<Schema.Exporter> = mutableListOf()
+    private val exporters: MutableList<Exporter> = mutableListOf()
 
     /** The [Map] of named [Resolver]s contained in this [Schema]. */
     private val resolvers: MutableMap<String, Resolver> = mutableMapOf()
@@ -68,22 +68,15 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      * Adds a new [Exporter] to this [Schema].
      *
      * @param name The name of the [Exporter]. Must be unique.
-     * @param factory The [ExporterFactory] used to generated instance.
-     * @param parameters The parameters used to configure the [Exporter].
+     * @param factory The [OperatorFactory] used to generated instance.
+     * @param parameters The schema parameters used to configure the [Exporter].
      *
-     * @throws IllegalArgumentException In case the [resolver] named [Resolver] is not found.
+     * @throws IllegalArgumentException In case the named [Resolver] is not found.
      */
     fun addExporter(name: String, factory: OperatorFactory, parameters: Map<String, String>) {
-        val resolver = parameters["resolver"] ?: "default"
-        this.exporters.add(
-            Exporter(
-                name,
-                factory,
-                parameters,
-                (this.resolvers[resolver]
-                    ?: throw IllegalArgumentException("There is no resolver '$resolver' defined on the schema '${this.name}'"))
-            )
-        )
+        val resolverName = parameters["resolver"] ?: "default"
+        val resolver = (this.resolvers[resolverName] ?: throw IllegalArgumentException("There is no resolver '$resolverName' defined on the schema '${this.name}'"))
+        this.exporters.add(Exporter(name, resolver, factory, parameters))
     }
 
     /**
@@ -113,7 +106,7 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
      *
      * @return Unmodifiable list of [Schema.Field].
      */
-    fun fields(): List<Schema.Field<ContentElement<*>, Descriptor<*>>> = Collections.unmodifiableList(this.fields)
+    fun fields(): List<Field<ContentElement<*>, Descriptor<*>>> = Collections.unmodifiableList(this.fields)
 
     /**
      * Returns the field at the provided [index].
@@ -224,10 +217,11 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * Returns a [Retriever] instance for this [Schema.Field].
          *
          * @param descriptors The [Descriptor] element(s) that should be used with the [Retriever].
+         * @param context The query and retrieval [Context]
          * @return [Retriever] instance.
          */
-        fun getRetrieverForDescriptors(descriptors: Collection<D>, Context: Context): Retriever<C, D> =
-            this.analyser.newRetrieverForDescriptors(this, descriptors, Context)
+        fun getRetrieverForDescriptors(descriptors: Collection<D>, context: Context): Retriever<C, D> =
+            this.analyser.newRetrieverForDescriptors(this, descriptors, context)
 
         /**
          * Returns the [DescriptorInitializer] for this [Schema.Field].
@@ -262,13 +256,13 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
     /**
      * An [Exporter] that is part of a [Schema].
      *
-     * An [Exporter] always has a unique name and is backed by an existing [ExporterFactory] and an existing [ResolverFactory].
+     * An [Exporter] always has a unique name and is backed by an existing [OperatorFactory] and an existing [ResolverFactory].
      */
     inner class Exporter(
         val name: String,
+        val resolver: Resolver,
         private val factory: OperatorFactory,
-        private val parameters: Map<String, String> = emptyMap(),
-        val resolver: Resolver
+        private val parameters: Map<String, String> = emptyMap()
     ) {
         val schema: Schema
             get() = this@Schema
@@ -277,28 +271,23 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * Convenience method to generate and return a [org.vitrivr.engine.core.operators.general.Exporter ] for this [Exporter].
          *
          * @param input The [Operator] to use as input.
-         * @param context The [Context] to use.
-         * @return [DescriptorReader]
+         * @return [org.vitrivr.engine.core.operators.general.Exporter]
          */
-        fun getExporter(
-            input: Operator<Retrievable>,
-            params: Map<String, String>,
-            context: Context
-        ): org.vitrivr.engine.core.operators.general.Exporter {
-            val newParameters = if (parameters.isNotEmpty()) {
-                /* Case this is newly defined in the schema */
-                val p = if (params.containsKey(name)) {
-                    val map = params?.toMutableMap() ?: mutableMapOf()
-                    map.putAll(parameters)
-                    map
-                } else {
-                    parameters
-                }
-                p
+        fun getExporter(input: Operator<Retrievable>, context: Context): org.vitrivr.engine.core.operators.general.Exporter {
+            val actualContext = if (this.parameters.isEmpty()) {
+                context
             } else {
-                params
+                val merged = context.local[this.name]?.toMutableMap() ?: mutableMapOf()
+                for ((key, value) in parameters) {
+                    if (!merged.containsKey(key)) {
+                        merged[key] = value
+                    }
+                }
+                val local = context.local.toMutableMap()
+                local[this.name] = merged
+                context.copy(local = local)
             }
-            return this.factory.newOperator(name, mapOf("input" to input), context) as org.vitrivr.engine.core.operators.general.Exporter
+            return this.factory.newOperator(this.name, mapOf("input" to input), actualContext) as org.vitrivr.engine.core.operators.general.Exporter
         }
     }
 }

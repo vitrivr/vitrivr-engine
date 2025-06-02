@@ -2,7 +2,6 @@ package org.vitrivr.engine.core.config.ingest
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.vitrivr.engine.core.config.ContextFactory
 import org.vitrivr.engine.core.config.ingest.operation.Operation
 import org.vitrivr.engine.core.config.ingest.operator.OperatorConfig
 import org.vitrivr.engine.core.context.Context
@@ -202,7 +201,7 @@ class IngestionPipelineBuilder(private val config: IngestionConfig, private val 
         logger.debug { "Building operator for configuration: $config" }
         return when {
             config.field != null -> buildExtractorForField(parent as Operator<Retrievable>, config.field, config.parameters)
-            config.exporter != null -> buildExporterForName(parent as Operator<Retrievable>, config.exporter, config.parameters)
+            config.exporter != null -> buildExporterForName(parent as Operator<Retrievable>, config.exporter)
             config.factory != null -> buildOperatorForFactory(name, parent, config.factory, config.parameters)
             else -> throw IllegalStateException("Operator $config is missing required fields!")
         }
@@ -225,13 +224,12 @@ class IngestionPipelineBuilder(private val config: IngestionConfig, private val 
      *
      * @param parent The preceding parent [Operator]s.
      * @param exporterName: The name of the exporter.
-     * @param parameters Map of named parameters
      */
-    private fun buildExporterForName(parent: Operator<Retrievable>, exporterName: String, parameters: Map<String, String> = emptyMap()): Exporter {
+    private fun buildExporterForName(parent: Operator<Retrievable>, exporterName: String): Exporter {
         /* Case exporter name is given. Due to require in ExporterConfig.init, this is fine as an if-else */
-        val exporter = context.schema.getExporter(exporterName)
+        val exporter = this.context.schema.getExporter(exporterName)
             ?: throw IllegalArgumentException("Exporter '${exporterName}' does not exist on schema '${context.schema.name}'")
-        return exporter.getExporter(parent, parameters, this.context)
+        return exporter.getExporter(parent, this.context)
     }
 
     /**

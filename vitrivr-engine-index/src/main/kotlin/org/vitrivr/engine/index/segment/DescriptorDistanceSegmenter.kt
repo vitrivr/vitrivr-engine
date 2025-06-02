@@ -20,54 +20,45 @@ import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.operators.general.Transformer
-import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.source.Source
 import java.util.*
+import kotlin.text.toDoubleOrNull
 
 /**
  * Segments a stream of [Ingested] based on [Distance] between [VectorDescriptor]s from a specific author.
  */
-class DescriptorDistanceSegmenter : TransformerFactory {
-
-    override fun newTransformer(
-        name: String,
-        input: Operator<out Retrievable>,
-        parameters: Map<String, String>,
-        context: Context
-    ): Transformer {
-
+class DescriptorDistanceSegmenter : OperatorFactory {
+    /**
+     * Creates a new [Instance] instance from this [DescriptorDistanceSegmenter.Instance].
+     *
+     * @param name the name of the [DescriptorDistanceSegmenter.Instance]
+     * @param inputs Map of named input [Operator]s
+     * @param context The [Context] to use.
+     */
+    override fun newOperator(name: String, inputs: Map<String, Operator<out Retrievable>>, context: Context): Operator<out Retrievable> {
+        require(inputs.size == 1)  { "The ${this::class.simpleName} only supports one input operator. If you want to combine multiple inputs, use explicit merge strategies." }
         val distance = Distance.valueOf(
-            parameters["distance"] ?: throw IllegalArgumentException("Property 'distance' must be specified")
+            context[name, "distance"] ?: throw IllegalArgumentException("Property 'distance' must be specified")
         )
-        val authorName =
-            parameters["authorName"] ?: throw IllegalArgumentException("Property 'authorName' must be specified")
-        val atMost = parameters["atMost"]?.toDoubleOrNull()
-        val atLeast = parameters["atLeast"]?.toDoubleOrNull()
-
+        val authorName = context[name, "authorName"] ?: throw IllegalArgumentException("Property 'authorName' must be specified")
+        val atMost = context[name, "atMost"]?.toDoubleOrNull()
+        val atLeast = context[name, "atLeast"]?.toDoubleOrNull()
         if (atMost == null && atLeast == null) {
             throw IllegalArgumentException("Property 'atLeast' or 'atMost' must be specified.")
         }
-
-        return Instance(
-            input,
-            authorName,
-            distance,
-            atLeast ?: Double.NEGATIVE_INFINITY,
-            atMost ?: Double.POSITIVE_INFINITY,
-            name
-        )
+        return Instance(name, inputs.values.first(), authorName, distance, atLeast ?: Double.NEGATIVE_INFINITY, atMost ?: Double.POSITIVE_INFINITY,)
     }
 
     private class Instance(
+        override val name: String,
         override val input: Operator<out Retrievable>,
         private val authorName: String,
         private val distance: Distance,
         private val atLeast: Double,
         private val atMost: Double,
-        override val name: String
     ) : Transformer {
-
         private fun compare(comparisonAnchor: Value.Vector<*>, descriptor: VectorDescriptor<*, *>): Boolean {
             val dist = when (comparisonAnchor) {
                 is Value.FloatVector -> distance(comparisonAnchor, (descriptor as FloatVectorDescriptor).vector)

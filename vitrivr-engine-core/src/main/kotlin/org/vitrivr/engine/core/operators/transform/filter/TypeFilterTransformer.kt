@@ -11,13 +11,13 @@ import org.vitrivr.engine.core.operators.general.Transformer
  * A [Transformer] that filters [Ingested] objects based on their [Ingested.type].
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 class TypeFilterTransformer : OperatorFactory {
     override fun newOperator(name: String, inputs: Map<String, Operator<out Retrievable>>, context: Context): Transformer {
         val predicate = context[name, "type"] ?: throw IllegalArgumentException("The type filter transformer requires a type name.")
-        return Instance(inputs.values.first(), predicate, name)
+        return Instance(name, inputs.values.first(), predicate)
     }
 
-    private class Instance(input: Operator<out Retrievable>, val type: String, override val name: String) : AbstractFilterTransformer(input, { it.type == type })
+    private class Instance(name: String, input: Operator<out Retrievable>, val type: String) : AbstractFilterTransformer(name, input, { it.type == type })
 }

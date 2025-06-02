@@ -15,49 +15,48 @@ import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.operators.general.Transformer
-import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.source.Source
 import java.time.Duration
 import java.util.*
+import kotlin.text.toLong
 
 /**
- * Segments a content flow into segments of a specified target temporal duration.
- * Discards all non [SourcedContent.Temporal] content.
+ * Segments a content flow into segments of a specified temporal duration. Discards all non [SourcedContent.Temporal] content.
+ *
+ * @author Luca Rossetto
+ * @author Ralph Gasser
+ * @version 1.1.0
  */
-class FixedDurationSegmenter : TransformerFactory {
+class FixedDurationSegmenter : OperatorFactory {
     /**
-     * Creates a new [Transformer] instance from this [FixedDurationSegmenter].
+     * Creates a new [Instance] instance from this [FixedDurationSegmenter.Instance].
      *
-     * @param name The name of the [Transformer]
-     * @param input The input [Operator].
+     * @param name the name of the [FixedDurationSegmenter.Instance]
+     * @param inputs Map of named input [Operator]s
      * @param context The [Context] to use.
      */
-    override fun newTransformer(
-        name: String,
-        input: Operator<out Retrievable>,
-        parameters: Map<String, String>,
-        context: Context
-    ): Transformer {
+    override fun newOperator(name: String, inputs: Map<String, Operator<out Retrievable>>, context: Context): Operator<out Retrievable> {
+        require(inputs.size == 1)  { "The ${this::class.simpleName} only supports one input operator. If you want to combine multiple inputs, use explicit merge strategies." }
         val duration = Duration.ofMillis(
-            (parameters["duration"]
-                ?: throw IllegalArgumentException("Property 'duration' must be specified")).toLong()
+        (context[name, "duration"] ?: throw IllegalArgumentException("Property 'duration' must be specified")).toLong()
         )
         val lookAheadTime = Duration.ofMillis(
-            (parameters["lookAheadTime"]
-                ?: throw IllegalArgumentException("Property 'lookAheadTime' must be specified")).toLong()
+        (context[name, "lookAheadTime"] ?: throw IllegalArgumentException("Property 'lookAheadTime' must be specified")).toLong()
         )
-        return Instance(input, name, duration, lookAheadTime)
+        return Instance(name, inputs.values.first(),duration, lookAheadTime)
     }
 
     /**
      * The [Transformer] returned by this [FixedDurationSegmenter].
      */
     private class Instance(
+        /** Name of the the [Operator]*/
+        override val name: String,
+
         /** The input [Operator]. */
         override val input: Operator<out Retrievable>,
-
-        override val name: String,
 
         /** The target duration of the segments to be created */
         length: Duration,
@@ -130,7 +129,7 @@ class FixedDurationSegmenter : TransformerFactory {
                 /* Check if source has changed. */
                 if (lastSource != source) {
                     while (cache.isNotEmpty()) {
-                        sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos, srcRetrievable!!)
+                        sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos, srcRetrievable)
                         lastSource = source
                         lastStartTime = 0L
                     }
@@ -142,7 +141,7 @@ class FixedDurationSegmenter : TransformerFactory {
                 /* Check if cut-off time has been exceeded. */
                 val cutOffTime = lastStartTime + this@Instance.lengthNanos + this@Instance.lookAheadNanos
                 if (timestamp.endNs >= cutOffTime) {
-                    sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos, srcRetrievable!!)
+                    sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos, srcRetrievable)
                     lastStartTime += this@Instance.lengthNanos
                 }
             }

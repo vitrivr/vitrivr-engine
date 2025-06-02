@@ -20,5 +20,8 @@ enum class ContentType {
     AUDIO_FRAME,
 
     /** A 3D mesh. */
-    MESH
+    MESH,
+
+    /** Textual contant. */
+    TEXT
 }

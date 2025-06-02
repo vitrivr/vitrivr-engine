@@ -6,9 +6,10 @@ import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.operators.general.Transformer
-import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.operators.transform.filter.AbstractFilterTransformer
+import kotlin.text.toFloat
 
 private val logger: KLogger = KotlinLogging.logger {}
 
@@ -16,29 +17,31 @@ private val logger: KLogger = KotlinLogging.logger {}
  * A [Transformer] that filters [Retrievable] objects based on their [LabelDescriptor]s.
  *
  * @author Fynn Faber
- * @version 1.0.0
+ * @version 1.2.0
  */
-class LabelFilterTransformer : TransformerFactory {
-
-    override fun newTransformer(
-        name: String,
-        input: Operator<out Retrievable>,
-        parameters: Map<String, String>,
-        context: Context
-    ): Transformer {
-        val confidenceThreshold = parameters["confidenceThreshold"]?.toFloat()
-        val label = parameters["label"]
-        val field = parameters["field"]
-        return Instance(input, name, confidenceThreshold, label, field)
+class LabelFilterTransformer : OperatorFactory {
+    /**
+     * Creates a new [Instance] instance from this [LabelFilterTransformer.Instance].
+     *
+     * @param name the name of the [LabelFilterTransformer.Instance]
+     * @param inputs Map of named input [Operator]s
+     * @param context The [Context] to use.
+     */
+    override fun newOperator(name: String, inputs: Map<String, Operator<out Retrievable>>, context: Context): Operator<out Retrievable> {
+        require(inputs.size == 1)  { "The ${this::class.simpleName} only supports one input operator. If you want to combine multiple inputs, use explicit merge strategies." }
+        val confidenceThreshold = context[name, "confidenceThreshold"]?.toFloat()
+        val label = context[name, "label"]
+        val field = context[name, "field"]
+        return Instance(name, inputs.values.first(), confidenceThreshold, label, field)
     }
 
     class Instance(
+        name: String,
         input: Operator<out Retrievable>,
-        override val name: String,
         val confidenceThreshold: Float?,
         val label: String?,
         val field: String?
-    ) : AbstractFilterTransformer(input, { retrievable ->
+    ) : AbstractFilterTransformer(name, input, { retrievable ->
         val isFiltered = retrievable.descriptors.any { descriptor ->
             if (descriptor is LabelDescriptor) {
                 val labelMatches = label?.let { descriptor.label.value == it } ?: true
