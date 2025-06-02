@@ -67,12 +67,12 @@ abstract class DescriptorFieldMapper<D : Descriptor<*>> : Analyser<ContentElemen
 
     }
 
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, D>, input: Operator<Retrievable>, context: Context): Extractor<ContentElement<*>, D> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, D>, input: Operator<out Retrievable>, context: Context): Extractor<ContentElement<*>, D> {
         val authorName = field.parameters[AUTHORNAME_PARAMETER_NAME] ?: throw IllegalArgumentException("'$AUTHORNAME_PARAMETER_NAME' is not defined")
         return Mapper(input, field, authorName)
     }
 
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: Context): Extractor<ContentElement<*>, D> {
+    override fun newExtractor(name: String, input: Operator<out Retrievable>, context: Context): Extractor<ContentElement<*>, D> {
         throw UnsupportedOperationException("DescriptorPersister required backing field")
     }
 

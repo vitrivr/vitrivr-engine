@@ -49,7 +49,7 @@ class OCR : ExternalFesAnalyser<ImageContent, TextDescriptor>() {
      */
     override fun newExtractor(
         name: String,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ) = OCRExtractor(input, name, this, context)
 
@@ -63,7 +63,7 @@ class OCR : ExternalFesAnalyser<ImageContent, TextDescriptor>() {
      */
     override fun newExtractor(
         field: Schema.Field<ImageContent, TextDescriptor>,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ) = OCRExtractor(input, field, this, context)
 

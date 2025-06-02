@@ -66,7 +66,7 @@ class DominantColor : Analyser<ImageContent, LabelDescriptor> {
         val labels = descriptors.mapNotNull {
             try {
                 ColorLabel.valueOf(it.label.value.uppercase())
-            } catch (e: IllegalArgumentException) {
+            } catch (_: IllegalArgumentException) {
                 null
             }
         }.toSet().map { it.name }
@@ -76,22 +76,15 @@ class DominantColor : Analyser<ImageContent, LabelDescriptor> {
         return newRetrieverForQuery(field, query, context)
     }
 
-//    override fun newRetrieverForContent(
-//        field: Schema.Field<ImageContent, LabelDescriptor>,
-//        content: Collection<ImageContent>,
-//        context: Context
-//    ): Retriever<ImageContent, LabelDescriptor> = newRetrieverForDescriptors(field, analyse(content), context)
-
-
     override fun newExtractor(
         field: Schema.Field<ImageContent, LabelDescriptor>,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ): Extractor<ImageContent, LabelDescriptor> = DominantColorExtractor(input, this,  field)
 
     override fun newExtractor(
         name: String,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ): Extractor<ImageContent, LabelDescriptor> = DominantColorExtractor(input, this, name)
 

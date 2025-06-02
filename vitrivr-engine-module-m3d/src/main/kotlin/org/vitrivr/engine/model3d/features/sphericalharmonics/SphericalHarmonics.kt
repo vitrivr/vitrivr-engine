@@ -228,7 +228,7 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
      * @param context The [Context] to use with the [Extractor].
      * @return [SphericalHarmonicsExtractor]
      */
-    override fun newExtractor(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: Context): SphericalHarmonicsExtractor {
+    override fun newExtractor(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, input: Operator<out Retrievable>, context: Context): SphericalHarmonicsExtractor {
         val gridSize = field.parameters[GRID_SIZE_PARAMETER_NAME]?.toIntOrNull() ?: GRID_SIZE_PARAMETER_DEFAULT
         val cap = field.parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
         val minL = field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
@@ -245,7 +245,7 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
      * @param context The [Context] to use with the [Extractor].
      * @return [SphericalHarmonicsExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: Context): SphericalHarmonicsExtractor {
+    override fun newExtractor(name: String, input: Operator<out Retrievable>, context: Context): SphericalHarmonicsExtractor {
         val parameters = context.local[name] ?: emptyMap()
         val gridSize = parameters[GRID_SIZE_PARAMETER_NAME]?.toIntOrNull() ?: GRID_SIZE_PARAMETER_DEFAULT
         val cap = parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT

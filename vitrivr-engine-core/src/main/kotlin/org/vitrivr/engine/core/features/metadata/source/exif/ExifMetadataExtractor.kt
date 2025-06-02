@@ -37,7 +37,7 @@ private fun convertDate(date: String): Date? {
     for (pattern in DATE_FORMAT_PATTERNS) {
         try {
             return SimpleDateFormat(pattern).parse(date)
-        } catch (e: ParseException) {
+        } catch (_: ParseException) {
         }
     }
     logger.warn { "Failed to parse date: $date" }
@@ -58,7 +58,6 @@ fun JsonElement.toValue(): Value<*>? {
             }
         }
         is JsonArray, is JsonObject -> Value.String(this.toString())
-        else -> null
     }
 }
 
@@ -91,8 +90,8 @@ fun Value<*>.convertToType(type: Type): Value<*>? {
 
 class ExifMetadataExtractor : AbstractExtractor<ContentElement<*>, AnyMapStructDescriptor> {
 
-    constructor(input: Operator<Retrievable>, analyser: ExifMetadata, field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>) : super(input, analyser, field)
-    constructor(input: Operator<Retrievable>, analyser: ExifMetadata, name: String): super(input, analyser, name)
+    constructor(input: Operator<out Retrievable>, analyser: ExifMetadata, field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>) : super(input, analyser, field)
+    constructor(input: Operator<out Retrievable>, analyser: ExifMetadata, name: String): super(input, analyser, name)
 
     override fun matches(retrievable: Retrievable): Boolean =
         retrievable.filteredAttribute(SourceAttribute::class.java)?.source is FileSource

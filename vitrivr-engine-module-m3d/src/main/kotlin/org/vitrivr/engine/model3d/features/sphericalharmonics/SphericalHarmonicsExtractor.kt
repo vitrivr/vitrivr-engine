@@ -29,7 +29,7 @@ class SphericalHarmonicsExtractor :
     private val maxL: Int
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         analyser: SphericalHarmonics,
         field: Schema.Field<Model3dContent, FloatVectorDescriptor>,
         gridSize: Int,
@@ -47,7 +47,7 @@ class SphericalHarmonicsExtractor :
     }
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         analyser: SphericalHarmonics,
         name: String,
         gridSize: Int,

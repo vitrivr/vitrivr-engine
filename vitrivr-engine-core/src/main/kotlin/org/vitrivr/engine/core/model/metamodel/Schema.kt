@@ -190,7 +190,7 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * @param context The [Context] to use with the [Extractor].
          * @return [Extractor] instance.
          */
-        fun getExtractor(input: Operator<Retrievable>, context: Context): Extractor<C, D>
+        fun getExtractor(input: Operator<out Retrievable>, context: Context): Extractor<C, D>
             = this.analyser.newExtractor(this, input, context)
 
         /**
@@ -273,7 +273,7 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
          * @param input The [Operator] to use as input.
          * @return [org.vitrivr.engine.core.operators.general.Exporter]
          */
-        fun getExporter(input: Operator<Retrievable>, context: Context): org.vitrivr.engine.core.operators.general.Exporter {
+        fun getExporter(input: Operator<out Retrievable>, context: Context): org.vitrivr.engine.core.operators.general.Exporter {
             val actualContext = if (this.parameters.isEmpty()) {
                 context
             } else {

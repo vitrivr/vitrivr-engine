@@ -21,14 +21,14 @@ import java.util.*
 class ASRExtractor : FesExtractor<AudioContent, TextDescriptor> {
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         field: Schema.Field<AudioContent, TextDescriptor>,
         analyser: ExternalFesAnalyser<AudioContent, TextDescriptor>,
         context: Context
     ) : super(input, field, analyser, context)
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         name: String,
         analyser: ExternalFesAnalyser<AudioContent, TextDescriptor>,
         context: Context

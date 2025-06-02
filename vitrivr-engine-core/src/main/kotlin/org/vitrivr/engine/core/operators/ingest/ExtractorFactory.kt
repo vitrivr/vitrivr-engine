@@ -21,7 +21,7 @@ interface ExtractorFactory<C : ContentElement<*>, D : Descriptor<*>> {
      * @param input The input [Operator].
      * @param context The [Context] to use.
      */
-    fun newExtractor(field: Schema.Field<C, D>, input: Operator<Retrievable>, context: Context): Extractor<C, D>
+    fun newExtractor(field: Schema.Field<C, D>, input: Operator<out Retrievable>, context: Context): Extractor<C, D>
 
     /**
      * Creates a new [Extractor] instance from this [ExtractorFactory].
@@ -30,5 +30,5 @@ interface ExtractorFactory<C : ContentElement<*>, D : Descriptor<*>> {
      * @param input The input [Operator].
      * @param context The [Context] to use.
      */
-    fun newExtractor(name: String, input: Operator<Retrievable>, context: Context): Extractor<C, D>
+    fun newExtractor(name: String, input: Operator<out Retrievable>, context: Context): Extractor<C, D>
 }

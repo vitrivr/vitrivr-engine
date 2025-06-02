@@ -4,14 +4,11 @@ import org.vitrivr.engine.base.features.external.api.AbstractApi
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.AbstractRetriever
-import org.vitrivr.engine.core.model.content.Content
-import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
-import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
@@ -63,7 +60,7 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
      */
     override fun newExtractor(
         name: String,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ) = ImageClassificationExtractor(input, name, this, context)
 
@@ -77,7 +74,7 @@ class ImageClassification : ExternalFesAnalyser<ImageContent, LabelDescriptor>()
      */
     override fun newExtractor(
         field: Schema.Field<ImageContent, LabelDescriptor>,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ) = ImageClassificationExtractor(input, field, this, context)
 

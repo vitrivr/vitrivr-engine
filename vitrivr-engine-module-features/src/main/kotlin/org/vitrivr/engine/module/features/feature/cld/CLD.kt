@@ -69,7 +69,7 @@ class CLD : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: Context)
+    override fun newExtractor(name: String, input: Operator<out Retrievable>, context: Context)
         = CLDExtractor(input, this, name)
 
     /**
@@ -82,7 +82,7 @@ class CLD : Analyser<ImageContent, FloatVectorDescriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: Context)
+    override fun newExtractor(field: Schema.Field<ImageContent, FloatVectorDescriptor>, input: Operator<out Retrievable>, context: Context)
         = CLDExtractor(input, this, field)
 
     /**
@@ -188,18 +188,18 @@ class CLD : Analyser<ImageContent, FloatVectorDescriptor> {
         /* Obtain CLD. */
         val cld = Value.FloatVector(
             floatArrayOf(
-                ycbcrs[0][0].toFloat(),
-                ycbcrs[0][1].toFloat(),
-                ycbcrs[0][2].toFloat(),
-                ycbcrs[0][3].toFloat(),
-                ycbcrs[0][4].toFloat(),
-                ycbcrs[0][5].toFloat(),
-                ycbcrs[1][0].toFloat(),
-                ycbcrs[1][1].toFloat(),
-                ycbcrs[1][2].toFloat(),
-                ycbcrs[2][0].toFloat(),
-                ycbcrs[2][1].toFloat(),
-                ycbcrs[2][2].toFloat()
+                ycbcrs[0][0],
+                ycbcrs[0][1],
+                ycbcrs[0][2],
+                ycbcrs[0][3],
+                ycbcrs[0][4],
+                ycbcrs[0][5],
+                ycbcrs[1][0],
+                ycbcrs[1][1],
+                ycbcrs[1][2],
+                ycbcrs[2][0],
+                ycbcrs[2][1],
+                ycbcrs[2][2]
             )
         )
         return FloatVectorDescriptor(vector = cld)

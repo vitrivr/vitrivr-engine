@@ -4,7 +4,6 @@ import com.google.protobuf.ByteString
 import kotlinx.serialization.json.Json
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.bool.StructBooleanRetriever
-import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
@@ -120,7 +119,7 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      */
     override fun newExtractor(
         field: Schema.Field<ImageContent, LabelDescriptor>,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ): TSImageLabelExtractor {
         val parameters = field.parameters.toMutableMap()
@@ -147,7 +146,7 @@ class TSImageLabel : TorchServe<ImageContent, LabelDescriptor>() {
      */
     override fun newExtractor(
         name: String,
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         context: Context
     ): TSImageLabelExtractor {
         val host = context.getPropertyOrDefault(name, TORCHSERVE_HOST_KEY, "127.0.0.1")

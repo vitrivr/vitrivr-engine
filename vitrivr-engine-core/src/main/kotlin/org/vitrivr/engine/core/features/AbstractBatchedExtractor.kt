@@ -24,13 +24,13 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  */
 abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor<*>> private constructor(
     final override val name: String,
-    final override val input: Operator<Retrievable>,
+    final override val input: Operator<out Retrievable>,
     final override val analyser: Analyser<C, D>,
     final override val field: Schema.Field<C, D>? = null,
     protected val context: Context
 ) : Extractor<C, D> {
 
-    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, field: Schema.Field<C, D>, context: Context) : this(
+    constructor(input: Operator<out Retrievable>, analyser: Analyser<C, D>, field: Schema.Field<C, D>, context: Context) : this(
         field.fieldName,
         input,
         analyser,
@@ -38,7 +38,7 @@ abstract class AbstractBatchedExtractor<C : ContentElement<*>, D : Descriptor<*>
         context
     )
 
-    constructor(input: Operator<Retrievable>, analyser: Analyser<C, D>, name: String, context: Context) : this(
+    constructor(input: Operator<out Retrievable>, analyser: Analyser<C, D>, name: String, context: Context) : this(
         name,
         input,
         analyser,
