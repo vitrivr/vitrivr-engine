@@ -18,11 +18,6 @@ import java.util.*
 
 val logger = KotlinLogging.logger {}
 
-/**
- *
- * @author Ralph Gasser
- * @version 1.0
- */
 class ImageCaptionExtractor : FesExtractor<ImageContent, TextDescriptor> {
 
     constructor(
@@ -76,13 +71,13 @@ class ImageCaptionExtractor : FesExtractor<ImageContent, TextDescriptor> {
         return results
     }
 
-    override fun extract(retrievables: List<Retrievable>): List<List<TextDescriptor>> {
+    override fun extract(batch: List<Retrievable>): List<List<TextDescriptor>> {
 
-        val content = retrievables.map { it.content }
+        val content = batch.map { it.content }
         val imageContents = content.map { it.filterIsInstance<ImageContent>() }
 
-        val texts : List<List<String?>> = content.map { it.filterIsInstance<TextContent>().map { it.content } }.mapIndexed { index, text -> if (text.isEmpty()) {
-            List(imageContents[index].size) { this.context.getProperty(this.name, PROMPT_PARAMETER_NAME)!! }
+        val texts : List<List<String?>> = content.map { it.filterIsInstance<TextContent>().map { c -> c.text } }.mapIndexed { index, text -> if (text.isEmpty()) {
+                List(imageContents[index].size) { this.context[this.name, PROMPT_PARAMETER_NAME]!! }
             } else {
                 if (text.size != 1) {
                     logger.warn { "Text content has more than one element. Only the first element will be used as an image captioning prompt." }
@@ -95,8 +90,8 @@ class ImageCaptionExtractor : FesExtractor<ImageContent, TextDescriptor> {
 
         var index = 0
 
-        return retrievables.map { retrievable ->
-            retrievables.map { it.content }.mapNotNull {
+        return batch.map { retrievable ->
+            batch.map { it.content }.mapNotNull {
                 if (it !is ImageContent) {
                     null
                 } else {

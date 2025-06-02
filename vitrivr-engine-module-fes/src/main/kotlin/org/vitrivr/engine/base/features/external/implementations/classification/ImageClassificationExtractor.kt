@@ -48,14 +48,14 @@ class ImageClassificationExtractor : FesExtractor<ImageContent, LabelDescriptor>
     }
 
 
-    override fun extract(retrievables: List<Retrievable>): List<List<LabelDescriptor>> {
-        val classes = this.parameters[CLASSES_PARAMETER_NAME]?.split(",")
+    override fun extract(batch: List<Retrievable>): List<List<LabelDescriptor>> {
+        val classes = this.context[this.name, CLASSES_PARAMETER_NAME]?.split(",")
             ?: throw IllegalArgumentException("No classes provided.")
 
-        val topK = this.parameters[TOPK_PARAMETER_NAME]?.toInt() ?: 1
-        val threshold = this.parameters[THRESHOLD_PARAMETER_NAME]?.toFloat() ?: 0.0f
+        val topK =  this.context[this.name, TOPK_PARAMETER_NAME]?.toInt() ?: 1
+        val threshold =  this.context[this.name, THRESHOLD_PARAMETER_NAME]?.toFloat() ?: 0.0f
 
-        val content = retrievables.mapIndexed { idx, retrievable ->
+        val content = batch.mapIndexed { idx, retrievable ->
             retrievable.content.filterIsInstance<ImageContent>().map { idx to (it to classes) }
         }.flatten()
 
@@ -63,7 +63,7 @@ class ImageClassificationExtractor : FesExtractor<ImageContent, LabelDescriptor>
             result.mapIndexed { idy, confidence ->
                 LabelDescriptor(
                     UUID.randomUUID(),
-                    retrievables[idx].id,
+                    batch[idx].id,
                     mapOf(
                         "label" to Value.String(classes[idy]),
                         "confidence" to Value.Float(confidence.value.toFloat())

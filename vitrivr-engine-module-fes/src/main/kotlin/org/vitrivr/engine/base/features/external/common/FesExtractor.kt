@@ -24,45 +24,38 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @version 1.1.0
  */
 abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>> : AbstractBatchedExtractor<C, D> {
-
-    protected val context: Context
-
     constructor(
         input: Operator<Retrievable>,
         field: Schema.Field<C, D>,
         analyser: ExternalFesAnalyser<C, D>,
         context: Context
-    ) : super(input, analyser, field, parameters["batchSize"]?.toIntOrNull() ?: 1) {
-        this.parameters = parameters
-    }
+    ) : super(input, analyser, field, context)
 
     constructor(
         input: Operator<Retrievable>,
         name: String,
         analyser: ExternalFesAnalyser<C, D>,
         context: Context
-    ) : super(input, analyser, name, parameters["batchSize"]?.toIntOrNull() ?: 1) {
-        this.parameters = parameters
-    }
+    ) : super(input, analyser, name, context)
 
     protected val host: String
-        get() = this.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
+        get() = this.context[this.name, HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
 
     /** Name of the model that should be used. */
     protected val model: String
-        get() = this.parameters[MODEL_PARAMETER_NAME] ?: throw IllegalStateException("Model parameter not set.")
+        get() = this.context[this.name, MODEL_PARAMETER_NAME] ?: throw IllegalStateException("Model parameter not set.")
 
     /** */
     protected val timeoutMs: Long
-        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull()
+        get() = this.context[this.name, POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull()
             ?: TIMEOUT_MS_PARAMETER_DEFAULT
 
     /** */
     protected val pollingIntervalMs: Long
-        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull()
+        get() = this.context[this.name, POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull()
             ?: POLLINGINTERVAL_MS_PARAMETER_DEFAULT
 
     /** */
     protected val retries: Int
-        get() = parameters[RETRIES_PARAMETER_NAME]?.toIntOrNull() ?: RETRIES_PARAMETER_DEFAULT
+        get() =  this.context[this.name, RETRIES_PARAMETER_NAME]?.toIntOrNull() ?: RETRIES_PARAMETER_DEFAULT
 }
