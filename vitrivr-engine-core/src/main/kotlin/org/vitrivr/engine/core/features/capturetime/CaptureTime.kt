@@ -23,7 +23,7 @@ import java.util.*
 /**
  * Implementation of the [CaptureTime] [Analyser].
  * It configures the [CaptureTimeExtractor] to derive the capture time from [ImageContent]
- * as a [java.time.LocalDateTime], which is then stored wrapped in a [Value.DateTime] object.
+ * as a [java.time.LocalDateTime], which is then stored wrapped in a [org.vitrivr.engine.core.model.types.Value.DateTime] object.
  *
  * @author henrikluemkemann
  * @version 1.2.0

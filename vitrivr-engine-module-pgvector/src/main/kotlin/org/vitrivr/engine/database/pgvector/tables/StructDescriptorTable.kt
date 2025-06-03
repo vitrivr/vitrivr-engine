@@ -15,11 +15,9 @@ import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.database.pgvector.exposed.functions.plainToTsQuery
 import org.vitrivr.engine.database.pgvector.exposed.ops.tsMatches
-import java.sql.Timestamp
 import java.util.*
 import org.jetbrains.exposed.sql.javatime.JavaLocalDateTimeColumnType
 import java.time.LocalDateTime
-import java.time.ZoneId
 import kotlin.reflect.full.primaryConstructor
 import org.vitrivr.engine.database.pgvector.exposed.types.geography
 import org.vitrivr.engine.core.model.query.spatiotemporal.SpatialOperator
@@ -141,7 +139,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
      * Converts a [CompoundAndSpatialQuery] into an Exposed [Query] using PostGIS functions.
      */
     @Suppress("UNCHECKED_CAST")
-    private fun parse(query: CompoundAndSpatialQuery): org.jetbrains.exposed.sql.Query {
+    private fun parse(query: CompoundAndSpatialQuery): Query {
         val allOps: List<Op<Boolean>> = query.conditions.map { condition ->
             val column = this.valueColumns.find { it.name == condition.attributeName } as? Column<String>
                 ?: throw IllegalArgumentException("Spatial query attribute '${condition.attributeName}' not found or not a String-based column in table ${this.tableName}.")

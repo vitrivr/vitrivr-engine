@@ -17,7 +17,6 @@ import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.source.file.FileSource
-import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
 

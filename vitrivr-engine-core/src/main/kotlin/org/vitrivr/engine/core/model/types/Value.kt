@@ -39,7 +39,7 @@ sealed interface Value<T> {
             is LongArray -> LongVector(value)
             is IntArray -> IntVector(value)
             is GeographyValue -> value
-            is java.time.LocalDateTime -> DateTime(value)
+            is LocalDateTime -> DateTime(value)
             is UUID -> UUIDValue(value)
             else -> throw IllegalArgumentException("Unsupported data type.")
         }

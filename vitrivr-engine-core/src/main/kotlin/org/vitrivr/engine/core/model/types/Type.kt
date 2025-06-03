@@ -2,8 +2,6 @@ package org.vitrivr.engine.core.model.types
 
 import kotlinx.serialization.Serializable
 import java.time.LocalDateTime
-import java.util.*
-
 
 /**
  * The [Type]s supported by vitrivr-engine.

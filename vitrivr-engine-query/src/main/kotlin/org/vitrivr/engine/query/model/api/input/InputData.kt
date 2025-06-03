@@ -11,7 +11,6 @@ import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryImageContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryTextContent
 import org.vitrivr.engine.core.util.extension.BufferedImage
-import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -175,12 +174,13 @@ data class DateTimeInputData(val data: String, override val comparison: String? 
                 // First, attempt to parse as LocalDateTime. This will work for most date-time strings
                 return LocalDateTime.parse(this.data, formatter)
             } catch (e: DateTimeParseException) {
+                logger.trace { "LocalDateTime parse failed for '${this.data}' with formatter '${formatter}' -> ${e.message}" }
                 // If LocalDateTime parsing failed, specifically check if this formatter is ISO_LOCAL_DATE.
                 if (formatter == DateTimeFormatter.ISO_LOCAL_DATE) {
                     try {
                         return LocalDate.parse(this.data, formatter).atStartOfDay()
                     } catch (e2: DateTimeParseException) {
-
+                        logger.trace { "Fallback LocalDate parse also failed for '${this.data}' with ISO_LOCAL_DATE -> ${e2.message}" }
                     }
                 }
             }

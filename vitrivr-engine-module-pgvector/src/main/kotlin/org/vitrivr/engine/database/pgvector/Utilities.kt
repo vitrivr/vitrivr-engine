@@ -15,7 +15,6 @@ import org.vitrivr.engine.database.pgvector.tables.AbstractDescriptorTable
 import org.vitrivr.engine.database.pgvector.tables.scalar.*
 import org.vitrivr.engine.database.pgvector.tables.StructDescriptorTable
 import org.vitrivr.engine.database.pgvector.tables.vector.FloatVectorDescriptorTable
-import java.sql.Date
 import java.sql.PreparedStatement
 import java.sql.Timestamp
 

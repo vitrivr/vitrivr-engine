@@ -5,7 +5,6 @@ import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import org.vitrivr.engine.core.model.types.Value
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset

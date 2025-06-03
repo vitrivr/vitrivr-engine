@@ -18,8 +18,6 @@ import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.source.file.FileSource
-import java.text.ParseException
-import java.text.SimpleDateFormat
 import java.util.*
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -49,9 +47,9 @@ private val DATE_FORMATTERS = DATE_FORMAT_PATTERNS.map { DateTimeFormatter.ofPat
 private fun convertDate(date: String): LocalDateTime? {
     for (formatter in DATE_FORMATTERS) {
         try {
-            return LocalDateTime.parse(date, formatter) // CHANGED parsing method
-        } catch (e: DateTimeParseException) { // CHANGED exception type
-            // Try next pattern
+            return LocalDateTime.parse(date, formatter)
+        } catch (e: DateTimeParseException) {
+            logger.trace { "LocalDateTime parse failed for '$date' with formatter '$formatter': ${e.message}" }
         }
     }
     logger.warn { "Failed to parse date string '$date' into LocalDateTime using any known patterns." }
