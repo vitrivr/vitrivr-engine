@@ -1,5 +1,8 @@
 package org.vitrivr.engine.core.features.lsc
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.jpeg.JpegCommentDirectory
 import org.vitrivr.engine.core.features.AbstractExtractor
@@ -25,7 +28,7 @@ import java.util.regex.Pattern
  * The extractor specifically targets the [JpegCommentDirectory] to find this JSON String
  * segment with information on the image.
  * It then parses the 'minute_id' (expected format "yyyyMMdd_HHmm") from the JSON content
- * into a [java.util.Date] and stores it as a [Value.DateTime] in an [AnyMapStructDescriptor].
+ * into a [java.time.LocalDateTime] and stores it as a [Value.DateTime] in an [AnyMapStructDescriptor].
  *
  * If the JPEG comment, the 'minute_id' field, or a valid timestamp is not found, no descriptor is created.
  *
@@ -40,8 +43,10 @@ class LSCTimestampExtractor : AbstractExtractor<ImageContent, AnyMapStructDescri
     companion object {
         /** Regex pattern to find and capture the 'minute_id' value from a JSON string. */
         private val MINUTE_ID_PATTERN = Pattern.compile("\"minute_id\":\"([0-9]{8}_[0-9]{4})\"")
-        /** Date format string for parsing the captured 'minute_id' value. */
-        private const val MINUTE_ID_DATE_FORMAT = "yyyyMMdd_HHmm"
+        /** Date format pattern string for parsing the captured 'minute_id' value. */
+        private const val MINUTE_ID_DATE_FORMAT_PATTERN = "yyyyMMdd_HHmm" // Renamed for clarity
+        /** DateTimeFormatter for parsing the 'minute_id' value using Java Time API. */
+        private val LSC_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern(MINUTE_ID_DATE_FORMAT_PATTERN, Locale.ROOT)
         /** The attribute name used for storing the extracted timestamp in the resulting descriptor. */
         private const val ATTRIBUTE_NAME = "minuteIdTimestamp"
     }
@@ -117,7 +122,7 @@ class LSCTimestampExtractor : AbstractExtractor<ImageContent, AnyMapStructDescri
      * - Reads the file via [FileSource]
      * - Looks for [JpegCommentDirectory] metadata
      * - Extracts the 'minute_id' string using a regex
-     * - Parses it into a [java.util.Date]
+     * - Parses the matched string into a [LocalDateTime].
      * - Returns an [AnyMapStructDescriptor] containing the timestamp
      *
      * If any step fails, a warning is logged and `null` is returned.
@@ -170,23 +175,20 @@ class LSCTimestampExtractor : AbstractExtractor<ImageContent, AnyMapStructDescri
                 return@runCatching null
             }
 
-            val dateFormat = SimpleDateFormat(MINUTE_ID_DATE_FORMAT, Locale.ROOT)
-            dateFormat.isLenient = false
-
-            val parsedJavaUtilDate: Date = try {
-                dateFormat.parse(minuteIdStr)
-            } catch (e: java.text.ParseException) {
-                logger.warn(e) { "LSCTimestampExtractor: Could not parse minute_id string '$minuteIdStr' (from JpegCommentDirectory) for ${r.id}. Skipping descriptor creation." }
+            val parsedLocalDateTime: LocalDateTime = try {
+                LocalDateTime.parse(minuteIdStr, LSC_TIMESTAMP_FORMATTER) // Use DateTimeFormatter
+            } catch (e: DateTimeParseException) { // Catch DateTimeParseException
+                logger.warn(e) { "LSCTimestampExtractor: Could not parse minute_id string '$minuteIdStr' (from JpegCommentDirectory) for ${r.id} into LocalDateTime. Skipping descriptor creation." }
                 return@runCatching null
             }
 
-            logger.info { "LSCTimestampExtractor: Extracted minute_id timestamp for ${r.id} as $parsedJavaUtilDate (from '$minuteIdStr' in JpegCommentDirectory)" }
+            logger.info { "LSCTimestampExtractor: Extracted minute_id timestamp for ${r.id} as $parsedLocalDateTime (from '$minuteIdStr' in JpegCommentDirectory)" }
 
             AnyMapStructDescriptor(
                 id = UUID.randomUUID(),
                 retrievableId = r.id,
                 layout = this.layout,
-                values = mapOf(ATTRIBUTE_NAME to Value.DateTime(parsedJavaUtilDate)),
+                values = mapOf(ATTRIBUTE_NAME to Value.DateTime(parsedLocalDateTime)),
                 field = this.field
             )
         }.getOrElse { e ->

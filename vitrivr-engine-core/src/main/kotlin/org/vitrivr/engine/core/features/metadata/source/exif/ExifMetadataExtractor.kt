@@ -2,7 +2,6 @@ package org.vitrivr.engine.core.features.metadata.source.exif
 
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.Directory
-import com.drew.metadata.exif.GpsDirectory
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.SerializationException
@@ -22,6 +21,10 @@ import org.vitrivr.engine.core.source.file.FileSource
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+import java.util.Locale
 
 val logger: KLogger = KotlinLogging.logger {}
 
@@ -34,14 +37,24 @@ private val DATE_FORMAT_PATTERNS = listOf(
     "MM/dd/yyyy HH:mm:ss"
 )
 
-private fun convertDate(date: String): Date? {
-    for (pattern in DATE_FORMAT_PATTERNS) {
+private val DATE_FORMATTERS = DATE_FORMAT_PATTERNS.map { DateTimeFormatter.ofPattern(it, Locale.ROOT) }
+
+
+/**
+ * Converts a date string to a LocalDateTime object using a list of predefined patterns.
+ *
+ * @param date The date string to parse.
+ * @return A LocalDateTime object if parsing is successful with any pattern, null otherwise.
+ */
+private fun convertDate(date: String): LocalDateTime? {
+    for (formatter in DATE_FORMATTERS) {
         try {
-            return SimpleDateFormat(pattern).parse(date)
-        } catch (e: ParseException) {
+            return LocalDateTime.parse(date, formatter) // CHANGED parsing method
+        } catch (e: DateTimeParseException) { // CHANGED exception type
+            // Try next pattern
         }
     }
-    logger.warn { "Failed to parse date: $date" }
+    logger.warn { "Failed to parse date string '$date' into LocalDateTime using any known patterns." }
     return null
 }
 
@@ -78,7 +91,9 @@ fun Value<*>.convertToType(type: Type): Value<*>? {
             Value.Text(this.value)
         } else null
 
+
         Type.Datetime -> if (this is Value.String) {
+            // convertDate now returns LocalDateTime?, and Value.DateTime() now expects LocalDateTime
             convertDate(this.value)?.let { Value.DateTime(it) }
         } else null
 
@@ -156,7 +171,8 @@ class ExifMetadataExtractor : AbstractExtractor<ContentElement<*>, AnyMapStructD
 private fun convertType(directory: Directory, tagType: Int, type: Type): Value<*>? = when (type) {
     Type.Boolean -> Value.Boolean(directory.getBoolean(tagType))
     Type.Byte -> Value.Byte(directory.getObject(tagType) as Byte)
-    Type.Datetime -> convertDate(directory.getString(tagType))?.let { Value.DateTime(it) }
+    // convertDate now returns LocalDateTime?, and Value.DateTime() now expects LocalDateTime
+    Type.Datetime -> directory.getString(tagType)?.let { convertDate(it)?.let { ldt -> Value.DateTime(ldt) } }
     Type.Double -> Value.Double(directory.getDouble(tagType))
     Type.Float -> Value.Float(directory.getFloat(tagType))
     Type.Int -> Value.Int(directory.getInt(tagType))

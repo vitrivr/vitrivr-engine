@@ -21,15 +21,14 @@ import java.util.*
 
 
 /**
- * Implementation of the [CaptureTime] [Analyser], which derives capture time from [ImageContent] as [java.sql.Timestamp]
+ * Implementation of the [CaptureTime] [Analyser].
+ * It configures the [CaptureTimeExtractor] to derive the capture time from [ImageContent]
+ * as a [java.time.LocalDateTime], which is then stored wrapped in a [Value.DateTime] object.
  *
  * @author henrikluemkemann
- * @version 1.0.0
+ * @version 1.2.0
  */
 class CaptureTime : Analyser<ImageContent, AnyMapStructDescriptor> {
-    companion object {
-        const val FEATURE_NAME = "CaptureTime"
-    }
 
     override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = AnyMapStructDescriptor::class

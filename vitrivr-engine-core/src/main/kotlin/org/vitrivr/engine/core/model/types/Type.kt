@@ -1,6 +1,7 @@
 package org.vitrivr.engine.core.model.types
 
 import kotlinx.serialization.Serializable
+import java.time.LocalDateTime
 import java.util.*
 
 
@@ -145,7 +146,7 @@ sealed interface Type {
     @Serializable
     data object Datetime : Type {
         override val dimensions: kotlin.Int = 1
-        override fun defaultValue(): Value<*> = Value.DateTime(Date())
+        override fun defaultValue(): Value<*> = Value.DateTime(LocalDateTime.now())
     }
 
     /**

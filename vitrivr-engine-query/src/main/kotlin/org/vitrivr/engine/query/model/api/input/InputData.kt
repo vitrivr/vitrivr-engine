@@ -1,5 +1,6 @@
 package org.vitrivr.engine.query.model.api.input
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.openapi.Discriminator
 import io.javalin.openapi.DiscriminatorProperty
 import io.javalin.openapi.OneOf
@@ -11,6 +12,10 @@ import org.vitrivr.engine.core.model.content.impl.memory.InMemoryImageContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryTextContent
 import org.vitrivr.engine.core.util.extension.BufferedImage
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import java.util.*
 
 /**
@@ -26,7 +31,7 @@ import java.util.*
         RetrievableIdInputData::class,
         BooleanInputData::class,
         NumericInputData::class,
-        DateInputData::class,
+        DateTimeInputData::class,
     ]
 )
 sealed class InputData() {
@@ -128,22 +133,60 @@ data class NumericInputData(val data: Double, override val comparison: String? =
     }
 }
 
+
+
 /**
- * [InputData] for a date.
- * Cannot be converted to a [ContentElement]
+ * [InputData] for a date, expected to be parsed as [LocalDateTime].
+ * Cannot be converted to a [ContentElement].
  */
 @Serializable
-data class DateInputData(val data: String, override val comparison: String? = "==") : InputData() {
-    override val type = InputType.DATE
-    override fun toContent(): ContentElement<*> {throw UnsupportedOperationException("Cannot derive content from DateInputData")}
+data class DateTimeInputData(val data: String, override val comparison: String? = "==") : InputData() {
+    override val type = InputType.DATETIME
+
+    override fun toContent(): ContentElement<*> {
+        throw UnsupportedOperationException("Cannot derive content from DateTimeInputData")
+    }
+
+    companion object {
+        private val logger = KotlinLogging.logger {}
+        private val DATE_TIME_FORMATTERS: List<DateTimeFormatter> = listOf(
+
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.SSSSSSSSS][.SSSSSS][.SSSSS][.SSSS][.SSS][.SS][.S]", Locale.ROOT),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss[.SSSSSSSSS][.SSSSSS][.SSSSS][.SSSS][.SSS][.SS][.S]", Locale.ROOT),
+            DateTimeFormatter.ofPattern("yyyy:MM:dd HH:mm:ss[.SSSSSSSSS][.SSSSSS][.SSSSS][.SSSS][.SSS][.SS][.S]", Locale.ROOT),
+
+            DateTimeFormatter.ISO_LOCAL_DATE_TIME,
+            DateTimeFormatter.ISO_LOCAL_DATE,
+
+            DateTimeFormatter.ofPattern("yyyyMMdd_HHmm", Locale.ROOT) // LSC minute_id format in case user copies that
+        )
+    }
 
     /**
-     * Parses the input in YYYY-mm-dd format.
+     * Parses the input 'data' string into a [LocalDateTime].
+     * It tries a list of common date-time patterns.
+     * If a date-only string (e.g., "2023-01-15") is parsed, it defaults to the start of that day (00:00:00).
+     *
+     * @return The parsed [LocalDateTime], or null if parsing fails with all known patterns.
      */
-    fun parseDate(): Date {
-        val formatter = SimpleDateFormat("YYYY-mm-dd", Locale.ENGLISH)
-        return formatter.parse(data)
+    fun toLocalDateTime(): LocalDateTime? {
+        for (formatter in DATE_TIME_FORMATTERS) {
+            try {
+                // First, attempt to parse as LocalDateTime. This will work for most date-time strings
+                return LocalDateTime.parse(this.data, formatter)
+            } catch (e: DateTimeParseException) {
+                // If LocalDateTime parsing failed, specifically check if this formatter is ISO_LOCAL_DATE.
+                if (formatter == DateTimeFormatter.ISO_LOCAL_DATE) {
+                    try {
+                        return LocalDate.parse(this.data, formatter).atStartOfDay()
+                    } catch (e2: DateTimeParseException) {
+
+                    }
+                }
+            }
+        }
+        // If all formatters have been tried and none succeeded:
+        logger.warn { "Failed to parse date string '${this.data}' into LocalDateTime using any predefined patterns." }
+        return null
     }
 }
-
-

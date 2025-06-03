@@ -24,7 +24,7 @@ import java.util.*
 /**
  *
  * This analyser relies on [LSCTimestampExtractor] to parse the 'minute_id' from image metadata.
- * The extracted date is of type [java.util.Date] and is stored using [Value.DateTime].
+ * The extracted date is of type [java.time.LocalDateTime] and is stored using [Value.DateTime].
  *
  * @author henrikluemkemann
  * @version 1.0.1
@@ -45,7 +45,7 @@ class LSCTimestamp : Analyser<ImageContent, AnyMapStructDescriptor> {
 
     /**
      * Defines the structure of the descriptor: an attribute named [ATTRIBUTE_NAME]
-     * of type [Type.Datetime], which will hold a [java.util.Date].
+     * of type [Type.Datetime], which will hold a [java.time.LocalDateTime].
      */
     private val layout = listOf(
         Attribute(ATTRIBUTE_NAME, Type.Datetime)

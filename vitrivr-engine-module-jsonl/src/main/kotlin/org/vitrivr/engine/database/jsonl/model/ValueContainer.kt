@@ -1,7 +1,7 @@
 package org.vitrivr.engine.database.jsonl.model
 
 import kotlinx.serialization.Serializable
-import org.vitrivr.engine.core.model.serializer.DateSerializer
+import org.vitrivr.engine.core.model.serializer.DateTimeSerializer
 import org.vitrivr.engine.core.model.serializer.UUIDSerializer
 import org.vitrivr.engine.core.model.types.Value
 import java.time.LocalDateTime
@@ -14,6 +14,7 @@ sealed class ValueContainer {
         fun fromValue(value: Value<*>): ValueContainer = when (value) {
             is Value.Boolean -> BooleanValueContainer(value.value)
             is Value.Byte -> ByteValueContainer(value.value)
+            // Value.DateTime now wraps LocalDateTime, so value.value is LocalDateTime
             is Value.DateTime -> DateTimeValueContainer(value.value)
             is Value.Double -> DoubleValueContainer(value.value)
             is Value.Float -> FloatValueContainer(value.value)
@@ -47,9 +48,8 @@ class ByteValueContainer(private val value: Byte) : ValueContainer() {
 }
 
 @Serializable
-class DateTimeValueContainer(@Serializable(DateSerializer::class) private val value: Date) :
-    ValueContainer() {
-    override fun toValue(): Value<Date> = Value.DateTime(value)
+class DateTimeValueContainer(@Serializable(DateTimeSerializer::class) private val value: LocalDateTime) : ValueContainer() {
+    override fun toValue(): Value<LocalDateTime> = Value.DateTime(value)
 }
 
 

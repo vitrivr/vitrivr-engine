@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.model.types
 
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.serializer.DateTimeSerializer
+import java.time.LocalDateTime
 import java.util.*
 
 
@@ -38,7 +39,7 @@ sealed interface Value<T> {
             is LongArray -> LongVector(value)
             is IntArray -> IntVector(value)
             is GeographyValue -> value
-            is Date -> DateTime(value)
+            is java.time.LocalDateTime -> DateTime(value)
             is UUID -> UUIDValue(value)
             else -> throw IllegalArgumentException("Unsupported data type.")
         }
@@ -127,10 +128,10 @@ sealed interface Value<T> {
 
     @JvmInline
     @Serializable(with = DateTimeSerializer::class)
-    value class DateTime(override val value: Date) : ScalarValue<Date> {
+    value class DateTime(override val value: LocalDateTime) : ScalarValue<LocalDateTime> {
         override val type: Type
             get() = Type.Datetime
-        override fun compareTo(other: ScalarValue<Date>) = this.value.compareTo(other.value)
+        override fun compareTo(other: ScalarValue<LocalDateTime>) = this.value.compareTo(other.value)
     }
 
     @Serializable

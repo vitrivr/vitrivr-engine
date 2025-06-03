@@ -100,10 +100,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
                 values[attribute.name] = when (attribute.type) {
                     Type.Boolean -> Value.Boolean(value as Boolean)
                     Type.Byte -> Value.Byte(value as Byte)
-                    Type.Datetime -> when (value) {
-                        is Date              -> Value.DateTime(value)
-                        else -> throw IllegalArgumentException("Unsupported date/time type: ${value::class.simpleName}")
-                    }
+                    Type.Datetime -> Value.DateTime(value as LocalDateTime)
                     Type.Double -> Value.Double(value as Double)
                     Type.Float -> Value.Float(value as Float)
                     Type.Int -> Value.Int(value as Int)
@@ -159,7 +156,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
             val referenceWkt = condition.referenceGeography.wkt
             val referenceSrid = condition.referenceGeography.srid
 
-            val referenceGeogExpression = CustomFunction<String?>( // Exposed treats our GeographyColumnType as handling String
+            val referenceGeogExpression = CustomFunction<String?>(
                 "ST_GeogFromText",
                 column.columnType, // Use the target column's IColumnType
                 stringParam(referenceWkt),
@@ -183,25 +180,25 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
                     CustomFunction<Boolean>(
                         "ST_Intersects", BooleanColumnType(),
                         column, referenceGeogExpression
-                    ) eq true // <--- Make it an Op<Boolean>
+                    ) eq true
                 }
                 SpatialOperator.CONTAINS -> {
                     CustomFunction<Boolean>(
                         "ST_Contains", BooleanColumnType(),
                         column, referenceGeogExpression
-                    ) eq true // <--- Make it an Op<Boolean>
+                    ) eq true
                 }
                 SpatialOperator.WITHIN -> {
                     CustomFunction<Boolean>(
                         "ST_Within", BooleanColumnType(),
                         column, referenceGeogExpression
-                    ) eq true // <--- Make it an Op<Boolean>
+                    ) eq true
                 }
                 SpatialOperator.EQUALS -> { // Spatial equality
                     CustomFunction<Boolean>(
                         "ST_Equals", BooleanColumnType(),
                         column, referenceGeogExpression
-                    ) eq true // <--- Make it an Op<Boolean>
+                    ) eq true
                 }
             }
         }
@@ -261,20 +258,30 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
     @Suppress("UNCHECKED_CAST")
     override fun InsertStatement<*>.setValue(d: D) {
         val values = d.values()
-        for (c in this@StructDescriptorTable.valueColumns) {
-            val value = values[c.name]?.value
-            this[c as Column<Any?>] = when {
-                // already a LocalDateTime → pass through
-                value is LocalDateTime && c.columnType is JavaLocalDateTimeColumnType -> value
+        for (columnInTable in this@StructDescriptorTable.valueColumns) {
+            val rawValueFromDescriptor = values[columnInTable.name]?.value
+            val targetColumn = columnInTable as Column<Any?>
 
-                // JDBC Timestamp → to LocalDateTime
-                value is Timestamp && c.columnType is JavaLocalDateTimeColumnType -> value.toLocalDateTime()
-
-                // legacy java.util.Date → convert via Instant
-                value is Date && c.columnType is JavaLocalDateTimeColumnType ->
-                    LocalDateTime.ofInstant(value.toInstant(), ZoneId.systemDefault())
-
-                else -> value
+            this[targetColumn] = if (rawValueFromDescriptor == null) {
+                null
+            } else {
+                // If the column is defined as a LocalDateTime type in Exposed
+                if (targetColumn.columnType is JavaLocalDateTimeColumnType) {
+                    // We now strictly expect rawValueFromDescriptor to be LocalDateTime
+                    if (rawValueFromDescriptor is LocalDateTime) {
+                        rawValueFromDescriptor
+                    } else {
+                        // We face inconsistency: the Value system or descriptor provided a non-LocalDateTime for a Datetime attribute.
+                        throw IllegalStateException(
+                            "Type mismatch for datetime column '${targetColumn.name}'. " +
+                                    "Expected LocalDateTime from descriptor, but got ${rawValueFromDescriptor::class.simpleName}. " +
+                                    "This indicates an issue with descriptor creation or the Value system."
+                        )
+                    }
+                } else {
+                    // For all other column types, pass the raw value.
+                    rawValueFromDescriptor
+                }
             }
         }
     }
@@ -287,20 +294,25 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
     @Suppress("UNCHECKED_CAST")
     override fun BatchInsertStatement.setValue(d: D) {
         val values = d.values()
-        for (c in this@StructDescriptorTable.valueColumns) {
-            val value = values[c.name]?.value
-            this[c as Column<Any?>] = when {
-                // already a LocalDateTime → pass through
-                value is LocalDateTime && c.columnType is JavaLocalDateTimeColumnType -> value
+        for (columnInTable in this@StructDescriptorTable.valueColumns) {
+            val rawValueFromDescriptor = values[columnInTable.name]?.value
+            val targetColumn = columnInTable as Column<Any?>
 
-                // JDBC Timestamp → to LocalDateTime
-                value is Timestamp && c.columnType is JavaLocalDateTimeColumnType -> value.toLocalDateTime()
-
-                // legacy java.util.Date → convert via Instant
-                value is Date && c.columnType is JavaLocalDateTimeColumnType ->
-                    LocalDateTime.ofInstant(value.toInstant(), ZoneId.systemDefault())
-
-                else -> value
+            this[targetColumn] = if (rawValueFromDescriptor == null) {
+                null
+            } else {
+                if (targetColumn.columnType is JavaLocalDateTimeColumnType) {
+                    if (rawValueFromDescriptor is LocalDateTime) {
+                        rawValueFromDescriptor
+                    } else {
+                        throw IllegalStateException(
+                            "Type mismatch for datetime column '${targetColumn.name}'. " +
+                                    "Expected LocalDateTime, got ${rawValueFromDescriptor::class.simpleName}."
+                        )
+                    }
+                } else {
+                    rawValueFromDescriptor
+                }
             }
         }
     }
@@ -313,20 +325,25 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
     @Suppress("UNCHECKED_CAST")
     override fun UpdateStatement.setValue(d: D) {
         val values = d.values()
-        for (c in this@StructDescriptorTable.valueColumns) {
-            val value = values[c.name]?.value
-            this[c as Column<Any?>] = when {
-                // already a LocalDateTime → pass through
-                value is LocalDateTime && c.columnType is JavaLocalDateTimeColumnType -> value
+        for (columnInTable in this@StructDescriptorTable.valueColumns) {
+            val rawValueFromDescriptor = values[columnInTable.name]?.value
+            val targetColumn = columnInTable as Column<Any?>
 
-                // JDBC Timestamp → to LocalDateTime
-                value is Timestamp && c.columnType is JavaLocalDateTimeColumnType -> value.toLocalDateTime()
-
-                // legacy java.util.Date → convert via Instant
-                value is Date && c.columnType is JavaLocalDateTimeColumnType ->
-                    LocalDateTime.ofInstant(value.toInstant(), ZoneId.systemDefault())
-
-                else -> value
+            this[targetColumn] = if (rawValueFromDescriptor == null) {
+                null
+            } else {
+                if (targetColumn.columnType is JavaLocalDateTimeColumnType) {
+                    if (rawValueFromDescriptor is LocalDateTime) {
+                        rawValueFromDescriptor
+                    } else {
+                        throw IllegalStateException(
+                            "Type mismatch for datetime column '${targetColumn.name}'. " +
+                                    "Expected LocalDateTime, got ${rawValueFromDescriptor::class.simpleName}."
+                        )
+                    }
+                } else {
+                    rawValueFromDescriptor
+                }
             }
         }
     }

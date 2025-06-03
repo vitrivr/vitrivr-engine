@@ -3,7 +3,6 @@ package org.vitrivr.engine.core.features.capturetime
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.exif.ExifIFD0Directory
 import com.drew.metadata.exif.ExifSubIFDDirectory
-import com.drew.metadata.jpeg.JpegCommentDirectory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.model.content.ContentType
@@ -17,6 +16,8 @@ import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.source.file.FileSource
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.*
 
 val logger = KotlinLogging.logger {}
@@ -76,25 +77,28 @@ class CaptureTimeExtractor : AbstractExtractor<ImageContent, AnyMapStructDescrip
             val subIFD = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory::class.java)
             val ifd0 = metadata.getFirstDirectoryOfType(ExifIFD0Directory::class.java)
 
-            val chosenTimestamp: Date? = listOfNotNull(
+            val chosenJavaUtilDate: Date? = listOfNotNull(
                 subIFD?.getDateOriginal(),
                 subIFD?.getDateDigitized(),
                 ifd0?.getDate(ExifIFD0Directory.TAG_DATETIME)
             ).firstOrNull()
 
             // if no timestamp is found -> return null
-            if (chosenTimestamp == null) {
+            if (chosenJavaUtilDate == null) {
                 logger.debug { "CaptureTimeExtractor: no timestamp found in metadata for ${r.id}. Skipping descriptor creation." }
                 return@runCatching null // Return null from the runCatching lambda
             }
 
-            logger.info { "CaptureTimeExtractor: ${r.id} → $chosenTimestamp" }
+
+            val chosenLocalDateTime: LocalDateTime = chosenJavaUtilDate.toInstant().atZone(ZoneOffset.UTC).toLocalDateTime()
+
+            logger.info { "CaptureTimeExtractor: ${r.id} → $chosenLocalDateTime (converted from $chosenJavaUtilDate)" }
 
             AnyMapStructDescriptor(
                 UUID.randomUUID(),
                 r.id,
                 layout,
-                mapOf("timestamp" to Value.DateTime(chosenTimestamp)), // Use Value.DateTime for java.util.Date
+                mapOf("timestamp" to Value.DateTime(chosenLocalDateTime)),
                 this.field
             )
         }.getOrElse { e ->

@@ -102,8 +102,10 @@ internal fun Any.toCottontailValue(): PublicValue = when (this)  {
     is Long -> LongValue(this)
     is Float -> FloatValue(this)
     is Double -> DoubleValue(this)
+
     is Date -> DateValue(this)
-    is LocalDateTime -> DateValue(Date.from(this.atOffset(ZoneOffset.UTC).toInstant()))
+    is LocalDateTime -> DateValue(Date.from(this.toInstant(ZoneOffset.UTC)))
+
     is Value.Boolean -> BooleanValue(this.value)
     is Value.Byte -> ByteValue(this.value)
     is Value.Double -> DoubleValue(this.value)
@@ -112,7 +114,7 @@ internal fun Any.toCottontailValue(): PublicValue = when (this)  {
     is Value.Long -> LongValue(this.value)
     is Value.Short -> ShortValue(this.value)
     is Value.String -> StringValue(this.value)
-    is Value.DateTime -> DateValue(this.value)
+    is Value.DateTime -> DateValue(Date.from(this.value.toInstant(ZoneOffset.UTC)))
     is Value.GeographyValue -> StringValue(this.wkt)
 
     else -> throw IllegalArgumentException("Unsupported type for vector value.")
@@ -133,7 +135,7 @@ internal fun Value<*>.toCottontailValue(): PublicValue = when (this) {
     is Value.Short -> ShortValue(this.value)
     is Value.String -> StringValue(this.value)
     is Value.Text -> StringValue(this.value)
-    is Value.DateTime -> DateValue(this.value)
+    is Value.DateTime -> DateValue(Date.from(this.value.toInstant(ZoneOffset.UTC)))
     is Value.UUIDValue -> UuidValue(this.value)
     is Value.GeographyValue -> StringValue(this.wkt)
     is Value.BooleanVector -> BooleanVectorValue(this.value)

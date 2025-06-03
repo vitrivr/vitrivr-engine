@@ -17,6 +17,7 @@ import org.vitrivr.engine.database.pgvector.tables.StructDescriptorTable
 import org.vitrivr.engine.database.pgvector.tables.vector.FloatVectorDescriptorTable
 import java.sql.Date
 import java.sql.PreparedStatement
+import java.sql.Timestamp
 
 
 /**
@@ -57,7 +58,10 @@ internal fun SortOrder.toSql() = when (this) {
 internal fun PreparedStatement.setValue(index: Int, value: Value<*>) = when (value) {
     is Value.Boolean -> this.setBoolean(index, value.value)
     is Value.Byte -> this.setByte(index, value.value)
-    is Value.DateTime -> this.setDate(index, Date(value.value.toInstant().toEpochMilli()))
+    is Value.DateTime -> {
+        val localDateTime = value.value
+        this.setTimestamp(index, Timestamp.valueOf(localDateTime)) // Use Timestamp.valueOf(LocalDateTime)
+    }
     is Value.Double -> this.setDouble(index, value.value)
     is Value.Float -> this.setFloat(index, value.value)
     is Value.Int -> this.setInt(index, value.value)
