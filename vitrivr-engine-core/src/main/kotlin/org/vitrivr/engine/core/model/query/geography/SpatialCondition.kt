@@ -1,5 +1,4 @@
-// Suggested location: org/vitrivr/engine/core/model/query/spatial/SpatialCondition.kt
-package org.vitrivr.engine.core.model.query.spatiotemporal
+package org.vitrivr.engine.core.model.query.geography
 
 import org.vitrivr.engine.core.model.types.Value
 import kotlinx.serialization.Serializable

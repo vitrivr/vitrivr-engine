@@ -1,5 +1,5 @@
 // Suggested location: org/vitrivr/engine/core/model/query/spatial/SpatialOperator.kt
-package org.vitrivr.engine.core.model.query.spatiotemporal
+package org.vitrivr.engine.core.model.query.geography
 
 import kotlinx.serialization.Serializable
 

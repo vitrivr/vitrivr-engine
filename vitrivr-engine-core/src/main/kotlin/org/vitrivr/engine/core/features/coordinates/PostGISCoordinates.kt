@@ -11,7 +11,6 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
-import org.vitrivr.engine.core.model.query.spatiotemporal.CompoundAndSpatialQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
@@ -125,11 +124,6 @@ class PostGISCoordinates : Analyser<ImageContent, AnyMapStructDescriptor> {
         val targetAttributeName = field.fieldName
 
         return when (query) {
-            is CompoundAndSpatialQuery -> {
-                throw UnsupportedOperationException(
-                    "CompoundAndSpatialQuery for field '$targetAttributeName' requires a dedicated SpatialQueryRetriever."
-                )
-            }
             is SimpleBooleanQuery<*> -> {
                 // The SimpleBooleanQuery's attributeName should match our targetAttributeName
                 if (query.attributeName == targetAttributeName &&
