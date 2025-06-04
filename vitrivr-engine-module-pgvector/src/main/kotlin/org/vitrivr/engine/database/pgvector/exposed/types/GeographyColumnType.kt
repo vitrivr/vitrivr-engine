@@ -1,11 +1,10 @@
-package org.vitrivr.engine.database.pgvector.exposed.types // Correct package location
+package org.vitrivr.engine.database.pgvector.exposed.types
 
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.ColumnType
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.statements.api.PreparedStatementApi
-import org.postgresql.util.PGobject // Required for handling PostGIS types if returned as PGobject
-// java.sql.Types is not strictly needed for this version of setParameter
+import org.postgresql.util.PGobject
 
 class GeographyColumnType(
     private val srid: Int = 4326,
@@ -49,12 +48,12 @@ class GeographyColumnType(
      * especially in some batch insert scenarios or DDL defaults.
      */
     override fun nonNullValueToString(value: String): String {
-        val escapedWkt = value.replace("'", "''") // Escape single quotes
+        val escapedWkt = value.replace("'", "''")
         return "ST_GeogFromText('$escapedWkt', $srid)" // Use SRID from the class instance
     }
 
     override fun valueToString(value: String?): String =
-        value?.let { nonNullValueToString(it) } ?: super.valueToString(value) // Default null handling uses nonNullValueToString
+        value?.let { nonNullValueToString(it) } ?: super.valueToString(value)
 }
 
 // Table.geography(...) extension function remains the same

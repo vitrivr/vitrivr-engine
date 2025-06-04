@@ -1,8 +1,5 @@
-package org.vitrivr.engine.core.features.lsc
+package org.vitrivr.engine.module.features.feature.lsc.timestamp
 
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.jpeg.JpegCommentDirectory
 import org.vitrivr.engine.core.features.AbstractExtractor
@@ -17,24 +14,29 @@ import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.source.file.FileSource
-import java.util.*
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+import java.util.Locale
+import java.util.UUID
 import java.util.regex.Pattern
 
 /**
  * An [AbstractExtractor] implementation that extracts a timestamp derived from the 'minute_id'
  * found within a JSON string in the JPEG Comment (COM segment) of image files in the LSC Dataset.
  *
- * The extractor specifically targets the [JpegCommentDirectory] to find this JSON String
+ * The extractor specifically targets the [com.drew.metadata.jpeg.JpegCommentDirectory] to find this JSON String
  * segment with information on the image.
  * It then parses the 'minute_id' (expected format "yyyyMMdd_HHmm") from the JSON content
- * into a [java.time.LocalDateTime] and stores it as a [Value.DateTime] in an [AnyMapStructDescriptor].
+ * into a [LocalDateTime] and stores it as a [Value.DateTime] in an [AnyMapStructDescriptor].
  *
  * If the JPEG comment, the 'minute_id' field, or a valid timestamp is not found, no descriptor is created.
  *
  * @author henrikluemkemann
  * @version 1.0.1
  */
-class LSCTimestampExtractor : AbstractExtractor<ImageContent, AnyMapStructDescriptor> {
+class LSCTimestampExtractor :
+    AbstractExtractor<ImageContent, AnyMapStructDescriptor> {
 
     /**
      * Companion object holding constants used by the [LSCTimestampExtractor].
@@ -54,7 +56,7 @@ class LSCTimestampExtractor : AbstractExtractor<ImageContent, AnyMapStructDescri
      * Primary constructor for creating an [LSCTimestampExtractor] associated with a specific schema field.
      *
      * @param input The [Operator] that provides [Retrievable]s to this extractor.
-     * @param analyser The [LSCTimestamp] analyser instance that configured this extractor.
+     * @param analyser The [org.vitrivr.engine.core.features.lsc.LSCTimestamp] analyser instance that configured this extractor.
      * @param field The [Schema.Field] definition for which this extractor produces descriptors.
      */
     constructor(
@@ -67,7 +69,7 @@ class LSCTimestampExtractor : AbstractExtractor<ImageContent, AnyMapStructDescri
      * Secondary constructor for creating an [LSCTimestampExtractor] identified by a name.
      *
      * @param input The [Operator] that provides [Retrievable]s to this extractor.
-     * @param analyser The [LSCTimestamp] analyser instance that configured this extractor.
+     * @param analyser The [org.vitrivr.engine.core.features.lsc.LSCTimestamp] analyser instance that configured this extractor.
      * @param name The name identifying this extractor instance.
      */
     constructor(
@@ -80,7 +82,12 @@ class LSCTimestampExtractor : AbstractExtractor<ImageContent, AnyMapStructDescri
      * The layout of the [AnyMapStructDescriptor] produced by this extractor.
      * It defines a single attribute named by [ATTRIBUTE_NAME] of type [Type.Datetime].
      */
-    private val layout = listOf(Attribute(ATTRIBUTE_NAME, Type.Datetime))
+    private val layout = listOf(
+        Attribute(
+            ATTRIBUTE_NAME,
+            Type.Datetime
+        )
+    )
 
     /**
      * Checks if a given [Retrievable] can be processed by this extractor.
@@ -92,7 +99,8 @@ class LSCTimestampExtractor : AbstractExtractor<ImageContent, AnyMapStructDescri
      */
     override fun matches(r: Retrievable): Boolean =
         r.content.any { it.type == ContentType.BITMAP_IMAGE } &&
-                r.filteredAttribute(SourceAttribute::class.java)?.source is FileSource
+                r.filteredAttribute(
+                    SourceAttribute::class.java)?.source is FileSource
 
     /**
      * Extracts 'minute_id' timestamp information from each [ImageContent] element of a [Retrievable].
@@ -119,7 +127,7 @@ class LSCTimestampExtractor : AbstractExtractor<ImageContent, AnyMapStructDescri
      *
      * The extractor:
      * - Reads the file via [FileSource]
-     * - Looks for [JpegCommentDirectory] metadata
+     * - Looks for [com.drew.metadata.jpeg.JpegCommentDirectory] metadata
      * - Extracts the 'minute_id' string using a regex
      * - Parses the matched string into a [LocalDateTime].
      * - Returns an [AnyMapStructDescriptor] containing the timestamp
@@ -130,7 +138,8 @@ class LSCTimestampExtractor : AbstractExtractor<ImageContent, AnyMapStructDescri
      * @return A populated [AnyMapStructDescriptor] or `null` on failure.
      */
     private fun descriptorFor(r: Retrievable): AnyMapStructDescriptor? {
-        val src = r.filteredAttribute(SourceAttribute::class.java)?.source as? FileSource
+        val src = r.filteredAttribute(
+            SourceAttribute::class.java)?.source as? FileSource
             ?: run {
                 logger.debug { "LSCTimestampExtractor: No FileSource for retrievable ${r.id}. Skipping descriptor creation." }
                 return null
@@ -187,7 +196,11 @@ class LSCTimestampExtractor : AbstractExtractor<ImageContent, AnyMapStructDescri
                 id = UUID.randomUUID(),
                 retrievableId = r.id,
                 layout = this.layout,
-                values = mapOf(ATTRIBUTE_NAME to Value.DateTime(parsedLocalDateTime)),
+                values = mapOf(
+                    ATTRIBUTE_NAME to Value.DateTime(
+                        parsedLocalDateTime
+                    )
+                ),
                 field = this.field
             )
         }.getOrElse { e ->

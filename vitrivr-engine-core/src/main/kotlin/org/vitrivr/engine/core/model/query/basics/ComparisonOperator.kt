@@ -34,8 +34,8 @@ enum class ComparisonOperator(val value: String) {
                 is Value.Short -> v1.value < (v2.value as Short)
                 is Value.Text -> v1.value < (v2.value as String)
                 is Value.UUIDValue -> v1.value < (v2.value as UUID)
-                // This approach is for experimenting purposes, specific operators should be implemented in the future.
-                is Value.GeographyValue -> {
+                // This approach is for experimenting purposes, specific operators will be implemented in the future.
+                is Value.GeographyValue -> { // TODO either take out or find better comparison
                     val p1 = extractPointCoordinates(v1)
                     val p2 = extractPointCoordinates(v2)
                     if (p1 != null && p2 != null) {
@@ -68,7 +68,7 @@ enum class ComparisonOperator(val value: String) {
                 is Value.Short -> v1.value > (v2.value as Short)
                 is Value.Text -> v1.value > (v2.value as String)
                 is Value.UUIDValue -> v1.value > (v2.value as UUID)
-                is Value.GeographyValue -> {
+                is Value.GeographyValue -> { // TODO either take out or find better comparison
                     val p1 = extractPointCoordinates(v1)
                     val p2 = extractPointCoordinates(v2)
                     if (p1 != null && p2 != null) {
@@ -101,7 +101,7 @@ enum class ComparisonOperator(val value: String) {
                 is Value.Short -> v1.value <= (v2.value as Short)
                 is Value.Text -> v1.value <= (v2.value as String)
                 is Value.UUIDValue -> v1.value <= (v2.value as UUID)
-                is Value.GeographyValue -> {
+                is Value.GeographyValue -> { // TODO either take out or find better comparison
                     val p1 = extractPointCoordinates(v1)
                     val p2 = extractPointCoordinates(v2)
                     if (p1 != null && p2 != null) {
@@ -136,7 +136,7 @@ enum class ComparisonOperator(val value: String) {
                 is Value.Short -> v1.value >= (v2.value as Short)
                 is Value.Text -> v1.value >= (v2.value as String)
                 is Value.UUIDValue -> v1.value <= (v2.value as UUID)
-                is Value.GeographyValue -> {
+                is Value.GeographyValue -> { // TODO either take out or find better comparison
                     val p1 = extractPointCoordinates(v1)
                     val p2 = extractPointCoordinates(v2)
                     if (p1 != null && p2 != null) {

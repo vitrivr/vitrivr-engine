@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.features.coordinates
+package org.vitrivr.engine.module.features.feature.lsc.coordinates
 
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.jpeg.JpegCommentDirectory
@@ -20,6 +20,8 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.source.file.FileSource
 import java.util.*
+import kotlin.text.contains
+import kotlin.text.take
 
 val logger: KLogger = KotlinLogging.logger { }
 
@@ -58,7 +60,7 @@ class CoordinatesExtractor : AbstractExtractor<ImageContent, AnyMapStructDescrip
      * @param retrievable The [Retrievable] from which the coordinates should be extracted.
      * @return A list of [AnyMapStructDescriptor]s representing extracted coordinates
      */
-    override fun extract(retrievable: Retrievable): List<AnyMapStructDescriptor> {
+    public override fun extract(retrievable: Retrievable): List<AnyMapStructDescriptor> {
         logger.trace { "CoordinatesExtractor: Starting extraction for retrievable ${retrievable.id}" }
 
         val imageContents = retrievable.content.filterIsInstance<ImageContent>()

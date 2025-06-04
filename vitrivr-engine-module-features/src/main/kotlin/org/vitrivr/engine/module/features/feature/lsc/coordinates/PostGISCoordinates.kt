@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.features.coordinates
+package org.vitrivr.engine.module.features.feature.lsc.coordinates
 
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
@@ -28,7 +28,7 @@ import kotlin.reflect.KClass
  * and stores them as a single PostGIS-compatible geography value (POINT WKT) in an [AnyMapStructDescriptor].
  *
  * @author henrikluemkemann
- * @version 1.0.0
+ * @version 1.1.0
  */
 class PostGISCoordinates : Analyser<ImageContent, AnyMapStructDescriptor> {
 

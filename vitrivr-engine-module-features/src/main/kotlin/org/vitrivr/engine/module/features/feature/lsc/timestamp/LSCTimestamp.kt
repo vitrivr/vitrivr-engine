@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.features.lsc
+package org.vitrivr.engine.module.features.feature.lsc.timestamp
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.context.IndexContext
@@ -10,16 +10,16 @@ import org.vitrivr.engine.core.model.descriptor.struct.AnyMapStructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
 import org.vitrivr.engine.core.model.query.bool.BooleanQuery
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
-import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
-import java.util.*
+import java.util.UUID
 
 /**
  *
@@ -29,7 +29,8 @@ import java.util.*
  * @author henrikluemkemann
  * @version 1.0.1
  */
-class LSCTimestamp : Analyser<ImageContent, AnyMapStructDescriptor> {
+class LSCTimestamp :
+    Analyser<ImageContent, AnyMapStructDescriptor> {
 
     private val logger = KotlinLogging.logger {}
 
@@ -40,7 +41,8 @@ class LSCTimestamp : Analyser<ImageContent, AnyMapStructDescriptor> {
         internal const val ATTRIBUTE_NAME = "minuteIdTimestamp"
     }
 
-    override val contentClasses = setOf(ImageContent::class)
+    override val contentClasses = setOf(
+        ImageContent::class)
     override val descriptorClass = AnyMapStructDescriptor::class
 
     /**
@@ -48,7 +50,10 @@ class LSCTimestamp : Analyser<ImageContent, AnyMapStructDescriptor> {
      * of type [Type.Datetime], which will hold a [java.time.LocalDateTime].
      */
     private val layout = listOf(
-        Attribute(ATTRIBUTE_NAME, Type.Datetime)
+        Attribute(
+            ATTRIBUTE_NAME,
+            Type.Datetime
+        )
     )
 
     /**
@@ -57,13 +62,16 @@ class LSCTimestamp : Analyser<ImageContent, AnyMapStructDescriptor> {
      * @param field [Schema.Field] to create the prototype for.
      * @return [AnyMapStructDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>): AnyMapStructDescriptor = AnyMapStructDescriptor(
-        id = UUID.randomUUID(),
-        retrievableId = UUID.randomUUID(),
-        layout = this.layout,
-        values = mapOf(ATTRIBUTE_NAME to Type.Datetime.defaultValue()),
-        field = null
-    )
+    override fun prototype(field: Schema.Field<*, *>): AnyMapStructDescriptor =
+        AnyMapStructDescriptor(
+            id = UUID.randomUUID(),
+            retrievableId = UUID.randomUUID(),
+            layout = this.layout,
+            values = mapOf(
+                ATTRIBUTE_NAME to Type.Datetime.defaultValue()
+            ),
+            field = null
+        )
 
     /**
      * Creates a new [LSCTimestampExtractor] for the given field.
@@ -79,7 +87,12 @@ class LSCTimestamp : Analyser<ImageContent, AnyMapStructDescriptor> {
         field: Schema.Field<ImageContent, AnyMapStructDescriptor>,
         input: Operator<Retrievable>,
         context: IndexContext
-    ): Extractor<ImageContent, AnyMapStructDescriptor> = LSCTimestampExtractor(input, this, field)
+    ): Extractor<ImageContent, AnyMapStructDescriptor> =
+        LSCTimestampExtractor(
+            input,
+            this,
+            field
+        )
 
     /**
      * Creates a new [LSCTimestampExtractor] for the given name.
@@ -90,7 +103,12 @@ class LSCTimestamp : Analyser<ImageContent, AnyMapStructDescriptor> {
         name: String,
         input: Operator<Retrievable>,
         context: IndexContext
-    ): Extractor<ImageContent, AnyMapStructDescriptor> = LSCTimestampExtractor(input, this, name)
+    ): Extractor<ImageContent, AnyMapStructDescriptor> =
+        LSCTimestampExtractor(
+            input,
+            this,
+            name
+        )
 
 
     /**
@@ -110,7 +128,11 @@ class LSCTimestamp : Analyser<ImageContent, AnyMapStructDescriptor> {
     ): Retriever<ImageContent, AnyMapStructDescriptor> {
         require(query is BooleanQuery) { "Query must be of type BooleanQuery for $FEATURE_NAME retriever." }
 
-        return StructBooleanRetriever(field, query, context)
+        return StructBooleanRetriever(
+            field,
+            query,
+            context
+        )
     }
 
 
@@ -142,11 +164,12 @@ class LSCTimestamp : Analyser<ImageContent, AnyMapStructDescriptor> {
                         "Actual value: '$timestampValueWrapper' (type: ${timestampValueWrapper::class.simpleName})."
             )
 
-        val query = SimpleBooleanQuery<Value.DateTime>(
-            value = specificValueDateTime,
-            comparison = ComparisonOperator.EQ,
-            attributeName = ATTRIBUTE_NAME
-        )
+        val query =
+            SimpleBooleanQuery<Value.DateTime>(
+                value = specificValueDateTime,
+                comparison = ComparisonOperator.EQ,
+                attributeName = ATTRIBUTE_NAME
+            )
 
         return newRetrieverForQuery(field, query, context)
     }

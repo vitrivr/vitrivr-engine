@@ -20,7 +20,6 @@ import org.jetbrains.exposed.sql.javatime.JavaLocalDateTimeColumnType
 import java.time.LocalDateTime
 import kotlin.reflect.full.primaryConstructor
 import org.vitrivr.engine.database.pgvector.exposed.types.geography
-import org.vitrivr.engine.core.model.query.bool.AndBooleanQuery
 import org.vitrivr.engine.core.model.query.bool.BooleanQuery
 
 /**
@@ -129,7 +128,6 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
     override fun parse(query: org.vitrivr.engine.core.model.query.Query): Query = when(query) {
         is SimpleFulltextQuery -> this.parse(query)
         is SimpleBooleanQuery<*> -> this.parse(query)
-        is AndBooleanQuery -> this.parse(query)
         else -> throw UnsupportedOperationException("Unsupported query type: ${query::class.simpleName}")
     }
 
@@ -170,17 +168,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
         }
     }
 
-    /**
-     * Converts an [AndBooleanQuery] into a [Query] that can be executed against the database.
-     *
-     * @param query The [AndBooleanQuery] to convert.
-     * @return The [Query] that can be executed against the database.
-     */
-    private fun parse(query: AndBooleanQuery): Query {
-        val combinedOp = buildExposedOp(query)
-        return this.selectAll().where { combinedOp }
-            .limit(query.limit.let { if (it == Long.MAX_VALUE) Int.MAX_VALUE else it.toInt() })
-    }
+
 
     /**
      * Sets the value of the descriptor in the [InsertStatement]t.
@@ -277,48 +265,6 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
                     rawValueFromDescriptor
                 }
             }
-        }
-    }
-
-
-    /**
-     * Recursively builds an Exposed [Op<Boolean>] from a given [BooleanQuery].
-     *
-     * This method supports:
-     * - [SimpleBooleanQuery]: Basic comparisons like EQ, LE, etc.
-     * - [AndBooleanQuery]: Logical AND-combinations of multiple [BooleanQuery] instances.
-     *
-     * It is used to decouple the condition-building logic from the actual SELECT query execution.
-     *
-     * @param query The [BooleanQuery] instance to convert into an [Op<Boolean>].
-     * @return The resulting Op<Boolean> representing the query condition.
-     * @throws IllegalArgumentException if a required value is missing.
-     * @throws UnsupportedOperationException if the query type is unsupported.
-     */
-    private fun buildExposedOp(query: BooleanQuery): Op<Boolean> {
-        return when (query) {
-
-            is SimpleBooleanQuery<*> -> {
-                require(query.attributeName != null) { "Attribute name must not be null!" }
-                val value = query.value.value ?: throw IllegalArgumentException("Value must not be null!")
-                val column = this@StructDescriptorTable.valueColumns.find { it.name == query.attributeName } as Column<Any>
-                when (query.comparison) {
-                    ComparisonOperator.EQ -> EqOp(column, QueryParameter(value, column.columnType))
-                    ComparisonOperator.NEQ -> NeqOp(column, QueryParameter(value, column.columnType))
-                    ComparisonOperator.LE -> LessOp(column, QueryParameter(value, column.columnType))
-                    ComparisonOperator.GR -> GreaterOp(column, QueryParameter(value, column.columnType))
-                    ComparisonOperator.LEQ -> LessEqOp(column, QueryParameter(value, column.columnType))
-                    ComparisonOperator.GEQ -> GreaterEqOp(column, QueryParameter(value, column.columnType))
-                    ComparisonOperator.LIKE -> LikeEscapeOp(column, QueryParameter(value, column.columnType), true, null)
-                    else -> throw IllegalArgumentException("Unsupported comparison operator: ${query.comparison}")
-                }
-            }
-
-            is AndBooleanQuery -> {
-                query.clauses.map { buildExposedOp(it) }.reduce { acc, op -> acc and op }
-            }
-
-            else -> throw UnsupportedOperationException("Unsupported query type: ${query::class.simpleName}")
         }
     }
 

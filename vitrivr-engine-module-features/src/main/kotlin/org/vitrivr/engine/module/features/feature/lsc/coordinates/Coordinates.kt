@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.features.coordinates
+package org.vitrivr.engine.module.features.feature.lsc.coordinates
 
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
@@ -19,50 +19,66 @@ import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
-import java.util.*
-
+import java.util.UUID
 
 /**
- * Implementation of the [Coordinates] [Analyser], which derives GPS coordinates from an [ImageContent] as [AnyMapStructDescriptor].
+ * Implementation of the [Coordinates] [org.vitrivr.engine.core.model.metamodel.Analyser], which derives GPS coordinates from an [org.vitrivr.engine.core.model.content.element.ImageContent] as [org.vitrivr.engine.core.model.descriptor.struct.AnyMapStructDescriptor].
  *
  * @author henrikluemkemann
- * @version 1.0.0
+ * @version 1.1.0
  */
-class Coordinates : Analyser<ImageContent, AnyMapStructDescriptor> {
-    override val contentClasses = setOf(ImageContent::class)
+class Coordinates :
+    Analyser<ImageContent, AnyMapStructDescriptor> {
+    override val contentClasses = setOf(
+        ImageContent::class)
     override val descriptorClass = AnyMapStructDescriptor::class
 
     /** The layout of the [AnyMapStructDescriptor] produced by this [Coordinates] analyser. */
     private val layout = listOf(
-        Attribute("lat", Type.Double),
-        Attribute("lon", Type.Double)
+        Attribute(
+            "lat",
+            Type.Double
+        ),
+        Attribute(
+            "lon",
+            Type.Double
+        )
     )
 
     /**
      * Generates a prototypical [AnyMapStructDescriptor] for this [Coordinates].
      *
-     * @param field [Schema.Field] to create the prototype for.
+     * @param field [org.vitrivr.engine.core.model.metamodel.Schema.Field] to create the prototype for.
      * @return [AnyMapStructDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>) = AnyMapStructDescriptor(
-        UUID.randomUUID(),
-        UUID.randomUUID(),
-        this.layout,
-        mapOf("lat" to null, "lon" to null),
-        null
-    )
+    override fun prototype(field: Schema.Field<*, *>) =
+        AnyMapStructDescriptor(
+            UUID.randomUUID(),
+            UUID.randomUUID(),
+            this.layout,
+            mapOf(
+                "lat" to null,
+                "lon" to null
+            ),
+            null
+        )
 
     /**
      * Generates and returns a new [CoordinatesExtractor] instance for this [Coordinates].
      *
-     * @param field The [Schema.Field] to create an [Extractor] for.
-     * @param input The [Operator] that acts as input to the new [Extractor].
-     * @param context The [IndexContext] to use with the [Extractor].
+     * @param field The [Schema.Field] to create an [org.vitrivr.engine.core.operators.ingest.Extractor] for.
+     * @param input The [org.vitrivr.engine.core.operators.Operator] that acts as input to the new [org.vitrivr.engine.core.operators.ingest.Extractor].
+     * @param context The [org.vitrivr.engine.core.context.IndexContext] to use with the [org.vitrivr.engine.core.operators.ingest.Extractor].
      *
-     * @return A new [Extractor] instance for this [Analyser]
-     * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
+     * @return A new [org.vitrivr.engine.core.operators.ingest.Extractor] instance for this [Analyser]
+     * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [org.vitrivr.engine.core.operators.ingest.Extractor] instance.
      */
-    override fun newExtractor(field: Schema.Field<ImageContent, AnyMapStructDescriptor>, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, AnyMapStructDescriptor> = CoordinatesExtractor(input, this, field)
+    override fun newExtractor(field: Schema.Field<ImageContent, AnyMapStructDescriptor>, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, AnyMapStructDescriptor> =
+        CoordinatesExtractor(
+            input,
+            this,
+            field
+        )
 
     /**
      * Generates and returns a new [CoordinatesExtractor] instance for this [Coordinates].
@@ -74,27 +90,36 @@ class Coordinates : Analyser<ImageContent, AnyMapStructDescriptor> {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, AnyMapStructDescriptor> = CoordinatesExtractor(input, this, name)
+    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): Extractor<ImageContent, AnyMapStructDescriptor> =
+        CoordinatesExtractor(
+            input,
+            this,
+            name
+        )
 
     /**
-     * Generates and returns a new [StructBooleanRetriever] instance for this [Coordinates].
+     * Generates and returns a new [org.vitrivr.engine.core.features.bool.StructBooleanRetriever] instance for this [Coordinates].
      *
-     * @param field The [Schema.Field] to create an [Retriever] for.
-     * @param query The [Query] to use with the [Retriever].
-     * @param context The [QueryContext] to use with the [Retriever].
+     * @param field The [Schema.Field] to create an [org.vitrivr.engine.core.operators.retrieve.Retriever] for.
+     * @param query The [org.vitrivr.engine.core.model.query.Query] to use with the [org.vitrivr.engine.core.operators.retrieve.Retriever].
+     * @param context The [org.vitrivr.engine.core.context.QueryContext] to use with the [org.vitrivr.engine.core.operators.retrieve.Retriever].
      *
-     * @return A new [Retriever] instance for this [Analyser]
+     * @return A new [org.vitrivr.engine.core.operators.retrieve.Retriever] instance for this [Analyser]
      */
     override fun newRetrieverForQuery(field: Schema.Field<ImageContent, AnyMapStructDescriptor>, query: Query, context: QueryContext): Retriever<ImageContent, AnyMapStructDescriptor> {
         require(query is BooleanQuery) { "The query is not a BooleanQuery." }
-        return StructBooleanRetriever(field, query, context)
+        return StructBooleanRetriever(
+            field,
+            query,
+            context
+        )
     }
 
 
     /**
      * Generates and returns a new [StructBooleanRetriever] instance for this [Coordinates].
      *
-     * Invoking this method involves converting the provided [AnyMapStructDescriptor] into a [SimpleBooleanQuery] that can be used to retrieve similar [ImageContent] elements.
+     * Invoking this method involves converting the provided [AnyMapStructDescriptor] into a [org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery] that can be used to retrieve similar [ImageContent] elements.
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param descriptors A collection of [AnyMapStructDescriptor] elements to use with the [Retriever].
@@ -118,10 +143,22 @@ class Coordinates : Analyser<ImageContent, AnyMapStructDescriptor> {
 
         val limit = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
 
-        val latQuery = SimpleBooleanQuery(lat, ComparisonOperator.EQ, "lat", limit)
-        val lonQuery = SimpleBooleanQuery(lon, ComparisonOperator.EQ, "lon", limit)
+        val latQuery =
+            SimpleBooleanQuery(
+                lat,
+                ComparisonOperator.EQ,
+                "lat",
+                limit
+            )
+        val lonQuery =
+            SimpleBooleanQuery(
+                lon,
+                ComparisonOperator.EQ,
+                "lon",
+                limit
+            )
 
-        // TODO: ASK HOW AND IS REALIZED!!! val combinedQuery = and(listOf(latQuery, lonQuery))
+        // TODO: change with new query support
 
         //return newRetrieverForQuery(field, combinedQuery, context)
         return newRetrieverForQuery(field, latQuery, context)

@@ -189,4 +189,5 @@ data class DateTimeInputData(val data: String, override val comparison: String? 
         logger.warn { "Failed to parse date string '${this.data}' into LocalDateTime using any predefined patterns." }
         return null
     }
+    //TODO UNIT TESTS
 }

@@ -1,4 +1,4 @@
-package org.vitrivr.engine.core.features.coordinates
+package org.vitrivr.engine.module.features.feature.lsc.coordinates
 
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.exif.GpsDirectory
@@ -19,6 +19,9 @@ import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.source.file.FileSource
 import java.util.UUID
+import kotlin.collections.get
+import kotlin.text.contains
+import kotlin.text.take
 
 /**
  * Implementation of an [AbstractExtractor] that extracts GPS coordinates from the EXIF metadata of an image file.
@@ -50,7 +53,7 @@ class PostGISCoordinatesExtractor :
      * The name of the attribute that will store the geography data.
      * This uses the configured name of the extractor instance.
      */
-    private val geographyAttributeName: String get() = this.name // 'this.name' is from AbstractExtractor
+    private val geographyAttributeName: String get() = this.name
 
 
     /**
