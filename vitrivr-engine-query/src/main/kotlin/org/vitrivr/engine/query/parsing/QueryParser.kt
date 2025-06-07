@@ -120,9 +120,12 @@ class QueryParser(val schema: Schema) {
                                 else -> throw IllegalArgumentException("Cannot work with NumericInputData $input but non-numerical sub-field $subfield")
                             }
                         }
-                        is DateInputData -> {
+                        is DateTimeInputData -> {
                             require(subfield.type == Type.Datetime) { "The given sub-field ${fieldAndAttributeName.first}.${fieldAndAttributeName.second}'s type is ${subfield.type}, which is not the expected ${Type.Datetime}" }
-                            Value.DateTime(input.parseDate())
+                            Value.DateTime(
+                                input.toLocalDateTime() // This returns LocalDateTime?
+                                    ?: throw IllegalArgumentException("Could not parse date string '${input.data}' for field '${field.fieldName}.${fieldAndAttributeName.second}'.")
+                            )
                         }
                         else -> throw UnsupportedOperationException("Subfield query for $input is currently not supported")
                     }

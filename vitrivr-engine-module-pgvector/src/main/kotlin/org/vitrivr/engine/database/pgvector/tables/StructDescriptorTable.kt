@@ -16,7 +16,11 @@ import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.database.pgvector.exposed.functions.plainToTsQuery
 import org.vitrivr.engine.database.pgvector.exposed.ops.tsMatches
 import java.util.*
+import org.jetbrains.exposed.sql.javatime.JavaLocalDateTimeColumnType
+import java.time.LocalDateTime
 import kotlin.reflect.full.primaryConstructor
+import org.vitrivr.engine.database.pgvector.exposed.types.geography
+import org.vitrivr.engine.core.model.query.bool.BooleanQuery
 
 /**
  * An [AbstractDescriptorTable] for [StructDescriptor]s.
@@ -44,6 +48,11 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
                 Type.String -> varchar(attribute.name, 255)
                 Type.Text -> text(attribute.name)
                 Type.UUID -> uuid(attribute.name)
+                Type.Geography -> geography(
+                    name = attribute.name,
+                    srid = 4326,
+                    columnDefinitionInDb = "GEOGRAPHY(POINT, 4326)"
+                )
                 is Type.FloatVector -> floatVector(attribute.name, type.dimensions)
                 else -> error("Unsupported type $type for attribute ${attribute.name} in ${this.tableName}")
             }.let { column ->
@@ -86,7 +95,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
                 values[attribute.name] = when (attribute.type) {
                     Type.Boolean -> Value.Boolean(value as Boolean)
                     Type.Byte -> Value.Byte(value as Byte)
-                    Type.Datetime -> Value.DateTime(value as Date)
+                    Type.Datetime -> Value.DateTime(value as LocalDateTime)
                     Type.Double -> Value.Double(value as Double)
                     Type.Float -> Value.Float(value as Float)
                     Type.Int -> Value.Int(value as Int)
@@ -95,6 +104,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
                     Type.String -> Value.String(value as String)
                     Type.Text -> Value.Text(value as String)
                     Type.UUID -> Value.UUIDValue(value as UUID)
+                    Type.Geography -> Value.GeographyValue(value as String)
                     is Type.BooleanVector -> Value.BooleanVector(value as BooleanArray)
                     is Type.DoubleVector -> Value.DoubleVector(value as DoubleArray)
                     is Type.FloatVector -> Value.FloatVector(value as FloatArray)
@@ -135,7 +145,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
         descriptor tsMatches plainToTsQuery(stringParam(value))
     }
 
-    /**
+    /**TODO ADD further comparison operators for geography type
      * Converts a [SimpleBooleanQuery] into a [Query] that can be executed against the database.
      *
      * @param query The [SimpleBooleanQuery] to convert.
@@ -158,6 +168,8 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
         }
     }
 
+
+
     /**
      * Sets the value of the descriptor in the [InsertStatement]t.
      *
@@ -166,8 +178,31 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
     @Suppress("UNCHECKED_CAST")
     override fun InsertStatement<*>.setValue(d: D) {
         val values = d.values()
-        for (c in this@StructDescriptorTable.valueColumns) {
-            this[c as Column<Any?>] = values[c.name]?.value
+        for (columnInTable in this@StructDescriptorTable.valueColumns) {
+            val rawValueFromDescriptor = values[columnInTable.name]?.value
+            val targetColumn = columnInTable as Column<Any?>
+
+            this[targetColumn] = if (rawValueFromDescriptor == null) {
+                null
+            } else {
+                // If the column is defined as a LocalDateTime type in Exposed
+                if (targetColumn.columnType is JavaLocalDateTimeColumnType) {
+                    // We now strictly expect rawValueFromDescriptor to be LocalDateTime
+                    if (rawValueFromDescriptor is LocalDateTime) {
+                        rawValueFromDescriptor
+                    } else {
+                        // We face inconsistency: the Value system or descriptor provided a non-LocalDateTime for a Datetime attribute.
+                        throw IllegalStateException(
+                            "Type mismatch for datetime column '${targetColumn.name}'. " +
+                                    "Expected LocalDateTime from descriptor, but got ${rawValueFromDescriptor::class.simpleName}. " +
+                                    "This indicates an issue with descriptor creation or the Value system."
+                        )
+                    }
+                } else {
+                    // For all other column types, pass the raw value.
+                    rawValueFromDescriptor
+                }
+            }
         }
     }
 
@@ -179,8 +214,26 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
     @Suppress("UNCHECKED_CAST")
     override fun BatchInsertStatement.setValue(d: D) {
         val values = d.values()
-        for (c in this@StructDescriptorTable.valueColumns) {
-            this[c as Column<Any?>] = values[c.name]?.value
+        for (columnInTable in this@StructDescriptorTable.valueColumns) {
+            val rawValueFromDescriptor = values[columnInTable.name]?.value
+            val targetColumn = columnInTable as Column<Any?>
+
+            this[targetColumn] = if (rawValueFromDescriptor == null) {
+                null
+            } else {
+                if (targetColumn.columnType is JavaLocalDateTimeColumnType) {
+                    if (rawValueFromDescriptor is LocalDateTime) {
+                        rawValueFromDescriptor
+                    } else {
+                        throw IllegalStateException(
+                            "Type mismatch for datetime column '${targetColumn.name}'. " +
+                                    "Expected LocalDateTime, got ${rawValueFromDescriptor::class.simpleName}."
+                        )
+                    }
+                } else {
+                    rawValueFromDescriptor
+                }
+            }
         }
     }
 
@@ -192,8 +245,27 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
     @Suppress("UNCHECKED_CAST")
     override fun UpdateStatement.setValue(d: D) {
         val values = d.values()
-        for (c in this@StructDescriptorTable.valueColumns) {
-            this[c as Column<Any?>] = values[c.name]?.value
+        for (columnInTable in this@StructDescriptorTable.valueColumns) {
+            val rawValueFromDescriptor = values[columnInTable.name]?.value
+            val targetColumn = columnInTable as Column<Any?>
+
+            this[targetColumn] = if (rawValueFromDescriptor == null) {
+                null
+            } else {
+                if (targetColumn.columnType is JavaLocalDateTimeColumnType) {
+                    if (rawValueFromDescriptor is LocalDateTime) {
+                        rawValueFromDescriptor
+                    } else {
+                        throw IllegalStateException(
+                            "Type mismatch for datetime column '${targetColumn.name}'. " +
+                                    "Expected LocalDateTime, got ${rawValueFromDescriptor::class.simpleName}."
+                        )
+                    }
+                } else {
+                    rawValueFromDescriptor
+                }
+            }
         }
     }
+
 }
