@@ -1,1 +1,2 @@
 org.vitrivr.engine.features.external.torchserve.TSImageLabel
+org.vitrivr.engine.features.external.torchserve.TSEmbedding
