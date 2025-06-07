@@ -1,6 +1,7 @@
 package org.vitrivr.engine.features.external.torchserve
 
 import com.google.protobuf.ByteString
+import com.google.protobuf.kotlin.toByteStringUtf8
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import org.vitrivr.engine.core.context.IndexContext
@@ -20,6 +21,7 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Retriever
+import org.vitrivr.engine.core.source.file.MimeType
 import org.vitrivr.engine.features.external.torchserve.basic.TorchServe
 import org.vitrivr.engine.features.external.torchserve.basic.TorchServeExtractor
 import java.awt.image.BufferedImage
@@ -143,28 +145,13 @@ class TSEmbedding : TorchServe<ContentElement<*>, FloatVectorDescriptor>() {
     /**
      * Converts the [ImageContent] to a [ByteString].
      */
-    override fun toByteString(content: ContentElement<*>): Map<String, ByteString> {
-        return when (content) {
-            is ImageContent -> {
-                val originalImage = content.content
-                val imageWithoutAlpha = if (originalImage.type == BufferedImage.TYPE_INT_RGB) {
-                    originalImage
-                } else {
-                    val newImage = BufferedImage(originalImage.width, originalImage.height, BufferedImage.TYPE_INT_RGB)
-                    val graphics = newImage.createGraphics()
-                    graphics.drawImage(originalImage, 0, 0, null)
-                    graphics.dispose()
-                    newImage
-                }
-                val output = ByteArrayOutputStream()
-                ImageIO.write(imageWithoutAlpha, "JPEG", output)
-                mapOf("data" to ByteString.copyFrom(output.toByteArray()))
-            }
-            is TextContent -> {
-                mapOf("data" to ByteString.copyFrom(content.content.toByteArray(Charsets.UTF_8)))
-            }
-            else -> throw IllegalArgumentException("Unsupported content type: ${content::class}")
+    override fun toByteString(content: ContentElement<*>): Map<String, ByteString> =  when (content) {
+        is ImageContent -> {
+            val dataUrl = content.toDataUrl(MimeType.JPEG)
+            mapOf("body" to dataUrl.toByteStringUtf8())
         }
+        is TextContent -> mapOf("body" to ByteString.copyFrom(content.content.toByteArray(Charsets.UTF_8)))
+        else -> throw IllegalArgumentException("Unsupported content type: ${content::class}")
     }
 
     /**
