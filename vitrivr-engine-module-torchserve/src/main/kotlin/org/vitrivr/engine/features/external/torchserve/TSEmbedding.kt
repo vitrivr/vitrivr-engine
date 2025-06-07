@@ -24,10 +24,7 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.core.source.file.MimeType
 import org.vitrivr.engine.features.external.torchserve.basic.TorchServe
 import org.vitrivr.engine.features.external.torchserve.basic.TorchServeExtractor
-import java.awt.image.BufferedImage
-import java.io.ByteArrayOutputStream
 import java.util.*
-import javax.imageio.ImageIO
 import kotlin.reflect.KClass
 
 /**
@@ -146,11 +143,8 @@ class TSEmbedding : TorchServe<ContentElement<*>, FloatVectorDescriptor>() {
      * Converts the [ImageContent] to a [ByteString].
      */
     override fun toByteString(content: ContentElement<*>): Map<String, ByteString> =  when (content) {
-        is ImageContent -> {
-            val dataUrl = content.toDataUrl(MimeType.JPEG)
-            mapOf("body" to dataUrl.toByteStringUtf8())
-        }
-        is TextContent -> mapOf("body" to ByteString.copyFrom(content.content.toByteArray(Charsets.UTF_8)))
+        is ImageContent -> mapOf("data" to content.toDataUrl(MimeType.JPEG).toByteStringUtf8())
+        is TextContent -> mapOf("data" to ByteString.copyFrom(content.content.toByteArray(Charsets.UTF_8)))
         else -> throw IllegalArgumentException("Unsupported content type: ${content::class}")
     }
 
