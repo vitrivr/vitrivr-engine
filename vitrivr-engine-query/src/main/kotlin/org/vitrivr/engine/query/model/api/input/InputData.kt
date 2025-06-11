@@ -31,6 +31,7 @@ import java.util.*
         BooleanInputData::class,
         NumericInputData::class,
         DateTimeInputData::class,
+        GeographyInputData::class
     ]
 )
 sealed class InputData() {
@@ -189,5 +190,27 @@ data class DateTimeInputData(val data: String, override val comparison: String? 
         logger.warn { "Failed to parse date string '${this.data}' into LocalDateTime using any predefined patterns." }
         return null
     }
-    //TODO UNIT TESTS
 }
+
+
+
+/**
+ * [InputData] for a geographic WKT (Well-Known Text) string.
+ * Cannot be converted to a [ContentElement].
+ */
+@Serializable
+data class GeographyInputData(
+    /** The WKT string, e.g., "POINT(-6.26 53.34)" */
+    val data: String,
+    /** Optional SRID, defaults to 4326 for WGS 84 */
+    val srid: Int = 4326
+) : InputData() {
+    override val type = InputType.GEOGRAPHY
+    override val comparison: String? = null
+    override fun toContent(): ContentElement<*> {
+        throw UnsupportedOperationException("Cannot derive content from GeographyInputData")
+    }
+}
+
+
+//TODO UNIT TESTS

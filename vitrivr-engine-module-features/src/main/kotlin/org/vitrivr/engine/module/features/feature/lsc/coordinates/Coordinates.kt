@@ -158,7 +158,7 @@ class Coordinates :
                 limit
             )
 
-        // TODO: change with new query support
+        // TODO: change to GeographicProximityQuery!
 
         //return newRetrieverForQuery(field, combinedQuery, context)
         return newRetrieverForQuery(field, latQuery, context)

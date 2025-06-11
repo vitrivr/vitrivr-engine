@@ -1,9 +1,11 @@
 package org.vitrivr.engine.query.parsing
 
+import org.vitrivr.engine.core.features.AbstractRetriever
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
+import org.vitrivr.engine.core.model.query.bool.CompoundBooleanQuery
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Type
@@ -16,9 +18,13 @@ import org.vitrivr.engine.core.util.extension.loadServiceForName
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
 import org.vitrivr.engine.query.model.api.input.*
 import org.vitrivr.engine.query.model.api.operator.AggregatorDescription
+import org.vitrivr.engine.query.model.api.operator.BooleanAndDescription
 import org.vitrivr.engine.query.model.api.operator.RetrieverDescription
 import org.vitrivr.engine.query.model.api.operator.TransformerDescription
 import org.vitrivr.engine.query.operators.retrieval.RetrievedLookup
+import org.vitrivr.engine.core.model.query.bool.SpatialBooleanQuery
+import org.vitrivr.engine.core.model.query.spatiotemporal.SpatialOperator
+
 import java.util.*
 
 /**
@@ -49,6 +55,7 @@ class QueryParser(val schema: Schema) {
                 is RetrieverDescription -> parseRetrieverOperator(description, operationName, contentCache)
                 is TransformerDescription -> parseTransformationOperator(description, operationName, operators)
                 is AggregatorDescription -> parseAggregationOperator(description, operationName, operators)
+                is BooleanAndDescription -> parseBooleanAndOperator(description, operationName, operators)
             }
         }
 
@@ -93,6 +100,36 @@ class QueryParser(val schema: Schema) {
                 field.getRetrieverForDescriptor(descriptor, description.context)
             }
             is VectorInputData -> field.getRetrieverForDescriptor(FloatVectorDescriptor(vector = Value.FloatVector(input.data.toFloatArray())), description.context)
+            is GeographyInputData -> {
+                val parameters = operation.parameters // Use the new parameters map from the retriever description
+
+                val spatialOperator = parameters["operator"]?.let { SpatialOperator.valueOf(it.uppercase()) }
+                    ?: throw IllegalArgumentException("A spatial 'operator' (e.g., 'DWITHIN') must be provided in the retriever's parameters.")
+
+                val latAttributeName = parameters["latAttribute"] ?: "lat" // Default to "lat"
+                val lonAttributeName = parameters["lonAttribute"] ?: "lon" // Default to "lon"
+
+                val radiusInputName = parameters["radiusInput"]
+                val radiusValue = if (radiusInputName != null) {
+                    val radiusInput = description.inputs[radiusInputName] as? NumericInputData
+                        ?: throw IllegalArgumentException("Input '$radiusInputName' for radius not found or not a NUMERIC input.")
+                    Value.Double(radiusInput.data)
+                } else {
+                    null // Radius is optional for some spatial operators
+                }
+
+                // crerate our new SpatialBooleanQuery
+                val spatialQuery = SpatialBooleanQuery(
+                    latAttribute = latAttributeName,
+                    lonAttribute = lonAttributeName,
+                    operator = spatialOperator,
+                    reference = Value.GeographyValue(input.data, input.srid),
+                    distance = radiusValue
+                )
+
+                // since SpatialBooleanQuery is a BooleanQuery, we can pass it to the same retriever factory
+                field.getRetrieverForQuery(spatialQuery, description.context)
+            }
             else -> {
                 /* Is this a boolean sub-field query ? */
                 if(fieldAndAttributeName.second != null && input.comparison != null){
@@ -179,5 +216,49 @@ class QueryParser(val schema: Schema) {
         /* Create aggregation operator. */
         val factory = loadServiceForName<AggregatorFactory>(operation.aggregatorName + "Factory") ?: throw IllegalArgumentException("No factory found for '${operation.aggregatorName}'")
         return factory.newAggregator(operatorName, inputs, description.context)
+    }
+
+    /**
+     * Parses a named [Operator] form a [InformationNeedDescription] and returns it. This method handles BooleanAnd operations.
+     *
+     * @param description [InformationNeedDescription] to parse.
+     * @param operatorName Name of the operator to parse.
+     * @param operators Map of existing (i.e., parsed) [Operator]s.
+     *
+     * @return [Operator] instance.
+     */
+    private fun parseBooleanAndOperator(description: InformationNeedDescription, operatorName: String, operators: Map<String, Operator<out Retrievable>>): Operator<Retrievable> {
+        val operation = description.operations[operatorName] as? BooleanAndDescription ?: throw IllegalArgumentException("Operation '$operatorName' not found in information need description.")
+        require(operation.inputs.isNotEmpty()) { "Inputs of a boolean AND operator cannot be empty." }
+
+        /* Extract input operators from operators map. */
+        val inputs = operation.inputs.map {
+            operators[it] ?: throw IllegalArgumentException("Operator '$it' not yet defined")
+        }
+
+        /* Get the field from the schema */
+        val field = this.schema[operation.field] ?: throw IllegalArgumentException("Field '${operation.field}' not defined in schema")
+
+        /* Extract boolean queries from input operators */
+        val booleanQueries = inputs.map { input ->
+            when (input) {
+                is AbstractRetriever<*, *> -> {
+                    val query = input.query
+                    if (query is SimpleBooleanQuery<*>) {
+                        query
+                    } else {
+                        throw IllegalArgumentException("Input operator '$input' does not have a SimpleBooleanQuery")
+                    }
+                }
+                else -> throw IllegalArgumentException("Input operator '$input' is not a Retriever")
+            }
+        }
+
+        /* Create compound boolean query */
+        val compoundQuery = CompoundBooleanQuery(booleanQueries, operation.limit)
+
+        /* Return retriever for compound query */
+        @Suppress("UNCHECKED_CAST")
+        return field.getRetrieverForQuery(compoundQuery, description.context) as Operator<Retrievable>
     }
 }

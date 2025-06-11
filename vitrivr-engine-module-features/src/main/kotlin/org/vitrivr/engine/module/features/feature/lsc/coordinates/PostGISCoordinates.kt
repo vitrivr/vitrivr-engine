@@ -179,6 +179,7 @@ class PostGISCoordinates : Analyser<ImageContent, AnyMapStructDescriptor> {
 
         logger.debug { "Creating retriever for descriptors for field '$geographyAttributeName' using WKT equality query." }
         return newRetrieverForQuery(field, wktEqualityQuery, context)
+        // TODO: change to GeographicProximityQuery!
     }
 
     /**

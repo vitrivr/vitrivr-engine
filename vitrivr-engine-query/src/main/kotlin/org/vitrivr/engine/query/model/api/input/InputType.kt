@@ -18,5 +18,7 @@ enum class InputType {
     @SerialName("NUMERIC")
     NUMERIC,
     @SerialName("DATETIME")
-    DATETIME
+    DATETIME,
+    @SerialName("GEOGRAPHY")
+    GEOGRAPHY
 }
