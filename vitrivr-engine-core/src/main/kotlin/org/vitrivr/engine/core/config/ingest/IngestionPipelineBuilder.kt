@@ -29,7 +29,7 @@ private val logger: KLogger = KotlinLogging.logger { }
  *  @author Ralph Gasser
  *  @version 3.0.0
  */
-class IngestionPipelineBuilder(private val config: IngestionConfig, private val context: Context) {
+class IngestionPipelineBuilder(private val config: IngestionConfig, private val  context: Context) {
     /**
      * Build the indexing based this [IngestionPipelineBuilder]'s [config].
      *
@@ -42,19 +42,34 @@ class IngestionPipelineBuilder(private val config: IngestionConfig, private val 
      */
     @Suppress("UNCHECKED_CAST")
     fun build(): List<Operator.Sink<Retrievable>> {
-        return parseOperations().map { root ->
-            val config = root.opConfig ?: throw IllegalArgumentException("Root stage must always be an enumerator!")
+
+        /* Merge operator configurations. */
+        val localMap = this.context.local.toMutableMap()
+        for ((name, config) in config.operators) {
+            localMap.compute(name) { _, v ->
+                v?.toMutableMap()?.apply {
+                    this.putAll(config.parameters)
+                } ?: config.parameters
+            }
+        }
+
+        /* Create local context. */
+        val localContext = context.copy(local = localMap)
+
+        /* Parse configuration. */
+        return this.config.parseOperations().map { root ->
+            val rootName = root.opName ?: throw IllegalArgumentException("Root operator not properly specified. Missing name!")
+            val rootConfig = root.opConfig ?: throw IllegalArgumentException("Root operator not properly specified. Missing configuration!")
             val built = HashMap<String, Operator<out Retrievable>>()
-            root.opName ?: throw IllegalArgumentException("Root operator must be backed by a factory!")
-            val factory = loadFactory<OperatorFactory>(root.opName)
-            built[root.name] = factory.newOperator(root.opName, this.context)
+            val factory = loadFactory<OperatorFactory>(rootConfig.factory ?: throw IllegalArgumentException("Root operator must be backed by a factory!"))
+            built[root.name] = factory.newOperator(rootName, localContext)
 
             for (output in root.output) {
-                buildInternal(output, built)
+                buildInternal(output,built, localContext)
             }
 
             /* Built terminal stage. */
-            val output = this.config.output.map {
+            val output = config.output.map {
                 (built[it] as? Operator<Retrievable>)
                     ?: throw IllegalArgumentException("Output operation $it not found in pipeline!")
             }
@@ -63,7 +78,7 @@ class IngestionPipelineBuilder(private val config: IngestionConfig, private val 
                 DefaultSink(output.first(), "output")
             } else {
                 DefaultSink(
-                    when (this.config.mergeType) {
+                    when (config.mergeType) {
                         MERGE -> MergeOperator(output)
                         COMBINE -> CombineOperator(output)
                         CONCAT -> ConcatOperator(output)
@@ -81,12 +96,12 @@ class IngestionPipelineBuilder(private val config: IngestionConfig, private val 
      * @param memoizationTable The memoization table that holds the already built operators.
      * @return The built [Operator].
      */
-    private fun buildInternal(operation: Operation, memoizationTable: MutableMap<String, Operator<out Retrievable>>, breakAt: Operation? = null) {
+    private fun buildInternal(operation: Operation, memoizationTable: MutableMap<String, Operator<out Retrievable>>, context: Context, breakAt: Operation? = null) {
         /* Find all required input operations and merge them (if necessary). */
         if (operation == breakAt) return
         val inputs = operation.input.map {
             if (memoizationTable[it.name] == null) {
-                buildInternal(it, memoizationTable, breakAt)
+                buildInternal(it, memoizationTable, context, breakAt)
             }
             memoizationTable[it.name]!!
         }
@@ -103,7 +118,7 @@ class IngestionPipelineBuilder(private val config: IngestionConfig, private val 
 
         /* Prepare and cache operator. */
         if (operation.opName != null && operation.opConfig != null) {
-            val operator = buildOperator(operation.opName, op, operation.opConfig)
+            val operator = buildOperator(operation.opName, op, operation.opConfig, context)
             if (operation.output.size > 1) {
                 memoizationTable[operation.name] = BroadcastOperator(operator)
             } else {
@@ -120,7 +135,7 @@ class IngestionPipelineBuilder(private val config: IngestionConfig, private val 
 
         /* Process output operators. */
         for (output in operation.output) {
-            buildInternal(output, memoizationTable, operation)
+            buildInternal(output, memoizationTable, context, operation)
         }
     }
 
@@ -129,11 +144,11 @@ class IngestionPipelineBuilder(private val config: IngestionConfig, private val 
      *
      * @return A list of root [Operation]s that represent the pipeline definition.
      */
-    fun parseOperations(): List<Operation> {
+    private fun IngestionConfig.parseOperations(): List<Operation> {
         logger.debug { "Starting building operator tree(s)" }
 
         /* Find operations without inputs, these are (by definition) enumerators / entry points */
-        val entrypoints = this.config.operations.entries.filter { it.value.isEntry() }
+        val entrypoints = this.operations.entries.filter { it.value.isEntry() }
         logger.debug { "Found the following entry points: $entrypoints" }
 
         /* Build trees with entry points as roots. */
@@ -143,19 +158,19 @@ class IngestionPipelineBuilder(private val config: IngestionConfig, private val 
             val root = Operation(
                 it.key,
                 it.value.operator!!,
-                config.operators[it.value.operator]
+                this.operators[it.value.operator]
                     ?: throw IllegalArgumentException("Undefined operator '${it.value.operator}'"),
                 it.value.merge
             )
             stages[it.key] = root
-            for (operation in this.config.operations) {
+            for (operation in this.operations) {
                 if (!stages.containsKey(operation.key)) {
                     when (operation.value.operator) {
                         is String ->
                             stages[operation.key] = Operation(
                                 name = operation.key,
                                 opName = operation.value.operator!!,
-                                opConfig = config.operators[operation.value.operator!!]
+                                opConfig = this.operators[operation.value.operator!!]
                                     ?: throw IllegalArgumentException("Undefined operator '${operation.value.operator}'"),
                                 merge = operation.value.merge
                             )
@@ -171,12 +186,12 @@ class IngestionPipelineBuilder(private val config: IngestionConfig, private val 
                 }
                 for (inputKey in operation.value.inputs) {
                     if (!stages.containsKey(inputKey)) {
-                        val op = this.config.operations[inputKey]
+                        val op = this.operations[inputKey]
                             ?: throw IllegalArgumentException("Undefined operation '${inputKey}'")
                         stages[inputKey] = Operation(
                             inputKey,
                             op.operator!!,
-                            config.operators[op.operator]
+                            this.operators[op.operator]
                                 ?: throw IllegalArgumentException("Undefined operator '${op.operator}'"),
                             op.merge
                         )
@@ -196,13 +211,14 @@ class IngestionPipelineBuilder(private val config: IngestionConfig, private val 
      * @param name The name of the [Operator] to build.
      * @param parent The parent [Operator].
      * @param config The [OperatorConfig] which holds information on how to build the [Operator]
+     * @param context The [Context] to use.
      */
-    private fun buildOperator(name: String, parent: Operator<out Retrievable>, config: OperatorConfig): Operator<out Retrievable> {
+    private fun buildOperator(name: String, parent: Operator<out Retrievable>, config: OperatorConfig, context: Context): Operator<out Retrievable> {
         logger.debug { "Building operator for configuration: $config" }
         return when {
-            config.field != null -> buildExtractorForField(parent as Operator<Retrievable>, config.field, config.parameters)
-            config.exporter != null -> buildExporterForName(parent as Operator<Retrievable>, config.exporter)
-            config.factory != null -> buildOperatorForFactory(name, parent, config.factory, config.parameters)
+            config.field != null -> buildExtractorForField(parent as Operator<Retrievable>, config.field, context)
+            config.exporter != null -> buildExporterForName(parent as Operator<Retrievable>, config.exporter, context)
+            config.factory != null -> buildOperatorForFactory(name, parent, config.factory, context)
             else -> throw IllegalStateException("Operator $config is missing required fields!")
         }
     }
@@ -212,11 +228,12 @@ class IngestionPipelineBuilder(private val config: IngestionConfig, private val 
      *
      * @param name The name of the [Operator] to build.
      * @param parent The parent [Operator].
-     * @param config The [OperatorConfig] which holds information on how to build the [Operator]
+     * @param factoryName The name of the [OperatorFactory]
+     * @param context The [Context] to use.
      */
-    private fun buildOperatorForFactory(name: String, parent: Operator<out Retrievable>, factoryName: String, parameters: Map<String, String> = emptyMap()): Operator<out Retrievable> {
+    private fun buildOperatorForFactory(name: String, parent: Operator<out Retrievable>, factoryName: String, context: Context): Operator<out Retrievable> {
         val factory = loadFactory<OperatorFactory>(factoryName)
-        return factory.newOperator(name, parent, this.context)
+        return factory.newOperator(name, parent, context)
     }
 
     /**
@@ -224,12 +241,13 @@ class IngestionPipelineBuilder(private val config: IngestionConfig, private val 
      *
      * @param parent The preceding parent [Operator]s.
      * @param exporterName: The name of the exporter.
+     * @param context The [Context] to use.
      */
-    private fun buildExporterForName(parent: Operator<Retrievable>, exporterName: String): Exporter {
+    private fun buildExporterForName(parent: Operator<Retrievable>, exporterName: String, context: Context): Exporter {
         /* Case exporter name is given. Due to require in ExporterConfig.init, this is fine as an if-else */
-        val exporter = this.context.schema.getExporter(exporterName)
+        val exporter = context.schema.getExporter(exporterName)
             ?: throw IllegalArgumentException("Exporter '${exporterName}' does not exist on schema '${context.schema.name}'")
-        return exporter.getExporter(parent, this.context)
+        return exporter.getExporter(parent, context)
     }
 
     /**
@@ -237,11 +255,11 @@ class IngestionPipelineBuilder(private val config: IngestionConfig, private val 
      *
      * @param parent The preceding [Operator]. Has to be one of: [Exporter], [Extractor].
      * @param fieldName Name of the [Schema.Field]
-     * @param parameters Map of named parameters
+     * @param context The [Context] to use.
      */
-    private fun buildExtractorForField(parent: Operator<Retrievable>, fieldName: String, parameters: Map<String, String> = emptyMap()): Extractor<*, *> {
-        val field = this.context.schema[fieldName] ?: throw IllegalArgumentException("Field '${fieldName}' does not exist in schema '${context.schema.name}'")
-        return field.getExtractor(parent, this.context)
+    private fun buildExtractorForField(parent: Operator<Retrievable>, fieldName: String, context: Context): Extractor<*, *> {
+        val field = context.schema[fieldName] ?: throw IllegalArgumentException("Field '${fieldName}' does not exist in schema '${context.schema.name}'")
+        return field.getExtractor(parent, context)
     }
 
     /**
