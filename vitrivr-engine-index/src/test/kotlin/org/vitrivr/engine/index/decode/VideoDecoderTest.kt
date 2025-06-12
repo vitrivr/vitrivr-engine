@@ -37,7 +37,7 @@ class VideoDecoderTest {
             local = mapOf(
                 "enumerator" to mapOf(
                     "path" to "./src/test/resources/videos",
-                    "types" to "VIDEO"
+                    "mediaTypes" to "VIDEO"
                 ),
                 "decoder" to mapOf(
                     "timeWindowMs" to "1000"

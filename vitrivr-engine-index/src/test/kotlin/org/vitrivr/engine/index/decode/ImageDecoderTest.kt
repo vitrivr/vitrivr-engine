@@ -38,7 +38,7 @@ class ImageDecoderTest {
             local = mapOf(
                 "enumerator" to mapOf(
                     "path" to "./src/test/resources/",
-                    "types" to "IMAGE"
+                    "mediaTypes" to "IMAGE"
                 )
             )
         )
