@@ -61,7 +61,8 @@ class IngestionPipelineBuilder(private val config: IngestionConfig, private val 
             val rootName = root.opName ?: throw IllegalArgumentException("Root operator not properly specified. Missing name!")
             val rootConfig = root.opConfig ?: throw IllegalArgumentException("Root operator not properly specified. Missing configuration!")
             val built = HashMap<String, Operator<out Retrievable>>()
-            val factory = loadFactory<OperatorFactory>(rootConfig.factory ?: throw IllegalArgumentException("Root operator must be backed by a factory!"))
+            val factory = rootConfig.factory?.let { factory -> loadServiceForName<OperatorFactory>(factory) }
+                ?: throw IllegalArgumentException("Root operator must be backed by an operator factory!")
             built[root.name] = factory.newOperator(rootName, localContext)
 
             for (output in root.output) {
@@ -232,8 +233,18 @@ class IngestionPipelineBuilder(private val config: IngestionConfig, private val 
      * @param context The [Context] to use.
      */
     private fun buildOperatorForFactory(name: String, parent: Operator<out Retrievable>, factoryName: String, context: Context): Operator<out Retrievable> {
-        val factory = loadFactory<OperatorFactory>(factoryName)
-        return factory.newOperator(name, parent, context)
+        val factory = loadServiceForName<OperatorFactory>(factoryName)
+        if (factory != null) {
+            return factory.newOperator(name, parent, context)
+        }
+
+        /* Try to build an extractor via factory. */
+        val extractorFactory = loadServiceForName<ExtractorFactory<*,*>>(factoryName)
+        if (extractorFactory != null) {
+            return extractorFactory.newExtractor(name, parent, context)
+        }
+
+        throw IllegalArgumentException("Failed to find factory implementation for name '$name'")
     }
 
     /**
@@ -261,13 +272,4 @@ class IngestionPipelineBuilder(private val config: IngestionConfig, private val 
         val field = context.schema[fieldName] ?: throw IllegalArgumentException("Field '${fieldName}' does not exist in schema '${context.schema.name}'")
         return field.getExtractor(parent, context)
     }
-
-    /**
-     * Loads the appropriate factory for the given name.
-     *
-     * @param name The (fully qualified or simple) class name of a factory.
-     * @throws IllegalArgumentException If the class could not be found: Either the simple name is not unique or there exists no such class.
-     */
-    private inline fun <reified T : Any> loadFactory(name: String): T
-        = loadServiceForName<T>(name) ?: throw IllegalArgumentException("Failed to find '${T::class.java.simpleName}' implementation for name '$name'")
 }
