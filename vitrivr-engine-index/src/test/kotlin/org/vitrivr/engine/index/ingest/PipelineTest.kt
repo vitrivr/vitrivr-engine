@@ -52,7 +52,10 @@ class PipelineTest {
             local = mapOf(
                 "enumerator" to mapOf(
                     "path" to "./src/test/resources/",
-                    "types" to "IMAGE"
+                    "mediaTypes" to "VIDEO"
+                ),
+                "decoder" to mapOf(
+                    "timeWindowMs" to "1000"
                 )
             )
         )
