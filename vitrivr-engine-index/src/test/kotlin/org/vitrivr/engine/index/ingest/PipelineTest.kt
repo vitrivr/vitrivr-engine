@@ -1,4 +1,4 @@
-package org.vitrivr.engine.index
+package org.vitrivr.engine.index.ingest
 
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.toList
@@ -34,11 +34,11 @@ class PipelineTest {
      *
      * Idea of the test is as follows:
      * - We construct a manual pipeline that extracts a 3s example video showing a red, green and blue screen for 1s each.
-     * - We extract the [AverageColor] value for the content (once for each frame, and once aggregated).
+     * - We extract the [org.vitrivr.engine.core.features.averagecolor.AverageColor] value for the content (once for each frame, and once aggregated).
      * - We check that the extracted values are correct.
      */
     @Test
-    fun testContentSources() = runTest(timeout = Duration.INFINITE) {
+    fun testContentSources() = runTest(timeout = Duration.Companion.INFINITE) {
         val schema = Schema("test", BlackholeConnection("test", BlackholeConnectionProvider()))
 
         schema.addResolver("test", DiskResolver().newResolver(schema, mapOf()))
@@ -59,15 +59,21 @@ class PipelineTest {
 
         val fileSystemEnumerator = FileSystemEnumerator().newOperator("enumerator", context)
 
-        val decoder = BroadcastOperator(VideoDecoder().newOperator("decoder", input = fileSystemEnumerator, context = context))
+        val decoder =
+            BroadcastOperator(VideoDecoder().newOperator("decoder", input = fileSystemEnumerator, context = context))
 
         val middleAgg = MiddleContentAggregator().newOperator("middleAgg", input = decoder, context = context)
 
         val averageColor = AverageColor()
 
-        val averageColorAll = averageColor.newExtractor(schema.Field("averageColorAll", averageColor), input = decoder, context = context)
+        val averageColorAll =
+            averageColor.newExtractor(schema.Field("averageColorAll", averageColor), input = decoder, context = context)
 
-        val averageColorAgg = averageColor.newExtractor(schema.Field("averageColorAgg", averageColor), input = middleAgg, context = context)
+        val averageColorAgg = averageColor.newExtractor(
+            schema.Field("averageColorAgg", averageColor),
+            input = middleAgg,
+            context = context
+        )
 
         val mergeOp = CombineOperator(listOf(averageColorAll, averageColorAgg))
 
@@ -75,8 +81,10 @@ class PipelineTest {
         val out = mergeOp.toFlow(this).takeWhile { it != TerminalRetrievable }.toList()
 
         /* Now extract all content elements and descriptors for each branch. */
-        val aggDescriptors = out.flatMap { it.descriptors }.filterIsInstance<FloatVectorDescriptor>().filter { it.field?.fieldName == "averageColorAgg" }
-        val allDescriptors = out.flatMap { it.descriptors }.filterIsInstance<FloatVectorDescriptor>().filter { it.field?.fieldName == "averageColorAll" }
+        val aggDescriptors = out.flatMap { it.descriptors }.filterIsInstance<FloatVectorDescriptor>()
+            .filter { it.field?.fieldName == "averageColorAgg" }
+        val allDescriptors = out.flatMap { it.descriptors }.filterIsInstance<FloatVectorDescriptor>()
+            .filter { it.field?.fieldName == "averageColorAll" }
 
         /* The number of total descriptors should be equal to the number of content elements (72 frames for 3s). */
         Assertions.assertEquals(72, allDescriptors.size)
