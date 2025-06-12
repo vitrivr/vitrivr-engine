@@ -50,7 +50,7 @@ class FileSystemEnumerator : OperatorFactory {
         val limit = parameters["limit"]?.toLongOrNull() ?: Long.MAX_VALUE
         val type = parameters["type"]
         val regex = parameters["regex"]
-        val types = parameters["types"]?.split(",")?.map { MediaType.valueOf(it) } ?: MediaType.allValid
+        val types = parameters["mediaTypes"]?.split(",")?.map { MediaType.valueOf(it) } ?: MediaType.allValid
         logger.info { "Enumerator: FileSystemEnumerator with path: $path, depth: $depth, mediaTypes: $types, skip: $skip, limit: ${if (limit == Long.MAX_VALUE) "none" else limit} and type: $type, regex: $regex" }
         return Instance(path, depth, types, skip, limit, type, regex, name)
     }
@@ -95,8 +95,8 @@ class FileSystemEnumerator : OperatorFactory {
                 if (type.mediaType in this@Instance.mediaTypes) {
                     val file = try {
                         FileSource(path = element, mimeType = type)
-                    } catch (ex: FileSystemException) {
-                        logger.error { "In flow: Failed to create FileSource for ${element.fileName} (${element.toUri()}). Skip!" }
+                    } catch (e: FileSystemException) {
+                        logger.error(e) { "In flow: Failed to create FileSource for ${element.fileName} (${element.toUri()}). Skip!" }
                         continue
                     }
 
