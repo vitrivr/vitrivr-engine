@@ -51,7 +51,7 @@ class IngestionPipelineBuilderTest {
             mockSchema.addResolver("disk", DiskResolver().newResolver(mockSchema, mapOf("location" to "./thumbnails/testing")))
             val context = ContextFactory.newContext(mockSchema, config.context)
             val testSubject = IngestionPipelineBuilder(config, context)
-            testSubject.parseOperations()
+           testSubject.build()
         } catch (e: Exception) {
             fail(e)
         }
