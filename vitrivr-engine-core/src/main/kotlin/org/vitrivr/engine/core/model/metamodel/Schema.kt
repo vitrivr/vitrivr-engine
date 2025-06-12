@@ -59,7 +59,7 @@ open class Schema(val name: String = "vitrivr", val connection: Connection) : Cl
         name: String,
         analyser: Analyser<ContentElement<*>, Descriptor<*>>,
         parameters: Map<String, String> = emptyMap(),
-        indexes: List<IndexConfig>
+        indexes: List<IndexConfig> = emptyList()
     ) {
         this.fields.add(Field(name, analyser, parameters, indexes))
     }
