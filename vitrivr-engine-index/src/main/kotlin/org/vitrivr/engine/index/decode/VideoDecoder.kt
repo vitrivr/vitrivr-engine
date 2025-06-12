@@ -265,7 +265,6 @@ class VideoDecoder : DecoderFactory {
             val retrievableId = UUID.randomUUID()
             val src = source.filteredAttribute(SourceAttribute::class.java)
             val relationship = src?.let {
-                attributes.add(it)
                 Relationship.ById(retrievableId, "partOf", it.source.sourceId, false)
             }
 

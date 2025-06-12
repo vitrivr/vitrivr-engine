@@ -273,7 +273,6 @@ class FFmpegVideoDecoder : DecoderFactory {
                 val retrievableId = UUID.randomUUID()
                 val source = this.source.filteredAttribute(SourceAttribute::class.java)
                 val relationship = source?.let {
-                    attributes.add(it)
                     Relationship.ById(retrievableId, "partOf", it.source.sourceId, false)
                 }
 
