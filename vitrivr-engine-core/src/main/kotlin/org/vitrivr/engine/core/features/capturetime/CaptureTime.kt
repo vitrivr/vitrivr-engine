@@ -110,7 +110,7 @@ class CaptureTime : Analyser<ImageContent, AnyMapStructDescriptor> {
 
         val timestamp = descriptors.first().values()["timestamp"]
             ?: throw IllegalArgumentException("Descriptor does not contain 'timestamp' value.")
-
+        // here you can change the query type or operator in the future (if this will be used in some way in vitrivr-engine)
         val query = SimpleBooleanQuery(timestamp, ComparisonOperator.GEQ, "timestamp")
         return newRetrieverForQuery(field, query, context)
     }

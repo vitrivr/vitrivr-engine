@@ -13,6 +13,7 @@ import org.vitrivr.engine.core.model.content.impl.memory.InMemoryTextContent
 import org.vitrivr.engine.core.util.extension.BufferedImage
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.*
@@ -163,30 +164,37 @@ data class DateTimeInputData(val data: String, override val comparison: String? 
     }
 
     /**
-     * Parses the input 'data' string into a [LocalDateTime].
-     * It tries a list of common date-time patterns.
-     * If a date-only string (e.g., "2023-01-15") is parsed, it defaults to the start of that day (00:00:00).
+     * Parses the input 'data' string into a [java.time.LocalDateTime].
+     * It robustly handles strings with timezone information (like 'Z' for UTC) by converting them,
+     * and falls back to trying various local date-time patterns if no timezone is present.
      *
-     * @return The parsed [LocalDateTime], or null if parsing fails with all known patterns.
+     * @return The parsed [LocalDateTime], or null if parsing fails.
      */
     fun toLocalDateTime(): LocalDateTime? {
+        try {
+            return ZonedDateTime.parse(this.data).toLocalDateTime()
+        } catch (e: DateTimeParseException) {
+            logger.trace { "Could not parse '${this.data}' as a ZonedDateTime, falling back to local patterns." }
+        }
+
         for (formatter in DATE_TIME_FORMATTERS) {
             try {
-                // First, attempt to parse as LocalDateTime. This will work for most date-time strings
+                // Attempt to parse as a local date-time directly
                 return LocalDateTime.parse(this.data, formatter)
             } catch (e: DateTimeParseException) {
-                logger.trace { "LocalDateTime parse failed for '${this.data}' with formatter '${formatter}' -> ${e.message}" }
-                // If LocalDateTime parsing failed, specifically check if this formatter is ISO_LOCAL_DATE.
+                // If that failed, and if the formatter was for a date-only format, try parsing as just a date.
                 if (formatter == DateTimeFormatter.ISO_LOCAL_DATE) {
                     try {
                         return LocalDate.parse(this.data, formatter).atStartOfDay()
                     } catch (e2: DateTimeParseException) {
-                        logger.trace { "Fallback LocalDate parse also failed for '${this.data}' with ISO_LOCAL_DATE -> ${e2.message}" }
+                        // This specific attempt (LocalDate with ISO_LOCAL_DATE formatter) also failed.
+                        // Continue to the next formatter in the outer loop.
                     }
                 }
             }
         }
-        // If all formatters have been tried and none succeeded:
+
+        // If all attempts fail, log the final warning and return null.
         logger.warn { "Failed to parse date string '${this.data}' into LocalDateTime using any predefined patterns." }
         return null
     }
