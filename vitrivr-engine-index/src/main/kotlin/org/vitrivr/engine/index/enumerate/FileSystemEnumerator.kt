@@ -31,7 +31,7 @@ private val logger: KLogger = KotlinLogging.logger {}
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.2.0
+ * @version 1.2.1
  */
 class FileSystemEnumerator : OperatorFactory {
     /**
@@ -51,8 +51,12 @@ class FileSystemEnumerator : OperatorFactory {
         val type = parameters["type"]
         val regex = parameters["regex"]
         val types = parameters["mediaTypes"]?.split(",")?.map { MediaType.valueOf(it) } ?: MediaType.allValid
-        logger.info { "Enumerator: FileSystemEnumerator with path: $path, depth: $depth, mediaTypes: $types, skip: $skip, limit: ${if (limit == Long.MAX_VALUE) "none" else limit} and type: $type, regex: $regex" }
-        return Instance(path, depth, types, skip, limit, type, regex, name)
+        logger.debug { "Enumerator: FileSystemEnumerator with path: $path, depth: $depth, mediaTypes: $types, skip: $skip, limit: ${if (limit == Long.MAX_VALUE) "none" else limit} and type: $type, regex: $regex" }
+        return if (path.isAbsolute) {
+            Instance(path, depth, types, skip, limit, type, regex, name)
+        } else {
+            Instance(context.schema.root.resolve(path), depth, types, skip, limit, type, regex, name)
+        }
     }
 
     /**
