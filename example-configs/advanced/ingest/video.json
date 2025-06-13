@@ -1,0 +1,88 @@
+{
+  "schema": "video",
+  "context": {
+    "contentFactory": "CachedContentFactory",
+    "resolvers": ["thumbnails"]
+  },
+  "operators": {
+    "enumerator": {
+      "factory": "FileSystemEnumerator",
+      "parameters": {
+        "path": "/path/to/content",
+        "depth": "3",
+        "mediaTypes": "VIDEO"
+      }
+    },
+    "decoder": {
+      "factory": "VideoDecoder",
+      "parameters": {
+        "timeWindowMs": "1000"
+      }
+    },
+    "segmenter": {
+      "factory": "FixedDurationSegmenter",
+      "parameters": {
+        "duration": "6000",
+        "lookAheadTime": "1000"
+      }
+    },
+    "persister": {
+      "factory": "PersistRetrievableTransformer"
+    },
+    "metadata":{
+      "field": "video"
+    },
+    "source":{
+      "field": "file"
+    },
+    "path": {
+      "factory": "DescriptorAsContentTransformer",
+      "parameters": {
+        "field": "file"
+      }
+    },
+    "selector": {
+      "factory": "LastContentAggregator"
+    },
+    "time": {
+      "field": "time"
+    },
+    "averagecolor": {
+      "field": "averagecolor"
+    },
+    "clip": {
+      "field": "clip"
+    },
+    "thumbnail": {
+      "exporter": "thumbnail",
+      "parameters": {
+        "maxSideResolution": "400",
+        "mimeType": "JPG"
+      }
+    },
+    "filter": {
+      "factory": "TypeFilterTransformer",
+      "parameters": {
+        "type": "SOURCE:VIDEO"
+      }
+    }
+  },
+  "operations": {
+    "enumerator": {"operator": "enumerator"},
+    "decoder": {"operator": "decoder", "inputs": ["enumerator"]},
+    "segmenter": {"operator": "decoder", "inputs": ["decoder"]},
+    "path": {"operator": "path", "inputs": ["segmenter"]},
+    "persister": {"operator": "persister", "inputs": ["segmenter"]},
+    "metadata": {"operator": "metadata", "inputs": ["persister"]},
+    "source": {"operator": "source", "inputs": ["metadata"]},
+    "time": {"operator": "time", "inputs": ["source"]},
+    "selector": {"operator": "selector", "inputs": ["time"]},
+    "thumbnail": {"operator": "thumbnail", "inputs": ["selector"]},
+    "clip": {"operator": "clip", "inputs": ["thumbnail"]},
+    "filter": {"operator": "filter","inputs": ["clip"],"merge": "MERGE"}
+  },
+  "output": [
+    "filter"
+  ],
+  "mergeType": "MERGE"
+}

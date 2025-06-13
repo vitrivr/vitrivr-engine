@@ -2,10 +2,12 @@
   "schemas": {
     "example": {
       "connection": {
-        "database": "CottontailConnectionProvider",
+        "database": "PgVectorConnectionProvider",
         "parameters": {
           "Host": "127.0.0.1",
-          "port": "1865"
+          "port": "5432",
+          "username": "postgres",
+          "password": "vitrivr"
         }
       },
       "fields": {
@@ -44,19 +46,13 @@
             "host": "http://127.0.0.1:8888/",
             "model": "tesseract"
           }
-        },
-        "time": {
-          "factory": "TemporalMetadata"
-        },
-        "video": {
-          "factory": "VideoSourceMetadata"
         }
       },
       "resolvers": {
-        "disk": {
+        "thumbnails": {
           "factory": "DiskResolver",
           "parameters": {
-            "location": "./example/thumbs"
+            "location": "/path/to/thumbnails"
           }
         }
       },
@@ -69,8 +65,7 @@
             "mimeType": "JPG"
           }
         }
-      },
-      "extractionPipelines": {}
+      }
     }
   }
 }

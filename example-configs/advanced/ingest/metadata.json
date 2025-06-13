@@ -1,0 +1,35 @@
+{
+  "schema": "metadata",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolvers": []
+  },
+  "operators": {
+    "enumerator": {
+      "factory": "FileSystemEnumerator",
+      "parameters": {
+        "path": "/path/to/images",
+        "depth": "5",
+        "mediaTypes": "IMAGE"
+      }
+    },
+    "persister": {
+      "factory": "PersistRetrievableTransformer"
+    },
+    "decoder": {
+      "factory": "ImageDecoder"
+    },
+    "exif": {
+      "field": "exif"
+    }
+  },
+  "operations": {
+    "stage0": {"operator": "enumerator"},
+    "stage1": {"operator": "decoder", "inputs": ["stage0"]},
+    "stage2": {"operator": "persister", "inputs": ["stage1"]},
+    "stage3": {"operator": "exif", "inputs": ["stage2"]}
+  },
+  "output": [
+    "stage3"
+  ]
+}

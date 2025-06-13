@@ -2,10 +2,12 @@
   "schemas": {
     "metadata": {
       "connection": {
-        "database": "CottontailConnectionProvider",
+        "database": "PgVectorConnectionProvider",
         "parameters": {
-          "host": "127.0.0.1",
-          "port": "1865"
+          "Host": "127.0.0.1",
+          "port": "5432",
+          "username": "postgres",
+          "password": "vitrivr"
         }
       },
       "fields": {
@@ -30,14 +32,19 @@
         "thumbnails": {
           "factory": "DiskResolver",
           "parameters": {
-            "location": "Y:/vitrivr-engine/out/thumbnails"
+            "location": "/path/to/thumbnails"
           }
         },
         "previews": {
           "factory": "DiskResolver",
           "parameters": {
-            "location": "Y:/vitrivr-engine/out/previews"
+            "location": "/path/to/previews"
           }
+        }
+      },
+      "extractionPipelines": {
+        "metadata": {
+          "path": "../ingest/metadata.json"
         }
       }
     }
