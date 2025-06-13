@@ -129,6 +129,27 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
         )
     }
 
+
+    /**
+     * Generates and returns a new [Retriever] instance for this [CLIP].
+     *
+     * @param field The [Schema.Field] to create an [Retriever] for.
+     * @param content An array of [ContentElement] elements to use with the [Retriever]
+     * @param context The [QueryContext] to use with the [Retriever]
+     *
+     * @return A new [Retriever] instance for this [CLIP]
+     * @throws [UnsupportedOperationException], if this [CLIP] does not support the creation of an [Retriever] instance.
+     */
+    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, content: Map<String, ContentElement<*>>, context: Context): DenseRetriever<ContentElement<*>> {
+        val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
+
+        /* Extract vectors from content. */
+        val vectors = content.values.map { analyse(it, host) }
+
+        /* Return retriever. */
+        return this.newRetrieverForDescriptors(field, vectors, context)
+    }
+
     /**
      * Generates and returns a new [Retriever] instance for this [CLIP].
      *
