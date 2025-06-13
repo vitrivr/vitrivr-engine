@@ -39,11 +39,11 @@ abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>> : Abstract
     ) : super(input, analyser, name, context)
 
     protected val host: String
-        get() = this.context[this.name, HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
+        get() = this.context[this.name, HOST_PARAMETER_NAME]?: this.field?.parameters[HOST_PARAMETER_NAME]  ?: HOST_PARAMETER_DEFAULT
 
     /** Name of the model that should be used. */
     protected val model: String
-        get() = this.context[this.name, MODEL_PARAMETER_NAME] ?: throw IllegalStateException("Model parameter not set.")
+        get() = this.context[this.name, MODEL_PARAMETER_NAME]?: this.field?.parameters[MODEL_PARAMETER_NAME] ?: throw IllegalStateException("Model parameter not set.")
 
     /** */
     protected val timeoutMs: Long
