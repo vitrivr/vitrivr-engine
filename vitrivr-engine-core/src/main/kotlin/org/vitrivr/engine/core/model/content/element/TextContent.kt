@@ -13,7 +13,7 @@ import java.util.*
  * @author Luca Rossetto
  * @version 1.1.0
  */
-interface TextContent: DescriptorContent<TextDescriptor> {
+interface TextContent : DescriptorContent<TextDescriptor> {
     /** Length of the [String] held by this [TextContent]. */
     val length: Int
         get() = (this.content as TextDescriptor).value.value.length
@@ -30,5 +30,7 @@ interface TextContent: DescriptorContent<TextDescriptor> {
      *
      * @return [String] of the data URL.
      */
-    fun toDataUrl(): String = "data:text/plain;charset=utf-8,${Base64.getEncoder().encodeToString((this.content as Value.Text).value.toByteArray(StandardCharsets.UTF_8))}"
+    fun toDataUrl(): String = "data:text/plain;charset=utf-8,${
+        Base64.getEncoder().encodeToString(Value.Text(this.text).value.toByteArray(StandardCharsets.UTF_8))
+    }"
 }
