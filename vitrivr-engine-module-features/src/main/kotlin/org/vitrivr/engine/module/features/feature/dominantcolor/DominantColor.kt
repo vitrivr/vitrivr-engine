@@ -1,7 +1,6 @@
 package org.vitrivr.engine.module.features.feature.dominantcolor
 
-import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.color.RGBColorContainer
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
@@ -48,7 +47,7 @@ class DominantColor : Analyser<ImageContent, LabelDescriptor> {
     override fun newRetrieverForQuery(
         field: Schema.Field<ImageContent, LabelDescriptor>,
         query: Query,
-        context: QueryContext
+        context: Context
     ): Retriever<ImageContent, LabelDescriptor> {
 
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
@@ -61,13 +60,13 @@ class DominantColor : Analyser<ImageContent, LabelDescriptor> {
     override fun newRetrieverForDescriptors(
         field: Schema.Field<ImageContent, LabelDescriptor>,
         descriptors: Collection<LabelDescriptor>,
-        context: QueryContext
+        context: Context
     ): Retriever<ImageContent, LabelDescriptor> {
 
         val labels = descriptors.mapNotNull {
             try {
                 ColorLabel.valueOf(it.label.value.uppercase())
-            } catch (e: IllegalArgumentException) {
+            } catch (_: IllegalArgumentException) {
                 null
             }
         }.toSet().map { it.name }
@@ -77,26 +76,16 @@ class DominantColor : Analyser<ImageContent, LabelDescriptor> {
         return newRetrieverForQuery(field, query, context)
     }
 
-    override fun newRetrieverForContent(
-        field: Schema.Field<ImageContent, LabelDescriptor>,
-        content: Collection<ImageContent>,
-        context: QueryContext
-    ): Retriever<ImageContent, LabelDescriptor> = newRetrieverForDescriptors(field, analyse(content), context)
-
-
-
     override fun newExtractor(
         field: Schema.Field<ImageContent, LabelDescriptor>,
-        input: Operator<Retrievable>,
-        parameters: Map<String, String>,
-        context: IndexContext
+        input: Operator<out Retrievable>,
+        context: Context
     ): Extractor<ImageContent, LabelDescriptor> = DominantColorExtractor(input, this,  field)
 
     override fun newExtractor(
         name: String,
-        input: Operator<Retrievable>,
-        parameters: Map<String, String>,
-        context: IndexContext
+        input: Operator<out Retrievable>,
+        context: Context
     ): Extractor<ImageContent, LabelDescriptor> = DominantColorExtractor(input, this, name)
 
     /**

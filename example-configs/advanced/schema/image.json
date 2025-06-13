@@ -1,0 +1,71 @@
+{
+  "schemas": {
+    "example": {
+      "connection": {
+        "database": "PgVectorConnectionProvider",
+        "parameters": {
+          "Host": "127.0.0.1",
+          "port": "5432",
+          "username": "postgres",
+          "password": "vitrivr"
+        }
+      },
+      "fields": {
+        "averagecolor": {
+          "factory": "AverageColor"
+        },
+        "file": {
+          "factory": "FileSourceMetadata"
+        },
+        "clip": {
+          "factory": "DenseEmbedding",
+          "parameters": {
+            "host": "http://127.0.0.1:8888",
+            "model": "open-clip-vit-b32",
+            "length": "512"
+          }
+        },
+        "dino": {
+          "factory": "DenseEmbedding",
+          "parameters": {
+            "host": "http://127.0.0.1:8888/",
+            "model": "dino-v2-vits14",
+            "length": "384"
+          }
+        },
+        "whisper": {
+          "factory": "ASR",
+          "parameters": {
+            "host": "http://127.0.0.1:8888/",
+            "model": "whisper"
+          }
+        },
+        "ocr": {
+          "factory": "OCR",
+          "parameters": {
+            "host": "http://127.0.0.1:8888/",
+            "model": "tesseract"
+          }
+        }
+      },
+      "resolvers": {
+        "thumbnails": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "/path/to/thumbnails"
+          }
+        }
+      },
+      "exporters": {
+        "thumbnail": {
+          "factory": "ThumbnailExporter",
+          "resolverName": "disk",
+          "parameters": {
+            "maxSideResolution": "300",
+            "mimeType": "JPG"
+          }
+        }
+      }
+    }
+  }
+}

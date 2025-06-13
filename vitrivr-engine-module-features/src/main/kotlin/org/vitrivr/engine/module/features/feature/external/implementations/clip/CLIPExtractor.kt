@@ -24,10 +24,10 @@ class CLIPExtractor : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor
 
     private val host: String
 
-    constructor(input: Operator<Retrievable>, analyser: CLIP, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, host: String) : super(input, analyser, field) {
+    constructor(input: Operator<out Retrievable>, analyser: CLIP, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, host: String) : super(input, analyser, field) {
         this.host = host
     }
-    constructor(input: Operator<Retrievable>, analyser: CLIP, name: String, host: String) : super(input, analyser, name) {
+    constructor(input: Operator<out Retrievable>, analyser: CLIP, name: String, host: String) : super(input, analyser, name) {
         this.host = host
     }
 

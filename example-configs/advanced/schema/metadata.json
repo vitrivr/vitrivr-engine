@@ -1,0 +1,52 @@
+{
+  "schemas": {
+    "metadata": {
+      "connection": {
+        "database": "PgVectorConnectionProvider",
+        "parameters": {
+          "Host": "127.0.0.1",
+          "port": "5432",
+          "username": "postgres",
+          "password": "vitrivr"
+        }
+      },
+      "fields": {
+        "file": {
+          "factory": "FileSourceMetadata"
+        },
+        "time": {
+          "factory": "TemporalMetadata"
+        },
+        "exif": {
+          "factory": "ExifMetadata",
+          "parameters": {
+            "ExifSubIFD_FocalLength": "INT",
+            "ExifSubIFD_ApertureValue": "FLOAT",
+            "ExifSubIFD_DateTimeOriginal": "DATETIME",
+            "ExifSubIFD_MeteringMode": "STRING",
+            "time_zone": "STRING"
+          }
+        }
+      },
+      "resolvers": {
+        "thumbnails": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "/path/to/thumbnails"
+          }
+        },
+        "previews": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "/path/to/previews"
+          }
+        }
+      },
+      "extractionPipelines": {
+        "metadata": {
+          "path": "../ingest/metadata.json"
+        }
+      }
+    }
+  }
+}

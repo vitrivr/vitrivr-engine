@@ -1,7 +1,6 @@
 package org.vitrivr.engine.core.features.metadata.source.video
 
-import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadata
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataExtractor
 import org.vitrivr.engine.core.features.metadata.source.file.FileSourceMetadataRetriever
@@ -20,7 +19,7 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * Implementation of the [VideoSourceMetadata] [Analyser], which derives metadata information from a [Retrievable].
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 class VideoSourceMetadata : Analyser<ContentElement<*>, VideoSourceMetadataDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
@@ -39,47 +38,33 @@ class VideoSourceMetadata : Analyser<ContentElement<*>, VideoSourceMetadataDescr
      *
      * @param field The [Schema.Field] for which to create the [FileSourceMetadataExtractor]. Can be null.
      * @param input The input [Operator]
-     * @param context The [IndexContext]
+     * @param context The [Context]
      *
      * @return [FileSourceMetadataExtractor]
      */
-    override fun newExtractor(
-        field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>,
-        input: Operator<Retrievable>,
-        parameters: Map<String, String>,
-        context: IndexContext
-    ) = VideoSourceMetadataExtractor(input, this, field)
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>, input: Operator<out Retrievable>, context: Context) = VideoSourceMetadataExtractor(input, this, field)
 
     /**
      * Generates and returns a new [FileSourceMetadataExtractor] for the provided [Schema.Field].
      *
      * @param name The name of the [FileSourceMetadataExtractor].
      * @param input The input [Operator]
-     * @param context The [IndexContext]
+     * @param context The [Context]
      *
      * @return [FileSourceMetadataExtractor]
      */
-    override fun newExtractor(
-        name: String,
-        input: Operator<Retrievable>,
-        parameters: Map<String, String>,
-        context: IndexContext
-    ): Extractor<ContentElement<*>, VideoSourceMetadataDescriptor> = VideoSourceMetadataExtractor(input, this, name)
+    override fun newExtractor(name: String, input: Operator<out Retrievable>, context: Context): Extractor<ContentElement<*>, VideoSourceMetadataDescriptor> = VideoSourceMetadataExtractor(input, this, name)
 
     /**
      * Generates and returns a new [VideoSourceMetadataRetriever] for the provided [Schema.Field].
      *
      * @param field The [Schema.Field] for which to create the [VideoSourceMetadataRetriever].
      * @param query The [Query] to create [VideoSourceMetadataRetriever] for.
-     * @param context The [QueryContext]
+     * @param context The [Context]
      *
      * @return [VideoSourceMetadataRetriever]
      */
-    override fun newRetrieverForQuery(
-        field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>,
-        query: Query,
-        context: QueryContext
-    ): VideoSourceMetadataRetriever {
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>, query: Query, context: Context): VideoSourceMetadataRetriever {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         require(query is BooleanQuery) { "Query is not a Boolean query." }
         return VideoSourceMetadataRetriever(field, query, context)
@@ -90,11 +75,7 @@ class VideoSourceMetadata : Analyser<ContentElement<*>, VideoSourceMetadataDescr
      *
      * This method will always throw an [UnsupportedOperationException]
      */
-    override fun newRetrieverForContent(
-        field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>,
-        content: Collection<ContentElement<*>>,
-        context: QueryContext
-    ): VideoSourceMetadataRetriever {
+    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>, content: Map<String, ContentElement<*>>, context: Context): VideoSourceMetadataRetriever {
         throw UnsupportedOperationException("FileSourceMetadata does not support the creation of a Retriever instance from content.")
     }
 }

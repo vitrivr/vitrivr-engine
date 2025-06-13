@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.database.retrievable.RetrievableWriter
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -15,8 +14,8 @@ import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.operators.general.Transformer
-import org.vitrivr.engine.core.operators.general.TransformerFactory
 
 /**
  * A [Operator.Sink] that persists the [Ingested] it receives.
@@ -24,35 +23,24 @@ import org.vitrivr.engine.core.operators.general.TransformerFactory
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class PersistRetrievableTransformer : TransformerFactory {
+class PersistRetrievableTransformer: OperatorFactory {
     /**
      * Creates and returns a new [PersistRetrievableTransformer.Instance] from this [PersistRetrievableTransformer].
      *
      * @param name The name of this [PersistRetrievableTransformer].
-     * @param input The input [Operator].
-     * @param context The [IndexContext] to use.
+     * @param inputs The input [Operator].
+     * @param context The [Context] to use.
      */
-    override fun newTransformer(
-        name: String,
-        input: Operator<out Retrievable>,
-        parameters: Map<String, String>,
-        context: Context
-    ): Transformer = Instance(
-        input as Operator<Retrievable>,
-        parameters,
-        context as IndexContext,
+    override fun newOperator(name: String, inputs: Map<String, Operator<out Retrievable>>, context: Context): Transformer = Instance(
+        inputs.values.first() as Operator<Retrievable>,
+        context,
         name
     )
 
     /**
      * The [PersistRetrievableTransformer] [Transformer] implementation.
      */
-    private class Instance(
-        override val input: Operator<Retrievable>,
-        val parameters: Map<String, String>,
-        val context: IndexContext,
-        override val name: String
-    ) : Transformer {
+    private class Instance(override val input: Operator<out Retrievable>, val context: Context, override val name: String): Transformer {
 
         /** Logger instance. */
         private val logger = KotlinLogging.logger("RetrievablePersister#${this.name}")
@@ -79,11 +67,7 @@ class PersistRetrievableTransformer : TransformerFactory {
                 this.persist(it, cache)
             }.onCompletion {
                 if (cache.isNotEmpty()) {
-                    this@Instance.logger.warn {
-                        " ${
-                            cache.map { it.value.size }.sum()
-                        } relationships that could not be persisted due to missing retrievables."
-                    }
+                    this@Instance.logger.warn { " ${cache.map { it.value.size }.sum()} relationships that could not be persisted due to missing retrievables." }
                 }
             }
         }
@@ -107,7 +91,7 @@ class PersistRetrievableTransformer : TransformerFactory {
             /* If there are relationships that wait for retrievable to be persisted, persist them now. */
             val pendingRelationships = cache.remove(retrievable.id)
             if (pendingRelationships != null) {
-                this.writer.connectAll(pendingRelationships)
+                 this.writer.connectAll(pendingRelationships)
             }
 
             /* Now write relationships to database or cache them. */

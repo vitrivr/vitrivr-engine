@@ -4,8 +4,7 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.math3.complex.Complex
 import org.apache.commons.math3.util.FastMath
-import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.LinearCorrespondence
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -177,7 +176,7 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
     override fun newRetrieverForQuery(
         field: Schema.Field<Model3dContent, FloatVectorDescriptor>,
         query: Query,
-        context: QueryContext
+        context: Context
     ): Retriever<Model3dContent, FloatVectorDescriptor> {
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { }
         return DenseRetriever(field, query, context, LinearCorrespondence(1.0f))
@@ -186,7 +185,7 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
     override fun newRetrieverForDescriptors(
         field: Schema.Field<Model3dContent, FloatVectorDescriptor>,
         descriptors: Collection<FloatVectorDescriptor>,
-        context: QueryContext
+        context: Context
     ): Retriever<Model3dContent, FloatVectorDescriptor> {
         /* Extract parameters from field and context. */
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
@@ -205,8 +204,8 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
 
     override fun newRetrieverForContent(
         field: Schema.Field<Model3dContent, FloatVectorDescriptor>,
-        content: Collection<Model3dContent>,
-        context: QueryContext
+        content: Map<String,Model3dContent>,
+        context: Context
     ): Retriever<Model3dContent, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
 
@@ -215,8 +214,7 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
         val cap = field.parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
         val minL = field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
         val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
-        val descriptors =
-            content.map { analyse(it.content.getMaterials().first().materialMeshes.first(), gridSize, cap, minL, maxL) }
+        val descriptors = content.values.map { analyse(it.content.getMaterials().first().materialMeshes.first(), gridSize, cap, minL, maxL) }
 
         /* Return retriever. */
         return this.newRetrieverForDescriptors(field, descriptors, context)
@@ -227,24 +225,14 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
      *
      * @param field The [Schema.Field] to create an [Extractor] for.
      * @param input The [Operator] that acts as input to the new [Extractor].
-     * @param context The [IndexContext] to use with the [Extractor].
+     * @param context The [Context] to use with the [Extractor].
      * @return [SphericalHarmonicsExtractor]
      */
-    override fun newExtractor(
-        field: Schema.Field<Model3dContent, FloatVectorDescriptor>,
-        input: Operator<Retrievable>,
-        parameters: Map<String, String>,
-        context: IndexContext
-    ): SphericalHarmonicsExtractor {
-        val gridSize =
-            field.parameters[GRID_SIZE_PARAMETER_NAME]?.toIntOrNull()
-                ?: GRID_SIZE_PARAMETER_DEFAULT
-        val cap = field.parameters[CAP_PARAMETER_NAME]?.toIntOrNull()
-            ?: CAP_PARAMETER_DEFAULT
-        val minL = field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull()
-            ?: MINL_PARAMETER_DEFAULT
-        val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull()
-            ?: MAXL_PARAMETER_DEFAULT
+    override fun newExtractor(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, input: Operator<out Retrievable>, context: Context): SphericalHarmonicsExtractor {
+        val gridSize = field.parameters[GRID_SIZE_PARAMETER_NAME]?.toIntOrNull() ?: GRID_SIZE_PARAMETER_DEFAULT
+        val cap = field.parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
+        val minL = field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
+        val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
         logger.debug { "Creating new SphericalHarmonicsExtract for field '${field.fieldName}' with parameters ($gridSize, $cap, $minL, $maxL)." }
         return SphericalHarmonicsExtractor(input, this, field, gridSize, cap, minL, maxL)
     }
@@ -254,15 +242,11 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
      *
      * @param name The name of the [SphericalHarmonicsExtractor].
      * @param input The [Operator] that acts as input to the new [Extractor].
-     * @param context The [IndexContext] to use with the [Extractor].
+     * @param context The [Context] to use with the [Extractor].
      * @return [SphericalHarmonicsExtractor]
      */
-    override fun newExtractor(
-        name: String,
-        input: Operator<Retrievable>,
-        parameters: Map<String, String>,
-        context: IndexContext
-    ): SphericalHarmonicsExtractor {
+    override fun newExtractor(name: String, input: Operator<out Retrievable>, context: Context): SphericalHarmonicsExtractor {
+        val parameters = context.local[name] ?: emptyMap()
         val gridSize = parameters[GRID_SIZE_PARAMETER_NAME]?.toIntOrNull() ?: GRID_SIZE_PARAMETER_DEFAULT
         val cap = parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
         val minL = parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT

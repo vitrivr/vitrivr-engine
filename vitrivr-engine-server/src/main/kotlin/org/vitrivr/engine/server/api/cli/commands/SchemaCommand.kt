@@ -10,6 +10,7 @@ import com.github.ajalt.clikt.parameters.options.required
 import com.jakewharton.picnic.table
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.vitrivr.engine.core.config.ContextFactory
 import org.vitrivr.engine.core.config.ingest.IngestionConfig
 import org.vitrivr.engine.core.config.ingest.IngestionPipelineBuilder
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
@@ -91,7 +92,7 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
                         row {
                             cell(field.fieldName)
                             cell(field.analyser::class.java.simpleName)
-                            cell(field.analyser.contentClasses.map { it.simpleName }.joinToString())
+                            cell(field.analyser.contentClasses.joinToString { it.simpleName ?: "" })
                             cell(field.analyser.descriptorClass.simpleName)
                             cell(this@SchemaCommand.schema.connection.description())
                             cell(field.getInitializer().isInitialized())
@@ -186,9 +187,7 @@ class SchemaCommand(private val schema: Schema, private val server: ExecutionSer
                     return
                 }
 
-                config.context.schema = this.schema
-
-                IngestionPipelineBuilder(config).build()
+                IngestionPipelineBuilder(config, ContextFactory.newContext(this.schema, config.context)).build()
             } else {
                 System.err.println("Requires either -n / --name: Name of the ingestion config defined on the schema or -c / --config the path to a ingestion config")
                 return

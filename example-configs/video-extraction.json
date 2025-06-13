@@ -1,0 +1,78 @@
+{
+  "schema": "test-schema",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolvers":["thumbnails", "previews"]
+  },
+  "operators": {
+    "enumerator": {
+      "factory": "FileSystemEnumerator",
+      "parameters": {
+        "path": "/path/to/videos/to/extract",
+        "depth": "3",
+        "mediaTypes": "VIDEO"
+      }
+    },
+    "decoder": {
+      "factory": "VideoDecoder",
+      "parameters": {
+        "timeWindowMs": "10000"
+      }
+    },
+    "metadata":{
+      "field": "video"
+    },
+    "source":{
+      "field": "file"
+    },
+    "aggregator": {
+      "factory": "MiddleContentAggregator"
+    },
+    "persister": {
+      "factory": "PersistRetrievableTransformer"
+    },
+    "time": {
+      "field": "time"
+    },
+    "averagecolor": {
+      "field": "averagecolor"
+    },
+    "thumbnail": {
+      "exporter": "thumbnail"
+    },
+    "preview": {
+      "exporter": "preview"
+    },
+    "filter": {
+      "factory": "TypeFilterTransformer",
+      "parameters": {
+        "type": "SOURCE:VIDEO"
+      }
+    }
+  },
+  "operations": {
+    "enumerator": {"operator": "enumerator"},
+    "decoder": {"operator": "decoder", "inputs": ["enumerator"]},
+    "middle": {"operator": "aggregator", "inputs": ["decoder"]},
+    "persist": {"operator": "persister", "inputs": ["middle"]},
+    "metadata": {"operator": "metadata", "inputs": ["persist"]},
+    "source": {"operator": "source", "inputs": ["persist"]},
+    "time": {"operator": "time", "inputs": ["persist"]},
+    "averagecolor": {"operator": "averagecolor", "inputs": ["persist"]},
+    "thumbnail": {"operator": "thumbnail", "inputs": ["persist"]},
+    "thumbnail2": {"operator": "thumbnail2", "inputs": ["persist"]},
+    "preview": {"operator": "preview", "inputs": ["persist"]}
+  },
+  "output": [
+    "averagecolor",
+    "thumbnail",
+    "thumbnail2",
+    "metadata",
+    "source",
+    "time",
+    "averagecolor",
+    "thumbnail",
+    "preview"
+  ],
+  "mergeType": "MERGE"
+}

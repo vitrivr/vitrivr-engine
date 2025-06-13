@@ -7,15 +7,13 @@ import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.base.features.external.common.FesExtractor
 import org.vitrivr.engine.base.features.external.implementations.asr.ASR
 import org.vitrivr.engine.base.features.external.implementations.asr.ASRExtractor
-import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.BoundedCorrespondence
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.metamodel.Analyser.Companion.merge
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.basics.Distance
@@ -60,44 +58,42 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
      *
      * @param name The name of the extractor.
      * @param input The [Operator] that acts as input to the new [FesExtractor].
-     * @param context The [IndexContext] to use with the [FesExtractor].
+     * @param context The [Context] to use with the [FesExtractor].
      * @return [DenseEmbeddingExtractor]
      */
     override fun newExtractor(
         name: String,
-        input: Operator<Retrievable>,
-        parameters: Map<String, String>,
-        context: IndexContext
-    ) = DenseEmbeddingExtractor(input, name, this, parameters)
+        input: Operator<out Retrievable>,
+        context: Context
+    ) = DenseEmbeddingExtractor(input, name, this, context)
 
     /**
      * Generates and returns a new [ASRExtractor] instance for this [ASR].
      *
      * @param field The [Schema.Field] to create an [FesExtractor] for.
      * @param input The [Operator] that acts as input to the new [FesExtractor].
-     * @param context The [IndexContext] to use with the [FesExtractor].
+     * @param context The [Context] to use with the [FesExtractor].
      * @return [DenseEmbeddingExtractor]
      */
     override fun newExtractor(
         field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
-        input: Operator<Retrievable>,
-        parameters: Map<String, String>,
-        context: IndexContext
-    ) = DenseEmbeddingExtractor(input, field, this, merge(field, parameters))
+        input: Operator<out Retrievable>,
+        context: Context
+    ) = DenseEmbeddingExtractor(input, field, this, context)
 
     /**
      * Generates and returns a new [DenseRetriever] instance for this [DenseEmbedding].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param query The [Query] to use with the [Retriever].
-     * @param context The [QueryContext] to use with the [Retriever].
+     * @param context The [Context] to use with the [Retriever].
      *
      * @return A new [DenseRetriever] instance for this [DenseEmbedding]
      */
     override fun newRetrieverForQuery(
         field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
         query: Query,
-        context: QueryContext
+        context: Context
     ): Retriever<ContentElement<*>, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
@@ -115,13 +111,13 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param content An array of [ContentElement] elements to use with the [Retriever]
-     * @param context The [QueryContext] to use with the [Retriever]
+     * @param context The [Context] to use with the [Retriever]
      * @return [DenseRetriever]
      */
     override fun newRetrieverForContent(
         field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
-        content: Collection<ContentElement<*>>,
-        context: QueryContext
+        content: Map<String, ContentElement<*>>,
+        context: Context
     ): Retriever<ContentElement<*>, FloatVectorDescriptor> {
         /* Prepare query parameters. */
         val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
@@ -136,7 +132,7 @@ class DenseEmbedding : ExternalFesAnalyser<ContentElement<*>, FloatVectorDescrip
         val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
 
         /* Generate vector for content element. */
-        val vector = when (val c = content.first { it is ImageContent || it is TextContent }) {
+        val vector = when (val c = content.values.first { it is ImageContent || it is TextContent }) {
             is ImageContent -> ImageEmbeddingApi(host, model, timeoutSeconds, pollingIntervalMs, retries).analyse(c)
             is TextContent -> TextEmbeddingApi(host, model, timeoutSeconds, pollingIntervalMs, retries).analyse(c)
             else -> throw IllegalArgumentException("Unsupported content type ${c.javaClass.simpleName}.")

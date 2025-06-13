@@ -3,6 +3,7 @@ package org.vitrivr.engine.base.features.external.implementations.ocr
 import org.vitrivr.engine.base.features.external.api.OcrApi
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.base.features.external.common.FesExtractor
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
@@ -20,18 +21,18 @@ import java.util.*
 class OCRExtractor : FesExtractor<ImageContent, TextDescriptor> {
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         field: Schema.Field<ImageContent, TextDescriptor>,
         analyser: ExternalFesAnalyser<ImageContent, TextDescriptor>,
-        parameters: Map<String, String>
-    ) : super(input, field, analyser, parameters)
+        context: Context
+    ) : super(input, field, analyser, context)
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         name: String,
         analyser: ExternalFesAnalyser<ImageContent, TextDescriptor>,
-        parameters: Map<String, String>
-    ) : super(input, name, analyser, parameters)
+        context: Context
+    ) : super(input, name, analyser, context)
 
     /** The [OcrApi] used to perform extraction with. */
     private val api = OcrApi(this.host, this.model, this.timeoutMs, this.pollingIntervalMs, this.retries)

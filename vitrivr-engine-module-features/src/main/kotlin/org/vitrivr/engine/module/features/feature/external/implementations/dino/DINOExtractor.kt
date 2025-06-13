@@ -23,11 +23,11 @@ class DINOExtractor : AbstractExtractor<ImageContent, FloatVectorDescriptor> {
 
     private val host: String
 
-    constructor(input: Operator<Retrievable>, analyser: DINO, field: Schema.Field<ImageContent, FloatVectorDescriptor>, host: String) : super(input, analyser, field) {
+    constructor(input: Operator<out Retrievable>, analyser: DINO, field: Schema.Field<ImageContent, FloatVectorDescriptor>, host: String) : super(input, analyser, field) {
         this.host = host
     }
 
-    constructor(input: Operator<Retrievable>, analyser: DINO, name: String, host: String) : super(input, analyser, name) {
+    constructor(input: Operator<out Retrievable>, analyser: DINO, name: String, host: String) : super(input, analyser, name) {
         this.host = host
     }
 

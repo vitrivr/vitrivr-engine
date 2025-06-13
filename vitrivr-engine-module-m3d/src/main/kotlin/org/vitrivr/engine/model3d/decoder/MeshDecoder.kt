@@ -5,50 +5,48 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.mapNotNull
-import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
+import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.operators.ingest.Decoder
-import org.vitrivr.engine.core.operators.ingest.DecoderFactory
-import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Source
 import org.vitrivr.engine.model3d.ModelLoader
 import java.io.IOException
 
+private val logger: KLogger = KotlinLogging.logger {}
+
 /**
  * A [Decoder] that can decode [MeshDecoder] from a [Source] of [MediaType.MESH].
  *
  * @author Rahel Arnold
- * @version 1.1.2
+ * @version 1.2.0
  */
-class MeshDecoder : DecoderFactory {
+class MeshDecoder : OperatorFactory {
+
     /**
-     * Creates a new [Decoder] instance from this [DecoderFactory].
+     * Creates and returns a new [Operator] instance from this [OperatorFactory].
      *
-     * @param name The name of this [Decoder].
-     * @param input The input [Enumerator].
-     * @param context The [IndexContext]
+     * @param name The name of the [Operator] to create.
+     * @param inputs A [Map] of the named input [Operator]s.
+     * @param context The [Context] to use.
      */
-    override fun newDecoder(
-        name: String,
-        input: Enumerator,
-        parameters: Map<String, String>,
-        context: IndexContext
-    ): Decoder = Instance(input, context, name)
+    override fun newOperator(name: String, inputs: Map<String, Operator<out Retrievable>>, context: Context): Decoder {
+        require(inputs.size == 1) { "MeshDecoder expects a single input. If you want to merge incoming operator do so explicitly." }
+        val input = inputs.values.first()
+        return Instance(name, input, context)
+    }
 
     /**
      * The [Decoder] returned by this [MeshDecoder].
      */
     private class Instance(
-        override val input: Enumerator,
-        private val context: IndexContext,
-        override val name: String
+        override val name: String,
+        override val input: Operator<out Retrievable>,
+        private val context: Context
     ) : Decoder {
-
-        /** [KLogger] instance. */
-        private val logger: KLogger = KotlinLogging.logger {}
-
         /**
          * Converts this [MeshDecoder] to a [Flow] of [Retrievable] elements.
          *

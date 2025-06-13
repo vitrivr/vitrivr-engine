@@ -1,0 +1,52 @@
+{
+  "schemas": {
+    "lhe": {
+      "connection": {
+        "database": "PgVectorConnectionProvider",
+        "parameters": {
+          "Host": "127.0.0.1",
+          "port": "5432",
+          "username": "postgres",
+          "password": "vitrivr"
+        }
+      },
+      "fields": {
+        "averagecolor": {
+          "factory": "AverageColor"
+        },
+        "file": {
+          "factory": "FileSourceMetadata"
+        },
+        "time": {
+          "factory": "TemporalMetadata"
+        },
+        "video": {
+          "factory": "VideoSourceMetadata"
+        }
+      },
+      "resolvers": {
+        "thumbnails": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "/path/to/thumbnails"
+          }
+        }
+      },
+      "exporters": {
+        "thumbnail": {
+          "factory": "ThumbnailExporter",
+          "parameters": {
+            "resolver": "thumbnails",
+            "maxSideResolution": "500",
+            "mimeType": "JPG"
+          }
+        }
+      },
+      "extractionPipelines": {
+        "video": {
+          "path": "./video-extraction.json"
+        }
+      }
+    }
+  }
+}

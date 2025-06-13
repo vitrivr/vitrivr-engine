@@ -23,8 +23,8 @@ import org.vitrivr.engine.module.features.feature.ehd.EHD
  */
 class HueHistogramExtractor : AbstractExtractor<ImageContent, FloatVectorDescriptor> {
 
-    constructor(input: Operator<Retrievable>, analyser: HueHistogram, field: Schema.Field<ImageContent, FloatVectorDescriptor>) : super(input, analyser, field)
-    constructor(input: Operator<Retrievable>, analyser: HueHistogram, name: String) : super(input, analyser, name)
+    constructor(input: Operator<out Retrievable>, analyser: HueHistogram, field: Schema.Field<ImageContent, FloatVectorDescriptor>) : super(input, analyser, field)
+    constructor(input: Operator<out Retrievable>, analyser: HueHistogram, name: String) : super(input, analyser, name)
 
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.

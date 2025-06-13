@@ -1,7 +1,6 @@
 package org.vitrivr.engine.module.features.feature.external.implementations.clip
 
-import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.BoundedCorrespondence
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -72,16 +71,15 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
      *
      * @param field The [Schema.Field] to create an [Extractor] for.
      * @param input The [Operator] that acts as input to the new [Extractor].
-     * @param context The [IndexContext] to use with the [Extractor].
+     * @param context The [Context] to use with the [Extractor].
      *
      * @return A new [Extractor] instance for this [CLIP]
      * @throws [UnsupportedOperationException], if this [CLIP] does not support the creation of an [Extractor] instance.
      */
     override fun newExtractor(
         field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
-        input: Operator<Retrievable>,
-        parameters: Map<String, String>,
-        context: IndexContext
+        input: Operator<out Retrievable>,
+        context: Context
     ): CLIPExtractor {
         val host: String = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
         return CLIPExtractor(input, this, field, host)
@@ -92,18 +90,17 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
      *
      * @param name The [Schema.Field] to create an [Extractor] for.
      * @param input The [Operator] that acts as input to the new [Extractor].
-     * @param context The [IndexContext] to use with the [Extractor].
+     * @param context The [Context] to use with the [Extractor].
      *
      * @return A new [Extractor] instance for this [CLIP]
      * @throws [UnsupportedOperationException], if this [CLIP] does not support the creation of an [Extractor] instance.
      */
     override fun newExtractor(
         name: String,
-        input: Operator<Retrievable>,
-        parameters: Map<String, String>,
-        context: IndexContext
+        input: Operator<out Retrievable>,
+        context: Context
     ): CLIPExtractor {
-        val host: String = parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
+        val host: String = context.getProperty(name,HOST_PARAMETER_NAME) ?: HOST_PARAMETER_DEFAULT
         return CLIPExtractor(input, this, name, host)
     }
 
@@ -112,7 +109,7 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param query The [Query] to use with the [Retriever]
-     * @param context The [QueryContext] to use with the [Retriever]
+     * @param context The [Context] to use with the [Retriever]
      *
      * @return A new [Retriever] instance for this [CLIP]
      * @throws [UnsupportedOperationException], if this [CLIP] does not support the creation of an [Retriever] instance.
@@ -120,7 +117,7 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
     override fun newRetrieverForQuery(
         field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
         query: Query,
-        context: QueryContext
+        context: Context
     ): DenseRetriever<ContentElement<*>> {
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { "The query is not a ProximityQuery<Value.FloatVector>." }
         @Suppress("UNCHECKED_CAST")
@@ -132,12 +129,33 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
         )
     }
 
+
+    /**
+     * Generates and returns a new [Retriever] instance for this [CLIP].
+     *
+     * @param field The [Schema.Field] to create an [Retriever] for.
+     * @param content An array of [ContentElement] elements to use with the [Retriever]
+     * @param context The [QueryContext] to use with the [Retriever]
+     *
+     * @return A new [Retriever] instance for this [CLIP]
+     * @throws [UnsupportedOperationException], if this [CLIP] does not support the creation of an [Retriever] instance.
+     */
+    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, content: Map<String, ContentElement<*>>, context: Context): DenseRetriever<ContentElement<*>> {
+        val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
+
+        /* Extract vectors from content. */
+        val vectors = content.values.map { analyse(it, host) }
+
+        /* Return retriever. */
+        return this.newRetrieverForDescriptors(field, vectors, context)
+    }
+
     /**
      * Generates and returns a new [Retriever] instance for this [CLIP].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
-     * @param context The [QueryContext] to use with the [Retriever]
+     * @param context The [Context] to use with the [Retriever]
      *
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
@@ -145,7 +163,7 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
     override fun newRetrieverForDescriptors(
         field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
         descriptors: Collection<FloatVectorDescriptor>,
-        context: QueryContext
+        context: Context
     ): DenseRetriever<ContentElement<*>> {
         /* Prepare query parameters. */
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
@@ -164,27 +182,5 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
         )
     }
 
-    /**
-     * Generates and returns a new [Retriever] instance for this [CLIP].
-     *
-     * @param field The [Schema.Field] to create an [Retriever] for.
-     * @param content An array of [ContentElement] elements to use with the [Retriever]
-     * @param context The [QueryContext] to use with the [Retriever]
-     *
-     * @return A new [Retriever] instance for this [CLIP]
-     * @throws [UnsupportedOperationException], if this [CLIP] does not support the creation of an [Retriever] instance.
-     */
-    override fun newRetrieverForContent(
-        field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
-        content: Collection<ContentElement<*>>,
-        context: QueryContext
-    ): DenseRetriever<ContentElement<*>> {
-        val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
 
-        /* Extract vectors from content. */
-        val vectors = content.map { analyse(it, host) }
-
-        /* Return retriever. */
-        return this.newRetrieverForDescriptors(field, vectors, context)
-    }
 }

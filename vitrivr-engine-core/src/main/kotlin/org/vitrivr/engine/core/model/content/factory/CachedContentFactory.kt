@@ -2,9 +2,6 @@ package org.vitrivr.engine.core.model.content.factory
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.IngestionContextConfig
 import org.vitrivr.engine.core.model.content.element.*
 import org.vitrivr.engine.core.model.content.impl.cache.*
 import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
@@ -16,29 +13,41 @@ import java.lang.ref.ReferenceQueue
 import java.nio.ShortBuffer
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 
 private val logger: KLogger = KotlinLogging.logger {}
 
 /**
- * A [ContentFactory] that uses a file cache to back [ContentElement]s.
+ *  A [ContentFactoriesFactory] that creates a [ContentFactory] data backed by a file-cache
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.0.1
  */
 class CachedContentFactory : ContentFactoriesFactory {
-
-
-    override fun newContentFactory(
-        schema: Schema,
-        parameters: Map<String, String>,
-    ): ContentFactory {
-        val basePath = parameters["location"]?.let { Path.of(it) }
-        return Instance(basePath)
+    /**
+     * Creates a new [Instance] instance from this [CachedContentFactory].
+     *
+     * @param schema The [Schema] to create [CachedContentFactory] for.
+     * @param parameters The configuration parameters.
+     * @return The resulting [ContentFactory].
+     */
+    override fun newContentFactory(schema: Schema, parameters: Map<String, String>): ContentFactory {
+        val path = parameters["location"]?.let { Path.of(it) } ?: Files.createTempDirectory("vitrivr-cache")
+        return if (path.isAbsolute) {
+            Instance(path)
+        } else {
+            Instance(schema.root.resolve(path))
+        }
     }
 
-    private class Instance(private var basePath: Path? = null) : ContentFactory, AutoCloseable {
+    /**
+     * A [ContentFactory] that uses a file cache to back [ContentElement]s.
+     *
+     * @author Ralph Gasser
+     * @version 1.0.1
+     */
+    private class Instance(private val path: Path) : ContentFactory, AutoCloseable {
 
         /** The [ReferenceQueue] used for cleanup. */
         private val referenceQueue = ReferenceQueue<CachedContent>()
@@ -47,8 +56,7 @@ class CachedContentFactory : ContentFactoriesFactory {
         private val refSet = HashSet<CachedItem>()
 
         /** Internal counter used. */
-        private val counter = AtomicInteger(0)
-
+        private val counter = AtomicLong(0)
 
         /** Flag indicating, that this [CachedContentFactory] has been closed. */
         @Volatile
@@ -56,20 +64,8 @@ class CachedContentFactory : ContentFactoriesFactory {
             private set
 
         init {
-
-            if (this.basePath == null) {
-                this.basePath = Files.createTempDirectory("vitrivr-cache")
-                "No base path provided for CachedContentFactory. Using temporary directory ${this.basePath}.".let {
-                    logger.warn { it }
-                }
-            } else {
-                this.basePath?.let {
-                    it.takeIf {
-                        !Files.exists(it)
-                    }?.let {
-                        Files.createDirectories(it)
-                    }
-                }
+            if (!Files.exists(this.path)) {
+                Files.createDirectories(this.path)
             }
             thread(name = "FileCachedContentFactory cleaner thread.", isDaemon = true, start = true)
             {
@@ -82,7 +78,7 @@ class CachedContentFactory : ContentFactoriesFactory {
                             Thread.sleep(100)
                         }
                     } catch (e: InterruptedException) {
-                        logger.info { "FileCachedContentFactory cleaner thread interrupted" }
+                        logger.error(e) { "FileCachedContentFactory cleaner thread interrupted" }
                     }
                 }
 
@@ -96,7 +92,7 @@ class CachedContentFactory : ContentFactoriesFactory {
          *
          * @return Next [Path].
          */
-        private fun nextPath(): Path = this.basePath!!.resolve(this.counter.incrementAndGet().toString())
+        private fun nextPath(): Path = this.path.resolve(this.counter.incrementAndGet().toString())
 
         override fun newImageContent(bufferedImage: BufferedImage): ImageContent {
             check(!this.closed) { "CachedContentFactory has been closed." }
@@ -125,7 +121,6 @@ class CachedContentFactory : ContentFactoriesFactory {
             this.refSet.add(CachedItem(content, this.referenceQueue))
             return content
         }
-
 
         /**
          * A [PhantomReference] implementation that allows for the puring of [CachedContent] from the cache.

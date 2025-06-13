@@ -1,7 +1,6 @@
 package org.vitrivr.engine.core.model.metamodel
 
-import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -25,27 +24,13 @@ interface Analyser<C : ContentElement<*>, D : Descriptor<*>> : ExtractorFactory<
 
     companion object {
         /**
-         * Merges the parameters of a [Schema.Field] with the parameters of the [IndexContext].
+         * Merges the parameters of a [Schema.Field] with the parameters of the [Context].
          *
          * @param field The [Schema.Field] to merge parameters for.
-         * @param context The [IndexContext] to merge parameters with.
+         * @param context The [Context] to merge parameters with.
          * @return Merged parameter map.
          */
-        fun merge(field: Schema.Field<*, *>, parameters: Map<String, String>): Map<String, String> {
-            val fieldParameters = field.parameters
-            val merged = HashMap<String, String>(fieldParameters)
-            merged.putAll(parameters)
-            return merged
-        }
-
-        /**
-         * Merges the parameters of a [Schema.Field] with the parameters of the [IndexContext].
-         *
-         * @param field The [Schema.Field] to merge parameters for.
-         * @param context The [QueryContext] to merge parameters with.
-         * @return Merged parameter map.
-         */
-        fun merge(field: Schema.Field<*, *>, context: QueryContext): Map<String, String> {
+        fun merge(field: Schema.Field<*, *>, context: Context): Map<String, String> {
             val fieldParameters = field.parameters
             val contextParameters = context.local[field.fieldName] ?: emptyMap()
             val merged = HashMap<String, String>(fieldParameters)
@@ -77,12 +62,12 @@ interface Analyser<C : ContentElement<*>, D : Descriptor<*>> : ExtractorFactory<
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param query The [Query] to use with the [Retriever].
-     * @param context The [QueryContext] to use with the [Retriever].
+     * @param context The [Context] to use with the [Retriever].
      *
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    fun newRetrieverForQuery(field: Schema.Field<C, D>, query: Query, context: QueryContext): Retriever<C, D>
+    fun newRetrieverForQuery(field: Schema.Field<C, D>, query: Query, context: Context): Retriever<C, D>
 
     /**
      * Generates and returns a new [Retriever] instance for this [Analyser].
@@ -92,12 +77,12 @@ interface Analyser<C : ContentElement<*>, D : Descriptor<*>> : ExtractorFactory<
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param content An array of [Content] elements to use with the [Retriever]
-     * @param context The [QueryContext] to use with the [Retriever]
+     * @param context The [Context] to use with the [Retriever]
      *
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance from [Content].
      */
-    fun newRetrieverForContent(field: Schema.Field<C, D>, content: Collection<C>, context: QueryContext): Retriever<C, D> {
+    fun newRetrieverForContent(field: Schema.Field<C, D>, content: Map<String, C>, context: Context): Retriever<C, D> {
         throw UnsupportedOperationException("This Analyser does not support the creation of a retriever from a collection of descriptors.")
     }
 
@@ -109,12 +94,12 @@ interface Analyser<C : ContentElement<*>, D : Descriptor<*>> : ExtractorFactory<
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param descriptors An array of [Descriptor] elements to use with the [Retriever]
-     * @param context The [QueryContext] to use with the [Retriever]
+     * @param context The [Context] to use with the [Retriever]
      *
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance from [Descriptor]s.
      */
-    fun newRetrieverForDescriptors(field: Schema.Field<C, D>, descriptors: Collection<D>, context: QueryContext): Retriever<C, D> {
+    fun newRetrieverForDescriptors(field: Schema.Field<C, D>, descriptors: Collection<D>, context: Context): Retriever<C, D> {
         throw UnsupportedOperationException("This Analyser does not support the creation of a retriever from a collection of descriptors.")
     }
 }

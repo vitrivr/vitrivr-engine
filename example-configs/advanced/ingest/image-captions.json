@@ -1,0 +1,75 @@
+{
+  "schema": "caption",
+  "context": {
+    "contentFactory": "CachedContentFactory",
+    "resolvers": ["thumbnails"]
+  },
+  "operators": {
+    "enumerator": {
+      "factory": "FileSystemEnumerator",
+      "parameters": {
+        "path": "/path/to/data",
+        "depth": "5",
+        "regex": ".*n014[0-9]{5}.*",
+        "mediaTypes": "IMAGE,VIDEO"
+      }
+    },
+    "imageDecoder": {
+      "factory": "ImageDecoder"
+    },
+    "fileMetadata":{
+      "field": "file"
+    },
+    "imageFilePathContent": {
+      "factory":"DescriptorAsContentTransformer"
+    },
+    "clip": {
+      "field": "clip"
+    },
+    "imagePrompt": {
+      "factory": "TemplateTextTransformer",
+      "parameters": {
+        "template": "Create a short caption to the content of this image (file path: ${imageFilePathContent}) for the purpose of traning a co-embedding model. Use information from the internet to enhance the description, for instance by searching for proper nouns. If web sources turn out to be irrelevant, do not include them. The image is part of the imagenet-object-localization-challenge. Do not include general information about the imagenet-object-localization-challenge. Do not structure the description, put everything in one sentence. Do not mention words such as 'archive', 'documentation', 'archivist', 'search' or 'internet'. Do not mention any sources.",
+        "defaultValue": "no content provided"
+      }
+    },
+    "captionSparse": {
+      "field": "captionSparse",
+      "parameters": {
+        "field": "captionSparse"
+      }
+    },
+    "captionContent": {
+      "factory": "DescriptorAsContentTransformer"
+    },
+    "captionDense": {
+      "field": "captionDense"
+    },
+    "imageSourceFilter": {
+      "factory": "TypeFilterTransformer",
+      "parameters": {
+        "type": "SOURCE:IMAGE"
+      }
+    }
+  },
+  "operations": {
+    "enumerator-stage": {"operator": "enumerator"},
+    "image-decoder-stage": {"operator": "imageDecoder", "inputs": ["enumerator-stage"]},
+    "image-file-metadata-stage": {"operator": "fileMetadata", "inputs": ["image-decoder-stage"]},
+    "image-file-path-content-stage": {"operator": "imageFilePathContent", "inputs": ["image-file-metadata-stage"]},
+
+    "image-clip-stage": {"operator": "clip", "inputs": ["image-file-path-content-stage"]},
+
+    "image-prompt-stage": {"operator": "imagePrompt", "inputs": ["image-file-path-content-stage"]},
+    "image-caption-sparse-stage": {"operator": "captionSparse", "inputs": ["image-file-path-content-stage"]},
+    "image-caption-content-stage": {"operator": "captionContent", "inputs": ["image-caption-sparse-stage"]},
+    "image-caption-stage": {"operator": "captionDense", "inputs": ["image-caption-content-stage"]},
+
+
+    "image-final-stage": {"operator": "imageSourceFilter", "inputs": ["image-caption-stage","image-clip-stage"], "merge": "COMBINE"}
+  },
+  "output": [
+    "image-final-stage"
+  ],
+  "mergeType": "MERGE"
+}

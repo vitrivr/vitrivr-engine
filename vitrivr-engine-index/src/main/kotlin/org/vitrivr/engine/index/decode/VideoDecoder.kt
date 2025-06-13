@@ -16,7 +16,7 @@ import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.Frame
 import org.bytedeco.javacv.FrameGrabber
 import org.bytedeco.javacv.Java2DFrameConverter
-import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -27,9 +27,9 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
+import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.operators.ingest.Decoder
-import org.vitrivr.engine.core.operators.ingest.DecoderFactory
-import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Metadata
 import org.vitrivr.engine.core.source.Source
@@ -38,32 +38,38 @@ import java.awt.image.BufferedImage
 import java.nio.ShortBuffer
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.text.lowercase
 
 /**
  * A [Decoder] that can decode [ImageContent] and [AudioContent] from a [Source] of [MediaType.VIDEO].
  *
  * @author Ralph Gasser
- * @version 2.2.0
+ * @version 2.3.0
  */
-class VideoDecoder : DecoderFactory {
-
-    override fun newDecoder(
-        name: String, input: Enumerator, parameters: Map<String, String>, context: IndexContext
-    ): Decoder {
-        val video = parameters["video"]?.let { it.lowercase() == "true" } ?: true
-        val audio = parameters["audio"]?.let { it.lowercase() == "true" } ?: true
-        val keyFrames = parameters["keyFrames"]?.let { it.lowercase() == "true" } ?: false
-        val timeWindowMs = parameters["timeWindowMs"]?.toLongOrNull() ?: 500L
-        return Instance(input, context, name, video, audio, keyFrames, timeWindowMs)
+class VideoDecoder : OperatorFactory {
+    /**
+     * Creates a new [Instance] instance from this [ImageDecoder.Instance].
+     *
+     * @param name the name of the [ImageDecoder.Instance]
+     * @param inputs Map of named input [Operator]s
+     * @param context The [Context] to use.
+     */
+    override fun newOperator(name: String, inputs: Map<String, Operator<out Retrievable>>, context: Context): Operator<out Retrievable> {
+        require(inputs.size == 1)  { "The ${this::class.simpleName} only supports one input operator. If you want to combine multiple inputs, use explicit merge strategies." }
+        val video = context[name, "video"]?.let { it.lowercase() == "true" } != false
+        val audio = context[name, "audio"]?.let { it.lowercase() == "true" } != false
+        val keyFrames = context[name, "keyFrames"]?.let { it.lowercase() == "true" } ?: false
+        val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
+        return Instance(name, inputs.values.first(), context, video, audio, keyFrames, timeWindowMs)
     }
 
     /**
      * The [Decoder] returned by this [VideoDecoder].
      */
     private class Instance(
-        override val input: Enumerator,
-        private val context: IndexContext,
         override val name: String,
+        override val input: Operator<out Retrievable>,
+        private val context: Context,
         private val video: Boolean = true,
         private val audio: Boolean = true,
         private val keyFrames: Boolean = false,
