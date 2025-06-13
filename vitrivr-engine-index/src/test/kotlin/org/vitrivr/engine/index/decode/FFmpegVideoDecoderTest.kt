@@ -17,6 +17,7 @@ import org.vitrivr.engine.core.model.retrievable.TerminalRetrievable
 import org.vitrivr.engine.core.resolver.impl.DiskResolver
 import org.vitrivr.engine.index.aggregators.content.MiddleContentAggregator
 import org.vitrivr.engine.index.enumerate.FileSystemEnumerator
+import java.nio.file.Paths
 import kotlin.time.Duration
 
 /**
@@ -30,7 +31,7 @@ class FFmpegVideoDecoderTest {
     @Disabled("Local only! Missing binary in GitHub action.")
     fun test() = runTest(timeout = Duration.INFINITE) {
         /* Prepare schema. */
-        val schema = Schema("test", BlackholeConnection("test", BlackholeConnectionProvider()))
+        val schema = Schema("test", Paths.get("."), BlackholeConnection("test", BlackholeConnectionProvider()))
         schema.addResolver("test", DiskResolver().newResolver(schema, mapOf()))
 
         /* Prepare context. */

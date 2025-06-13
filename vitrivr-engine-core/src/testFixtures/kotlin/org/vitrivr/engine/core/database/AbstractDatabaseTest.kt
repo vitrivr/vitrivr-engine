@@ -1,7 +1,6 @@
 package org.vitrivr.engine.core.database
 
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.TestInstance
 import org.vitrivr.engine.core.config.schema.SchemaConfig
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -11,12 +10,12 @@ import org.vitrivr.engine.core.model.metamodel.SchemaManager
  * Abstract base class for database tests.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.0.1
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class AbstractDatabaseTest(schemaPath: String) {
     companion object {
-        val SCHEMA_NAME = "vitrivr-test"
+        protected const val SCHEMA_NAME = "vitrivr-test"
     }
 
     /** [SchemaManager] for this [AbstractDatabaseTest]. */
@@ -25,8 +24,7 @@ abstract class AbstractDatabaseTest(schemaPath: String) {
     init {
         /* Loads schema. */
         val schema = SchemaConfig.loadFromResource(schemaPath)
-        schema.name = SCHEMA_NAME
-        this.manager.load(schema)
+        this.manager.load(SCHEMA_NAME, schema)
     }
 
     /** The test [Schema]. */
