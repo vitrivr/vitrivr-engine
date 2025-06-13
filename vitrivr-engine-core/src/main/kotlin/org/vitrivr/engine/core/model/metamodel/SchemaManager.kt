@@ -10,6 +10,7 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.resolver.ResolverFactory
 import org.vitrivr.engine.core.util.extension.loadServiceForName
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -33,13 +34,15 @@ class SchemaManager {
     /**
      * Loads the [SchemaConfig] with this [SchemaManager].
      *
+     * @param name The name of the [Schema] to load.
      * @param config The [SchemaConfig] to load.
+     * @param root The schema root to resolve relative Paths from.
      */
     @OptIn(ExperimentalSerializationApi::class)
-    fun load(config: SchemaConfig) {
+    fun load(name: String, config: SchemaConfig, root: Path = Paths.get(".")) {
         /* Close existing connection (if exists). */
-        if (this.schemas.containsKey(config.name)) {
-            this.schemas[config.name]?.close()
+        if (this.schemas.containsKey(name)) {
+            this.schemas[name]?.close()
         }
 
         /* Find connection provider for connection. */
@@ -47,8 +50,8 @@ class SchemaManager {
             ?: throw IllegalArgumentException("Failed to find connection provider implementation for '${config.connection.database}'.")
 
         /* Create new connection using reflection. */
-        val connection = connectionProvider.openConnection(config.name, config.connection.parameters)
-        val schema = Schema(config.name, connection)
+        val connection = connectionProvider.openConnection(name, config.connection.parameters)
+        val schema = Schema(name, config.root ?: root, connection)
         config.fields.forEach { (fieldName, fieldConfig) ->
             val analyser = loadServiceForName<Analyser<*,*>>(fieldConfig.factory) ?: throw IllegalArgumentException("Failed to find a factory implementation for '${fieldConfig.factory}'.")
             if(fieldName.contains(".")){
@@ -68,8 +71,13 @@ class SchemaManager {
             )
         }
         config.extractionPipelines.forEach { (extractionPipelineName, extractionPipelineConfig) ->
-            val ingestionConfig = IngestionConfig.read(Paths.get(extractionPipelineConfig.path))
-                ?: throw IllegalArgumentException("Failed to read pipeline configuration from '${extractionPipelineConfig.path}'.")
+            val path = Paths.get(extractionPipelineConfig.path)
+            val ingestionConfig = if (path.isAbsolute) {
+                IngestionConfig.read(path)
+            } else {
+                IngestionConfig.read(schema.root.resolve(path))
+            } ?: throw IllegalArgumentException("Failed to read pipeline configuration from '${extractionPipelineConfig.path}'.")
+
             if (ingestionConfig.schema != schema.name) {
                 throw IllegalArgumentException("Schema name in pipeline configuration '${ingestionConfig.schema}' does not match schema name '${schema.name}'.")
             }
@@ -78,17 +86,6 @@ class SchemaManager {
 
         /* Cache and return connection. */
         this.schemas[schema.name] = schema
-    }
-
-    /**
-     * Sets the name for a [SchemaConfig], then calls load.
-     *
-     * @param name The name of the schema.
-     * @param config The [SchemaConfig] to which to assign the name and load.
-     */
-    fun load(name: String, config: SchemaConfig) {
-        config.name = name
-        load(config)
     }
 
     /**

@@ -22,6 +22,7 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.core.resolver.Resolver
 import org.vitrivr.engine.core.resolver.ResolverFactory
 import java.io.Closeable
+import java.nio.file.Path
 import java.util.*
 
 typealias FieldName = String
@@ -30,9 +31,9 @@ typealias FieldName = String
  * A [Schema] that defines a particular vitrivr instance's meta data model.
  *
  * @author Ralph Gasser
- * @version 1.3.0
+ * @version 1.4.0
  */
-open class Schema(val name: String = "vitrivr", val connection: Connection) : Closeable {
+open class Schema(val name: String = "vitrivr", val root: Path, val connection: Connection) : Closeable {
 
     /** The [List] of [Field]s contained in this [Schema]. */
     private val fields: MutableList<Field<ContentElement<*>, Descriptor<*>>> = mutableListOf()
