@@ -4,7 +4,7 @@
       "connection": {
         "database": "PgVectorConnectionProvider",
         "parameters": {
-          "host": "localhost",
+          "host": "db",
           "port": "5432",
           "database": "postgres",
           "username": "postgres",
@@ -24,7 +24,7 @@
         "clip": {
           "factory": "CLIP",
           "parameters": {
-            "host": "http://localhost:8888"
+            "host": "http://vitrivr-descriptor-server:8888"
           }
         }
       },
@@ -49,10 +49,10 @@
       },
       "extractionPipelines": {
         "image": {
-          "path": "/vitrivr-engine/example-configs/image-ingest.json"
+          "path": "/app/configs/image-ingest.json"
         },
         "video": {
-          "path": "/vitrivr-engine/example-configs/video-ingest.json"
+          "path": "/app/configs/video-ingest.json"
         }
       }
     }
