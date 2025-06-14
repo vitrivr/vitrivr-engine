@@ -31,7 +31,7 @@ services:
 
 
   vitrivr-engine:
-    image: vitrivr-engine
+    image: vitrivr/vitrivr-engine
     depends_on:
       db:
         condition: service_healthy
