@@ -49,10 +49,10 @@
       },
       "extractionPipelines": {
         "image": {
-          "path": "/vitrivr-engine/example-configs/image-ingest.json"
+          "path": "./example-configs/image-ingest.json"
         },
         "video": {
-          "path": "/vitrivr-engine/example-configs/video-ingest.json"
+          "path": "./example-configs/video-ingest.json"
         }
       }
     }
