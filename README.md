@@ -460,8 +460,8 @@ v> sandbox init         # Initializes the schema (sandbox = your schema name)
 If you want to ingest media files, you can use the following commands:
 
 ```bash
-v> sandbox ingest -n image # Ingest all images through the specified pipeline
-v> sandbox ingest -n video # Ingest all videos through the specified pipeline
+v> sandbox extract -n image # Ingest all images through the specified pipeline
+v> sandbox extract -n video # Ingest all videos through the specified pipeline
 ```
 
 Or if you are using Docker, you can run the following command:
@@ -469,8 +469,8 @@ Or if you are using Docker, you can run the following command:
 ```bash
 docker attach vitrivr-engine-vitrivr-engine-1
 sandbox init
-sandbox ingest -n image
-sandbox ingest -n video
+sandbox extract -n image
+sandbox extract -n video
 ```
 
 You can now access the REST API at [http://localhost:7070](http://localhost:7070) and query the system.
