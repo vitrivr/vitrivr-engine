@@ -11,6 +11,9 @@ RUN gradle --no-daemon :vitrivr-engine-server:distZip -x test
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
+
+RUN apt-get update && apt-get install -y gettext unzip && rm -rf /var/lib/apt/lists/*
+
 COPY --from=build /src/vitrivr-engine-server/build/distributions/vitrivr-engine-server-*.zip /tmp/
 RUN unzip /tmp/vitrivr-engine-server-*.zip -d /app/vitrivr
 
