@@ -121,6 +121,8 @@ connection parameters to match your PostgreSQL or CottontailDB setup. The follow
 `pgVector` and defines fields for image and video ingestion, including a CLIP feature extractor and a thumbnail
 exporter.
 
+If you are using Docker, please review the config files in `example-configs/docker`.
+
 <details>
 <summary><code>config-schema.json</code></summary>
 
@@ -318,7 +320,7 @@ The fields used here are defined in the `config-schema.json` file, and the pipel
     ],
     "local": {
       "enumerator": {
-        "path": "./sandbox/media",
+        "path": "/sandbox/media",
         "depth": "1"
       },
       "thumbnail": {
