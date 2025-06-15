@@ -18,9 +18,11 @@ import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.source.file.FileSource
-import java.text.ParseException
-import java.text.SimpleDateFormat
 import java.util.*
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+import java.util.Locale
 
 val logger: KLogger = KotlinLogging.logger {}
 
@@ -33,14 +35,24 @@ private val DATE_FORMAT_PATTERNS = listOf(
     "MM/dd/yyyy HH:mm:ss"
 )
 
-private fun convertDate(date: String): Date? {
-    for (pattern in DATE_FORMAT_PATTERNS) {
+private val DATE_FORMATTERS = DATE_FORMAT_PATTERNS.map { DateTimeFormatter.ofPattern(it, Locale.ROOT) }
+
+
+/**
+ * Converts a date string to a LocalDateTime object using a list of predefined patterns.
+ *
+ * @param date The date string to parse.
+ * @return A LocalDateTime object if parsing is successful with any pattern, null otherwise.
+ */
+private fun convertDate(date: String): LocalDateTime? {
+    for (formatter in DATE_FORMATTERS) {
         try {
-            return SimpleDateFormat(pattern).parse(date)
-        } catch (e: ParseException) {
+            return LocalDateTime.parse(date, formatter)
+        } catch (e: DateTimeParseException) {
+            logger.trace { "LocalDateTime parse failed for '$date' with formatter '$formatter': ${e.message}" }
         }
     }
-    logger.warn { "Failed to parse date: $date" }
+    logger.warn { "Failed to parse date string '$date' into LocalDateTime using any known patterns." }
     return null
 }
 
@@ -77,12 +89,23 @@ fun Value<*>.convertToType(type: Type): Value<*>? {
             Value.Text(this.value)
         } else null
 
+
         Type.Datetime -> if (this is Value.String) {
+            // convertDate now returns LocalDateTime?, and Value.DateTime() now expects LocalDateTime
             convertDate(this.value)?.let { Value.DateTime(it) }
         } else null
 
         Type.UUID -> if (this is Value.String) {
             Value.UUIDValue(UUID.fromString(this.value))
+        } else null
+
+        Type.Geography -> if (this is Value.String) { // Assumes the string is WKT
+            try {
+                Value.GeographyValue(this.value) // Constructor "Value.GeographyValue(wkt: String, srid: Int = 4326)"
+            } catch (e: IllegalArgumentException) {
+                logger.warn { "Failed to convert WKT string '${this.value}' to GeographyValue: ${e.message}" }
+                null
+            }
         } else null
 
         else -> null
@@ -146,14 +169,29 @@ class ExifMetadataExtractor : AbstractExtractor<ContentElement<*>, AnyMapStructD
 private fun convertType(directory: Directory, tagType: Int, type: Type): Value<*>? = when (type) {
     Type.Boolean -> Value.Boolean(directory.getBoolean(tagType))
     Type.Byte -> Value.Byte(directory.getObject(tagType) as Byte)
-    Type.Datetime -> convertDate(directory.getString(tagType))?.let { Value.DateTime(it) }
+    // convertDate now returns LocalDateTime?, and Value.DateTime() now expects LocalDateTime
+    Type.Datetime -> directory.getString(tagType)?.let { convertDate(it)?.let { ldt -> Value.DateTime(ldt) } }
     Type.Double -> Value.Double(directory.getDouble(tagType))
     Type.Float -> Value.Float(directory.getFloat(tagType))
     Type.Int -> Value.Int(directory.getInt(tagType))
     Type.Long -> Value.Long(directory.getLong(tagType))
     Type.Short -> Value.Short(directory.getObject(tagType) as Short)
     Type.String -> Value.String(directory.getString(tagType))
-    Type.Text -> Value.Text(directory.getString(tagType))  // Ensure Type.Text returns Value.Text
+    Type.Text -> Value.Text(directory.getString(tagType))
     Type.UUID -> Value.UUIDValue(UUID.fromString(directory.getString(tagType)))
+    Type.Geography -> {
+        // This handles an EXIF tag that directly contains a WKT string.
+        val wktString = directory.getString(tagType)
+        if (wktString != null && wktString.isNotBlank()) {
+            try {
+                Value.GeographyValue(wktString)
+            } catch (e: IllegalArgumentException) {
+                logger.warn { "Failed to parse WKT string '$wktString' from EXIF tag for GeographyValue: ${e.message}" }
+                null
+            }
+        } else {
+            null
+        }
+    }
     is Type.BooleanVector, is Type.DoubleVector, is Type.FloatVector, is Type.IntVector, is Type.LongVector -> throw IllegalArgumentException("Unsupported type: $type")
 }
