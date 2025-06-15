@@ -219,6 +219,3 @@ data class GeographyInputData(
         throw UnsupportedOperationException("Cannot derive content from GeographyInputData")
     }
 }
-
-
-//TODO UNIT TESTS

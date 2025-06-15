@@ -34,18 +34,7 @@ enum class ComparisonOperator(val value: String) {
                 is Value.Short -> v1.value < (v2.value as Short)
                 is Value.Text -> v1.value < (v2.value as String)
                 is Value.UUIDValue -> v1.value < (v2.value as UUID)
-                // This approach is for experimenting purposes, specific operators will be implemented in the future.
-                is Value.GeographyValue -> { // TODO either take out or find better comparison
-                    val p1 = extractPointCoordinates(v1)
-                    val p2 = extractPointCoordinates(v2)
-                    if (p1 != null && p2 != null) {
-                        val (lon1, lat1) = p1
-                        val (lon2, lat2) = p2
-                        lon1 < lon2 || (lon1 == lon2 && lat1 < lat2)
-                    } else {
-                        false
-                    }
-                }
+                is Value.GeographyValue -> throw IllegalArgumentException("GeographyValue cannot be compared using $this operator.")
                 is Value.BooleanVector,
                 is Value.DoubleVector,
                 is Value.FloatVector,
@@ -68,17 +57,7 @@ enum class ComparisonOperator(val value: String) {
                 is Value.Short -> v1.value > (v2.value as Short)
                 is Value.Text -> v1.value > (v2.value as String)
                 is Value.UUIDValue -> v1.value > (v2.value as UUID)
-                is Value.GeographyValue -> { // TODO either take out or find better comparison
-                    val p1 = extractPointCoordinates(v1)
-                    val p2 = extractPointCoordinates(v2)
-                    if (p1 != null && p2 != null) {
-                        val (lon1, lat1) = p1
-                        val (lon2, lat2) = p2
-                        lon1 > lon2 || (lon1 == lon2 && lat1 > lat2)
-                    } else {
-                        false
-                    }
-                }
+                is Value.GeographyValue -> throw IllegalArgumentException("GeographyValue cannot be compared using $this operator.")
                 is Value.BooleanVector,
                 is Value.DoubleVector,
                 is Value.FloatVector,
@@ -101,19 +80,7 @@ enum class ComparisonOperator(val value: String) {
                 is Value.Short -> v1.value <= (v2.value as Short)
                 is Value.Text -> v1.value <= (v2.value as String)
                 is Value.UUIDValue -> v1.value <= (v2.value as UUID)
-                is Value.GeographyValue -> { // TODO either take out or find better comparison
-                    val p1 = extractPointCoordinates(v1)
-                    val p2 = extractPointCoordinates(v2)
-                    if (p1 != null && p2 != null) {
-                        val (lon1, lat1) = p1
-                        val (lon2, lat2) = p2
-                        lon1 < lon2 || (lon1 == lon2 && lat1 <= lat2)
-                    } else {
-                        // If v1 == v2 (WKT string equality), consider it true for LEQ.
-                        // This handles non-point WKTs or parse failures for EQ part of LEQ.
-                        if (v1.value == v2.value) true else false
-                    }
-                }
+                is Value.GeographyValue -> throw IllegalArgumentException("GeographyValue cannot be compared using $this operator.")
                 is Value.BooleanVector,
                 is Value.DoubleVector,
                 is Value.FloatVector,
@@ -136,19 +103,7 @@ enum class ComparisonOperator(val value: String) {
                 is Value.Short -> v1.value >= (v2.value as Short)
                 is Value.Text -> v1.value >= (v2.value as String)
                 is Value.UUIDValue -> v1.value <= (v2.value as UUID)
-                is Value.GeographyValue -> { // TODO either take out or find better comparison
-                    val p1 = extractPointCoordinates(v1)
-                    val p2 = extractPointCoordinates(v2)
-                    if (p1 != null && p2 != null) {
-                        val (lon1, lat1) = p1
-                        val (lon2, lat2) = p2
-                        lon1 > lon2 || (lon1 == lon2 && lat1 >= lat2)
-                    } else {
-                        // If v1 == v2 (WKT string equality), consider it true for GEQ.
-                        // This handles non-point WKTs or parse failures for EQ part of GEQ.
-                        if (v1.value == v2.value) true else false
-                    }
-                }
+                is Value.GeographyValue -> throw IllegalArgumentException("GeographyValue cannot be compared using $this operator.")
                 is Value.BooleanVector,
                 is Value.DoubleVector,
                 is Value.FloatVector,
@@ -187,26 +142,6 @@ enum class ComparisonOperator(val value: String) {
                 GEQ.value -> GEQ
                 LIKE.value -> LIKE
                 else -> throw IllegalArgumentException("Cannot parse '$str' as a comparison operator.")
-            }
-        }
-
-        /**
-         * Helper function to extract longitude and latitude from a GeographyValue's WKT string.
-         * Expects a simple "POINT(lon lat)" format, case-insensitive for "POINT" and tolerant of spaces.
-         * Returns null if parsing fails or if it's not a GeographyValue or not a simple POINT.
-         */
-        private fun extractPointCoordinates(valueHolder: Value<*>): Pair<Double, Double>? {
-            if (valueHolder !is Value.GeographyValue) return null
-            val wkt = valueHolder.wkt
-            // Regex: POINT (optional whitespace) ( (optional whitespace) LON (whitespace) LAT (optional whitespace) )
-            val pattern = Regex("""POINT\s*\(\s*(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s*\)""", RegexOption.IGNORE_CASE)
-            val match = pattern.matchEntire(wkt) ?: return null
-            return try {
-                val lon = match.groupValues[1].toDouble()
-                val lat = match.groupValues[2].toDouble()
-                Pair(lon, lat)
-            } catch (e: NumberFormatException) {
-                null
             }
         }
     }
