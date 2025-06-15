@@ -1,9 +1,10 @@
 package org.vitrivr.engine.database.jsonl.model
 
 import kotlinx.serialization.Serializable
-import org.vitrivr.engine.core.model.serializer.DateSerializer
+import org.vitrivr.engine.core.model.serializer.DateTimeSerializer
 import org.vitrivr.engine.core.model.serializer.UUIDSerializer
 import org.vitrivr.engine.core.model.types.Value
+import java.time.LocalDateTime
 import java.util.*
 
 @Serializable
@@ -13,6 +14,7 @@ sealed class ValueContainer {
         fun fromValue(value: Value<*>): ValueContainer = when (value) {
             is Value.Boolean -> BooleanValueContainer(value.value)
             is Value.Byte -> ByteValueContainer(value.value)
+            // Value.DateTime now wraps LocalDateTime, so value.value is LocalDateTime
             is Value.DateTime -> DateTimeValueContainer(value.value)
             is Value.Double -> DoubleValueContainer(value.value)
             is Value.Float -> FloatValueContainer(value.value)
@@ -22,6 +24,7 @@ sealed class ValueContainer {
             is Value.String -> StringValueContainer(value.value)
             is Value.Text -> TextValueContainer(value.value)
             is Value.UUIDValue -> UuidValueContainer(value.value)
+            is Value.GeographyValue -> GeographyValueContainer(value.wkt, value.srid)
             is Value.BooleanVector -> BooleanVectorValueContainer(value.value)
             is Value.DoubleVector -> DoubleVectorValueContainer(value.value)
             is Value.FloatVector -> FloatVectorValueContainer(value.value)
@@ -45,10 +48,10 @@ class ByteValueContainer(private val value: Byte) : ValueContainer() {
 }
 
 @Serializable
-class DateTimeValueContainer(@Serializable(DateSerializer::class) private val value: Date) :
-    ValueContainer() {
-    override fun toValue(): Value<Date> = Value.DateTime(value)
+class DateTimeValueContainer(@Serializable(DateTimeSerializer::class) private val value: LocalDateTime) : ValueContainer() {
+    override fun toValue(): Value<LocalDateTime> = Value.DateTime(value)
 }
+
 
 @Serializable
 class DoubleValueContainer(private val value: Double) : ValueContainer() {
@@ -88,6 +91,13 @@ class TextValueContainer(private val value: String) : ValueContainer() {
 @Serializable
 class UuidValueContainer(@Serializable(UUIDSerializer::class) private val value: UUID) : ValueContainer() {
     override fun toValue(): Value<UUID> = Value.UUIDValue(value)
+}
+
+@Serializable
+class GeographyValueContainer(private val wkt: String, private val srid: Int) : ValueContainer() {
+    override fun toValue(): Value<String> {
+        return Value.GeographyValue(wkt, srid)
+    }
 }
 
 @Serializable
