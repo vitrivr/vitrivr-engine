@@ -29,6 +29,7 @@ dependencies {
     /* vitrivr core dependency. */
     api project(':vitrivr-engine-core')
     api project(':vitrivr-engine-module-m3d')
+    api project(':vitrivr-engine-module-features')
 
     /** Java CV (used for video decoding). */
     implementation group: 'org.bytedeco', name: 'javacv', version: version_javacv
