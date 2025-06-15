@@ -49,39 +49,4 @@ fun executeQuery(ctx: Context, schema: Schema, executor: ExecutionServer) {
     }
     logger.info { "Executing ${ctx.req().pathInfo} took $duration." }
 }
-
-
-@OpenApi(
-    path = "/api/{schema}/query/boolean-and",
-    methods = [HttpMethod.POST],
-    summary = "Executes a boolean AND query and returns the query's results.",
-    operationId = "postExecuteBooleanAndQuery",
-    tags = ["Retrieval"],
-    pathParams = [
-        OpenApiParam("schema", type = String::class, description = "The name of the schema to execute a query for.", required = true)
-    ],
-    requestBody = OpenApiRequestBody([OpenApiContent(InformationNeedDescription::class)]),
-    responses = [
-        OpenApiResponse("200", [OpenApiContent(QueryResult::class)]),
-        OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)])
-    ]
-)
-fun executeBooleanAndQuery(ctx: Context, schema: Schema, executor: ExecutionServer) {
-    val duration = measureTime {
-        /* Extract information need. */
-        val informationNeed = try {
-            ctx.bodyAsClass<InformationNeedDescription>()
-        } catch (e: Exception) {
-            throw ErrorStatusException(400, "Invalid request: ${e.message}")
-        }
-
-        /* Obtain query parser. */
-        val operator = QueryParser(schema).parse(informationNeed)
-
-        /* Execute query. */
-        val results = executor.query(operator)
-        ctx.json(QueryResult(results))
-    }
-    logger.info { "Executing ${ctx.req().pathInfo} took $duration." }
-}
 //TODO geo abhandeln?

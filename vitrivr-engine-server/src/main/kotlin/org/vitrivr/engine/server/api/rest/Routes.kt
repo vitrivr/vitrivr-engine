@@ -40,7 +40,6 @@ fun configureApiRoutes(config: ApiConfig, manager: SchemaManager, executor: Exec
 
                 if (config.retrieval) {
                     post("query") { ctx -> executeQuery(ctx, schema, executor) }
-                    post("query/boolean-and") { ctx -> executeBooleanAndQuery(ctx, schema, executor) }
                 }
 
                 if (config.export) {
