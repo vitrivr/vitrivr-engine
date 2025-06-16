@@ -10,9 +10,9 @@ import org.vitrivr.engine.core.model.descriptor.struct.AnyMapStructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
 import org.vitrivr.engine.core.model.query.bool.BooleanQuery
-import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
+import org.vitrivr.engine.core.model.query.bool.SpatialBooleanQuery
+import org.vitrivr.engine.core.model.query.spatiotemporal.SpatialOperator
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
@@ -117,16 +117,19 @@ class Coordinates :
 
 
     /**
-     * Generates and returns a new [StructBooleanRetriever] instance for this [Coordinates].
+     * Generates and returns a new [Retriever] that finds items with coordinates
+     * near the location specified in the provided example descriptor.
      *
-     * Invoking this method involves converting the provided [AnyMapStructDescriptor] into a [org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery] that can be used to retrieve similar [ImageContent] elements.
+     * This method creates a [SpatialBooleanQuery] that performs a proximity search
+     * (e.g., within a 500-meter radius) around the coordinates of the example descriptor.
      *
-     * @param field The [Schema.Field] to create an [Retriever] for.
-     * @param descriptors A collection of [AnyMapStructDescriptor] elements to use with the [Retriever].
+     * @param field The [Schema.Field] to create a [Retriever] for.
+     * @param descriptors A collection of [AnyMapStructDescriptor] elements to use as the example.
      * @param context The [QueryContext] to use with the [Retriever].
      *
      * @return A new [Retriever] instance for this [Analyser].
-     * @throws IllegalArgumentException If the collection of descriptors is empty or if the descriptor does not contain a value.
+     * @throws IllegalArgumentException If the collection of descriptors is empty or if the descriptor
+     * does not contain valid 'lat' and 'lon' values.
      */
     override fun newRetrieverForDescriptors(
         field: Schema.Field<ImageContent, AnyMapStructDescriptor>,
@@ -136,32 +139,27 @@ class Coordinates :
         require(descriptors.isNotEmpty()) { "At least one descriptor must be provided." }
 
         val descriptor = descriptors.first()
-        val lat = descriptor.values()["lat"] as? Value.Double
-            ?: throw IllegalArgumentException("Missing or invalid 'lat' value.")
-        val lon = descriptor.values()["lon"] as? Value.Double
-            ?: throw IllegalArgumentException("Missing or invalid 'lon' value.")
+        val lat = (descriptor.values()["lat"] as? Value.Double)?.value
+            ?: throw IllegalArgumentException("Descriptor is missing a valid 'lat' attribute.")
+        val lon = (descriptor.values()["lon"] as? Value.Double)?.value
+            ?: throw IllegalArgumentException("Descriptor is missing a valid 'lon' attribute.")
 
+        val radiusInMeters = context.getProperty(field.fieldName, "radius")?.toDoubleOrNull() ?: 500.0
         val limit = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
 
-        val latQuery =
-            SimpleBooleanQuery(
-                lat,
-                ComparisonOperator.EQ,
-                "lat",
-                limit
-            )
-        val lonQuery =
-            SimpleBooleanQuery(
-                lon,
-                ComparisonOperator.EQ,
-                "lon",
-                limit
+        val centerPointWkt = "POINT($lon $lat)"
+
+        val spatialQuery =
+            SpatialBooleanQuery(
+                latAttribute = "lat",
+                lonAttribute = "lon",
+                operator = SpatialOperator.DWITHIN,
+                reference = Value.GeographyValue(centerPointWkt),
+                distance = Value.Double(radiusInMeters),
+                limit = limit
             )
 
-        // TODO: change to GeographicProximityQuery!
-
-        //return newRetrieverForQuery(field, combinedQuery, context)
-        return newRetrieverForQuery(field, latQuery, context)
+        return newRetrieverForQuery(field, spatialQuery, context)
     }
 
     /**

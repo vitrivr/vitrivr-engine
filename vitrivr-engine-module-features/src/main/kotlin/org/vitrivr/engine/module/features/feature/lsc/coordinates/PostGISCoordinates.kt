@@ -21,6 +21,8 @@ import org.vitrivr.engine.core.features.bool.StructBooleanRetriever
 import java.util.*
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.vitrivr.engine.core.model.query.bool.SpatialBooleanQuery
+import org.vitrivr.engine.core.model.query.spatiotemporal.SpatialOperator
 import kotlin.reflect.KClass
 
 /**
@@ -62,6 +64,7 @@ class PostGISCoordinates : Analyser<ImageContent, AnyMapStructDescriptor> {
         val layout = getLayoutForField(attributeName)
         val defaultValues = mapOf<String, Value<*>?>(attributeName to Type.Geography.defaultValue())
 
+        @Suppress("UNCHECKED_CAST")
         return AnyMapStructDescriptor(
             id = UUID.nameUUIDFromBytes("prototype-$attributeName".toByteArray()) as DescriptorId,
             retrievableId = null,
@@ -121,22 +124,32 @@ class PostGISCoordinates : Analyser<ImageContent, AnyMapStructDescriptor> {
         query: Query,
         context: QueryContext
     ): Retriever<ImageContent, AnyMapStructDescriptor> {
+        // The attribute name in the database is the same as the field name
         val targetAttributeName = field.fieldName
 
         return when (query) {
+            is SpatialBooleanQuery -> {
+                // For a spatial query, the attribute being queried must match this field
+                require(query.attribute == targetAttributeName) {
+                    "SpatialBooleanQuery attribute '${query.attribute}' does not match the field name '$targetAttributeName'."
+                }
+                logger.debug { "Creating StructBooleanRetriever for field '$targetAttributeName' with SpatialBooleanQuery (Op: ${query.operator})." }
+                StructBooleanRetriever(field, query, context)
+            }
+
             is SimpleBooleanQuery<*> -> {
-                // The SimpleBooleanQuery's attributeName should match our targetAttributeName
+                // fallback
                 if (query.attributeName == targetAttributeName &&
                     (query.comparison == ComparisonOperator.EQ ||
                             query.comparison == ComparisonOperator.NEQ ||
                             query.comparison == ComparisonOperator.LIKE)
                 ) {
                     logger.debug { "Creating StructBooleanRetriever for field '$targetAttributeName' (Geography as Text) with SimpleBooleanQuery (Op: ${query.comparison})." }
-                    StructBooleanRetriever(field, query, context) // 'query' is already a BooleanQuery
+                    StructBooleanRetriever(field, query, context)
                 } else {
                     throw UnsupportedOperationException(
-                        "SimpleBooleanQuery for field '$targetAttributeName' (Geography type) only supports EQ, NEQ, LIKE " +
-                                "when targeting the field's primary geography attribute ('${query.attributeName}'). Operator: ${query.comparison}."
+                        "SimpleBooleanQuery for field '$targetAttributeName' (Geography type) only supports EQ, NEQ, LIKE. " +
+                                "For proximity searches, use a SpatialBooleanQuery."
                     )
                 }
             }
@@ -145,16 +158,22 @@ class PostGISCoordinates : Analyser<ImageContent, AnyMapStructDescriptor> {
     }
 
     /**
-     * Generates and returns a new [Retriever] instance for this [PostGISCoordinates].
+     * Creates a [Retriever] that performs a proximity-based spatial search for items near the location
+     * specified in the first example descriptor.
      *
-     * Invoking this method involves converting the provided [AnyMapStructDescriptor] into a [SimpleBooleanQuery] that can be used to retrieve similar [ImageContent] elements.
+     * This method extracts a [Value.GeographyValue] from the provided descriptor and constructs a
+     * [SpatialBooleanQuery] using the [SpatialOperator.DWITHIN] operator. It searches for results that
+     * lie within a certain radius (in meters) from the reference point.
      *
-     * @param field The [Schema.Field] to create a [Retriever] for.
-     * @param descriptors A collection of [AnyMapStructDescriptor] elements to use with the [Retriever].
-     * @param context The [QueryContext] to use with the [Retriever].
+     * The radius and result limit can be configured via the [QueryContext] using:
+     * - `radius` (in meters) → defaults to `100.0` if not set
+     * - `limit` (number of results) → defaults to `DEFAULT_QUERY_LIMIT` if not set
      *
-     * @return A new [Retriever] instance for this [Analyser].
-     * @throws IllegalArgumentException If the collection of descriptors is empty or if the descriptor does not contain a value.
+     * @param field The [Schema.Field] that defines the geography attribute to query.
+     * @param descriptors A collection of [AnyMapStructDescriptor]s; the first one is used as the reference point.
+     * @param context The [QueryContext] providing optional query parameters such as radius and limit.
+     * @return A [Retriever] configured to perform a DWITHIN spatial proximity search.
+     * @throws IllegalArgumentException If no descriptors are provided or if the descriptor does not contain a valid [Value.GeographyValue].
      */
     override fun newRetrieverForDescriptors(
         field: Schema.Field<ImageContent, AnyMapStructDescriptor>,
@@ -163,23 +182,25 @@ class PostGISCoordinates : Analyser<ImageContent, AnyMapStructDescriptor> {
     ): Retriever<ImageContent, AnyMapStructDescriptor> {
         require(descriptors.isNotEmpty()) { "At least one descriptor must be provided." }
 
+        val attributeName = field.fieldName
         val exampleDescriptor = descriptors.first()
-        val geographyAttributeName = field.fieldName
 
-        val geographyValue = exampleDescriptor.values()[geographyAttributeName] as? Value.GeographyValue
-            ?: throw IllegalArgumentException("Example descriptor for field '$geographyAttributeName' is missing a valid geography value for attribute '$geographyAttributeName'. Values: ${exampleDescriptor.values()}")
+        val geographyValue = exampleDescriptor.values()[attributeName] as? Value.GeographyValue
+            ?: throw IllegalArgumentException("Example descriptor for field '$attributeName' is missing a valid geography value.")
 
-        // Create a SimpleBooleanQuery for exact WKT match.
-        val wktEqualityQuery = SimpleBooleanQuery(
-            value = geographyValue,
-            comparison = ComparisonOperator.EQ,
-            attributeName = geographyAttributeName,
-            limit = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: DEFAULT_QUERY_LIMIT
+        val radiusInMeters = context.getProperty(field.fieldName, "radius")?.toDoubleOrNull() ?: 500.0
+        val limit = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: DEFAULT_QUERY_LIMIT
+
+        val proximityQuery = SpatialBooleanQuery(
+            attribute = attributeName,
+            operator = SpatialOperator.DWITHIN,
+            reference = geographyValue,
+            distance = Value.Double(radiusInMeters),
+            limit = limit
         )
 
-        logger.debug { "Creating retriever for descriptors for field '$geographyAttributeName' using WKT equality query." }
-        return newRetrieverForQuery(field, wktEqualityQuery, context)
-        // TODO: change to GeographicProximityQuery!
+        logger.debug { "Creating retriever for descriptors for field '$attributeName' using proximity search (DWITHIN)." }
+        return newRetrieverForQuery(field, proximityQuery, context)
     }
 
     /**

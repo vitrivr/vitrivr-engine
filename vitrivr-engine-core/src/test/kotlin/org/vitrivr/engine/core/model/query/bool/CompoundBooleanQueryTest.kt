@@ -3,8 +3,8 @@ package org.vitrivr.engine.core.model.query.bool
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
+import org.vitrivr.engine.core.model.query.spatiotemporal.SpatialOperator
 import org.vitrivr.engine.core.model.types.Value
 import java.time.format.DateTimeFormatter
 
@@ -52,6 +52,12 @@ private fun BooleanQuery.toSQL(): String {
                 return "TRUE"
             }
             this.queries.joinToString(" AND ") { "(${it.toSQL()})" }
+        }
+        is SpatialBooleanQuery -> {
+            // a simple string representation for testing purposes
+            "SPATIAL ${this.operator} on " +
+                    (if(this.attribute != null) "'${this.attribute}'" else "'${this.latAttribute}/${this.lonAttribute}'") +
+                    " near '${this.reference.wkt}'"
         }
         else -> throw UnsupportedOperationException("SQL generation not supported for ${this::class.simpleName}")
     }
@@ -293,6 +299,42 @@ class CompoundBooleanQueryTest {
 
         val expectedSQL = "((attr1 = 'X') AND (attr2 > 5)) AND (flag = TRUE)"
         assertEquals(expectedSQL, outer.toSQL())
+    }
+
+
+    @Test
+    fun testSqlGenerationWithSpatialQuery() {
+
+        val simpleQuery = SimpleBooleanQuery(
+            value = Value.String("trip"),
+            comparison = ComparisonOperator.EQ,
+            attributeName = "category"
+        )
+
+        val spatialQuery = SpatialBooleanQuery(
+            latAttribute = "lat",
+            lonAttribute = "lon",
+            operator = SpatialOperator.DWITHIN,
+            reference = Value.GeographyValue("POINT(8.54 47.37)"),
+            distance = Value.Double(500.0)
+        )
+
+        val compoundQuery = CompoundBooleanQuery(
+            queries = listOf(simpleQuery, spatialQuery)
+        )
+
+        val expectedSQL = "((category = 'trip') AND (SPATIAL DWITHIN lat,lon ON 'POINT(8.54 47.37)' dist 500.0))"
+
+        fun BooleanQuery.toSQLWithSpatial(): String {
+            return when (this) {
+                is SpatialBooleanQuery -> "SPATIAL ${this.operator} ${this.latAttribute},${this.lonAttribute} ON '${this.reference.wkt}' dist ${this.distance?.value}"
+                else -> this.toSQL()
+            }
+        }
+
+        val actualSql = "(" + compoundQuery.queries.joinToString(" AND ") { "(${it.toSQLWithSpatial()})" } + ")"
+
+        assertEquals(expectedSQL, actualSql)
     }
 
 }

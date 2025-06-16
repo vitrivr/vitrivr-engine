@@ -5,6 +5,7 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
+import org.vitrivr.engine.core.model.query.bool.BooleanQuery
 import org.vitrivr.engine.core.model.query.bool.CompoundBooleanQuery
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
@@ -101,35 +102,47 @@ class QueryParser(val schema: Schema) {
             }
             is VectorInputData -> field.getRetrieverForDescriptor(FloatVectorDescriptor(vector = Value.FloatVector(input.data.toFloatArray())), description.context)
             is GeographyInputData -> {
-                val parameters = operation.parameters // Use the new parameters map from the retriever description
-
+                val parameters = operation.parameters
                 val spatialOperator = parameters["operator"]?.let { SpatialOperator.valueOf(it.uppercase()) }
                     ?: throw IllegalArgumentException("A spatial 'operator' (e.g., 'DWITHIN') must be provided in the retriever's parameters.")
 
-                val latAttributeName = parameters["latAttribute"] ?: "lat" // Default to "lat"
-                val lonAttributeName = parameters["lonAttribute"] ?: "lon" // Default to "lon"
-
-                val radiusInputName = parameters["radiusInput"]
-                val radiusValue = if (radiusInputName != null) {
+                val radiusValue = parameters["radiusInput"]?.let { radiusInputName ->
                     val radiusInput = description.inputs[radiusInputName] as? NumericInputData
                         ?: throw IllegalArgumentException("Input '$radiusInputName' for radius not found or not a NUMERIC input.")
                     Value.Double(radiusInput.data)
-                } else {
-                    null // Radius is optional for some spatial operators
                 }
 
-                // crerate our new SpatialBooleanQuery
-                val spatialQuery = SpatialBooleanQuery(
-                    latAttribute = latAttributeName,
-                    lonAttribute = lonAttributeName,
-                    operator = spatialOperator,
-                    reference = Value.GeographyValue(input.data, input.srid),
-                    distance = radiusValue
-                )
+                val limit = description.context.getProperty(operatorName, "limit")?.toLongOrNull() ?: 1000L
 
-                // since SpatialBooleanQuery is a BooleanQuery, we can pass it to the same retriever factory
+
+                // Check if lat/lon attributes are specified for a struct-based query
+                val latAttributeName = parameters["latAttribute"]
+                val lonAttributeName = parameters["lonAttribute"]
+
+                val spatialQuery = if (latAttributeName != null && lonAttributeName != null) {
+                    // querying the struct
+                    SpatialBooleanQuery(
+                        latAttribute = latAttributeName,
+                        lonAttribute = lonAttributeName,
+                        operator = spatialOperator,
+                        reference = Value.GeographyValue(input.data, input.srid),
+                        distance = radiusValue,
+                        limit = limit
+                    )
+                } else {
+                    // querying the geography value
+                    SpatialBooleanQuery(
+                        attribute = field.fieldName,
+                        operator = spatialOperator,
+                        reference = Value.GeographyValue(input.data, input.srid),
+                        distance = radiusValue,
+                        limit = limit
+                    )
+                }
+
                 field.getRetrieverForQuery(spatialQuery, description.context)
             }
+
             else -> {
                 /* Is this a boolean sub-field query ? */
                 if(fieldAndAttributeName.second != null && input.comparison != null){
@@ -244,13 +257,13 @@ class QueryParser(val schema: Schema) {
             when (input) {
                 is AbstractRetriever<*, *> -> {
                     val query = input.query
-                    if (query is SimpleBooleanQuery<*>) {
+                    if (query is BooleanQuery) {
                         query
                     } else {
-                        throw IllegalArgumentException("Input operator '$input' does not have a SimpleBooleanQuery")
+                        throw IllegalArgumentException("Input operator '$input' does not contain a valid BooleanQuery.")
                     }
                 }
-                else -> throw IllegalArgumentException("Input operator '$input' is not a Retriever")
+                else -> throw IllegalArgumentException("Input operator '$input' is not a Retriever.")
             }
         }
 

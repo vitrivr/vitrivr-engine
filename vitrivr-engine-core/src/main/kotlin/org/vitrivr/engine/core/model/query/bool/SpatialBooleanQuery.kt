@@ -10,10 +10,13 @@ import org.vitrivr.engine.core.model.types.Value
  */
 data class SpatialBooleanQuery(
     /** The name of the attribute (column) holding the latitude value. */
-    val latAttribute: String,
+    val latAttribute: String? = null,
 
     /** The name of the attribute (column) holding the longitude value. */
-    val lonAttribute: String,
+    val lonAttribute: String? = null,
+
+    /** The name of the single, native GEOGRAPHY attribute. Use this OR lat/lon attributes. */
+    val attribute: String? = null,
 
     /** the spatial operator to use */
     val operator: SpatialOperator,
@@ -28,4 +31,18 @@ data class SpatialBooleanQuery(
     val useSpheroid: Value.Boolean? = Value.Boolean(true),
 
     override val limit: Long = Long.MAX_VALUE
-) : BooleanQuery
+) : BooleanQuery {
+
+    /**
+     * Validation block to ensure the query is constructed correctly.
+     */
+    init {
+        val isNativeQuery = attribute != null
+        val isStructQuery = latAttribute != null && lonAttribute != null
+
+        // Enforce that it's either a native query OR a struct query, but not both or neither.
+        require(isNativeQuery xor isStructQuery) {
+            "SpatialBooleanQuery must be initialized with either a single 'attribute' (for a native geography type) OR both 'latAttribute' and 'lonAttribute' (for a struct type), but not both or neither."
+        }
+    }
+}

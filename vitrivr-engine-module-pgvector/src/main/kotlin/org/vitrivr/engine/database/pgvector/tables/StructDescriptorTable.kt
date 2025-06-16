@@ -18,6 +18,7 @@ import org.vitrivr.engine.database.pgvector.exposed.functions.plainToTsQuery
 import org.vitrivr.engine.database.pgvector.exposed.ops.tsMatches
 import java.util.*
 import org.jetbrains.exposed.sql.javatime.JavaLocalDateTimeColumnType
+import org.vitrivr.engine.core.model.query.bool.BooleanQuery
 import java.time.LocalDateTime
 import kotlin.reflect.full.primaryConstructor
 import org.vitrivr.engine.database.pgvector.exposed.types.geography
@@ -131,9 +132,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
      */
     override fun parse(query: org.vitrivr.engine.core.model.query.Query): Query = when(query) {
         is SimpleFulltextQuery -> this.parse(query)
-        is SimpleBooleanQuery<*> -> this.parse(query)
-        is CompoundBooleanQuery -> this.parse(query)
-        is SpatialBooleanQuery -> this.parse(query)
+        is BooleanQuery -> this.parse(query)
         else -> throw UnsupportedOperationException("Unsupported query type: ${query::class.simpleName}")
     }
 
@@ -151,116 +150,14 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
         descriptor tsMatches plainToTsQuery(stringParam(value))
     }
 
-    /**TODO ADD further comparison operators for geography type
-     * Converts a [SimpleBooleanQuery] into a [Query] that can be executed against the database.
-     *
-     * @param query The [SimpleBooleanQuery] to convert.
-     * @return The [Query] that can be executed against the database.
+    /**
+     * Centralized method to parse any BooleanQuery into a full Exposed Query.
      */
-    @Suppress("UNCHECKED_CAST")
-    private fun parse(query: SimpleBooleanQuery<*>): Query = this.selectAll().where {
-        require(query.attributeName != null) { "Attribute name of boolean query must not be null!" }
-        val value = query.value.value ?: throw IllegalArgumentException("Attribute value of boolean query must not be null")
-        val descriptor = this@StructDescriptorTable.valueColumns.find { it.name == query.attributeName } as Column<Any>
-        when(query.comparison) {
-            ComparisonOperator.EQ -> EqOp(descriptor, QueryParameter(value, descriptor.columnType))
-            ComparisonOperator.NEQ -> NeqOp(descriptor, QueryParameter(value, descriptor.columnType))
-            ComparisonOperator.LE -> LessOp(descriptor, QueryParameter(value, descriptor.columnType))
-            ComparisonOperator.GR -> GreaterOp(descriptor, QueryParameter(value, descriptor.columnType))
-            ComparisonOperator.LEQ -> LessEqOp(descriptor, QueryParameter(value, descriptor.columnType))
-            ComparisonOperator.GEQ -> GreaterEqOp(descriptor, QueryParameter(value, descriptor.columnType))
-            ComparisonOperator.LIKE -> LikeEscapeOp(descriptor, QueryParameter(value, descriptor.columnType), true, null)
-            else -> throw IllegalArgumentException("Unsupported comparison type: ${query.comparison}")
-        }
-    }
-
-
-
-    @Suppress("UNCHECKED_CAST")
-    private fun parse(query: CompoundBooleanQuery): Query {
-        // Local function to convert a SimpleBooleanQuery clause to an Exposed Op<Boolean>
-        fun clauseToOp(clause: SimpleBooleanQuery<*>): Op<Boolean> {
-            require(clause.attributeName != null) { "Attribute name of a boolean query clause must not be null!" }
-            val value = clause.value.value ?: throw IllegalArgumentException("Attribute value of boolean query clause must not be null")
-            val descriptor = this.valueColumns.find { it.name == clause.attributeName } as Column<Any>
-            return when(clause.comparison) {
-                ComparisonOperator.EQ -> EqOp(descriptor, QueryParameter(value, descriptor.columnType))
-                ComparisonOperator.NEQ -> NeqOp(descriptor, QueryParameter(value, descriptor.columnType))
-                ComparisonOperator.LE -> LessOp(descriptor, QueryParameter(value, descriptor.columnType))
-                ComparisonOperator.GR -> GreaterOp(descriptor, QueryParameter(value, descriptor.columnType))
-                ComparisonOperator.LEQ -> LessEqOp(descriptor, QueryParameter(value, descriptor.columnType))
-                ComparisonOperator.GEQ -> GreaterEqOp(descriptor, QueryParameter(value, descriptor.columnType))
-                ComparisonOperator.LIKE -> LikeEscapeOp(descriptor, QueryParameter(value, descriptor.columnType), true, null)
-            }
-        }
-
-        // Map each clause to an Op<Boolean>.
-        // This version assumes no nested compound queries.
-        val exposedConditions = query.queries.map { clause ->
-            when (clause) {
-                is SimpleBooleanQuery<*> -> clauseToOp(clause)
-                else -> throw IllegalArgumentException("CompoundBooleanQuery can only contain SimpleBooleanQuery clauses in this implementation.")
-            }
-        }
-
-        // Combine all conditions with AND. The init block of CompoundBooleanQuery ensures the list is not empty.
-        val finalCondition = exposedConditions.reduce { acc, op -> acc.and(op) }
-
-        // Construct and return the final Exposed Query
-        return this.selectAll().where { finalCondition }
+    private fun parse(query: BooleanQuery): Query {
+        val operation = buildExposedOp(query)
+        return this.selectAll().where { operation }
             .limit(query.limit.let { if (it == Long.MAX_VALUE) Int.MAX_VALUE else it.toInt() })
     }
-
-
-
-    /**
-     * Converts a [SpatialBooleanQuery] into an Exposed [Query] that can be executed against the database.
-     * TODO Support native GEOGRAPHY type in the future
-     */
-    @Suppress("UNCHECKED_CAST")
-    private fun parse(query: SpatialBooleanQuery): Query {
-        // Find the actual latitude and longitude columns from this table's definition
-        val latColumn = this.valueColumns.find { it.name == query.latAttribute } as? Column<Double>
-            ?: throw IllegalArgumentException("Latitude attribute '${query.latAttribute}' not found or not a Double column in table ${this.tableName}.")
-
-        val lonColumn = this.valueColumns.find { it.name == query.lonAttribute } as? Column<Double>
-            ?: throw IllegalArgumentException("Longitude attribute '${query.lonAttribute}' not found or not a Double column in table ${this.tableName}.")
-
-        // Create the geography object on-the-fly from the two Double columns
-        val geographyFromColumns = GeographyFromDoubles(lonColumn, latColumn)
-
-        // Combine the SRID and WKT into a single string for ST_GeogFromText
-        val fullWktString = "SRID=${query.reference.srid};${query.reference.wkt}"
-
-        // Create the reference geography from the query input using the combined string
-        val referenceGeogExpression = CustomFunction<String?>(
-            "ST_GeogFromText",
-            GeographyColumnType(),
-            stringParam(fullWktString) // Pass the single, combined string
-        )
-
-        // Build the PostGIS function call (e.g., ST_DWithin)
-        val op = when (query.operator) {
-            SpatialOperator.DWITHIN -> {
-                val distanceMeters = query.distance?.value
-                    ?: throw IllegalArgumentException("Distance (radius) is required for DWITHIN operator.")
-                val useSpheroid = query.useSpheroid?.value ?: true
-
-                CustomFunction<Boolean>(
-                    "ST_DWithin",
-                    BooleanColumnType(),
-                    geographyFromColumns,
-                    referenceGeogExpression,
-                    doubleParam(distanceMeters),
-                    booleanParam(useSpheroid)
-                ) eq true // Compare the boolean result of the function with 'true' to make it an Op<Boolean>
-            }
-            else -> throw UnsupportedOperationException("Spatial operator '${query.operator}' is not yet supported for this query path.")
-        }
-
-        return this.selectAll().where { op }
-    }
-
 
     /**
      * Sets the value of the descriptor in the [InsertStatement]t.
@@ -360,10 +257,70 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
         }
     }
 
+
+    /**
+     * Recursive helper to build an Exposed Op<Boolean> from any BooleanQuery.
+     */
+    @Suppress("UNCHECKED_CAST")
+    private fun buildExposedOp(query: BooleanQuery): Op<Boolean> {
+        return when (query) {
+            is SimpleBooleanQuery<*> -> {
+                // Logic for simple attribute = value queries
+                require(query.attributeName != null) { "Attribute name of simple boolean query must not be null!" }
+                val rawQueryValue = query.value.value ?: throw IllegalArgumentException("Attribute value cannot be null.")
+                val columnToQuery = this.valueColumns.find { it.name == query.attributeName } as? Column<Any>
+                    ?: throw IllegalArgumentException("Attribute '${query.attributeName}' not found in table.")
+
+                when (query.comparison) {
+                    ComparisonOperator.EQ -> EqOp(columnToQuery, QueryParameter(rawQueryValue, columnToQuery.columnType))
+                    ComparisonOperator.NEQ -> NeqOp(columnToQuery, QueryParameter(rawQueryValue, columnToQuery.columnType))
+                    ComparisonOperator.LE -> LessOp(columnToQuery, QueryParameter(rawQueryValue, columnToQuery.columnType))
+                    ComparisonOperator.GR -> GreaterOp(columnToQuery, QueryParameter(rawQueryValue, columnToQuery.columnType))
+                    ComparisonOperator.LEQ -> LessEqOp(columnToQuery, QueryParameter(rawQueryValue, columnToQuery.columnType))
+                    ComparisonOperator.GEQ -> GreaterEqOp(columnToQuery, QueryParameter(rawQueryValue, columnToQuery.columnType))
+                    ComparisonOperator.LIKE -> LikeEscapeOp(columnToQuery as Column<String?>, QueryParameter(rawQueryValue as String, columnToQuery.columnType as IColumnType<String>), true, null)
+                }
+            }
+            is CompoundBooleanQuery -> {
+                // Logic for AND queries, recursively calls this helper
+                if (query.queries.isEmpty()) return Op.TRUE
+                query.queries.map { buildExposedOp(it) }.reduce { acc, op -> acc.and(op) }
+            }
+            is SpatialBooleanQuery -> {
+                // Logic for spatial queries, handling both native and struct types
+                val fullWktString = "SRID=${query.reference.srid};${query.reference.wkt}"
+                val referenceGeogExpression = CustomFunction<String?>("ST_GeogFromText", GeographyColumnType(), stringParam(fullWktString))
+                val geographyExpression = if (query.attribute != null) {
+                    this.valueColumns.find { it.name == query.attribute } as? Column<String>
+                        ?: throw IllegalArgumentException("Geography attribute '${query.attribute}' not found.")
+                } else {
+                    val latColumn = this.valueColumns.find { it.name == query.latAttribute!! } as? Column<Double>
+                        ?: throw IllegalArgumentException("Latitude attribute '${query.latAttribute}' not found.")
+                    val lonColumn = this.valueColumns.find { it.name == query.lonAttribute!! } as? Column<Double>
+                        ?: throw IllegalArgumentException("Longitude attribute '${query.lonAttribute}' not found.")
+                    GeographyFromDoubles(lonColumn, latColumn)
+                }
+
+                when (query.operator) {
+                    SpatialOperator.DWITHIN -> {
+                        val distance = query.distance?.value ?: throw IllegalArgumentException("Distance is required for DWITHIN.")
+                        CustomFunction<Boolean>("ST_DWithin", BooleanColumnType(), geographyExpression, referenceGeogExpression, doubleParam(distance), booleanParam(query.useSpheroid?.value ?: true)) eq true
+                    }
+                    SpatialOperator.INTERSECTS -> CustomFunction<Boolean>("ST_Intersects", BooleanColumnType(), geographyExpression, referenceGeogExpression) eq true
+                    SpatialOperator.CONTAINS -> CustomFunction<Boolean>("ST_Contains", BooleanColumnType(), geographyExpression, referenceGeogExpression) eq true
+                    SpatialOperator.WITHIN -> CustomFunction<Boolean>("ST_Within", BooleanColumnType(), geographyExpression, referenceGeogExpression) eq true
+                    SpatialOperator.EQUALS -> CustomFunction<Boolean>("ST_Equals", BooleanColumnType(), geographyExpression, referenceGeogExpression) eq true
+                }
+            }
+            else -> throw UnsupportedOperationException("Unsupported BooleanQuery subtype in buildExposedOp: ${query::class.simpleName}")
+        }
+    }
+
+
     class GeographyFromDoubles(
         private val lon: Expression<Double>,
         private val lat: Expression<Double>
-    ) : Expression<String>() { // Treat as String for Exposed's GeographyColumnType
+    ) : Expression<String>() {
         override fun toQueryBuilder(queryBuilder: QueryBuilder) {
             queryBuilder.append("(ST_MakePoint(")
             lon.toQueryBuilder(queryBuilder)
