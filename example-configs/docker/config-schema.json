@@ -32,7 +32,7 @@
         "disk": {
           "factory": "DiskResolver",
           "parameters": {
-            "location": "./sandbox/thumbnails",
+            "location": "/app/sandbox/thumbnails",
             "mimeType": "JPG"
           }
         }

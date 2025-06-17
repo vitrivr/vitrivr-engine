@@ -45,5 +45,5 @@ services:
       - ./example-configs/docker/config-schema.json:/app/configs/config-schema.json
       - ./example-configs/docker/image-ingest.json:/app/configs/image-ingest.json
       - ./example-configs/docker/video-ingest.json:/app/configs/video-ingest.json
-      - ./sandbox/thumbnails:/sandbox/thumbnails
-      - ./media:/sandbox/media
+      - ./sandbox/thumbnails:/app/sandbox/thumbnails
+      - ./sandbox/media:/app/sandbox/media
