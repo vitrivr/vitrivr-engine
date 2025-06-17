@@ -51,4 +51,6 @@ fun configureApiRoutes(config: ApiConfig, manager: SchemaManager, executor: Exec
             }
         }
     }
+
+    //TODO geoquery
 }

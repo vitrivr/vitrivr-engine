@@ -16,6 +16,7 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.plugin.cottontaildb.*
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorReader
+import java.time.ZoneOffset
 import kotlin.reflect.full.primaryConstructor
 
 /**
@@ -66,7 +67,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor<*>>, connec
         for ((name, type) in this.fieldMap) {
             valueMap[name] = when (type) {
                 Types.Boolean -> tuple.asBoolean(name)?.let { Value.Boolean(it) }
-                Types.Date -> tuple.asDate(name)?.let { Value.DateTime(it) }
+                Types.Date -> tuple.asDate(name)?.let { Value.DateTime(it.toInstant().atZone(ZoneOffset.UTC).toLocalDateTime()) }
                 Types.Byte -> tuple.asByte(name)?.let { Value.Byte(it) }
                 Types.Double -> tuple.asDouble(name)?.let { Value.Double(it) }
                 Types.Float -> tuple.asFloat(name)?.let { Value.Float(it) }

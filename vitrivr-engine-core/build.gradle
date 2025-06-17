@@ -12,6 +12,7 @@ dependencies {
     /* Test Fixtures from Cottontail DB core. .*/
     testFixturesImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: version_junit
     testFixturesImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: version_junit
+    testImplementation "org.jetbrains.kotlin:kotlin-test:2.1.10"
 
 
 }

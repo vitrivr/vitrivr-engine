@@ -17,7 +17,8 @@ enum class InputType {
     BOOLEAN,
     @SerialName("NUMERIC")
     NUMERIC,
-    @SerialName("DATE")
-    DATE
-
+    @SerialName("DATETIME")
+    DATETIME,
+    @SerialName("GEOGRAPHY")
+    GEOGRAPHY
 }

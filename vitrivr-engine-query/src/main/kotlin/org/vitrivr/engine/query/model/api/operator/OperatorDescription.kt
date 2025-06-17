@@ -12,7 +12,8 @@ data class RetrieverDescription(
     val input: String,
 
     /** The name of the field in the schema */
-    val field: String? = null
+    val field: String? = null,
+    val parameters: Map<String, String> = emptyMap()
 ) : OperatorDescription() {
     override val type = OperatorType.RETRIEVER
 }
@@ -31,4 +32,18 @@ data class AggregatorDescription(
     val inputs: List<String>,
 ) : OperatorDescription() {
     override val type = OperatorType.AGGREGATOR
+}
+
+@Serializable
+data class BooleanAndDescription(
+    /** The list of inputs (retriever operations) to be combined with AND */
+    val inputs: List<String>,
+
+    /** The name of the field in the schema */
+    val field: String,
+
+    /** The limit for the number of results */
+    val limit: Long = Long.MAX_VALUE
+) : OperatorDescription() {
+    override val type = OperatorType.BOOLEAN_AND
 }

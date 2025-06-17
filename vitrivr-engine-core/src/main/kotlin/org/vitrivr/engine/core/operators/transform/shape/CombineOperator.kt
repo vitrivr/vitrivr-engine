@@ -46,7 +46,9 @@ class CombineOperator(override val inputs: List<Operator<Retrievable>>, override
                         buffer.remove(it.id)
                     }
                     mutex.unlock()
-                    send?.let { send(it) }
+                    send?.let {
+                        send(it)
+                    }
                 }
             }
         }
