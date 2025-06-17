@@ -459,6 +459,11 @@ Inside the interactive CLI:
 v> sandbox init         # Initializes the schema (sandbox = your schema name)
 ```
 
+
+```bash
+v> sandbox about         # Check the initialization state the schema (sandbox = your schema name)
+```
+
 If you want to ingest media files, you can use the following commands:
 
 ```bash
