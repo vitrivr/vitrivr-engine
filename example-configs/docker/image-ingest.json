@@ -4,7 +4,7 @@
     "contentFactory": "InMemoryContentFactory",
     "resolvers": ["disk"],
     "local": {
-      "enumerator": {"path": "/sandbox/media","depth": "1"},
+      "enumerator": {"path": "/app/sandbox/media","depth": "1"},
       "thumbnail": {
         "maxSideResolution": "400",
         "mimeType": "JPG"
