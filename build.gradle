@@ -14,7 +14,7 @@ allprojects {
     group = 'org.vitrivr'
 
     /* Current version of our artifacts. */
-    version = '0.1.9'
+    version = '0.1.10'
 
     /* Repositories for build script. */
     buildscript {
@@ -109,8 +109,9 @@ subprojects {
         testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: version_junit
         testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: version_junit
         testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: version_junit
-        testImplementation group: 'org.junit.platform', name: 'junit-platform-commons', version: version_junit_platform
-        testImplementation(group: "org.jetbrains.kotlinx", "name": "kotlinx-coroutines-test", version: version_kotlinx_coroutines)
+        testImplementation group: "org.jetbrains.kotlinx", "name": "kotlinx-coroutines-test", version: version_kotlinx_coroutines
+        testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-commons', version: version_junit_platform
+        testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher', version: version_junit_platform
     }
 }
 

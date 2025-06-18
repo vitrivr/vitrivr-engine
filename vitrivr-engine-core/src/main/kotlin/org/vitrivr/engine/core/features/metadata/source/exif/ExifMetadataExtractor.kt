@@ -58,7 +58,6 @@ fun JsonElement.toValue(): Value<*>? {
             }
         }
         is JsonArray, is JsonObject -> Value.String(this.toString())
-        else -> null
     }
 }
 
