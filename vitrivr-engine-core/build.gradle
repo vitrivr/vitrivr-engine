@@ -9,11 +9,9 @@ dependencies {
     implementation group: 'com.drewnoakes', name: 'metadata-extractor', version: version_metadataextractor
     implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: version_javalin
 
-    /* Test Fixtures from Cottontail DB core. .*/
+    /* Test Fixtures. */
     testFixturesImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: version_junit
     testFixturesImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: version_junit
-
-
 }
 
 /* Publication of vitrivr engine core to Maven Central. */
