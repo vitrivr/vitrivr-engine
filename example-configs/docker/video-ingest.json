@@ -21,7 +21,7 @@
     "enumerator": {"type": "ENUMERATOR", "factory": "FileSystemEnumerator", "mediaTypes": ["VIDEO"]},
     "decoder": {"type": "DECODER", "factory": "VideoDecoder"},
     "persister": {"type": "TRANSFORMER", "factory": "PersistRetrievableTransformer"},
-    "aggregator": {"type": "TRANSFORMER", "factory": "LastContentAggregator"},
+    "aggregator": {"type": "TRANSFORMER", "factory": "MiddleContentAggregator"},
     "time": {"type": "EXTRACTOR", "fieldName": "time"},
     "thumbnail": {"type": "EXPORTER", "exporterName": "thumbnail"},
     "clip": {"type": "EXTRACTOR", "fieldName": "clip"},
