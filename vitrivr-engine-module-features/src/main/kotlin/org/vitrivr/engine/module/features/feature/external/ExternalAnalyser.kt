@@ -18,6 +18,7 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.types.Value
+import java.nio.charset.StandardCharsets
 import java.util.*
 
 
@@ -33,6 +34,9 @@ import java.util.*
  * @version 1.2.0
  */
 
+/** Logger instance used by [ExternalAnalyser]. */
+val logger: KLogger = KotlinLogging.logger {}
+
 abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor<*>> : Analyser<T, U> {
     companion object {
         /** Name of the host parameter */
@@ -41,8 +45,7 @@ abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor<*>> : Anal
         /** Default value of the grid_size parameter. */
         const val HOST_PARAMETER_DEFAULT = "http://localhost:8888/"
 
-        /** Logger instance used by [ExternalAnalyser]. */
-        protected val logger: KLogger = KotlinLogging.logger {}
+
 
 
         /**
@@ -60,6 +63,7 @@ abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor<*>> : Anal
             contentType: String = "application/x-www-form-urlencoded",
             headers: Map<String, String> = emptyMap()
         ): U? = runBlocking{
+            val body = requestBody.toByteArray(StandardCharsets.UTF_8)
             val client = try {
                 HttpClient(CIO) {
                     install(HttpRequestRetry) {
@@ -76,13 +80,15 @@ abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor<*>> : Anal
                 return@runBlocking null
             }
 
-            return@runBlocking try {
+
+
+            try {
                 val response = client.request(url) {
                     method = HttpMethod.Post
-                    setBody(requestBody)
+                    setBody(body)
                 }
 
-                logger.trace { "Sent POST request to $url with body: $requestBody" }
+                logger.trace { "Receiving response with status ${response.status}" }
 
                 if (!response.status.isSuccess()) {
                     logger.warn { "Non-success response code: ${response.status.value} from $url" }
@@ -107,6 +113,5 @@ abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor<*>> : Anal
                 client.close()
             }
         }
-
     }
 }
