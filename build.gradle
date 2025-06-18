@@ -105,15 +105,7 @@ subprojects {
                     'release-deploy' {
                         active = 'RELEASE'
                         url = 'https://central.sonatype.com/api/v1/publisher'
-                        stagingRepository(
-                            'vitrivr-engine-core/build/staging-deploy',
-                            'vitrivr-engine-index/build/staging-deploy',
-                            'vitrivr-engine-module-cottontaildb/build/staging-deploy',
-                            'vitrivr-engine-module-features/build/staging-deploy',
-                            'vitrivr-engine-module-jsonl/build/staging-deploy',
-                            'vitrivr-engine-module-pgvector/build/staging-deploy',
-                            'vitrivr-engine-module-torchserve/build/staging-deploy'
-                        )
+                        stagingRepository(project.file('build/staging-deploy'))
                     }
                 }
                 nexus2 {
