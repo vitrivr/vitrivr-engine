@@ -105,7 +105,7 @@ subprojects {
                     'release-deploy' {
                         active = 'RELEASE'
                         url = 'https://central.sonatype.com/api/v1/publisher'
-                        stagingRepository(project.file('build/staging-deploy'))
+                        stagingRepository(layout.buildDirectory.dir('staging-deploy').toString())
                     }
                 }
                 nexus2 {
