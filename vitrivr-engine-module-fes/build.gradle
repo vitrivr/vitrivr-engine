@@ -1,6 +1,5 @@
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
-
 plugins {
     id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
 }
