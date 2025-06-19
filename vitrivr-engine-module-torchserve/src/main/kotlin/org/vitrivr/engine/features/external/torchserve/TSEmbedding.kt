@@ -113,7 +113,7 @@ class TSEmbedding : TorchServe<ContentElement<*>, FloatVectorDescriptor>() {
      *
      * @return A new [TorchServeExtractor] instance for this [TorchServe]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext): TorchServeExtractor<ContentElement<*>, FloatVectorDescriptor> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, input: Operator<Retrievable>, parameters: Map<String, String>, context: IndexContext): TorchServeExtractor<ContentElement<*>, FloatVectorDescriptor> {
         val host = context.local[field.fieldName]?.get(TORCHSERVE_HOST_KEY) ?: field.parameters[TORCHSERVE_HOST_KEY] ?: "127.0.0.1"
         val port = ((context.local[field.fieldName]?.get(TORCHSERVE_PORT_KEY) ?: field.parameters[TORCHSERVE_PORT_KEY]))?.toIntOrNull() ?: 7070
         val token = context.local[field.fieldName]?.get(TORCHSERVE_TOKEN_KEY) ?: field.parameters[TORCHSERVE_TOKEN_KEY]
@@ -130,12 +130,12 @@ class TSEmbedding : TorchServe<ContentElement<*>, FloatVectorDescriptor>() {
      *
      * @return A new [TorchServeExtractor] instance for this [TorchServe]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): TorchServeExtractor<ContentElement<*>, FloatVectorDescriptor> {
+    override fun newExtractor(name: String, input: Operator<Retrievable>, parameters: Map<String, String>, context: IndexContext): TorchServeExtractor<ContentElement<*>, FloatVectorDescriptor> {
         val host = context.local[name]?.get(TORCHSERVE_HOST_KEY) ?: "127.0.0.1"
         val port = context.local[name]?.get(TORCHSERVE_PORT_KEY)?.toIntOrNull() ?: 7070
         val token = context.local[name]?.get(TORCHSERVE_TOKEN_KEY)
         val model = context.local[name]?.get(TORCHSERVE_MODEL_KEY)
-        ?: throw IllegalArgumentException("Missing model for TorchServe model.")
+            ?: throw IllegalArgumentException("Missing model for TorchServe model.")
         return TorchServeExtractor(host, port, token, model, input, this, null, name)
     }
 
