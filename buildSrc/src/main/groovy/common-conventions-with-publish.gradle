@@ -7,9 +7,6 @@ plugins {
 jreleaser {
     signing {
         active = 'ALWAYS'
-        publicKey = System.getenv().get("GPG_PUBLIC_KEY")
-        secretKey = System.getenv().get("GPG_PRIVATE_KEY")
-        passphrase = System.getenv().get("GPG_PASSPHRASE")
     }
     deploy {
         maven {
