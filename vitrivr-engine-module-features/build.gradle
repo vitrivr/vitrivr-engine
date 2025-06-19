@@ -1,9 +1,12 @@
+plugins {
+    id 'common-conventions-with-publish'
+}
+
 dependencies {
     api project(':vitrivr-engine-core')
 
-    // https://mvnrepository.com/artifact/io.ktor/ktor-client-core-jvm
+    /* Ktor. */
     implementation group: 'io.ktor', name: 'ktor-client-core-jvm', version: version_ktor
-    // https://mvnrepository.com/artifact/io.ktor/ktor-client-cio
     implementation group: 'io.ktor', name: 'ktor-client-cio', version: version_ktor
 
     /* BoofCV for image modification and processing. */
@@ -13,7 +16,7 @@ dependencies {
 /* Publication of vitrivr engine query to Maven Central. */
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        register('mavenJava', MavenPublication) {
             groupId = 'org.vitrivr'
             artifactId = 'vitrivr-engine-plugin-features'
             version = System.getenv().getOrDefault("MAVEN_PUBLICATION_VERSION", version.toString())

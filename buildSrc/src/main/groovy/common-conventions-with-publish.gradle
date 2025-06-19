@@ -1,0 +1,35 @@
+plugins {
+    id 'common-conventions'
+    id 'maven-publish'
+}
+
+/* JReleaser for publication projects. */
+jreleaser {
+    signing {
+        active = 'ALWAYS'
+        publicKey = System.getenv().get("GPG_PUBLIC_KEY")
+        secretKey = System.getenv().get("GPG_PRIVATE_KEY")
+        passphrase = System.getenv().get("GPG_PASSPHRASE")
+    }
+    deploy {
+        maven {
+            mavenCentral {
+                'release-deploy' {
+                    active = 'RELEASE'
+                    url = 'https://central.sonatype.com/api/v1/publisher'
+                    stagingRepository('build/staging-deploy')
+                }
+            }
+            nexus2 {
+                'snapshot-deploy' {
+                    active = 'SNAPSHOT'
+                    snapshotUrl = 'https://central.sonatype.com/repository/maven-snapshots/'
+                    snapshotSupported = true
+                    closeRepository = true
+                    releaseRepository = true
+                    stagingRepository('build/staging-deploy')
+                }
+            }
+        }
+    }
+}

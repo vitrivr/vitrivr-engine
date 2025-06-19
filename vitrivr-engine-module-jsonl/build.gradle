@@ -1,4 +1,5 @@
 plugins {
+    id 'common-conventions-with-publish'
     id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
 }
 
@@ -12,7 +13,7 @@ dependencies {
 /* Publication of vitrivr engine query to Maven Central. */
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        register('mavenJava', MavenPublication) {
             groupId = 'org.vitrivr'
             artifactId = 'vitrivr-engine-module-jsonl'
             version = System.getenv().getOrDefault("MAVEN_PUBLICATION_VERSION", version.toString())
