@@ -1,0 +1,32 @@
+plugins {
+    id 'common-conventions'
+    id 'maven-publish'
+}
+
+/* JReleaser for publication projects. */
+jreleaser {
+    signing {
+        active = 'ALWAYS'
+    }
+    deploy {
+        maven {
+            mavenCentral {
+                'release-deploy' {
+                    active = 'RELEASE'
+                    url = 'https://central.sonatype.com/api/v1/publisher'
+                    stagingRepository(layout.buildDirectory.dir('staging-deploy').get().toString())
+                }
+            }
+            nexus2 {
+                'snapshot-deploy' {
+                    active = 'SNAPSHOT'
+                    snapshotUrl = 'https://central.sonatype.com/repository/maven-snapshots/'
+                    snapshotSupported = true
+                    closeRepository = true
+                    releaseRepository = true
+                    stagingRepository(layout.buildDirectory.dir('staging-deploy').get().toString())
+                }
+            }
+        }
+    }
+}

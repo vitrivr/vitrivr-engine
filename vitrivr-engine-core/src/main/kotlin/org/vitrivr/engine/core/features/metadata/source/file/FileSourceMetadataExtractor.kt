@@ -22,8 +22,7 @@ import kotlin.io.path.absolutePathString
  * @author Ralph Gasser
  * @version 1.2.0
  */
-class FileSourceMetadataExtractor :
-    AbstractExtractor<ContentElement<*>, FileSourceMetadataDescriptor> {
+class FileSourceMetadataExtractor : AbstractExtractor<ContentElement<*>, FileSourceMetadataDescriptor> {
 
     constructor(
         input: Operator<Retrievable>,

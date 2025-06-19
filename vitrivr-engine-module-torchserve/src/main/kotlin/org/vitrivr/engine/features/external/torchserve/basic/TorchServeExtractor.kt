@@ -32,8 +32,9 @@ open class TorchServeExtractor<C : ContentElement<*>, D : Descriptor<*>>(
      *
      * @param retrievable [Retrievable] to extract [Descriptor]s from.
      */
+    @Suppress("UNCHECKED_CAST")
     override fun extract(retrievable: Retrievable): List<D> {
         val content = retrievable.content.filter { o -> this.analyser.contentClasses.any { c -> c.isInstance(o) } } as List<C>
-        return (this.analyser as TorchServe<C, D>).analyse(content, this.model, this.host, this.port, token)
+        return (this.analyser as TorchServe<C, D>).analyse(content, this.model, this.host, this.port, token).map { it.copy(retrievableId = retrievable.id) as D }
     }
 }

@@ -1,0 +1,49 @@
+services:
+  db:
+    image: ankane/pgvector
+    container_name: pgvector-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+
+  vitrivr-descriptor-server:
+    image: vitrivr/vitrivr-python-descriptor-server:latest
+    environment:
+      - HF_HUB_DOWNLOAD_TIMEOUT=60
+    ports:
+      - "8888:8888"
+    tty: true
+    stdin_open: true
+    healthcheck:
+      test: [ "CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8888/health')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
+
+
+  vitrivr-engine:
+    image: vitrivr/vitrivr-engine
+    depends_on:
+      db:
+        condition: service_healthy
+      vitrivr-descriptor-server:
+        condition: service_healthy
+    ports:
+      - "7070:7070"
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./example-configs/docker/config-schema.json:/app/configs/config-schema.json
+      - ./example-configs/docker/image-ingest.json:/app/configs/image-ingest.json
+      - ./example-configs/docker/video-ingest.json:/app/configs/video-ingest.json
+      - ./sandbox/thumbnails:/app/sandbox/thumbnails
+      - ./sandbox/media:/app/sandbox/media
