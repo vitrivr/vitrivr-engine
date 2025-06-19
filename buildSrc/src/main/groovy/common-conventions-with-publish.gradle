@@ -17,7 +17,7 @@ jreleaser {
                 'release-deploy' {
                     active = 'RELEASE'
                     url = 'https://central.sonatype.com/api/v1/publisher'
-                    stagingRepository('build/staging-deploy')
+                    stagingRepository(layout.buildDirectory.dir('staging-deploy').get().toString())
                 }
             }
             nexus2 {
@@ -27,7 +27,7 @@ jreleaser {
                     snapshotSupported = true
                     closeRepository = true
                     releaseRepository = true
-                    stagingRepository('build/staging-deploy')
+                    stagingRepository(layout.buildDirectory.dir('staging-deploy').get().toString())
                 }
             }
         }
