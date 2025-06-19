@@ -1,13 +1,14 @@
 {
   "schemas": {
-    "example": {
+    "sandbox": {
       "connection": {
         "database": "PgVectorConnectionProvider",
         "parameters": {
-          "Host": "127.0.0.1",
+          "host": "db",
           "port": "5432",
+          "database": "postgres",
           "username": "postgres",
-          "password": "vitrivr"
+          "password": "password"
         }
       },
       "fields": {
@@ -17,28 +18,22 @@
         "file": {
           "factory": "FileSourceMetadata"
         },
-        "clip": {
-          "factory": "DenseEmbedding",
-          "parameters": {
-            "host": "http://10.34.64.84:8888/",
-            "model": "open-clip-vit-b32",
-            "length": "512",
-            "timeoutSeconds": "100",
-            "retries": "1000"
-          }
-        },
         "time": {
           "factory": "TemporalMetadata"
         },
-        "video": {
-          "factory": "VideoSourceMetadata"
+        "clip": {
+          "factory": "CLIP",
+          "parameters": {
+            "host": "http://vitrivr-descriptor-server:8888"
+          }
         }
       },
       "resolvers": {
-        "thumbnails": {
+        "disk": {
           "factory": "DiskResolver",
           "parameters": {
-            "location": "./example/thumbs"
+            "location": "/app/sandbox/thumbnails",
+            "mimeType": "JPG"
           }
         }
       },
@@ -46,17 +41,21 @@
         "thumbnail": {
           "factory": "ThumbnailExporter",
           "parameters": {
-            "resolver": "thumbnails",
-            "maxSideResolution": "300",
-            "mimeType": "JPG"
+            "maxSideResolution": "400",
+            "mimeType": "JPG",
+            "resolver": "disk"
           }
         }
       },
       "extractionPipelines": {
+        "image": {
+          "path": "/app/configs/image-ingest.json"
+        },
         "video": {
-          "path": "./example-configs/ingestion/example/video.json"
+          "path": "/app/configs/video-ingest.json"
         }
       }
     }
   }
 }
+

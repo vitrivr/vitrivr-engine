@@ -37,7 +37,8 @@ private fun convertDate(date: String): Date? {
     for (pattern in DATE_FORMAT_PATTERNS) {
         try {
             return SimpleDateFormat(pattern).parse(date)
-        } catch (e: ParseException) {
+        } catch (_: ParseException) {
+            continue
         }
     }
     logger.warn { "Failed to parse date: $date" }
@@ -58,7 +59,6 @@ fun JsonElement.toValue(): Value<*>? {
             }
         }
         is JsonArray, is JsonObject -> Value.String(this.toString())
-        else -> null
     }
 }
 

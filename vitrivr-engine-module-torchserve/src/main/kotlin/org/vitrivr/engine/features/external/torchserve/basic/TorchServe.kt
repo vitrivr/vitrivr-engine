@@ -1,6 +1,8 @@
 package org.vitrivr.engine.features.external.torchserve.basic
 
 import com.google.protobuf.ByteString
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.features.averagecolor.AverageColor
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -13,11 +15,13 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.module.torchserve.client.InferenceClient
 
+private val logger: KLogger = KotlinLogging.logger {}
+
 /**
  * An abstract implementation of the [TorchServe] [Analyser], which leverages TorchServe ML models for inference.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.0.1
  */
 abstract class TorchServe<C : ContentElement<*>, D : Descriptor<*>> : Analyser<C, D> {
 
@@ -54,7 +58,7 @@ abstract class TorchServe<C : ContentElement<*>, D : Descriptor<*>> : Analyser<C
      */
     fun analyse(content: Collection<C>, model: String, host: String, port: Int = 8080, token: String? = null): List<D> {
         /* Obtain a client. */
-        var client = synchronized(this) {
+        val localClient = synchronized(this) {
             var localClient = this.cachedClient
             if (localClient == null || localClient.host != host || localClient.port != port) {
                 localClient = InferenceClient(host, port, token)
@@ -68,8 +72,9 @@ abstract class TorchServe<C : ContentElement<*>, D : Descriptor<*>> : Analyser<C
         for (c in content) {
             /* Perform the prediction. */
             val result = try {
-                client.predict(model, this.toByteString(c))
+                localClient.predict(model, this.toByteString(c))
             } catch (e: Throwable) {
+                logger.warn(e) { "Failed to invoke torchserve model '$model' due to error." }
                 continue
             }
 

@@ -29,7 +29,7 @@ class FileSourceMetadataDescriptor(
     /** The path to the file. */
     val path: Value.String by this.values
 
-    /** The size of  the file in bytes. */
+    /** The size of the file in bytes. */
     val size: Value.Long by this.values
 
     companion object {

@@ -1,0 +1,46 @@
+{
+  "schema": "sandbox",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolvers": ["disk"],
+    "local": {
+      "enumerator": {"path": "/app/sandbox/media/","depth": "1"},
+      "thumbnail": {
+        "maxSideResolution": "400",
+        "mimeType": "JPG"
+      },
+      "filter": {
+        "type": "SOURCE:VIDEO"
+      },
+      "decoder": {
+        "timeWindowMs": "5000"
+      }
+    }
+  },
+  "operators": {
+    "enumerator": {"type": "ENUMERATOR", "factory": "FileSystemEnumerator", "mediaTypes": ["VIDEO"]},
+    "decoder": {"type": "DECODER", "factory": "VideoDecoder"},
+    "persister": {"type": "TRANSFORMER", "factory": "PersistRetrievableTransformer"},
+    "aggregator": {"type": "TRANSFORMER", "factory": "MiddleContentAggregator"},
+    "time": {"type": "EXTRACTOR", "fieldName": "time"},
+    "thumbnail": {"type": "EXPORTER", "exporterName": "thumbnail"},
+    "clip": {"type": "EXTRACTOR", "fieldName": "clip"},
+    "file": {"type": "EXTRACTOR", "fieldName": "file"},
+    "averagecolor": {"type": "EXTRACTOR", "fieldName": "averagecolor"},
+    "filter": {"type": "TRANSFORMER", "factory": "TypeFilterTransformer"}
+  },
+  "operations": {
+    "enumerator": {"operator": "enumerator"},
+    "decoder": {"operator": "decoder", "inputs": ["enumerator"]},
+    "aggregator": {"operator": "aggregator", "inputs": ["decoder"]},
+    "persist": {"operator": "persister", "inputs": ["aggregator"]},
+    "thumbnail": {"operator": "thumbnail", "inputs": ["persist"]},
+    "clip": {"operator": "clip", "inputs": ["thumbnail"]},
+    "averagecolor": {"operator": "averagecolor", "inputs": ["clip"]},
+    "time": {"operator": "time", "inputs": ["averagecolor"]},
+    "file": {"operator": "file", "inputs": ["time"]}
+  },
+  "output": [
+    "file"
+  ]
+}
