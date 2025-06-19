@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
 	id 'org.jetbrains.kotlin.jvm' version "$version_kotlin"
     id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
@@ -10,145 +8,15 @@ plugins {
     id 'idea'
 }
 
-allprojects {
-    /* Group name of our artifacts */
-    group = 'org.vitrivr'
-
-    /* Current version of our artifacts. */
-    version = '0.1.10'
-
-    /* Repositories for build script. */
-    buildscript {
-
-        repositories {
-            mavenCentral()
-            maven {
-                name = 'Central Portal Snapshots'
-                url = 'https://central.sonatype.com/repository/maven-snapshots/'
-            }
-        }
-        dependencies {
-            classpath "org.jetbrains.kotlin:kotlin-serialization:$version_kotlin"
-        }
-    }
-
-    /* Project repositories for build script. */
-    repositories {
-        mavenCentral()
-        maven {
-            name = 'Central Portal Snapshots'
-            url = 'https://central.sonatype.com/repository/maven-snapshots/'
-        }
-    }
+repositories {
+    mavenCentral()
 }
 
-subprojects {
-    buildscript {
-        dependencies {
-            classpath "org.jetbrains.kotlin:kotlin-serialization:$version_kotlin"
-        }
-    }
+/* Group name of our artifacts */
+group = 'org.vitrivr'
 
-    /* Common plugins. */
-    apply plugin: 'idea'
-    apply plugin: 'kotlin'
-    apply plugin: 'java'
-    apply plugin: 'java-test-fixtures'
-    apply plugin: 'maven-publish'
-
-    /* Java Version */
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-
-    tasks.withType(KotlinCompile).configureEach {
-        kotlinOptions {
-            jvmTarget = "21"
-        }
-    }
-
-    tasks.withType(Test).configureEach {
-        useJUnitPlatform()
-    }
-
-    kotlin {
-        jvmToolchain(21)
-        // this prevents from optimizing out unused variables for debugging
-        compilerOptions {
-            if (System.getProperty("idea.active") == "true") {
-                println("Enable coroutine debugging")
-                freeCompilerArgs.add("-Xdebug")
-            }
-        }
-    }
-
-    java {
-        toolchain.languageVersion.set(JavaLanguageVersion.of(21))
-        withJavadocJar()
-        withSourcesJar()
-    }
-	
-	compileJava {
-        options.encoding = 'UTF-8'
-	}
-
-    /* Setup JReleaser for publication projects. */
-    jreleaser {
-        signing {
-            active = 'ALWAYS'
-            publicKey = System.getenv().get("GPG_PUBLIC_KEY")
-            secretKey = System.getenv().get("GPG_PRIVATE_KEY")
-            passphrase = System.getenv().get("GPG_PASSPHRASE")
-        }
-        deploy {
-            maven {
-                mavenCentral {
-                    'release-deploy' {
-                        active = 'RELEASE'
-                        url = 'https://central.sonatype.com/api/v1/publisher'
-                        stagingRepository(layout.buildDirectory.dir('staging-deploy').toString())
-                    }
-                }
-                nexus2 {
-                    'snapshot-deploy' {
-                        active = 'SNAPSHOT'
-                        snapshotUrl = 'https://central.sonatype.com/repository/maven-snapshots/'
-                        snapshotSupported = true
-                        closeRepository = true
-                        releaseRepository = true
-                        stagingRepository('target/staging-deploy')
-                    }
-                }
-            }
-        }
-    }
-
-	/* Common dependencies. */
-    dependencies {
-        /* Caffeine */
-        implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: version_caffeine
-
-        /* Logging */
-        implementation group: 'org.slf4j', name: 'slf4j-api', version: version_slf4j
-        implementation group: 'io.github.oshai', name: 'kotlin-logging-jvm', version: version_kotlinlogging
-        implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: version_log4j2
-        implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: version_log4j2
-        implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j2-impl', version: version_log4j2
-
-        /* Kotlin & Kotlinx */
-        implementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: version_kotlin
-        implementation group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: version_kotlin
-		implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: version_kotlinx_coroutines
-        implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-json', version: version_kotlinx_serialization
-
-        /* JUnit 5 */
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: version_junit
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: version_junit
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: version_junit
-        testImplementation group: "org.jetbrains.kotlinx", "name": "kotlinx-coroutines-test", version: version_kotlinx_coroutines
-        testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-commons', version: version_junit_platform
-        testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher', version: version_junit_platform
-    }
-}
+/* Current version of our artifacts. */
+version = '0.1.11'
 
 /* Define required variables. */
 def fullOAS = 'http://localhost:7070/openapi.json'

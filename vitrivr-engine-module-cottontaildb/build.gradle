@@ -1,5 +1,5 @@
-repositories {
-    mavenCentral()
+plugins {
+    id 'common-conventions-with-publish'
 }
 
 dependencies {
@@ -19,7 +19,7 @@ dependencies {
 /* Publication of vitrivr engine query to Maven Central. */
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        register('mavenJava', MavenPublication) {
             groupId = 'org.vitrivr'
             artifactId = 'vitrivr-engine-plugin-cottontaildb'
             version = System.getenv().getOrDefault("MAVEN_PUBLICATION_VERSION", version.toString())
