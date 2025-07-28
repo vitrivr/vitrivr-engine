@@ -1,1 +1,2 @@
 org.vitrivr.engine.core.resolver.impl.DiskResolver
+org.vitrivr.engine.core.resolver.impl.LSCFileResolver

@@ -26,6 +26,7 @@ import org.vitrivr.engine.core.model.query.bool.CompoundBooleanQuery
 import org.vitrivr.engine.core.model.query.bool.SpatialBooleanQuery
 import org.vitrivr.engine.core.model.query.spatiotemporal.SpatialOperator
 import org.vitrivr.engine.database.pgvector.exposed.types.GeographyColumnType
+import org.slf4j.LoggerFactory
 
 /**
  * An [AbstractDescriptorTable] for [StructDescriptor]s.
@@ -34,6 +35,10 @@ import org.vitrivr.engine.database.pgvector.exposed.types.GeographyColumnType
  * @version 1.0.1
  */
 class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ): AbstractDescriptorTable<D>(field) {
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(StructDescriptorTable::class.java)
+    }
 
     /** List of value columns for this [StructDescriptorTable]*/
     private val valueColumns = mutableListOf<Column<*>>()
@@ -82,14 +87,10 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
      */
     override fun rowToDescriptor(row: ResultRow): D {
         /* Obtain constructor. */
-        val constructor = this.field.analyser.descriptorClass.primaryConstructor ?: throw IllegalStateException("Provided type ${this.field.analyser.descriptorClass} does not have a primary constructor.")
+        val constructor = this.field.analyser.descriptorClass.primaryConstructor
+            ?: throw IllegalStateException("Provided type ${this.field.analyser.descriptorClass} does not have a primary constructor.")
+
         val values = mutableMapOf<String, Value<*>?>()
-        val parameters: MutableList<Any?> = mutableListOf(
-            row[this.id].value,
-            row[this.retrievableId].value,
-            values,
-            this.field
-        )
 
         /* Add the values. */
         for ((column, attribute) in this.valueColumns.zip(this.prototype.layout())) {
@@ -119,8 +120,38 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
             }
         }
 
+        // Dynamically build the parameter list based on what the constructor expects.
+        val parameters = if (constructor.parameters.size == 5) {
+            // For constructors that need 5 arguments (like AnyMapStructDescriptor)
+            logger.debug("Using 5-parameter constructor for ${constructor.name}")
+            mutableListOf(
+                row[this.id].value,
+                row[this.retrievableId].value,
+                this.prototype.layout(),
+                values,
+                this.field
+            )
+        } else {
+            // For constructors that need 4 arguments (like FileSourceMetadataDescriptor)
+            logger.debug("Using 4-parameter constructor for ${constructor.name}")
+            mutableListOf(
+                row[this.id].value,
+                row[this.retrievableId].value,
+                values,
+                this.field
+            )
+        }
+
+        logger.debug("Attempting to construct descriptor of type '{}'", this.field.analyser.descriptorClass.simpleName)
+
         /* Call constructor. */
-        return constructor.call(*parameters.toTypedArray())
+        try {
+            return constructor.call(*parameters.toTypedArray())
+        } catch (e: Exception) {
+            logger.error("Failed to construct descriptor '${this.field.analyser.descriptorClass.simpleName}'. Error: ${e.message}")
+            logger.error("Provided ${parameters.size} arguments for a constructor that expects ${constructor.parameters.size}.")
+            throw e
+        }
     }
 
     /**

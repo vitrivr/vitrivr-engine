@@ -20,5 +20,8 @@ data class ApiConfig(
     val index: Boolean = true,
 
     /** Flag indicating, if exported data should be exposed via RESTful API. */
-    val export: Boolean = true
+    val export: Boolean = true,
+    
+    /** Flag indicating, if metadata functionality should be exposed via RESTful API. */
+    val metadata: Boolean = true
 )
