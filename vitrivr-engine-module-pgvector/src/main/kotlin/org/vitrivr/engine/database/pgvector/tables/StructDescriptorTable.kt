@@ -176,7 +176,7 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
     @Suppress("UNCHECKED_CAST")
     private fun parse(query: SimpleFulltextQuery): Query = this.selectAll().where {
         require(query.attributeName != null) { "Attribute name of boolean query must not be null!" }
-        val value = query.value.value as? String ?: throw IllegalArgumentException("Attribute value of fulltext query must be a string")
+        val value = query.value.value
         val descriptor = this@StructDescriptorTable.valueColumns.find { it.name == query.attributeName } as Column<String>
         descriptor tsMatches plainToTsQuery(stringParam(value))
     }

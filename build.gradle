@@ -1,118 +1,22 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
 	id 'org.jetbrains.kotlin.jvm' version "$version_kotlin"
     id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
-    id 'org.openapi.generator' version '7.11.0'
+    id 'org.jreleaser' version '1.18.0'
+    id 'org.openapi.generator' version '7.13.0'
     id 'de.undercouch.download' version "5.6.0"
     id 'java-library'
     id 'idea'
 }
 
-allprojects {
-    /* Group name of our artifacts */
-    group = 'org.vitrivr'
-
-    /* Current version of our artifacts. */
-    version = '0.1.9'
-
-    /* Repositories for build script. */
-    buildscript {
-
-        repositories {
-            mavenCentral()
-            maven {
-                url "https://oss.sonatype.org/content/repositories/snapshots/"
-            }
-        }
-        dependencies {
-            classpath "org.jetbrains.kotlin:kotlin-serialization:$version_kotlin"
-        }
-    }
-
-    /* Project repositories for build script. */
-    repositories {
-        mavenCentral()
-        maven {
-            url "https://oss.sonatype.org/content/repositories/snapshots/"
-        }
-    }
+repositories {
+    mavenCentral()
 }
 
-subprojects {
-    buildscript {
-        dependencies {
-            classpath "org.jetbrains.kotlin:kotlin-serialization:$version_kotlin"
-        }
-    }
+/* Group name of our artifacts */
+group = 'org.vitrivr'
 
-    /* Common plugins. */
-    apply plugin: 'idea'
-    apply plugin: 'kotlin'
-    apply plugin: 'java'
-    apply plugin: 'java-test-fixtures'
-
-    /* Java Version */
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-
-    tasks.withType(KotlinCompile).configureEach {
-        kotlinOptions {
-            jvmTarget = "21"
-        }
-    }
-
-    tasks.withType(Test).configureEach {
-        useJUnitPlatform()
-    }
-
-    kotlin {
-        jvmToolchain(21)
-        // this prevents from optimizing out unused variables for debugging
-        compilerOptions {
-            if (System.getProperty("idea.active") == "true") {
-                println("Enable coroutine debugging")
-                freeCompilerArgs.add("-Xdebug")
-            }
-        }
-    }
-
-    java {
-        toolchain.languageVersion.set(JavaLanguageVersion.of(21))
-        withJavadocJar()
-        withSourcesJar()
-    }
-	
-	compileJava {
-        options.encoding = 'UTF-8'
-	}
-	
-	/* Common dependencies. */
-    dependencies {
-        /* Caffeine */
-        implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: version_caffeine
-
-        /* Logging */
-        implementation group: 'org.slf4j', name: 'slf4j-api', version: version_slf4j
-        implementation group: 'io.github.oshai', name: 'kotlin-logging-jvm', version: version_kotlinlogging
-        implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: version_log4j2
-        implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: version_log4j2
-        implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j2-impl', version: version_log4j2
-
-        /* Kotlin & Kotlinx */
-        implementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: version_kotlin
-        implementation group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: version_kotlin
-		implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: version_kotlinx_coroutines
-        implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-json', version: version_kotlinx_serialization
-
-        /* JUnit 5 */
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: version_junit
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: version_junit
-        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: version_junit
-        testImplementation group: 'org.junit.platform', name: 'junit-platform-commons', version: version_junit_platform
-        testImplementation(group: "org.jetbrains.kotlinx", "name": "kotlinx-coroutines-test", version: version_kotlinx_coroutines)
-    }
-}
+/* Current version of our artifacts. */
+version = '0.1.11'
 
 /* Define required variables. */
 def fullOAS = 'http://localhost:7070/openapi.json'
@@ -128,8 +32,8 @@ openApiGenerate {
     inputSpec = oasFile
     outputDir = file("${project.projectDir}/openapi/doc/kotlin").toString()
     configOptions = [
-            npmName: '@vitrivr-engine/api',
-            enumPropertyNaming: 'original'
+        npmName: '@vitrivr-engine/api',
+        enumPropertyNaming: 'original'
     ]
 }
 

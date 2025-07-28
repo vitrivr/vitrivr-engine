@@ -1,17 +1,17 @@
 plugins {
-    id 'maven-publish'
-    id 'signing'
-}
-
-repositories {
-    mavenCentral()
+    id 'common-conventions-with-publish'
 }
 
 dependencies {
     api project(':vitrivr-engine-core')
-
+    
+    /* Metadata extractor. */
     implementation group: 'com.drewnoakes', name: 'metadata-extractor', version: version_metadataextractor
     implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: version_javalin
+    
+    /* Ktor. */
+    implementation group: 'io.ktor', name: 'ktor-client-core-jvm', version: version_ktor
+    implementation group: 'io.ktor', name: 'ktor-client-cio', version: version_ktor
 
     /* BoofCV for image modification and processing. */
     implementation group: 'org.boofcv', name: 'boofcv-io', version: version_boofcv
@@ -20,7 +20,7 @@ dependencies {
 /* Publication of vitrivr engine query to Maven Central. */
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        register('mavenJava', MavenPublication) {
             groupId = 'org.vitrivr'
             artifactId = 'vitrivr-engine-plugin-features'
             version = System.getenv().getOrDefault("MAVEN_PUBLICATION_VERSION", version.toString())
@@ -69,24 +69,8 @@ publishing {
         }
     }
     repositories {
-        repositories {
-            maven {
-                def releasesRepoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
-                def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
-                name = "OSSRH"
-                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-                credentials {
-                    username = System.getenv("MAVEN_USERNAME")
-                    password = System.getenv("MAVEN_PASSWORD")
-                }
-            }
+        maven {
+            url = layout.buildDirectory.dir('staging-deploy')
         }
     }
-}
-
-signing {
-    def signingKey = findProperty("signingKey")
-    def signingPassword = findProperty("signingPassword")
-    useInMemoryPgpKeys(signingKey, signingPassword)
-    sign publishing.publications.mavenJava
 }

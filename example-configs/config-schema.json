@@ -1,0 +1,61 @@
+{
+  "schemas": {
+    "sandbox": {
+      "connection": {
+        "database": "PgVectorConnectionProvider",
+        "parameters": {
+          "host": "localhost",
+          "port": "5432",
+          "database": "postgres",
+          "username": "postgres",
+          "password": "password"
+        }
+      },
+      "fields": {
+        "averagecolor": {
+          "factory": "AverageColor"
+        },
+        "file": {
+          "factory": "FileSourceMetadata"
+        },
+        "time": {
+          "factory": "TemporalMetadata"
+        },
+        "clip": {
+          "factory": "CLIP",
+          "parameters": {
+            "host": "http://localhost:8888"
+          }
+        }
+      },
+      "resolvers": {
+        "disk": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "./sandbox/thumbnails",
+            "mimeType": "JPG"
+          }
+        }
+      },
+      "exporters": {
+        "thumbnail": {
+          "factory": "ThumbnailExporter",
+          "parameters": {
+            "maxSideResolution": "400",
+            "mimeType": "JPG",
+            "resolver": "disk"
+          }
+        }
+      },
+      "extractionPipelines": {
+        "image": {
+          "path": "./example-configs/image-ingest.json"
+        },
+        "video": {
+          "path": "./example-configs/video-ingest.json"
+        }
+      }
+    }
+  }
+}
+

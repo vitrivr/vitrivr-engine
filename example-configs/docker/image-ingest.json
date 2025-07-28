@@ -1,0 +1,35 @@
+{
+  "schema": "sandbox",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolvers": ["disk"],
+    "local": {
+      "enumerator": {"path": "/app/sandbox/media","depth": "1"},
+      "thumbnail": {
+        "maxSideResolution": "400",
+        "mimeType": "JPG"
+      }
+    }
+  },
+  "operators": {
+    "enumerator": {"type": "ENUMERATOR", "factory": "FileSystemEnumerator", "mediaTypes": ["IMAGE"]},
+    "decoder": {"type": "DECODER", "factory": "ImageDecoder"},
+    "persister": {"type": "TRANSFORMER", "factory": "PersistRetrievableTransformer"},
+    "thumbnail": {"type": "EXPORTER", "exporterName": "thumbnail"},
+    "clip": {"type": "EXTRACTOR", "fieldName": "clip"},
+    "file": {"type": "EXTRACTOR", "fieldName": "file"},
+    "averagecolor": {"type": "EXTRACTOR", "fieldName": "averagecolor"}
+  },
+  "operations": {
+    "enumerator": {"operator": "enumerator"},
+    "decoder": {"operator": "decoder", "inputs": ["enumerator"]},
+    "persist": {"operator": "persister", "inputs": ["decoder"]},
+    "thumbnail": {"operator": "thumbnail", "inputs": ["persist"]},
+    "clip": {"operator": "clip", "inputs": ["thumbnail"]},
+    "averagecolor": {"operator": "averagecolor", "inputs": ["clip"]},
+    "file": {"operator": "file", "inputs": ["averagecolor"]}
+  },
+  "output": [
+    "file"
+  ]
+}

@@ -265,14 +265,16 @@ class FFmpegVideoDecoder : DecoderFactory {
                     }
                 }
 
-                /* Prepare ingested with relationship to source. */
-                val retrievableId = UUID.randomUUID()
-                val source = this.source.filteredAttribute(SourceAttribute::class.java)
-                val relationship = source?.let { Relationship.ById(retrievableId, "partOf", it.source.sourceId, false) }
-
                 /* Prepare attributes and content lists. */
                 val attributes = mutableSetOf<RetrievableAttribute>()
                 val content = mutableListOf<ContentElement<*>>()
+
+                /* Prepare ingested with relationship to source. */
+                val retrievableId = UUID.randomUUID()
+                val source = this.source.filteredAttribute(SourceAttribute::class.java)
+                val relationship = source?.let {
+                    Relationship.ById(retrievableId, "partOf", it.source.sourceId, false)
+                }
 
                 /* Add time range. */
                 attributes.add(

@@ -257,14 +257,16 @@ class VideoDecoder : DecoderFactory {
                 }
             }
 
-            /* Prepare ingested with relationship to source. */
-            val retrievableId = UUID.randomUUID()
-            val src = source.filteredAttribute(SourceAttribute::class.java)
-            val relationship = src?.let { Relationship.ById(retrievableId, "partOf", it.source.sourceId, false) }
-
             /* Prepare attributes and content lists. */
             val attributes = mutableSetOf<RetrievableAttribute>()
             val content = mutableListOf<ContentElement<*>>()
+
+            /* Prepare ingested with relationship to source. */
+            val retrievableId = UUID.randomUUID()
+            val src = source.filteredAttribute(SourceAttribute::class.java)
+            val relationship = src?.let {
+                Relationship.ById(retrievableId, "partOf", it.source.sourceId, false)
+            }
 
             /* Add time range. */
             attributes.add(

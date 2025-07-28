@@ -1,10 +1,8 @@
 plugins {
-    id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
+    id 'common-conventions'
     id 'maven-publish'
-    id 'signing'
+    id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
 }
-
-
 
 switch (org.gradle.internal.os.OperatingSystem.current()) {
     case org.gradle.internal.os.OperatingSystem.LINUX:
@@ -23,9 +21,7 @@ switch (org.gradle.internal.os.OperatingSystem.current()) {
         break
 }
 
-
 dependencies {
-
     /* vitrivr core dependency. */
     api project(':vitrivr-engine-core')
     api project(':vitrivr-engine-module-m3d')
@@ -38,10 +34,8 @@ dependencies {
     /** Jaffree for external ffmpeg*/
     implementation group: 'com.github.kokorin.jaffree', name: 'jaffree', version: version_jaffree
 
-
-    // https://mvnrepository.com/artifact/io.ktor/ktor-client-core-jvm
+    /** Ktor */
     implementation group: 'io.ktor', name: 'ktor-client-core-jvm', version: version_ktor
-
 
     /** ScrImage (used for image resizing). */
     implementation group: 'com.sksamuel.scrimage', name: 'scrimage-core', version: version_scrimage
@@ -62,7 +56,7 @@ dependencies {
 /* Publication of vitrivr engine index to Maven Central. */
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        register('mavenJava', MavenPublication) {
             groupId = 'org.vitrivr'
             artifactId = 'vitrivr-engine-index'
             version = System.getenv().getOrDefault("MAVEN_PUBLICATION_VERSION", version.toString())
@@ -111,24 +105,8 @@ publishing {
         }
     }
     repositories {
-        repositories {
-            maven {
-                def releasesRepoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
-                def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
-                name = "OSSRH"
-                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-                credentials {
-                    username = System.getenv("MAVEN_USERNAME")
-                    password = System.getenv("MAVEN_PASSWORD")
-                }
-            }
+        maven {
+            url = layout.buildDirectory.dir('staging-deploy')
         }
     }
-}
-
-signing {
-    def signingKey = findProperty("signingKey")
-    def signingPassword = findProperty("signingPassword")
-    useInMemoryPgpKeys(signingKey, signingPassword)
-    sign publishing.publications.mavenJava
 }

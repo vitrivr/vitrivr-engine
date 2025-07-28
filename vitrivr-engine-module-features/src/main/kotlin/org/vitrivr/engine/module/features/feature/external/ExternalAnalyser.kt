@@ -2,6 +2,14 @@ package org.vitrivr.engine.module.features.feature.external
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.bodyAsChannel
+import io.ktor.http.*
+import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
@@ -10,10 +18,9 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.types.Value
-import java.net.HttpURLConnection
-import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.*
+
 
 /**
  * Implementation of the [ExternalAnalyser], which derives external features from an [ContentElement] as [Descriptor].
@@ -27,6 +34,9 @@ import java.util.*
  * @version 1.2.0
  */
 
+/** Logger instance used by [ExternalAnalyser]. */
+val logger: KLogger = KotlinLogging.logger {}
+
 abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor<*>> : Analyser<T, U> {
     companion object {
         /** Name of the host parameter */
@@ -35,8 +45,7 @@ abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor<*>> : Anal
         /** Default value of the grid_size parameter. */
         const val HOST_PARAMETER_DEFAULT = "http://localhost:8888/"
 
-        /** Logger instance used by [ExternalAnalyser]. */
-        protected val logger: KLogger = KotlinLogging.logger {}
+
 
 
         /**
@@ -53,45 +62,55 @@ abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor<*>> : Anal
             requestBody: String,
             contentType: String = "application/x-www-form-urlencoded",
             headers: Map<String, String> = emptyMap()
-        ): U? {
-            val connection = try {
-                URI(url).toURL().openConnection() as HttpURLConnection
+        ): U? = runBlocking{
+            val body = requestBody.toByteArray(StandardCharsets.UTF_8)
+            val client = try {
+                HttpClient(CIO) {
+                    install(HttpRequestRetry) {
+                        retryOnServerErrors(maxRetries = 5)
+                        exponentialDelay()
+                    }
+                    defaultRequest {
+                        headers.forEach { (key, value) -> header(key, value) }
+                        header("Content-Type", contentType)
+                    }
+                }
             } catch (e: Throwable) {
-                logger.error(e) { "Failed to open HTTP connection to $url." }
-                return null
+                logger.error(e) { "Failed to initialize Ktor HTTP client for $url." }
+                return@runBlocking null
             }
 
-            connection.requestMethod = "POST"
-            connection.doOutput = true
-            connection.setRequestProperty("Content-Type", contentType)
-            headers.forEach { (key, value) -> connection.setRequestProperty(key, value) }
-            logger.trace { "Initialised external API request to $url." }
+
 
             try {
-                connection.outputStream.use {
-                    it.write(requestBody.toByteArray(StandardCharsets.UTF_8))
-                    it.flush()
-                    it.close()
+                val response = client.request(url) {
+                    method = HttpMethod.Post
+                    setBody(body)
                 }
-                logger.trace { "Wrote request: $requestBody" }
 
-                /* Get the response code (optional, but useful for error handling). */
-                val responseCode = connection.responseCode
-                logger.trace { "Received response code: $responseCode" }
+                logger.trace { "Receiving response with status ${response.status}" }
 
-                // Read the response as a JSON string
-                if (responseCode != HttpURLConnection.HTTP_OK) return null
-                return connection.inputStream.use { stream ->
-                    when (U::class) {
-                        FloatVectorDescriptor::class -> FloatVectorDescriptor(UUID.randomUUID(), null, Value.FloatVector(Json.decodeFromStream<FloatArray>(stream)))
-                        else -> null
-                    } as U?
+                if (!response.status.isSuccess()) {
+                    logger.warn { "Non-success response code: ${response.status.value} from $url" }
+                    null
+                } else {
+                    response.bodyAsChannel().toInputStream().use { stream ->
+                        when (U::class) {
+                            FloatVectorDescriptor::class -> FloatVectorDescriptor(
+                                UUID.randomUUID(),
+                                null,
+                                Value.FloatVector(Json.decodeFromStream<FloatArray>(stream))
+                            )
+
+                            else -> null
+                        } as U?
+                    }
                 }
             } catch (e: Throwable) {
-                logger.error(e) { "An error occurred during external API call." }
-                return null
+                logger.error(e) { "An error occurred during the external API call to $url." }
+                null
             } finally {
-                connection.disconnect()
+                client.close()
             }
         }
     }

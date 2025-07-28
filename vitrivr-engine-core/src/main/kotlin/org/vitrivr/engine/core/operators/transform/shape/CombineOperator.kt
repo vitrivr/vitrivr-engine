@@ -43,6 +43,7 @@ class CombineOperator(override val inputs: List<Operator<Retrievable>>, override
                         val descriptors = retrievables.flatMap { it.descriptors }.distinct()
                         val relationship = retrievables.flatMap { it.relationships }.distinct()
                         send = it.copy(content = it.content + content, descriptors = it.descriptors + descriptors, attributes = it.attributes + attributes, relationships = it.relationships + relationship)
+                        buffer.remove(it.id)
                     }
                     mutex.unlock()
                     send?.let {
