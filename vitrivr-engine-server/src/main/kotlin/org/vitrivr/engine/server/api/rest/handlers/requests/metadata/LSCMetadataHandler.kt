@@ -179,10 +179,7 @@ fun getMetadata(
                 retrievableIdString
             )
 
-        logger.debug(
-            "Fetching metadata for retrievable ID: {}",
-            retrievableIdString
-        )
+        //logger.debug("Fetching metadata for retrievable ID: {}", retrievableIdString)
 
         val lsctimestampField =
             schema.get(
@@ -260,22 +257,14 @@ fun getMetadata(
                         latitude.toDouble(),
                         longitude.toDouble()
                     )
-                logger.debug(
-                    "Parsed WKT coordinates: lat={}, lon={}",
-                    latitude,
-                    longitude
-                )
+                //logger.debug("Parsed WKT coordinates: lat={}, lon={}", latitude, longitude)
             } else {
                 parsedCoordinates =
                     parseWKBHexToCoordinates(
                         coordinatesValue.wkt
                     )
                 if (parsedCoordinates != null) {
-                    logger.debug(
-                        "Parsed WKB coordinates: lat={}, lon={}",
-                        parsedCoordinates.latitude,
-                        parsedCoordinates.longitude
-                    )
+                    //logger.debug("Parsed WKB coordinates: lat={}, lon={}", parsedCoordinates.latitude, parsedCoordinates.longitude)
                 } else {
                     logger.warn(
                         "Failed to parse coordinates as WKT or WKB: '{}'",
