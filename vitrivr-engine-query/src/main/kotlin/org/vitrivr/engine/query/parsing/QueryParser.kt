@@ -65,7 +65,7 @@ class QueryParser(val schema: Schema) {
 
             //TODO find good way to handle retriever not bound to a field
 
-            val factory = loadServiceForName<OperatorFactory>(operationDescription.className + "Factory") ?: throw IllegalArgumentException("No factory found for '${operationDescription.className}'")
+            val factory = loadServiceForName<OperatorFactory>(operationDescription.factory + "Factory") ?: throw IllegalArgumentException("No factory found for '${operationDescription.factory}'")
 
             val inputs = operationDescription.inputs.map { (k, v) ->
                 k to (operators[v] ?: throw IllegalArgumentException("Operator '$v' not yet defined"))
