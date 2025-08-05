@@ -4,12 +4,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class OperatorDescription(
-    val factory: String,
+    val factory: String? = null,
     val field: String? = null,
     @SerialName("name")
     private val inName: String? = field,
     val inputs: Map<String, String>,
-    val parameters: Map<String, String>
+    val parameters: Map<String, String> = emptyMap(),
 ) {
 
     init {
