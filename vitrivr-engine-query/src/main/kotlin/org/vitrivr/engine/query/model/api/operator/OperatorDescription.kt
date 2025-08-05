@@ -13,7 +13,7 @@ class OperatorDescription(
 ) {
 
     init {
-        if (this.field == null && this.inName == null) {
+        if (this.field == null && this.factory == null) {
             throw IllegalArgumentException("field or name required")
         }
     }
