@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class OperatorDescription(
-    val className: String,
+    val factory: String,
     val field: String? = null,
     @SerialName("name")
     private val inName: String? = field,
