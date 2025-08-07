@@ -72,7 +72,7 @@ class QueryParser(val schema: Schema) {
             }.toMap()
 
 
-            operators[operationName] = factory.newOperator(operationDescription.name, inputs, context)
+            operators[operationName] = factory.newOperator(operationName, inputs, context)
         }
 
         /* Return the output operator. */
