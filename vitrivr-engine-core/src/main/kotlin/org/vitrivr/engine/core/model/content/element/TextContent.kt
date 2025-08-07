@@ -23,7 +23,7 @@ interface TextContent : DescriptorContent<TextDescriptor> {
 
     /** The [ContentType] of an [TextContent] is always [ContentType.TEXT]. */
     override val type: ContentType
-        get() = ContentType.DESCRIPTOR
+        get() = ContentType.TEXT
 
     /**
      * Converts this [TextContent] to a data URL representation.
