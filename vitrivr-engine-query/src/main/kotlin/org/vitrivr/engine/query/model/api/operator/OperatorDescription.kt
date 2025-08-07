@@ -14,10 +14,7 @@ class OperatorDescription(
 
     init {
         if (this.field == null && this.factory == null) {
-            throw IllegalArgumentException("field or name required")
+            throw IllegalArgumentException("field or factory required")
         }
     }
-
-    val name: String
-        get() = this.field ?: this.inName!!
 }
