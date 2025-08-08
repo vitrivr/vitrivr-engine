@@ -112,7 +112,7 @@ class QueryParser(val schema: Schema) {
                     Value.Double(radiusInput.data)
                 }
 
-                val limit = description.context.getProperty(operatorName, "limit")?.toLongOrNull() ?: 1000L
+                val limit = description.context.getProperty(operatorName, "limit")?.toLongOrNull() ?: 1000000L
 
 
                 // Check if lat/lon attributes are specified for a struct-based query
