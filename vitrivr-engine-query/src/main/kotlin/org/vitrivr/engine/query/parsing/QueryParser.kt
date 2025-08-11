@@ -41,31 +41,52 @@ class QueryParser(val schema: Schema) {
 
             if (operationDescription.field != null) { //must be a retriever
 
-                val fieldAndAttributeName: Pair<String,String?> = if (operationDescription.field.contains(".")) {
+                val fieldAndAttributeName: Pair<String, String?> = if (operationDescription.field.contains(".")) {
                     val f = operationDescription.field.substringBefore(".")
                     val a = operationDescription.field.substringAfter(".")
                     f to a
                 } else {
                     operationDescription.field to null
                 }
-                val field = this.schema[fieldAndAttributeName.first] ?: throw IllegalArgumentException("Retriever '${operationDescription.field}' not defined in schema")
+                val field = this.schema[fieldAndAttributeName.first]
+                    ?: throw IllegalArgumentException("Retriever '${operationDescription.field}' not defined in schema")
 
-                val inputs = operationDescription.inputs.map { (k, v) ->
-                    val inputData = (description.inputs[v] ?: throw IllegalArgumentException("Input '${v}' for operation '$operationName' not found"))
 
+                val contentInputs = operationDescription.inputs.filter { (k, v) ->
+                    val inputData = (description.inputs[v]
+                        ?: throw IllegalArgumentException("Input '${v}' for operation '$operationName' not found"))
+                    inputData.type.isContent
+                }.map { (k, v) ->
+                    val inputData = (description.inputs[v]
+                        ?: throw IllegalArgumentException("Input '${v}' for operation '$operationName' not found"))
                     k to inputData.toContent()
-
                 }.toMap()
 
-                operators[operationName] = field.getRetrieverForContent(inputs, context)
+                val descriptorInputs = operationDescription.inputs.filter { (k, v) ->
+                    val inputData = (description.inputs[v]
+                        ?: throw IllegalArgumentException("Input '${v}' for operation '$operationName' not found"))
+                    inputData.type.isDescriptor
+                }.map { (k, v) ->
+                    val inputData = (description.inputs[v]
+                        ?: throw IllegalArgumentException("Input '${v}' for operation '$operationName' not found"))
+                    k to inputData.toDescriptor()
+                }.toMap()
 
+                contentInputs.takeIf { it.isNotEmpty() }?.let {
+                    operators[operationName] = field.getRetrieverForContent(it, context)
+                }
+
+                descriptorInputs.takeIf { it.isNotEmpty() }?.let {
+                    operators[operationName] = field.getRetrieverForDescriptors(it.values, context)
+                }
                 return@forEach
 
             }
 
             //TODO find good way to handle retriever not bound to a field
 
-            val factory = loadServiceForName<OperatorFactory>(operationDescription.factory + "Factory") ?: throw IllegalArgumentException("No factory found for '${operationDescription.factory}'")
+            val factory = loadServiceForName<OperatorFactory>(operationDescription.factory + "Factory")
+                ?: throw IllegalArgumentException("No factory found for '${operationDescription.factory}'")
 
             val inputs = operationDescription.inputs.map { (k, v) ->
                 k to (operators[v] ?: throw IllegalArgumentException("Operator '$v' not yet defined"))
@@ -76,7 +97,8 @@ class QueryParser(val schema: Schema) {
         }
 
         /* Return the output operator. */
-        return operators[description.output] ?: throw IllegalArgumentException("Output operation '${description.output}' is not defined.")
+        return operators[description.output]
+            ?: throw IllegalArgumentException("Output operation '${description.output}' is not defined.")
     }
 
 

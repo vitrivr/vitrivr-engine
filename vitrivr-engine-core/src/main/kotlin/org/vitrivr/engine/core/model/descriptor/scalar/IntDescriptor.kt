@@ -7,6 +7,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
+import java.util.UUID
 
 /**
  * A [ScalarDescriptor] using an [Int] value.
@@ -16,8 +17,8 @@ import org.vitrivr.engine.core.model.types.Value
  */
 
 data class IntDescriptor(
-    override val id: DescriptorId,
-    override val retrievableId: RetrievableId?,
+    override val id: DescriptorId = UUID.randomUUID(),
+    override val retrievableId: RetrievableId? = null,
     override val value: Value.Int,
     override val field: Schema.Field<*, IntDescriptor>? = null
 ) : ScalarDescriptor<IntDescriptor, Value.Int> {
