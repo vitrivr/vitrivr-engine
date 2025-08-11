@@ -9,6 +9,7 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
+import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 
@@ -30,13 +31,13 @@ class DenseRetriever<C : ContentElement<*>>(field: Schema.Field<C, FloatVectorDe
     override fun toFlow(scope: CoroutineScope) = flow {
         this@DenseRetriever.reader.queryAndJoin(this@DenseRetriever.query).forEach {
             val distance = it.filteredAttribute<DistanceAttribute>()
+
             if (distance != null) {
-                it.copy(attributes = it.attributes + this@DenseRetriever.correspondence(distance))
+                emit(it.copy(attributes = (it.attributes + this@DenseRetriever.correspondence(distance))))
             } else {
                 this@DenseRetriever.logger.warn { "No distance attribute found for descriptor ${it.id}." }
-                it.copy(attributes = it.attributes + ScoreAttribute.Similarity(0.0))
+                emit(it.copy(attributes = it.attributes + ScoreAttribute.Similarity(0.0)))
             }
-            emit(it)
         }
     }
 }
