@@ -129,7 +129,6 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
         )
     }
 
-
     /**
      * Generates and returns a new [Retriever] instance for this [CLIP].
      *

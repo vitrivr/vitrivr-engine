@@ -17,7 +17,7 @@ import java.util.*
  * @version 1.2.0
  */
 data class FloatVectorDescriptor(
-    override val id: UUID = UUID.randomUUID(),
+    override val id: DescriptorId = UUID.randomUUID(),
     override val retrievableId: RetrievableId? = null,
     override val vector: Value.FloatVector,
     override val field: Schema.Field<*, FloatVectorDescriptor>? = null
