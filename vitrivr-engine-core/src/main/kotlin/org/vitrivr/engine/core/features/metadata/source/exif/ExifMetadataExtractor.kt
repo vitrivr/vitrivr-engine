@@ -38,6 +38,7 @@ private fun convertDate(date: String): Date? {
         try {
             return SimpleDateFormat(pattern).parse(date)
         } catch (_: ParseException) {
+            continue
         }
     }
     logger.warn { "Failed to parse date: $date" }

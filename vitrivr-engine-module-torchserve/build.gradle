@@ -1,12 +1,7 @@
 plugins {
+    id 'common-conventions-with-publish'
+    id 'com.google.protobuf' version '0.9.5'
     id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
-    id 'maven-publish'
-    id 'signing'
-    id 'com.google.protobuf' version '0.9.4'
-}
-
-repositories {
-    mavenCentral()
 }
 
 dependencies {
@@ -28,6 +23,7 @@ dependencies {
     api group: 'io.grpc', name: 'grpc-auth', version: version_grpc
     api group: 'io.grpc', name: 'grpc-kotlin-stub', version: version_grpc_kotlin
 
+    /** Google OAuth */
     api group: 'com.google.auth', name: 'google-auth-library-oauth2-http', version: version_google_oauth2
 }
 
@@ -59,7 +55,7 @@ protobuf {
 /* Publication of vitrivr engine query to Maven Central. */
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        register('mavenJava', MavenPublication) {
             groupId = 'org.vitrivr'
             artifactId = 'vitrivr-engine-module-torchserve'
             version = System.getenv().getOrDefault("MAVEN_PUBLICATION_VERSION", version.toString())
@@ -93,24 +89,8 @@ publishing {
         }
     }
     repositories {
-        repositories {
-            maven {
-                def releasesRepoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
-                def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
-                name = "OSSRH"
-                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-                credentials {
-                    username = System.getenv("MAVEN_USERNAME")
-                    password = System.getenv("MAVEN_PASSWORD")
-                }
-            }
+        maven {
+            url = layout.buildDirectory.dir('staging-deploy')
         }
     }
-}
-
-signing {
-    def signingKey = findProperty("signingKey")
-    def signingPassword = findProperty("signingPassword")
-    useInMemoryPgpKeys(signingKey, signingPassword)
-    sign publishing.publications.mavenJava
 }

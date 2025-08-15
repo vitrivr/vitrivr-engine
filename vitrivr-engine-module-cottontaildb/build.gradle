@@ -1,10 +1,5 @@
 plugins {
-    id 'maven-publish'
-    id 'signing'
-}
-
-repositories {
-    mavenCentral()
+    id 'common-conventions-with-publish'
 }
 
 dependencies {
@@ -24,7 +19,7 @@ dependencies {
 /* Publication of vitrivr engine query to Maven Central. */
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        register('mavenJava', MavenPublication) {
             groupId = 'org.vitrivr'
             artifactId = 'vitrivr-engine-plugin-cottontaildb'
             version = System.getenv().getOrDefault("MAVEN_PUBLICATION_VERSION", version.toString())
@@ -73,24 +68,8 @@ publishing {
         }
     }
     repositories {
-        repositories {
-            maven {
-                def releasesRepoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
-                def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
-                name = "OSSRH"
-                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-                credentials {
-                    username = System.getenv("MAVEN_USERNAME")
-                    password = System.getenv("MAVEN_PASSWORD")
-                }
-            }
+        maven {
+            url = layout.buildDirectory.dir('staging-deploy')
         }
     }
-}
-
-signing {
-    def signingKey = findProperty("signingKey")
-    def signingPassword = findProperty("signingPassword")
-    useInMemoryPgpKeys(signingKey, signingPassword)
-    sign publishing.publications.mavenJava
 }

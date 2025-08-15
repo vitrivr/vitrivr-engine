@@ -1,7 +1,8 @@
 plugins {
-    id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
+    id 'common-conventions'
     id 'application'
     id 'kotlin-kapt'
+    id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
 }
 
 dependencies {
@@ -33,7 +34,7 @@ dependencies {
 }
 
 application {
-    mainClassName = 'org.vitrivr.engine.server.MainKt'
+    mainClass = 'org.vitrivr.engine.server.MainKt'
     applicationDefaultJvmArgs = ["-Xms2G", "-Xmx8G"]
 }
 
