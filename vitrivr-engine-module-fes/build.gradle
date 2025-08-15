@@ -1,7 +1,7 @@
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
-
 plugins {
+    id 'common-conventions'
     id 'org.jetbrains.kotlin.plugin.serialization' version "$version_kotlin"
 }
 

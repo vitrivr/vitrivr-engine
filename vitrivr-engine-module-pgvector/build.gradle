@@ -1,14 +1,11 @@
 plugins {
-    id 'maven-publish'
-    id 'signing'
-}
-
-repositories {
-    mavenCentral()
+    id 'common-conventions-with-publish'
 }
 
 dependencies {
+    /** Vitrivr engine Core is required. */
     api project(':vitrivr-engine-core')
+    testImplementation(testFixtures(project(':vitrivr-engine-core')))
 
     /** Exposed */
     implementation group: 'org.jetbrains.exposed', name: 'exposed-core', version: version_exposed
@@ -17,15 +14,12 @@ dependencies {
 
     /** PostgreSQL driver. */
     implementation group: 'org.postgresql', name: 'postgresql', version: version_jdbc_postgres
-
-    /** Vitrivr engine Core is required for running tests. */
-    testImplementation(testFixtures(project(':vitrivr-engine-core')))
 }
 
 /* Publication of vitrivr engine query to Maven Central. */
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        register('mavenJava', MavenPublication) {
             groupId = 'org.vitrivr'
             artifactId = 'vitrivr-engine-module-pgvector'
             version = System.getenv().getOrDefault("MAVEN_PUBLICATION_VERSION", version.toString())
@@ -54,24 +48,8 @@ publishing {
         }
     }
     repositories {
-        repositories {
-            maven {
-                def releasesRepoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
-                def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
-                name = "OSSRH"
-                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-                credentials {
-                    username = System.getenv("MAVEN_USERNAME")
-                    password = System.getenv("MAVEN_PASSWORD")
-                }
-            }
+        maven {
+            url = layout.buildDirectory.dir('staging-deploy')
         }
     }
-}
-
-signing {
-    def signingKey = findProperty("signingKey")
-    def signingPassword = findProperty("signingPassword")
-    useInMemoryPgpKeys(signingKey, signingPassword)
-    sign publishing.publications.mavenJava
 }

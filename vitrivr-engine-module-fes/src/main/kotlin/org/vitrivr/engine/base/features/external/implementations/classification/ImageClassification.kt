@@ -4,6 +4,7 @@ import org.vitrivr.engine.base.features.external.api.AbstractApi
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.AbstractRetriever
+import org.vitrivr.engine.core.model.content.Content
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
