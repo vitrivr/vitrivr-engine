@@ -1,4 +1,4 @@
-package org.vitrivr.engine.index.util.boundaryFile.JRS
+package org.vitrivr.engine.index.util.boundary.jrs
 
 
 import kotlinx.serialization.Serializable

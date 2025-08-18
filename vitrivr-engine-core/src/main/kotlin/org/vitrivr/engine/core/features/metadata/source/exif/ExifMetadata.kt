@@ -1,7 +1,6 @@
 package org.vitrivr.engine.core.features.metadata.source.exif
 
-import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Attribute
 import org.vitrivr.engine.core.model.descriptor.struct.AnyMapStructDescriptor
@@ -17,7 +16,6 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
 class ExifMetadata : Analyser<ContentElement<*>, AnyMapStructDescriptor> {
-
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = AnyMapStructDescriptor::class
     override fun prototype(field: Schema.Field<*, *>): AnyMapStructDescriptor {
@@ -35,41 +33,27 @@ class ExifMetadata : Analyser<ContentElement<*>, AnyMapStructDescriptor> {
      *
      * @param name The name of the [ExifMetadataExtractor].
      * @param input The [Operator] that acts as input to the new [Extractor].
-     * @param context The [IndexContext] to use with the [Extractor].
+     * @param context The [Context] to use with the [Extractor].
      *
      * @return A new [Extractor] instance for this [Analyser]
      */
-    override fun newExtractor(
-        name: String,
-        input: Operator<Retrievable>,
-        parameters: Map<String, String>,
-        context: IndexContext
-    ) = ExifMetadataExtractor(input, this, name)
+    override fun newExtractor(name: String, input: Operator<out Retrievable>, context: Context) = ExifMetadataExtractor(input, this, name)
 
     /**
      * Generates and returns a new [ExifMetadataExtractor] instance for this [ExifMetadata].
      *
      * @param field The [Schema.Field] to create an [Extractor] for.
      * @param input The [Operator] that acts as input to the new [Extractor].
-     * @param context The [IndexContext] to use with the [Extractor].
+     * @param context The [Context] to use with the [Extractor].
      *
      * @return A new [Extractor] instance for this [Analyser]
      */
-    override fun newExtractor(
-        field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>,
-        input: Operator<Retrievable>,
-        parameters: Map<String, String>,
-        context: IndexContext
-    ) = ExifMetadataExtractor(input, this, field)
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, input: Operator<out Retrievable>, context: Context) = ExifMetadataExtractor(input, this, field)
 
     /**
      *
      */
-    override fun newRetrieverForQuery(
-        field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>,
-        query: Query,
-        context: QueryContext
-    ): Retriever<ContentElement<*>, AnyMapStructDescriptor> {
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, query: Query, context: Context): Retriever<ContentElement<*>, AnyMapStructDescriptor> {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
         require(query is SimpleBooleanQuery<*>) { "Query is not a Query." }
         return ExifMetadataRetriever(field, query, context)
@@ -78,11 +62,7 @@ class ExifMetadata : Analyser<ContentElement<*>, AnyMapStructDescriptor> {
     /**
      *
      */
-    override fun newRetrieverForContent(
-        field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>,
-        content: Collection<ContentElement<*>>,
-        context: QueryContext
-    ): ExifMetadataRetriever {
+    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, AnyMapStructDescriptor>, content: Map<String, ContentElement<*>>, context: Context): ExifMetadataRetriever {
         throw UnsupportedOperationException("ExifMetadata does not support the creation of a Retriever instance from content.")
     }
 }

@@ -7,3 +7,5 @@ org.vitrivr.engine.query.operators.transform.filter.FieldLookupLateFilterFactory
 org.vitrivr.engine.query.operators.transform.filter.LateFilterFactory
 org.vitrivr.engine.query.operators.transform.scoring.ScoreExaggeratorFactory
 org.vitrivr.engine.query.operators.transform.benchmark.TimeBenchmarkFactory
+org.vitrivr.engine.query.aggregate.TemporalSequenceAggregatorFactory
+org.vitrivr.engine.query.aggregate.WeightedScoreFusionFactory

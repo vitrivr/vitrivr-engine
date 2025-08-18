@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runBlocking
-import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -25,9 +25,9 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
+import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.operators.ingest.Decoder
-import org.vitrivr.engine.core.operators.ingest.DecoderFactory
-import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Metadata
 import org.vitrivr.engine.core.source.Source
@@ -37,6 +37,8 @@ import java.nio.ShortBuffer
 import java.nio.file.Path
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.text.lowercase
+import kotlin.text.toLongOrNull
 
 /**
  * A [Decoder] that can decode [ImageContent] and [AudioContent] from a [Source] of [MediaType.VIDEO].
@@ -45,32 +47,36 @@ import java.util.concurrent.TimeUnit
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.2.0
  */
-class FFmpegVideoDecoder : DecoderFactory {
-
-    override fun newDecoder(
-        name: String,
-        input: Enumerator,
-        parameters: Map<String, String>,
-        context: IndexContext
-    ): Decoder {
-        val video = parameters["video"]?.let { it.lowercase() == "true" } != false
-        val audio = parameters["audio"]?.let { it.lowercase() == "true" } != false
-        val timeWindowMs = parameters["timeWindowMs"]?.toLongOrNull() ?: 500L
-        val ffmpegPath = parameters["ffmpegPath"]?.let { Path.of(it) }
-
-        return Instance(input, context, video, audio, timeWindowMs, ffmpegPath, name)
+class FFmpegVideoDecoder : OperatorFactory {
+    /**
+     * Creates a new [Instance] instance from this [ImageDecoder.Instance].
+     *
+     * @param name the name of the [ImageDecoder.Instance]
+     * @param inputs Map of named input [Operator]s
+     * @param context The [Context] to use.
+     */
+    override fun newOperator(name: String, inputs: Map<String, Operator<out Retrievable>>, context: Context): Operator<out Retrievable> {
+        require(inputs.size == 1)  { "The ${this::class.simpleName} only supports one input operator. If you want to combine multiple inputs, use explicit merge strategies." }
+        val video = context[name, "video"]?.let { it.lowercase() == "true" } != false
+        val audio = context[name, "audio"]?.let { it.lowercase() == "true" } != false
+        val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
+        val ffmpegPath = context[name, "ffmpegPath"]?.let { Path.of(it) }
+        return Instance(name, inputs.values.first(), context, video, audio, timeWindowMs, ffmpegPath)
     }
 
+    /**
+     * The [Instance] returned by this [FFmpegVideoDecoder].
+     */
     private class Instance(
-        override val input: Enumerator,
-        private val context: IndexContext,
+        override val name: String,
+        override val input: Operator<out Retrievable>,
+        private val context: Context,
         private val video: Boolean = true,
         private val audio: Boolean = true,
         private val timeWindowMs: Long = 500L,
         private val ffmpegPath: Path? = null,
-        override val name: String
     ) : Decoder {
 
         /** [KLogger] instance. */

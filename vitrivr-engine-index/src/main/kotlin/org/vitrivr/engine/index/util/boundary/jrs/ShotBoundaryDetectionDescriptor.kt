@@ -1,10 +1,9 @@
-package org.vitrivr.engine.index.util.boundaryFile.JRS
+package org.vitrivr.engine.index.util.boundary.jrs
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.vitrivr.engine.core.model.types.Type
-import org.vitrivr.engine.index.util.boundaryFile.MediaSegmentDecriptable
-import org.vitrivr.engine.index.util.boundaryFile.MediaSegmentDescriptor
+import org.vitrivr.engine.index.util.boundary.MediaSegmentDecriptable
+import org.vitrivr.engine.index.util.boundary.MediaSegmentDescriptor
 import java.time.Duration
 import java.util.*
 import kotlin.collections.ArrayList

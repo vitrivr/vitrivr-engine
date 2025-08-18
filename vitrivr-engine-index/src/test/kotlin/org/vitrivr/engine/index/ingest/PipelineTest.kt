@@ -1,11 +1,11 @@
-package org.vitrivr.engine.index
+package org.vitrivr.engine.index.ingest
 
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.vitrivr.engine.core.config.IndexContextFactory
+import org.vitrivr.engine.core.config.ContextFactory
 import org.vitrivr.engine.core.context.IngestionContextConfig
 import org.vitrivr.engine.core.database.blackhole.BlackholeConnection
 import org.vitrivr.engine.core.database.blackhole.BlackholeConnectionProvider
@@ -16,14 +16,17 @@ import org.vitrivr.engine.core.model.retrievable.TerminalRetrievable
 import org.vitrivr.engine.core.operators.transform.shape.BroadcastOperator
 import org.vitrivr.engine.core.operators.transform.shape.CombineOperator
 import org.vitrivr.engine.core.resolver.impl.DiskResolver
-import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.index.aggregators.content.MiddleContentAggregator
 import org.vitrivr.engine.index.decode.VideoDecoder
 import org.vitrivr.engine.index.enumerate.FileSystemEnumerator
+import java.nio.file.Paths
 import kotlin.time.Duration
 
 /**
  * Test cases for the extaction pipeline.
+ *
+ * @author Ralph Gasser
+ * @version 1.0.0.
  */
 class PipelineTest {
 
@@ -32,33 +35,49 @@ class PipelineTest {
      *
      * Idea of the test is as follows:
      * - We construct a manual pipeline that extracts a 3s example video showing a red, green and blue screen for 1s each.
-     * - We extract the [AverageColor] value for the content (once for each frame, and once aggregated).
+     * - We extract the [org.vitrivr.engine.core.features.averagecolor.AverageColor] value for the content (once for each frame, and once aggregated).
      * - We check that the extracted values are correct.
      */
     @Test
-    fun testContentSources() = runTest(timeout = Duration.INFINITE) {
-        val schema = Schema("test", BlackholeConnection("test", BlackholeConnectionProvider()))
+    fun testContentSources() = runTest(timeout = Duration.Companion.INFINITE) {
+        val schema = Schema("test", Paths.get("."),BlackholeConnection("test", BlackholeConnectionProvider()))
 
         schema.addResolver("test", DiskResolver().newResolver(schema, mapOf()))
 
+        val contextConfig = IngestionContextConfig(
+            "CachedContentFactory",
+            listOf("test")
+        )
 
-        val contextConfig = IngestionContextConfig("CachedContentFactory", listOf("test"))
+        val context = ContextFactory.newContext(schema, contextConfig).copy(
+            local = mapOf(
+                "enumerator" to mapOf(
+                    "path" to "./src/test/resources/",
+                    "mediaTypes" to "VIDEO"
+                ),
+                "decoder" to mapOf(
+                    "timeWindowMs" to "1000"
+                )
+            )
+        )
 
-        contextConfig.schema = schema
+        val fileSystemEnumerator = FileSystemEnumerator().newOperator("enumerator", context)
 
-        val context = IndexContextFactory.newContext(emptyMap(), contextConfig)
+        val decoder =
+            BroadcastOperator(VideoDecoder().newOperator("decoder", input = fileSystemEnumerator, context = context))
 
-        val fileSystemEnumerator = FileSystemEnumerator().newEnumerator("enumerator", mapOf( "path" to "./src/test/resources/"), context, listOf(MediaType.VIDEO))
-
-        val decoder = BroadcastOperator(VideoDecoder().newDecoder("decoder", input = fileSystemEnumerator, parameters = mapOf( "timeWindowMs" to "1000"), context = context))
-
-        val middleAgg = MiddleContentAggregator().newTransformer("middleAgg", input = decoder, parameters = emptyMap(), context = context)
+        val middleAgg = MiddleContentAggregator().newOperator("middleAgg", input = decoder, context = context)
 
         val averageColor = AverageColor()
 
-        val averageColorAll = averageColor.newExtractor(schema.Field("averageColorAll", averageColor), input = decoder, parameters = emptyMap(), context = context)
+        val averageColorAll =
+            averageColor.newExtractor(schema.Field("averageColorAll", averageColor), input = decoder, context = context)
 
-        val averageColorAgg = averageColor.newExtractor(schema.Field("averageColorAgg", averageColor), input = middleAgg, parameters = emptyMap(), context = context)
+        val averageColorAgg = averageColor.newExtractor(
+            schema.Field("averageColorAgg", averageColor),
+            input = middleAgg,
+            context = context
+        )
 
         val mergeOp = CombineOperator(listOf(averageColorAll, averageColorAgg))
 
@@ -66,8 +85,10 @@ class PipelineTest {
         val out = mergeOp.toFlow(this).takeWhile { it != TerminalRetrievable }.toList()
 
         /* Now extract all content elements and descriptors for each branch. */
-        val aggDescriptors = out.flatMap { it.descriptors }.filterIsInstance<FloatVectorDescriptor>().filter { it.field?.fieldName == "averageColorAgg" }
-        val allDescriptors = out.flatMap { it.descriptors }.filterIsInstance<FloatVectorDescriptor>().filter { it.field?.fieldName == "averageColorAll" }
+        val aggDescriptors = out.flatMap { it.descriptors }.filterIsInstance<FloatVectorDescriptor>()
+            .filter { it.field?.fieldName == "averageColorAgg" }
+        val allDescriptors = out.flatMap { it.descriptors }.filterIsInstance<FloatVectorDescriptor>()
+            .filter { it.field?.fieldName == "averageColorAll" }
 
         /* The number of total descriptors should be equal to the number of content elements (72 frames for 3s). */
         Assertions.assertEquals(72, allDescriptors.size)

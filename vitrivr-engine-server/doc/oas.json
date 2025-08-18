@@ -1979,7 +1979,7 @@
         "type" : "string",
         "enum" : [ "UNKNOWN", "RUNNING", "FAILED", "COMPLETED" ]
       },
-      "QueryContext" : {
+      "Context" : {
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
@@ -2028,7 +2028,7 @@
             "type" : "string"
           },
           "context" : {
-            "$ref" : "#/components/schemas/QueryContext"
+            "$ref" : "#/components/schemas/Context"
           }
         },
         "required" : [ "inputs", "operations", "output", "context" ]

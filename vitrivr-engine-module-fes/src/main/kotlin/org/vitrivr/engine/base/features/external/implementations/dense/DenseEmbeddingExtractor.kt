@@ -5,6 +5,7 @@ import org.vitrivr.engine.base.features.external.api.ImageEmbeddingApi
 import org.vitrivr.engine.base.features.external.api.TextEmbeddingApi
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.base.features.external.common.FesExtractor
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
@@ -23,18 +24,18 @@ import java.util.*
 class DenseEmbeddingExtractor : FesExtractor<ContentElement<*>, FloatVectorDescriptor> {
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
         analyser: ExternalFesAnalyser<ContentElement<*>, FloatVectorDescriptor>,
-        parameters: Map<String, String>
-    ) : super(input, field, analyser, parameters)
+        context: Context
+    ) : super(input, field, analyser, context)
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         name: String,
         analyser: ExternalFesAnalyser<ContentElement<*>, FloatVectorDescriptor>,
-        parameters: Map<String, String>
-    ) : super(input, name, analyser, parameters)
+        context: Context
+    ) : super(input, name, analyser, context)
 
     /** The [AsrApi] used to perform extraction with. */
     private val textApi by lazy { TextEmbeddingApi(this.host, model, this.timeoutMs, this.pollingIntervalMs, this.retries) }
