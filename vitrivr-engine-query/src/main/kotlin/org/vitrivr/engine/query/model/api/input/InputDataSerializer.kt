@@ -14,10 +14,20 @@ object InputDataSerializer : JsonContentPolymorphicSerializer<InputData>(InputDa
         return when(InputType.valueOf(typeName)) {
             InputType.TEXT -> TextInputData.serializer()
             InputType.IMAGE -> ImageInputData.serializer()
-            InputType.VECTOR -> VectorInputData.serializer()
-            InputType.ID -> RetrievableIdInputData.serializer()
+            InputType.BOOLEANVECTOR -> BooleanVectorInputData.serializer()
+            InputType.DOUBLEVECTOR -> DoubleVectorInputData.serializer()
+            InputType.FLOATVECTOR -> FloatVectorInputData.serializer()
+            InputType.INTVECTOR -> IntVectorInputData.serializer()
+            InputType.LONGVECTOR -> LongVectorInputData.serializer()
             InputType.BOOLEAN -> BooleanInputData.serializer()
-            InputType.NUMERIC -> NumericInputData.serializer()
+            InputType.BYTE -> ByteInputData.serializer()
+            InputType.DOUBLE -> DoubleInputData.serializer()
+            InputType.FLOAT -> FloatInputData.serializer()
+            InputType.INT -> IntInputData.serializer()
+            InputType.LONG -> LongInputData.serializer()
+            InputType.SHORT -> ShortInputData.serializer()
+            InputType.STRING -> StringInputData.serializer()
+            InputType.ID -> RetrievableIdInputData.serializer()
             InputType.DATE -> DateInputData.serializer()
         }
     }

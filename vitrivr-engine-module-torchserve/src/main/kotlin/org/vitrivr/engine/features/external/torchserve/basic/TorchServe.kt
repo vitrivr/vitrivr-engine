@@ -3,7 +3,7 @@ package org.vitrivr.engine.features.external.torchserve.basic
 import com.google.protobuf.ByteString
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.averagecolor.AverageColor
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -90,16 +90,16 @@ abstract class TorchServe<C : ContentElement<*>, D : Descriptor<*>> : Analyser<C
      *
      * @param field The [Schema.Field] to create an [TorchServeExtractor] for.
      * @param input The [Operator] that acts as input to the new [TorchServeExtractor].
-     * @param context The [IndexContext] to use with the [TorchServeExtractor].
+     * @param context The [Context] to use with the [TorchServeExtractor].
      *
      * @return A new [TorchServeExtractor] instance for this [Analyser]
      */
     override fun newExtractor(
         field: Schema.Field<C, D>,
-        input: Operator<Retrievable>,
-        parameters: Map<String, String>,
-        context: IndexContext
+        input: Operator<out Retrievable>,
+        context: Context
     ): TorchServeExtractor<C, D> {
+        val parameters = context.local[field.fieldName] ?: emptyMap()
         val host = parameters[TORCHSERVE_HOST_KEY] ?: field.parameters[TORCHSERVE_HOST_KEY] ?: TORCHSERVE_HOST_DEFAULT
         val port = ((parameters[TORCHSERVE_PORT_KEY] ?: field.parameters[TORCHSERVE_PORT_KEY]))?.toIntOrNull()
             ?: TORCHSERVE_PORT_DEFAULT
@@ -114,16 +114,16 @@ abstract class TorchServe<C : ContentElement<*>, D : Descriptor<*>> : Analyser<C
      *
      * @param name The name of the [TorchServeExtractor].
      * @param input The [Operator] that acts as input to the new [TorchServeExtractor].
-     * @param context The [IndexContext] to use with the [TorchServeExtractor].
+     * @param context The [Context] to use with the [TorchServeExtractor].
      *
      * @return A new [TorchServeExtractor] instance for this [TorchServe]
      */
     override fun newExtractor(
         name: String,
-        input: Operator<Retrievable>,
-        parameters: Map<String, String>,
-        context: IndexContext
+        input: Operator<out Retrievable>,
+        context: Context
     ): TorchServeExtractor<C, D> {
+        val parameters = context.local[name] ?: emptyMap()
         val host = parameters[TORCHSERVE_HOST_KEY] ?: TORCHSERVE_HOST_DEFAULT
         val port = parameters[TORCHSERVE_PORT_KEY]?.toIntOrNull() ?: TORCHSERVE_PORT_DEFAULT
         val token = parameters[TORCHSERVE_TOKEN_KEY]

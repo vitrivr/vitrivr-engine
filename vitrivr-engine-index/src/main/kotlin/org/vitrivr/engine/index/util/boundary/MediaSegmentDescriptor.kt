@@ -1,6 +1,5 @@
-package org.vitrivr.engine.index.util.boundaryFile
+package org.vitrivr.engine.index.util.boundary
 
-import org.vitrivr.engine.core.model.relationship.Relationship
 import java.time.Duration
 
 class MediaSegmentDescriptor(

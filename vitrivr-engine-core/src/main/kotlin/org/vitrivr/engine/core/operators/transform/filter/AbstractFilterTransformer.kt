@@ -13,7 +13,7 @@ import org.vitrivr.engine.core.operators.general.Transformer
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractFilterTransformer(override val input: Operator<out Retrievable>, val predicate: (Retrievable) -> Boolean) : Transformer {
+abstract class AbstractFilterTransformer(override val name: String, override val input: Operator<out Retrievable>, val predicate: (Retrievable) -> Boolean) : Transformer {
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = this.input.toFlow(scope).filter {
         this.predicate(it)
     }

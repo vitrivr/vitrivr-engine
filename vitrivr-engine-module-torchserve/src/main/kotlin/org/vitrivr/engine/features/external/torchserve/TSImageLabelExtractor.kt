@@ -22,7 +22,7 @@ class TSImageLabelExtractor(
     port: Int,
     token: String?,
     model: String,
-    input: Operator<Retrievable>,
+    input: Operator<out Retrievable>,
     analyser: TSImageLabel,
     field: Schema.Field<ImageContent, LabelDescriptor>? = null,
     name: String

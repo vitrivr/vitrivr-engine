@@ -1,10 +1,18 @@
 {
   "schemas": {
+<<<<<<<< HEAD:example-configs/advanced/schema/image-captions.json
+    "caption": {
+      "connection": {
+        "database": "PgVectorConnectionProvider",
+        "parameters": {
+          "host": "127.0.0.1",
+========
     "sandbox": {
       "connection": {
         "database": "PgVectorConnectionProvider",
         "parameters": {
           "host": "localhost",
+>>>>>>>> dev:example-configs/config-schema.json
           "port": "5432",
           "database": "postgres",
           "username": "postgres",
@@ -18,6 +26,19 @@
         "file": {
           "factory": "FileSourceMetadata"
         },
+<<<<<<<< HEAD:example-configs/advanced/schema/image-captions.json
+        "clip": {
+          "factory": "DenseEmbedding",
+          "parameters": {
+            "host": "http://127.0.0.1:8888/",
+            "model": "open-clip-vit-b32",
+            "length": "512",
+            "timeoutSeconds": "100",
+            "retries": "1000"
+          }
+        },
+========
+>>>>>>>> dev:example-configs/config-schema.json
         "time": {
           "factory": "TemporalMetadata"
         },
@@ -32,8 +53,12 @@
         "disk": {
           "factory": "DiskResolver",
           "parameters": {
+<<<<<<<< HEAD:example-configs/advanced/schema/image-captions.json
+            "location": "/path/to/thumbnails"
+========
             "location": "./sandbox/thumbnails",
             "mimeType": "JPG"
+>>>>>>>> dev:example-configs/config-schema.json
           }
         }
       },
@@ -41,9 +66,15 @@
         "thumbnail": {
           "factory": "ThumbnailExporter",
           "parameters": {
+<<<<<<<< HEAD:example-configs/advanced/schema/image-captions.json
+            "resolver": "thumbnails",
+            "maxSideResolution": "500",
+            "mimeType": "JPG"
+========
             "maxSideResolution": "400",
             "mimeType": "JPG",
             "resolver": "disk"
+>>>>>>>> dev:example-configs/config-schema.json
           }
         }
       },
@@ -52,10 +83,18 @@
           "path": "./example-configs/image-ingest.json"
         },
         "video": {
+<<<<<<<< HEAD:example-configs/advanced/schema/image-captions.json
+          "path": "../ingest/image-captions.json"
+========
           "path": "./example-configs/video-ingest.json"
+>>>>>>>> dev:example-configs/config-schema.json
         }
       }
     }
   }
+<<<<<<<< HEAD:example-configs/advanced/schema/image-captions.json
+}
+========
 }
 
+>>>>>>>> dev:example-configs/config-schema.json

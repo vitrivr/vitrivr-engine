@@ -24,8 +24,8 @@ import java.util.*
 class VideoSourceMetadataExtractor :
     AbstractExtractor<ContentElement<*>, VideoSourceMetadataDescriptor> {
 
-        constructor(input: Operator<Retrievable>, analyser: VideoSourceMetadata, field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>): super(input, analyser, field)
-        constructor(input: Operator<Retrievable>, analyser: VideoSourceMetadata, name: String): super(input, analyser, name)
+        constructor(input: Operator<out Retrievable>, analyser: VideoSourceMetadata, field: Schema.Field<ContentElement<*>, VideoSourceMetadataDescriptor>): super(input, analyser, field)
+        constructor(input: Operator<out Retrievable>, analyser: VideoSourceMetadata, name: String): super(input, analyser, name)
 
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
