@@ -12,7 +12,7 @@ data class QueryResultRetrievable(
     val id: RetrievableIdString,
     val score: Double,
     val type: String,
-    val parts: MutableList<RetrievableIdString>,
+    val relationship: MutableMap<String, QueryResultRetrievable>,
     val properties: Map<String, String>,
     val descriptors: Map<String, String>
 ) {
@@ -20,7 +20,7 @@ data class QueryResultRetrievable(
         retrieved.id.toString(),
         retrieved.filteredAttribute(ScoreAttribute::class.java)?.score ?: 0.0,
         retrieved.type ?: "",
-        mutableListOf(),
+        mutableMapOf(),
         retrieved.filteredAttributes(PropertyAttribute::class.java).firstOrNull()?.properties ?: emptyMap(),
         retrieved.descriptors.flatMap { descriptor ->
             descriptor.values().map { descriptor.field?.fieldName + "." + it.key to it.value?.value.toString() }
