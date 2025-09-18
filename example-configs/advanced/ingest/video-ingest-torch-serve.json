@@ -63,6 +63,7 @@
     "time": {"operator": "time", "inputs": ["persist"]},
     "averagecolor": {"operator": "averagecolor", "inputs": ["persist"]},
     "clip": {"operator": "clip", "inputs": ["persist"]},
+    "dino": {"operator": "dino", "inputs": ["persist"]},
     "thumbnail": {"operator": "thumbnail", "inputs": ["persist"]}
   },
   "output": [
