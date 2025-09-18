@@ -1,46 +1,75 @@
 {
-  "schema": "sandbox",
+  "schema": "example",
   "context": {
     "contentFactory": "InMemoryContentFactory",
-    "resolvers": ["disk"],
-    "local": {
-      "enumerator": {"path": "./sandbox/media","depth": "1"},
-      "thumbnail": {
-        "maxSideResolution": "400",
-        "mimeType": "JPG"
-      },
-      "filter": {
-        "type": "SOURCE:VIDEO"
-      },
-      "decoder": {
-        "timeWindowMs": "5000"
-      }
-    }
+    "resolvers":["thumbnails"]
   },
   "operators": {
-    "enumerator": {"type": "ENUMERATOR", "factory": "FileSystemEnumerator", "mediaTypes": ["VIDEO"]},
-    "decoder": {"type": "DECODER", "factory": "VideoDecoder"},
-    "persister": {"type": "TRANSFORMER", "factory": "PersistRetrievableTransformer"},
-    "aggregator": {"type": "TRANSFORMER", "factory": "LastContentAggregator"},
-    "time": {"type": "EXTRACTOR", "fieldName": "time"},
-    "thumbnail": {"type": "EXPORTER", "exporterName": "thumbnail"},
-    "clip": {"type": "EXTRACTOR", "fieldName": "clip"},
-    "file": {"type": "EXTRACTOR", "fieldName": "file"},
-    "averagecolor": {"type": "EXTRACTOR", "fieldName": "averagecolor"},
-    "filter": {"type": "TRANSFORMER", "factory": "TypeFilterTransformer"}
+    "enumerator": {
+      "factory": "FileSystemEnumerator",
+      "parameters": {
+        "path": "/path/to/videos",
+        "depth": "3",
+        "mediaTypes": "VIDEO"
+      }
+    },
+    "decoder": {
+      "factory": "VideoDecoder",
+      "parameters": {
+        "timeWindowMs": "1000"
+      }
+    },
+    "metadata":{
+      "field": "video"
+    },
+    "source":{
+      "field": "file"
+    },
+    "aggregator": {
+      "factory": "MiddleContentAggregator"
+    },
+    "persister": {
+      "factory": "PersistRetrievableTransformer"
+    },
+    "time": {
+      "field": "time"
+    },
+    "averagecolor": {
+      "field": "averagecolor"
+    },
+    "clip": {
+      "field": "clip"
+    },
+    "thumbnail": {
+      "exporter": "thumbnail"
+    },
+    "filter": {
+      "factory": "TypeFilterTransformer",
+      "parameters": {
+        "type": "SOURCE:VIDEO"
+      }
+    }
   },
   "operations": {
     "enumerator": {"operator": "enumerator"},
     "decoder": {"operator": "decoder", "inputs": ["enumerator"]},
-    "aggregator": {"operator": "aggregator", "inputs": ["decoder"]},
-    "persist": {"operator": "persister", "inputs": ["aggregator"]},
-    "thumbnail": {"operator": "thumbnail", "inputs": ["persist"]},
-    "clip": {"operator": "clip", "inputs": ["thumbnail"]},
-    "averagecolor": {"operator": "averagecolor", "inputs": ["clip"]},
-    "time": {"operator": "time", "inputs": ["averagecolor"]},
-    "file": {"operator": "file", "inputs": ["time"]}
+    "middle": {"operator": "aggregator", "inputs": ["decoder"]},
+    "persist": {"operator": "persister", "inputs": ["middle"]},
+    "metadata": {"operator": "metadata", "inputs": ["persist"]},
+    "source": {"operator": "source", "inputs": ["persist"]},
+    "time": {"operator": "time", "inputs": ["persist"]},
+    "averagecolor": {"operator": "averagecolor", "inputs": ["persist"]},
+    "clip": {"operator": "clip", "inputs": ["persist"]},
+    "thumbnail": {"operator": "thumbnail", "inputs": ["persist"]}
   },
   "output": [
-    "file"
-  ]
+    "metadata",
+    "source",
+    "averagecolor",
+    "thumbnail",
+    "time",
+    "clip",
+    "thumbnail"
+  ],
+  "mergeType": "MERGE"
 }
