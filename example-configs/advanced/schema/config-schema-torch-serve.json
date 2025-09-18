@@ -18,10 +18,21 @@
           "factory": "FileSourceMetadata"
         },
         "clip": {
-          "factory": "CLIP",
+          "factory": "TSEmbedding",
           "parameters": {
-            "host": "http://10.34.64.208:8888/",
-            "limit": "1"
+            "host": "127.0.0.1",
+            "port": "8080",
+            "model": "clip_model",
+            "dimension": "512"
+          }
+        },
+        "dino": {
+          "factory": "TSEmbedding",
+          "parameters": {
+            "host": "127.0.0.1",
+            "port": "8080",
+            "model": "dino_model ",
+            "dimension": "384"
           }
         },
         "time": {
