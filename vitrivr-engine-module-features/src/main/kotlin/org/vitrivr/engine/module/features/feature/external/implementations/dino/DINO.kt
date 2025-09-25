@@ -16,6 +16,8 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.module.features.feature.external.ExternalAnalyser
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.util.*
 
 /**
@@ -39,11 +41,11 @@ class DINO : ExternalAnalyser<ImageContent, FloatVectorDescriptor>() {
          */
         fun analyse(content: ContentElement<*>, hostname: String): FloatVectorDescriptor {
             val requestBody = when (content) {
-                is ImageContent -> content.toDataUrl()
+                is ImageContent -> URLEncoder.encode(content.toDataUrl(), StandardCharsets.UTF_8.toString())
                 else -> throw IllegalArgumentException("Content '$content' not supported")
             }
             val url = "$hostname/extract/dino"
-            return httpRequest<FloatVectorDescriptor>(url, requestBody)
+            return httpRequest<FloatVectorDescriptor>(url, "data=$requestBody")
                 ?: throw IllegalArgumentException("Failed to generate DINO descriptor.")
         }
     }
