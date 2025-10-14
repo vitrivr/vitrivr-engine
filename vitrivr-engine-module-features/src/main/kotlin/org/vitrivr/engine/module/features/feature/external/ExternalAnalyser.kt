@@ -12,48 +12,38 @@ import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.json.jsonPrimitive
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
+import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.types.Value
 import java.nio.charset.StandardCharsets
 import java.util.*
 
-
-/**
- * Implementation of the [ExternalAnalyser], which derives external features from an [ContentElement] as [Descriptor].
- *
- * @param T Type of [ContentElement] that this external analyzer operates on.
- * @param U Type of [Descriptor] produced by this external analyzer.
- *
- * @see [Analyser]
- *
- * @author Rahel Arnold
- * @version 1.2.0
- */
-
 /** Logger instance used by [ExternalAnalyser]. */
 val logger: KLogger = KotlinLogging.logger {}
 
+/**
+ * Base class for external feature analysers that communicate with Python services.
+ *
+ * Supports both FloatVectorDescriptor (CLIP etc.) and TextDescriptor (OCR, ASR etc.).
+ */
 abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor<*>> : Analyser<T, U> {
+
     companion object {
-        /** Name of the host parameter */
+        /** Name of the host parameter. */
         const val HOST_PARAMETER_NAME = "host"
 
-        /** Default value of the grid_size parameter. */
+        /** Default hostname (matches your APIFlask service). */
         const val HOST_PARAMETER_DEFAULT = "http://localhost:8888/"
 
-
-
-
         /**
-         * Executes an API request to the given [url] with the specified [content] and returns the response as a list of floats.
-         *
-         * @param content The [ContentElement] to execute HTTP request for.
-         * @param url The URL for the API request.
-         * @return A list of floats representing the API response.
+         * Executes an API request to the given [url] with the specified [requestBody]
+         * and deserializes the response into the correct [Descriptor] type.
          */
         @OptIn(ExperimentalSerializationApi::class)
         @JvmStatic
@@ -62,8 +52,9 @@ abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor<*>> : Anal
             requestBody: String,
             contentType: String = "application/x-www-form-urlencoded",
             headers: Map<String, String> = emptyMap()
-        ): U? = runBlocking{
+        ): U? = runBlocking {
             val body = requestBody.toByteArray(StandardCharsets.UTF_8)
+
             val client = try {
                 HttpClient(CIO) {
                     install(HttpRequestRetry) {
@@ -80,8 +71,6 @@ abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor<*>> : Anal
                 return@runBlocking null
             }
 
-
-
             try {
                 val response = client.request(url) {
                     method = HttpMethod.Post
@@ -96,13 +85,28 @@ abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor<*>> : Anal
                 } else {
                     response.bodyAsChannel().toInputStream().use { stream ->
                         when (U::class) {
+                            /* CLIP and other embedding-based descriptors */
                             FloatVectorDescriptor::class -> FloatVectorDescriptor(
                                 UUID.randomUUID(),
                                 null,
                                 Value.FloatVector(Json.decodeFromStream<FloatArray>(stream))
                             )
 
-                            else -> null
+                            /* OCR / ASR text-based descriptors */
+                            TextDescriptor::class -> {
+                                val json = Json.decodeFromStream<JsonObject>(stream)
+                                val textValue = json["text"]?.jsonPrimitive?.content ?: ""
+                                TextDescriptor(
+                                    UUID.randomUUID(),
+                                    null,
+                                    Value.Text(textValue)
+                                )
+                            }
+
+                            else -> {
+                                logger.error { "Unsupported descriptor type ${U::class.simpleName} for $url." }
+                                null
+                            }
                         } as U?
                     }
                 }
