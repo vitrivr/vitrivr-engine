@@ -7,3 +7,4 @@ org.vitrivr.engine.module.features.feature.external.implementations.dino.DINO
 org.vitrivr.engine.module.features.feature.external.implementations.clip.CLIP
 org.vitrivr.engine.module.features.feature.external.implementations.emotions.EMOTIONSFACE
 org.vitrivr.engine.module.features.feature.external.implementations.ocr.OpticalCharacterRecognition
+org.vitrivr.engine.module.features.feature.external.implementations.emotions.EMOTIONSOCR

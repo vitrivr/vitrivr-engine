@@ -23,20 +23,20 @@ import java.nio.charset.StandardCharsets
 import java.util.*
 
 /**
- * Implementation of the [EMOTIONSFACE] [ExternalAnalyser], which derives the EMOTION feature from an [ImageContent] or [TextContent] as [FloatVectorDescriptor].
+ * Implementation of the [EMOTIONSOCR] [ExternalAnalyser], which derives the EMOTION feature from an [ImageContent] or [TextContent] as [FloatVectorDescriptor].
  *
  * @author Andrina Geller
  * @version 1.0.0
  */
-class EMOTIONSFACE : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
+class EMOTIONSOCR : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
 
     companion object {
         /**
-         * Requests the EMOTIONSFACE feature descriptor for the given [ContentElement].
+         * Requests the EMOTIONSOCR feature descriptor for the given [ContentElement].
          *
-         * @param content The [ContentElement] for which to request the EMOTIONSFACE feature descriptor.
+         * @param content The [ContentElement] for which to request the EMOTIONSOCR feature descriptor.
          * @param hostname The hostname of the external feature descriptor service.
-         * @return A list of EMOTIONSFACE feature descriptors.
+         * @return A list of EMOTIONSOCR feature descriptors.
          */
         fun analyse(content: ContentElement<*>, hostname: String): FloatVectorDescriptor {
             val requestBody = when (content) {
@@ -44,10 +44,10 @@ class EMOTIONSFACE : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>(
                 else -> throw IllegalArgumentException("Content '$content' not supported")
             }
             val url = when (content) {
-                else -> "$hostname/extract/emotions_face"
+                else -> "$hostname/extract/emotions_ocr"
             }
             return httpRequest<FloatVectorDescriptor>(url, "data=$requestBody")
-                ?: throw IllegalArgumentException("Failed to generate EMOTIONSFACE descriptor.")
+                ?: throw IllegalArgumentException("Failed to generate EMOTIONSOCR descriptor.")
         }
     }
 
@@ -56,7 +56,7 @@ class EMOTIONSFACE : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>(
     override val descriptorClass = FloatVectorDescriptor::class
 
     /**
-     * Generates a prototypical [FloatVectorDescriptor] for this [EMOTIONSFACE].
+     * Generates a prototypical [FloatVectorDescriptor] for this [EMOTIONSOCR].
      *
      * @return [FloatVectorDescriptor]
      */
@@ -64,52 +64,52 @@ class EMOTIONSFACE : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>(
         FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(7))
 
     /**
-     * Generates and returns a new [Extractor] instance for this [EMOTIONSFACE].
+     * Generates and returns a new [Extractor] instance for this [EMOTIONSOCR].
      *
      * @param field The [Schema.Field] to create an [Extractor] for.
      * @param input The [Operator] that acts as input to the new [Extractor].
      * @param context The [Context] to use with the [Extractor].
      *
-     * @return A new [Extractor] instance for this [EMOTIONSFACE]
-     * @throws [UnsupportedOperationException], if this [EMOTIONSFACE] does not support the creation of an [Extractor] instance.
+     * @return A new [Extractor] instance for this [EMOTIONSOCR]
+     * @throws [UnsupportedOperationException], if this [EMOTIONSOCR] does not support the creation of an [Extractor] instance.
      */
     override fun newExtractor(
         field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
         input: Operator<out Retrievable>,
         context: Context
-    ): EMOTIONSFACEExtractor {
+    ): EMOTIONSOCRExtractor {
         val host: String = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
-        return EMOTIONSFACEExtractor(input, this, field, host)
+        return EMOTIONSOCRExtractor(input, this, field, host)
     }
 
     /**
-     * Generates and returns a new [Extractor] instance for this [EMOTIONSFACE].
+     * Generates and returns a new [Extractor] instance for this [EMOTIONSOCR].
      *
      * @param name The [Schema.Field] to create an [Extractor] for.
      * @param input The [Operator] that acts as input to the new [Extractor].
      * @param context The [Context] to use with the [Extractor].
      *
-     * @return A new [Extractor] instance for this [EMOTIONSFACE]
-     * @throws [UnsupportedOperationException], if this [EMOTIONSFACE] does not support the creation of an [Extractor] instance.
+     * @return A new [Extractor] instance for this [EMOTIONSOCR]
+     * @throws [UnsupportedOperationException], if this [EMOTIONSOCR] does not support the creation of an [Extractor] instance.
      */
     override fun newExtractor(
         name: String,
         input: Operator<out Retrievable>,
         context: Context
-    ): EMOTIONSFACEExtractor {
+    ): EMOTIONSOCRExtractor {
         val host: String = context.getProperty(name,HOST_PARAMETER_NAME) ?: HOST_PARAMETER_DEFAULT
-        return EMOTIONSFACEExtractor(input, this, name, host)
+        return EMOTIONSOCRExtractor(input, this, name, host)
     }
 
     /**
-     * Generates and returns a new [Retriever] instance for this [EMOTIONSFACE].
+     * Generates and returns a new [Retriever] instance for this [EMOTIONSOCR].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param query The [Query] to use with the [Retriever]
      * @param context The [Context] to use with the [Retriever]
      *
-     * @return A new [Retriever] instance for this [EMOTIONSFACE]
-     * @throws [UnsupportedOperationException], if this [EMOTIONSFACE] does not support the creation of an [Retriever] instance.
+     * @return A new [Retriever] instance for this [EMOTIONSOCR]
+     * @throws [UnsupportedOperationException], if this [EMOTIONSOCR] does not support the creation of an [Retriever] instance.
      */
     override fun newRetrieverForQuery(
         field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
@@ -127,14 +127,14 @@ class EMOTIONSFACE : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>(
     }
 
     /**
-     * Generates and returns a new [Retriever] instance for this [EMOTIONSFACE].
+     * Generates and returns a new [Retriever] instance for this [EMOTIONSOCR].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param content An array of [ContentElement] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      *
-     * @return A new [Retriever] instance for this [EMOTIONSFACE]
-     * @throws [UnsupportedOperationException], if this [EMOTIONSFACE] does not support the creation of an [Retriever] instance.
+     * @return A new [Retriever] instance for this [EMOTIONSOCR]
+     * @throws [UnsupportedOperationException], if this [EMOTIONSOCR] does not support the creation of an [Retriever] instance.
      */
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, content: Map<String, ContentElement<*>>, context: Context): DenseRetriever<ContentElement<*>> {
         val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
@@ -147,7 +147,7 @@ class EMOTIONSFACE : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>(
     }
 
     /**
-     * Generates and returns a new [Retriever] instance for this [EMOTIONSFACE].
+     * Generates and returns a new [Retriever] instance for this [EMOTIONSOCR].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
