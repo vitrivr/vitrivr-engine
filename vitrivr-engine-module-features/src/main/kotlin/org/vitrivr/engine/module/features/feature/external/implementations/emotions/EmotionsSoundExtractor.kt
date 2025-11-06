@@ -10,14 +10,14 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.model.content.element.AudioContent
 
 
-class EMOTIONSSOUNDExtractor : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor>{
+class EmotionsSoundExtractor : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor>{
 
 
     private val host: String
 
     constructor(
         input: Operator<out Retrievable>,
-        analyser: EMOTIONSSOUND,
+        analyser: EmotionsSound,
         field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
         host: String
     ) : super(input, analyser, field) {
@@ -26,7 +26,7 @@ class EMOTIONSSOUNDExtractor : AbstractExtractor<ContentElement<*>, FloatVectorD
 
     constructor(
         input: Operator<out Retrievable>,
-        analyser: EMOTIONSSOUND,
+        analyser: EmotionsSound,
         name: String,
         host: String
     ) : super(input, analyser, name) {
@@ -47,10 +47,10 @@ class EMOTIONSSOUNDExtractor : AbstractExtractor<ContentElement<*>, FloatVectorD
             .filterIsInstance<AudioContent>()
             .map { audioContent ->
                 // Send base64 audio (data:audio/wav;base64,...) to /extract/emotions_sound
-                EMOTIONSSOUND.analyse(audioContent, this.host)
+                EmotionsSound.analyse(audioContent, this.host)
                     .copy(
                         retrievableId = retrievable.id,
-                        field = this@EMOTIONSSOUNDExtractor.field
+                        field = this@EmotionsSoundExtractor.field
                     )
             }
 }
