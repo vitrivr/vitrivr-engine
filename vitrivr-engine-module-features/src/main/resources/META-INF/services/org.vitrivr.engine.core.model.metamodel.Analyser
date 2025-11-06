@@ -5,7 +5,7 @@ org.vitrivr.engine.module.features.feature.huehistogram.HueHistogram
 org.vitrivr.engine.module.features.feature.mediancolor.MedianColor
 org.vitrivr.engine.module.features.feature.external.implementations.dino.DINO
 org.vitrivr.engine.module.features.feature.external.implementations.clip.CLIP
-org.vitrivr.engine.module.features.feature.external.implementations.emotions.EMOTIONSFACE
+org.vitrivr.engine.module.features.feature.external.implementations.emotions.EmotionsFace
 org.vitrivr.engine.module.features.feature.external.implementations.ocr.OpticalCharacterRecognition
-org.vitrivr.engine.module.features.feature.external.implementations.emotions.EMOTIONSOCR
-org.vitrivr.engine.module.features.feature.external.implementations.emotions.EMOTIONSSOUND
+org.vitrivr.engine.module.features.feature.external.implementations.emotions.EmotionsOCR
+org.vitrivr.engine.module.features.feature.external.implementations.emotions.EmotionsSound

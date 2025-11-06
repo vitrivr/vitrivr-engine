@@ -12,7 +12,7 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 
 /**
- * [EMOTIONSFACEExtractor] implementation of an [AbstractExtractor] for [EMOTIONSFACE].
+ * [EmotionsOCRExtractor] implementation of an [AbstractExtractor] for [EmotionsOCR].
  *
  * @param field Schema field for which the extractor generates descriptors.
  * @param input Operator representing the input data source.
@@ -20,14 +20,14 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Andrina Geller
  * @version 1.0.0
  */
-class EMOTIONSFACEExtractor : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor> {
+class EmotionsOCRExtractor : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor> {
 
     private val host: String
 
-    constructor(input: Operator<out Retrievable>, analyser: EMOTIONSFACE, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, host: String) : super(input, analyser, field) {
+    constructor(input: Operator<out Retrievable>, analyser: EmotionsOCR, field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>, host: String) : super(input, analyser, field) {
         this.host = host
     }
-    constructor(input: Operator<out Retrievable>, analyser: EMOTIONSFACE, name: String, host: String) : super(input, analyser, name) {
+    constructor(input: Operator<out Retrievable>, analyser: EmotionsOCR, name: String, host: String) : super(input, analyser, name) {
         this.host = host
     }
 
@@ -47,6 +47,6 @@ class EMOTIONSFACEExtractor : AbstractExtractor<ContentElement<*>, FloatVectorDe
      * @return List of resulting [Descriptor]s.
      */
     override fun extract(retrievable: Retrievable) = retrievable.content.filterIsInstance<ImageContent>().map { c ->
-        EMOTIONSFACE.analyse(c, this.host).copy(retrievableId = retrievable.id, field = this@EMOTIONSFACEExtractor.field)
+        EmotionsOCR.analyse(c, this.host).copy(retrievableId = retrievable.id, field = this@EmotionsOCRExtractor.field)
     }
 }
