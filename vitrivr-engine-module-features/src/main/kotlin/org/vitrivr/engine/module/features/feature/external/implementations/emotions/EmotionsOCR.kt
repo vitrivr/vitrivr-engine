@@ -41,13 +41,9 @@ class EmotionsOCR : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>()
         fun analyse(content: ContentElement<*>, hostname: String): FloatVectorDescriptor {
             val requestBody = when (content) {
                 is ImageContent -> URLEncoder.encode(content.toDataUrl(), StandardCharsets.UTF_8.toString())
-                is TextContent -> URLEncoder.encode(content.toDataUrl(), StandardCharsets.UTF_8.toString())
                 else -> throw IllegalArgumentException("Content '$content' not supported")
             }
-            val url = when (content) {
-                is ImageContent -> "$hostname/extract/emotions_ocr"
-                else -> throw IllegalArgumentException("Content '$content' not supported")
-            }
+            val url = "$hostname/extract/emotions_ocr"
             return httpRequest<FloatVectorDescriptor>(url, "data=$requestBody")
                 ?: throw IllegalArgumentException("Failed to generate EMOTIONSOCR descriptor.")
         }
