@@ -30,7 +30,7 @@ class EmotionsSound : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>
          * Requests Emotions classification for the given [AudioContent].
          *
          * @param content  The [AudioContent] for which to request transcription.
-         * @param hostname The hostname of the external ASR service.
+         * @param hostname The hostname of the external EmotionSound service.
          * @return The extracted [VectorDescriptor].
          */
         fun analyse(content: ContentElement<*>, hostname: String): FloatVectorDescriptor {
@@ -43,7 +43,7 @@ class EmotionsSound : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>
 
             val encoded = URLEncoder.encode(audioDataUrl, Charsets.UTF_8.name())
             val response = httpRequest<FloatVectorDescriptor>(url, requestBody = "data=$encoded")
-                ?: throw IllegalArgumentException("Failed to generate ASR descriptor.")
+                ?: throw IllegalArgumentException("Failed to generate EmotionSound descriptor.")
             return response
         }
 
