@@ -9,3 +9,4 @@ org.vitrivr.engine.module.features.feature.external.implementations.emotions.Emo
 org.vitrivr.engine.module.features.feature.external.implementations.ocr.OpticalCharacterRecognition
 org.vitrivr.engine.module.features.feature.external.implementations.emotions.EmotionsOCR
 org.vitrivr.engine.module.features.feature.external.implementations.emotions.EmotionsSound
+org.vitrivr.engine.module.features.feature.external.implementations.asr.AutomaticSpeechRecognition
