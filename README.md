@@ -555,3 +555,6 @@ A good starting point are the 'good first issue' issues.
 ## Citation
 
 See [Citation](https://github.com/vitrivr/vitrivr-engine/wiki/Home#Citation)
+
+## Acknowledgement
+This work has received funding from the European Union’s Horizon Europe Research and Innovation Programme under grant agreement No 101070250 [XReco](https://xreco.eu/).
