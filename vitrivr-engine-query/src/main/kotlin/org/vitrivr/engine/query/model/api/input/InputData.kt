@@ -104,9 +104,9 @@ data class ImageInputData(val data: String) : InputData {
  * Cannot be converted to a [ContentElement]
  */
 @Serializable
-data class RetrievableIdInputData(val id: String) : InputData {
+data class RetrievableIdInputData(val data: String) : InputData {
     override val type = InputType.ID
-    override fun toContent(): IdContent = IdContent(UUID.fromString(id))
+    override fun toContent(): IdContent = IdContent(UUID.fromString(data))
     override fun toDescriptor(): Descriptor<*> =
         throw UnsupportedOperationException("RetrievableIdInputData cannot be converted to a descriptor")
 }
@@ -114,6 +114,7 @@ data class RetrievableIdInputData(val id: String) : InputData {
 /**
  * [InputData] for boolean input.
  * Cannot be converted to a [ContentElement]
+ *
  */
 @Serializable
 data class BooleanInputData(val data: Boolean) : InputData {
@@ -274,7 +275,7 @@ data class FloatVectorInputData(val data: List<Float>) : InputData {
  */
 @Serializable
 data class IntVectorInputData(val data: List<Int>) : InputData {
-    override val type = InputType.FLOATVECTOR
+    override val type = InputType.INTVECTOR
     override fun toContent(): DescriptorContent<IntVectorDescriptor> =
         throw UnsupportedOperationException("IntVectorInputData cannot be converted to a content element")
 
