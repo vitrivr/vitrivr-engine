@@ -26,11 +26,11 @@ data class QueryResult(val retrievables: List<QueryResultRetrievable>) {
                         results[rel.subjectId.toString()]?.relationship["partOf"] = QueryResultRetrievable(rel.subject)
                     }
                 }
+
             }
 
 
             return results.values.toList().sortedByDescending { it.score }
-
         }
 
     }

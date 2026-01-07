@@ -4,6 +4,9 @@ import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.PropertyAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
+import org.vitrivr.engine.core.model.types.Value
+import org.vitrivr.engine.query.model.api.input.InputDataSerializer
+import javax.swing.text.html.HTMLEditorKit
 
 typealias RetrievableIdString = String
 
@@ -14,7 +17,7 @@ data class QueryResultRetrievable(
     val type: String,
     val relationship: MutableMap<String, QueryResultRetrievable>,
     val properties: Map<String, String>,
-    val descriptors: Map<String, String>
+    val descriptors: Map<String, Value<*>>
 ) {
     constructor(retrieved: Retrievable) : this(
         retrieved.id.toString(),
@@ -23,7 +26,10 @@ data class QueryResultRetrievable(
         mutableMapOf(),
         retrieved.filteredAttributes(PropertyAttribute::class.java).firstOrNull()?.properties ?: emptyMap(),
         retrieved.descriptors.flatMap { descriptor ->
-            descriptor.values().map { descriptor.field?.fieldName + "." + it.key to it.value?.value.toString() }
+            descriptor.values().map {
+                descriptor.field?.fieldName + "." + it.key to it.value!!
+            }
         }.toMap()
     )
+
 }
