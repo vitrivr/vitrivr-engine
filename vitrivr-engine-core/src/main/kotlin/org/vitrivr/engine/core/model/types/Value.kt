@@ -1,6 +1,10 @@
 package org.vitrivr.engine.core.model.types
 
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.FloatArraySerializer
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import org.vitrivr.engine.core.model.serializer.DateTimeSerializer
 import java.util.*
 
@@ -56,6 +60,7 @@ sealed interface Value<T> {
     value class String(override val value: kotlin.String) : ScalarValue<kotlin.String> {
         override val type: Type
             get() = Type.String
+
         override fun compareTo(other: ScalarValue<kotlin.String>) = this.value.compareTo(other.value)
     }
 
@@ -64,6 +69,7 @@ sealed interface Value<T> {
     value class Text(override val value: kotlin.String) : ScalarValue<kotlin.String> {
         override val type: Type
             get() = Type.Text
+
         override fun compareTo(other: ScalarValue<kotlin.String>) = this.value.compareTo(other.value)
     }
 
@@ -72,6 +78,7 @@ sealed interface Value<T> {
     value class Boolean(override val value: kotlin.Boolean) : ScalarValue<kotlin.Boolean> {
         override val type: Type
             get() = Type.Boolean
+
         override fun compareTo(other: ScalarValue<kotlin.Boolean>) = this.value.compareTo(other.value)
     }
 
@@ -80,6 +87,7 @@ sealed interface Value<T> {
     value class Byte(override val value: kotlin.Byte) : ScalarValue<kotlin.Byte> {
         override val type: Type
             get() = Type.Byte
+
         override fun compareTo(other: ScalarValue<kotlin.Byte>) = this.value.compareTo(other.value)
     }
 
@@ -88,6 +96,7 @@ sealed interface Value<T> {
     value class Short(override val value: kotlin.Short) : ScalarValue<kotlin.Short> {
         override val type: Type
             get() = Type.Short
+
         override fun compareTo(other: ScalarValue<kotlin.Short>) = this.value.compareTo(other.value)
     }
 
@@ -96,6 +105,7 @@ sealed interface Value<T> {
     value class Int(override val value: kotlin.Int) : ScalarValue<kotlin.Int> {
         override val type: Type
             get() = Type.Int
+
         override fun compareTo(other: ScalarValue<kotlin.Int>) = this.value.compareTo(other.value)
     }
 
@@ -104,6 +114,7 @@ sealed interface Value<T> {
     value class Long(override val value: kotlin.Long) : ScalarValue<kotlin.Long> {
         override val type: Type
             get() = Type.Long
+
         override fun compareTo(other: ScalarValue<kotlin.Long>) = this.value.compareTo(other.value)
     }
 
@@ -112,6 +123,7 @@ sealed interface Value<T> {
     value class Float(override val value: kotlin.Float) : ScalarValue<kotlin.Float> {
         override val type: Type
             get() = Type.Float
+
         override fun compareTo(other: ScalarValue<kotlin.Float>) = this.value.compareTo(other.value)
     }
 
@@ -120,6 +132,7 @@ sealed interface Value<T> {
     value class Double(override val value: kotlin.Double) : ScalarValue<kotlin.Double> {
         override val type: Type
             get() = Type.Double
+
         override fun compareTo(other: ScalarValue<kotlin.Double>) = this.value.compareTo(other.value)
     }
 
@@ -128,6 +141,7 @@ sealed interface Value<T> {
     value class DateTime(override val value: Date) : ScalarValue<Date> {
         override val type: Type
             get() = Type.Datetime
+
         override fun compareTo(other: ScalarValue<Date>) = this.value.compareTo(other.value)
     }
 
@@ -135,6 +149,7 @@ sealed interface Value<T> {
     value class UUIDValue(override val value: UUID) : ScalarValue<UUID> {
         override val type: Type
             get() = Type.UUID
+
         override fun compareTo(other: ScalarValue<UUID>) = this.value.compareTo(other.value)
     }
 
@@ -193,7 +208,7 @@ sealed interface Value<T> {
 
 
     @JvmInline
-    @Serializable
+    @Serializable(with = FloatVectorAsArraySerializer::class)
     value class FloatVector(override val value: FloatArray) : Vector<FloatArray> {
         constructor(size: kotlin.Int, init: (kotlin.Int) -> kotlin.Float = { 0.0f }) : this(FloatArray(size, init))
 
@@ -202,6 +217,24 @@ sealed interface Value<T> {
 
         override val type: Type
             get() = Type.FloatVector(size)
+    }
+
+    /**
+     * Forces Value.FloatVector to encode/decode its FloatArray strictly as a JSON array.
+     */
+    object FloatVectorAsArraySerializer : KSerializer<FloatVector> {
+        private val delegate = FloatArraySerializer()
+
+        override val descriptor = delegate.descriptor
+
+        override fun serialize(encoder: Encoder, value: FloatVector) {
+            delegate.serialize(encoder, value.value)
+        }
+
+        override fun deserialize(decoder: Decoder): FloatVector {
+            val arr = delegate.deserialize(decoder)
+            return FloatVector(arr)
+        }
     }
 
     @JvmInline
