@@ -1,9 +1,11 @@
 package org.vitrivr.engine.module.features.feature.external.implementations.clip
 
+import io.ktor.util.StringValues
 import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.BoundedCorrespondence
 import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.content.element.IdContent
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
@@ -11,8 +13,10 @@ import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.basics.Distance
+import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
@@ -143,10 +147,22 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
         val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
 
         /* Extract vectors from content. */
-        val vectors = content.values.map { analyse(it, host) }
-
+        val ret = content.values.map {
+            when (it) {
+                is ImageContent, is TextContent -> this.newRetrieverForDescriptors(field, listOf(analyse(it, host)), context)
+                is IdContent -> this.newRetrieverForQuery(
+                    field,
+                    SimpleBooleanQuery<Value.String>(
+                        value = Value.String((it as IdContent).content.toString()),
+                        attributeName = "retrievableId",
+                    ),
+                    context
+                )
+                else -> throw IllegalArgumentException("Content '$it' not supported")
+            }
+        }
+        return ret[0]
         /* Return retriever. */
-        return this.newRetrieverForDescriptors(field, vectors, context)
     }
 
     /**
@@ -180,6 +196,4 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
             context
         )
     }
-
-
 }
