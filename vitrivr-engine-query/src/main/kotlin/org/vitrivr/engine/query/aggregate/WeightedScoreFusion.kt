@@ -77,8 +77,17 @@ class WeightedScoreFusion(
                     first = retrieveds.first().second
                 }
 
-                // Create a copy and override the score
-                emit(first.copy(attributes = first.attributes + ScoreAttribute.Unbound(score)))
+                if (normalize) {
+                    score /= weightsSum.pow(1 / p)
+                }
+
+                // overwrite score attribute
+                val filtered = first.attributes
+                    .filterNot { it is ScoreAttribute }
+                    .toMutableSet()
+
+
+                emit(first.copy(attributes = filtered + ScoreAttribute.Unbound(score)))
             }
         }
     }
