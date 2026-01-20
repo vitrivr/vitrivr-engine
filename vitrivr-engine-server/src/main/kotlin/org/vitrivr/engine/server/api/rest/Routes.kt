@@ -4,6 +4,8 @@ import io.javalin.apibuilder.ApiBuilder.*
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.server.api.rest.handlers.*
+import org.vitrivr.engine.server.api.rest.handlers.requests.metadata.LSC_METADATA_ROUTE
+import org.vitrivr.engine.server.api.rest.handlers.requests.metadata.getMetadata
 import org.vitrivr.engine.server.config.ApiConfig
 
 
@@ -48,7 +50,15 @@ fun configureApiRoutes(config: ApiConfig, manager: SchemaManager, executor: Exec
                             fetchExportData(ctx, schema)
                         }
                 }
+
+                if (config.metadata) {
+                        get(LSC_METADATA_ROUTE) { ctx ->
+                            getMetadata(ctx, schema)
+                        }
+                }
             }
         }
     }
+
+    //TODO geoquery
 }

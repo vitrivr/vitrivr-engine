@@ -1,5 +1,6 @@
 package org.vitrivr.engine.query.model.api.input
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.openapi.Discriminator
 import io.javalin.openapi.DiscriminatorProperty
 import io.javalin.openapi.OneOf
@@ -10,7 +11,11 @@ import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryImageContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryTextContent
 import org.vitrivr.engine.core.util.extension.BufferedImage
-import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import java.util.*
 
 /**
@@ -26,7 +31,8 @@ import java.util.*
         RetrievableIdInputData::class,
         BooleanInputData::class,
         NumericInputData::class,
-        DateInputData::class
+        DateTimeInputData::class,
+        GeographyInputData::class
     ]
 )
 sealed class InputData() {
@@ -128,20 +134,88 @@ data class NumericInputData(val data: Double, override val comparison: String? =
     }
 }
 
+
+
 /**
- * [InputData] for a date.
- * Cannot be converted to a [ContentElement]
+ * [InputData] for a date, expected to be parsed as [LocalDateTime].
+ * Cannot be converted to a [ContentElement].
  */
 @Serializable
-data class DateInputData(val data: String, override val comparison: String? = "==") : InputData() {
-    override val type = InputType.DATE
-    override fun toContent(): ContentElement<*> {throw UnsupportedOperationException("Cannot derive content from DateInputData")}
+data class DateTimeInputData(val data: String, override val comparison: String? = "==") : InputData() {
+    override val type = InputType.DATETIME
+
+    override fun toContent(): ContentElement<*> {
+        throw UnsupportedOperationException("Cannot derive content from DateTimeInputData")
+    }
+
+    companion object {
+        private val logger = KotlinLogging.logger {}
+        private val DATE_TIME_FORMATTERS: List<DateTimeFormatter> = listOf(
+
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.SSSSSSSSS][.SSSSSS][.SSSSS][.SSSS][.SSS][.SS][.S]", Locale.ROOT),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss[.SSSSSSSSS][.SSSSSS][.SSSSS][.SSSS][.SSS][.SS][.S]", Locale.ROOT),
+            DateTimeFormatter.ofPattern("yyyy:MM:dd HH:mm:ss[.SSSSSSSSS][.SSSSSS][.SSSSS][.SSSS][.SSS][.SS][.S]", Locale.ROOT),
+
+            DateTimeFormatter.ISO_LOCAL_DATE_TIME,
+            DateTimeFormatter.ISO_LOCAL_DATE,
+
+            DateTimeFormatter.ofPattern("yyyyMMdd_HHmm", Locale.ROOT) // LSC minute_id format in case user copies that
+        )
+    }
 
     /**
-     * Parses the input in YYYY-mm-dd format.
+     * Parses the input 'data' string into a [java.time.LocalDateTime].
+     * It robustly handles strings with timezone information (like 'Z' for UTC) by converting them,
+     * and falls back to trying various local date-time patterns if no timezone is present.
+     *
+     * @return The parsed [LocalDateTime], or null if parsing fails.
      */
-    fun parseDate(): Date {
-        val formatter = SimpleDateFormat("YYYY-mm-dd", Locale.ENGLISH)
-        return formatter.parse(data)
+    fun toLocalDateTime(): LocalDateTime? {
+        try {
+            return ZonedDateTime.parse(this.data).toLocalDateTime()
+        } catch (e: DateTimeParseException) {
+            logger.trace { "Could not parse '${this.data}' as a ZonedDateTime, falling back to local patterns." }
+        }
+
+        for (formatter in DATE_TIME_FORMATTERS) {
+            try {
+                // Attempt to parse as a local date-time directly
+                return LocalDateTime.parse(this.data, formatter)
+            } catch (e: DateTimeParseException) {
+                // If that failed, and if the formatter was for a date-only format, try parsing as just a date.
+                if (formatter == DateTimeFormatter.ISO_LOCAL_DATE) {
+                    try {
+                        return LocalDate.parse(this.data, formatter).atStartOfDay()
+                    } catch (e2: DateTimeParseException) {
+                        // This specific attempt (LocalDate with ISO_LOCAL_DATE formatter) also failed.
+                        // Continue to the next formatter in the outer loop.
+                    }
+                }
+            }
+        }
+
+        // If all attempts fail, log the final warning and return null.
+        logger.warn { "Failed to parse date string '${this.data}' into LocalDateTime using any predefined patterns." }
+        return null
+    }
+}
+
+
+
+/**
+ * [InputData] for a geographic WKT (Well-Known Text) string.
+ * Cannot be converted to a [ContentElement].
+ */
+@Serializable
+data class GeographyInputData(
+    /** The WKT string, e.g., "POINT(-6.26 53.34)" */
+    val data: String,
+    /** Optional SRID, defaults to 4326 for WGS 84 */
+    val srid: Int = 4326
+) : InputData() {
+    override val type = InputType.GEOGRAPHY
+    override val comparison: String? = null
+    override fun toContent(): ContentElement<*> {
+        throw UnsupportedOperationException("Cannot derive content from GeographyInputData")
     }
 }

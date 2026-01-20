@@ -1,2 +1,3 @@
 org.vitrivr.engine.query.aggregate.TemporalSequenceAggregatorFactory
 org.vitrivr.engine.query.aggregate.WeightedScoreFusionFactory
+org.vitrivr.engine.query.aggregate.IntersectionAggregatorFactory

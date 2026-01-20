@@ -10,5 +10,7 @@ enum class OperatorType {
     @SerialName("TRANSFORMER")
     TRANSFORMER,
     @SerialName("AGGREGATOR")
-    AGGREGATOR
+    AGGREGATOR,
+    @SerialName("BOOLEAN_AND")
+    BOOLEAN_AND
 }

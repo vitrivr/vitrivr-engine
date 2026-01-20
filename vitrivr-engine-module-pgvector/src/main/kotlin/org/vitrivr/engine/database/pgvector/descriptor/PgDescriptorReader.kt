@@ -125,39 +125,77 @@ class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, 
 
     /**
      * Returns a [Sequence] of all [Descriptor]s whose [DescriptorId] is contained in the provided [Iterable].
+     * Processes descriptor IDs in batches of 1000 to prevent exceeding PostgreSQL's parameter limit for queries.
      *
      * @param descriptorIds A [Iterable] of [DescriptorId]s to return.
      * @return [Sequence] of [Descriptor] of type [D]
      */
-    override fun getAll(descriptorIds: Iterable<DescriptorId>): Sequence<D> = transaction(this.connection.database) {
-        try {
-            this@PgDescriptorReader.table.selectAll().where {
-                this@PgDescriptorReader.table.id inList descriptorIds
-            }.map { row ->
-                this@PgDescriptorReader.table.rowToDescriptor(row)
-            }.asSequence()
-        } catch (e: Throwable) {
-            LOGGER.error(e) { "Failed to fetch descriptors from '$tableName' due to error." }
-            throw e
+    override fun getAll(descriptorIds: Iterable<DescriptorId>): Sequence<D> {
+        // Convert to list for batching
+        val idsList = descriptorIds.toList()
+        
+        // If empty, return empty sequence
+        if (idsList.isEmpty()) {
+            return emptySequence()
+        }
+        
+        // Process in batches of 1000 to avoid PostgreSQL parameter limit
+        val batchSize = 1000
+        val batches = idsList.chunked(batchSize)
+        
+        return sequence {
+            for (batch in batches) {
+                val batchResults = transaction(this@PgDescriptorReader.connection.database) {
+                    try {
+                        this@PgDescriptorReader.table.selectAll().where {
+                            this@PgDescriptorReader.table.id inList batch
+                        }.map { row ->
+                            this@PgDescriptorReader.table.rowToDescriptor(row)
+                        }.asSequence()
+                    } catch (e: Throwable) {
+                        LOGGER.error(e) { "Failed to fetch descriptors from '$tableName' for batch of size ${batch.size} due to error." }
+                        throw e
+                    }
+                }
+                
+                yieldAll(batchResults)
+            }
         }
     }
 
     /**
      * Returns a [Sequence] of all [Descriptor] whose [RetrievableId] is contained in the provided [Iterable].
+     * Processes retrievable IDs in batches of 1000 to prevent exceeding PostgreSQL's parameter limit for queries.
      *
      * @param retrievableIds A [Iterable] of [RetrievableId]s to return [Descriptor]s for
      * @return [Sequence] of [Descriptor] of type [D]
      */
-    override fun getAllForRetrievable(retrievableIds: Iterable<RetrievableId>): Sequence<D> = transaction(this.connection.database) {
-        try {
-            this@PgDescriptorReader.table.selectAll().where {
-                this@PgDescriptorReader.table.retrievableId inList retrievableIds
-            }.map { row ->
-                this@PgDescriptorReader.table.rowToDescriptor(row)
-            }.asSequence()
-        } catch (e: Throwable) {
-            LOGGER.error(e) { "Failed to fetch descriptors from '$tableName' due to error." }
-            throw e
+    override fun getAllForRetrievable(retrievableIds: Iterable<RetrievableId>): Sequence<D> {
+        val idsList = retrievableIds.toList()
+        if (idsList.isEmpty()) {
+            return emptySequence()
+        }
+
+        val batchSize = 1000
+        val batches = idsList.chunked(batchSize)
+        
+        return sequence {
+            for (batch in batches) {
+                val batchResults = transaction(this@PgDescriptorReader.connection.database) {
+                    try {
+                        this@PgDescriptorReader.table.selectAll().where {
+                            this@PgDescriptorReader.table.retrievableId inList batch
+                        }.map { row ->
+                            this@PgDescriptorReader.table.rowToDescriptor(row)
+                        }.asSequence()
+                    } catch (e: Throwable) {
+                        LOGGER.error(e) { "Failed to fetch descriptors from '$tableName' for batch of size ${batch.size} due to error." }
+                        throw e
+                    }
+                }
+                
+                yieldAll(batchResults)
+            }
         }
     }
 

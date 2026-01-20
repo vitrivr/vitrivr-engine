@@ -11,6 +11,9 @@ dependencies {
     /* Test Fixtures. */
     testFixturesImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: version_junit
     testFixturesImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: version_junit
+    testImplementation "org.jetbrains.kotlin:kotlin-test:$version_kotlin"
+
+
 }
 
 /* Publication of vitrivr engine core to Maven Central. */

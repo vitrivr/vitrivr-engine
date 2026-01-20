@@ -4,7 +4,11 @@ plugins {
 
 dependencies {
     api project(':vitrivr-engine-core')
-
+    
+    /* Metadata extractor. */
+    implementation group: 'com.drewnoakes', name: 'metadata-extractor', version: version_metadataextractor
+    implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: version_javalin
+    
     /* Ktor. */
     implementation group: 'io.ktor', name: 'ktor-client-core-jvm', version: version_ktor
     implementation group: 'io.ktor', name: 'ktor-client-cio', version: version_ktor
