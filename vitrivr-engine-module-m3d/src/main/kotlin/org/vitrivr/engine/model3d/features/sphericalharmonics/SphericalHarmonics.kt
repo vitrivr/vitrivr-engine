@@ -4,8 +4,7 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.math3.complex.Complex
 import org.apache.commons.math3.util.FastMath
-import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.dense.DenseRetriever
 import org.vitrivr.engine.core.math.correspondence.LinearCorrespondence
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -93,7 +92,10 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
             val voxelizer = Voxelizer(2.0f / gridSize)
             val increment = 0.1 /* Increment of the angles during calculation of the descriptors. */
             val R: Int = gridSize / 2
-            val numberOfCoefficients: Int = SphericalHarmonicsFunction.numberOfCoefficients(maxL, true) - SphericalHarmonicsFunction.numberOfCoefficients(minL - 1, true)
+            val numberOfCoefficients: Int = SphericalHarmonicsFunction.numberOfCoefficients(
+                maxL,
+                true
+            ) - SphericalHarmonicsFunction.numberOfCoefficients(minL - 1, true)
 
             /* Prepares an empty array for the feature vector. */
             val feature = FloatArray((R - cap) * numberOfCoefficients) { _ -> 0f }
@@ -130,7 +132,8 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
                                 val z = ((r + 1) * FastMath.sin(theta) * FastMath.sin(phi)).toInt() + R
 
                                 if (grid[x, y, z]) {
-                                    result = result.add(fkt.value(theta, phi).conjugate().multiply(increment * increment))
+                                    result =
+                                        result.add(fkt.value(theta, phi).conjugate().multiply(increment * increment))
                                 }
                                 phi += increment
                             }
@@ -162,27 +165,48 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
         val cap = field.parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
         val minL = field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
         val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
-        val numberOfCoefficients: Int = SphericalHarmonicsFunction.numberOfCoefficients(maxL, true) - SphericalHarmonicsFunction.numberOfCoefficients(minL - 1, true)
+        val numberOfCoefficients: Int = SphericalHarmonicsFunction.numberOfCoefficients(
+            maxL,
+            true
+        ) - SphericalHarmonicsFunction.numberOfCoefficients(minL - 1, true)
         val vectorSize = ((gridSize / 2) - cap) * numberOfCoefficients
         return FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.FloatVector(FloatArray(vectorSize)))
     }
 
-    override fun newRetrieverForQuery(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, query: Query, context: QueryContext): Retriever<Model3dContent, FloatVectorDescriptor> {
+    override fun newRetrieverForQuery(
+        field: Schema.Field<Model3dContent, FloatVectorDescriptor>,
+        query: Query,
+        context: Context
+    ): Retriever<Model3dContent, FloatVectorDescriptor> {
         require(query is ProximityQuery<*> && query.value is Value.FloatVector) { }
-        return  DenseRetriever(field, query, context, LinearCorrespondence(1.0f))
+        return DenseRetriever(field, query, context, LinearCorrespondence(1.0f))
     }
 
-    override fun newRetrieverForDescriptors(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): Retriever<Model3dContent, FloatVectorDescriptor> {
+    override fun newRetrieverForDescriptors(
+        field: Schema.Field<Model3dContent, FloatVectorDescriptor>,
+        descriptors: Collection<FloatVectorDescriptor>,
+        context: Context
+    ): Retriever<Model3dContent, FloatVectorDescriptor> {
         /* Extract parameters from field and context. */
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        val returnDescriptor = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+        val returnDescriptor =
+            context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
 
         /* Construct query and return retriever. */
-        val query = ProximityQuery(value = descriptors.first().vector, k = k, distance = Distance.EUCLIDEAN, fetchVector = returnDescriptor)
+        val query = ProximityQuery(
+            value = descriptors.first().vector,
+            k = k,
+            distance = Distance.EUCLIDEAN,
+            fetchVector = returnDescriptor
+        )
         return this.newRetrieverForQuery(field, query, context)
     }
 
-    override fun newRetrieverForContent(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, content: Collection<Model3dContent>, context: QueryContext): Retriever<Model3dContent, FloatVectorDescriptor> {
+    override fun newRetrieverForContent(
+        field: Schema.Field<Model3dContent, FloatVectorDescriptor>,
+        content: Map<String,Model3dContent>,
+        context: Context
+    ): Retriever<Model3dContent, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
 
         /* Extract parameters from field and context. */
@@ -190,7 +214,7 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
         val cap = field.parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
         val minL = field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
         val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
-        val descriptors = content.map { analyse(it.content.getMaterials().first().materialMeshes.first(), gridSize, cap, minL, maxL) }
+        val descriptors = content.values.map { analyse(it.content.getMaterials().first().materialMeshes.first(), gridSize, cap, minL, maxL) }
 
         /* Return retriever. */
         return this.newRetrieverForDescriptors(field, descriptors, context)
@@ -201,14 +225,14 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
      *
      * @param field The [Schema.Field] to create an [Extractor] for.
      * @param input The [Operator] that acts as input to the new [Extractor].
-     * @param context The [IndexContext] to use with the [Extractor].
+     * @param context The [Context] to use with the [Extractor].
      * @return [SphericalHarmonicsExtractor]
      */
-    override fun newExtractor(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext): SphericalHarmonicsExtractor {
-        val gridSize = field.parameters[GRID_SIZE_PARAMETER_NAME]?.toIntOrNull() ?: context.getProperty("", "")?.toIntOrNull() ?: GRID_SIZE_PARAMETER_DEFAULT
-        val cap = field.parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: context.getProperty("", "")?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
-        val minL = field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: context.getProperty("", "")?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
-        val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: context.getProperty("", "")?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
+    override fun newExtractor(field: Schema.Field<Model3dContent, FloatVectorDescriptor>, input: Operator<out Retrievable>, context: Context): SphericalHarmonicsExtractor {
+        val gridSize = field.parameters[GRID_SIZE_PARAMETER_NAME]?.toIntOrNull() ?: GRID_SIZE_PARAMETER_DEFAULT
+        val cap = field.parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
+        val minL = field.parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
+        val maxL = field.parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
         logger.debug { "Creating new SphericalHarmonicsExtract for field '${field.fieldName}' with parameters ($gridSize, $cap, $minL, $maxL)." }
         return SphericalHarmonicsExtractor(input, this, field, gridSize, cap, minL, maxL)
     }
@@ -218,15 +242,16 @@ class SphericalHarmonics : Analyser<Model3dContent, FloatVectorDescriptor> {
      *
      * @param name The name of the [SphericalHarmonicsExtractor].
      * @param input The [Operator] that acts as input to the new [Extractor].
-     * @param context The [IndexContext] to use with the [Extractor].
+     * @param context The [Context] to use with the [Extractor].
      * @return [SphericalHarmonicsExtractor]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): SphericalHarmonicsExtractor {
-        val gridSize = context.getProperty(name, GRID_SIZE_PARAMETER_NAME)?.toIntOrNull() ?: GRID_SIZE_PARAMETER_DEFAULT
-        val cap = context.getProperty(name, CAP_PARAMETER_NAME)?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
-        val minL = context.getProperty(name, MINL_PARAMETER_NAME)?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
-        val maxL = context.getProperty(name, MAXL_PARAMETER_NAME)?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
+    override fun newExtractor(name: String, input: Operator<out Retrievable>, context: Context): SphericalHarmonicsExtractor {
+        val parameters = context.local[name] ?: emptyMap()
+        val gridSize = parameters[GRID_SIZE_PARAMETER_NAME]?.toIntOrNull() ?: GRID_SIZE_PARAMETER_DEFAULT
+        val cap = parameters[CAP_PARAMETER_NAME]?.toIntOrNull() ?: CAP_PARAMETER_DEFAULT
+        val minL = parameters[MINL_PARAMETER_NAME]?.toIntOrNull() ?: MINL_PARAMETER_DEFAULT
+        val maxL = parameters[MAXL_PARAMETER_NAME]?.toIntOrNull() ?: MAXL_PARAMETER_DEFAULT
         logger.debug { "Creating new SphericalHarmonicsExtract with parameters ($gridSize, $cap, $minL, $maxL)." }
-        return SphericalHarmonicsExtractor(input, this,  name, gridSize, cap, minL, maxL)
+        return SphericalHarmonicsExtractor(input, this, name, gridSize, cap, minL, maxL)
     }
 }

@@ -7,6 +7,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
+import java.util.UUID
 
 /**
  * A [ScalarDescriptor] using an [Value.Short].
@@ -15,8 +16,8 @@ import org.vitrivr.engine.core.model.types.Value
  * @version 1.0.0
  */
 data class ShortDescriptor(
-    override val id: DescriptorId,
-    override val retrievableId: RetrievableId?,
+    override val id: DescriptorId = UUID.randomUUID(),
+    override val retrievableId: RetrievableId? = null,
     override val value: Value.Short,
     override val field: Schema.Field<*, ShortDescriptor>? = null
 ) : ScalarDescriptor<ShortDescriptor, Value.Short> {

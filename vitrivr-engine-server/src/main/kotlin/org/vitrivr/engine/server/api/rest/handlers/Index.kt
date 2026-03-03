@@ -43,12 +43,13 @@ fun executeIngest(ctx: Context, schema: Schema, executor: ExecutionServer) {
             FileUtil.streamToFile(uploadedFile.content(), path.toString())
             filestream.add(path)
         }
-        val stream = filestream.stream()
+
+        /* TODO: Handle differently. */
 
         /* Construct extraction pipeline */
         val pipelineBuilder = pipelineName?.let { schema.getIngestionPipelineBuilder(it) }
             ?: throw ErrorStatusException(404, "Invalid request: Pipeline '$pipelineName' does not exist.")
-        val pipeline = pipelineBuilder.build(stream)
+        val pipeline = pipelineBuilder.build()
 
         /* Schedule pipeline and return job Id. */
         val jobId = executor.extractAsync(pipeline.first())

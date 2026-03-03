@@ -3,7 +3,7 @@ package org.vitrivr.engine.features.external.torchserve.basic
 import com.google.protobuf.ByteString
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.averagecolor.AverageColor
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -90,15 +90,22 @@ abstract class TorchServe<C : ContentElement<*>, D : Descriptor<*>> : Analyser<C
      *
      * @param field The [Schema.Field] to create an [TorchServeExtractor] for.
      * @param input The [Operator] that acts as input to the new [TorchServeExtractor].
-     * @param context The [IndexContext] to use with the [TorchServeExtractor].
+     * @param context The [Context] to use with the [TorchServeExtractor].
      *
      * @return A new [TorchServeExtractor] instance for this [Analyser]
      */
-    override fun newExtractor(field: Schema.Field<C, D>, input: Operator<Retrievable>, context: IndexContext): TorchServeExtractor<C, D> {
-        val host = context.local[field.fieldName]?.get(TORCHSERVE_HOST_KEY) ?: field.parameters[TORCHSERVE_HOST_KEY] ?: TORCHSERVE_HOST_DEFAULT
-        val port = ((context.local[field.fieldName]?.get(TORCHSERVE_PORT_KEY) ?: field.parameters[TORCHSERVE_PORT_KEY]))?.toIntOrNull() ?: TORCHSERVE_PORT_DEFAULT
-        val token = context.local[field.fieldName]?.get(TORCHSERVE_TOKEN_KEY) ?: field.parameters[TORCHSERVE_TOKEN_KEY]
-        val model = context.local[field.fieldName]?.get(TORCHSERVE_MODEL_KEY) ?: field.parameters[TORCHSERVE_MODEL_KEY] ?: throw IllegalArgumentException("Missing model for TorchServe model.")
+    override fun newExtractor(
+        field: Schema.Field<C, D>,
+        input: Operator<out Retrievable>,
+        context: Context
+    ): TorchServeExtractor<C, D> {
+        val parameters = context.local[field.fieldName] ?: emptyMap()
+        val host = parameters[TORCHSERVE_HOST_KEY] ?: field.parameters[TORCHSERVE_HOST_KEY] ?: TORCHSERVE_HOST_DEFAULT
+        val port = ((parameters[TORCHSERVE_PORT_KEY] ?: field.parameters[TORCHSERVE_PORT_KEY]))?.toIntOrNull()
+            ?: TORCHSERVE_PORT_DEFAULT
+        val token = parameters[TORCHSERVE_TOKEN_KEY] ?: field.parameters[TORCHSERVE_TOKEN_KEY]
+        val model = parameters[TORCHSERVE_MODEL_KEY] ?: field.parameters[TORCHSERVE_MODEL_KEY]
+        ?: throw IllegalArgumentException("Missing model for TorchServe model.")
         return TorchServeExtractor(host, port, token, model, input, this, field, field.fieldName)
     }
 
@@ -107,15 +114,21 @@ abstract class TorchServe<C : ContentElement<*>, D : Descriptor<*>> : Analyser<C
      *
      * @param name The name of the [TorchServeExtractor].
      * @param input The [Operator] that acts as input to the new [TorchServeExtractor].
-     * @param context The [IndexContext] to use with the [TorchServeExtractor].
+     * @param context The [Context] to use with the [TorchServeExtractor].
      *
      * @return A new [TorchServeExtractor] instance for this [TorchServe]
      */
-    override fun newExtractor(name: String, input: Operator<Retrievable>, context: IndexContext): TorchServeExtractor<C, D> {
-        val host = context.local[name]?.get(TORCHSERVE_HOST_KEY) ?: TORCHSERVE_HOST_DEFAULT
-        val port = context.local[name]?.get(TORCHSERVE_PORT_KEY)?.toIntOrNull() ?: TORCHSERVE_PORT_DEFAULT
-        val token = context.local[name]?.get(TORCHSERVE_TOKEN_KEY)
-        val model = context.local[name]?.get(TORCHSERVE_MODEL_KEY) ?: throw IllegalArgumentException("Missing model for TorchServe model.")
+    override fun newExtractor(
+        name: String,
+        input: Operator<out Retrievable>,
+        context: Context
+    ): TorchServeExtractor<C, D> {
+        val parameters = context.local[name] ?: emptyMap()
+        val host = parameters[TORCHSERVE_HOST_KEY] ?: TORCHSERVE_HOST_DEFAULT
+        val port = parameters[TORCHSERVE_PORT_KEY]?.toIntOrNull() ?: TORCHSERVE_PORT_DEFAULT
+        val token = parameters[TORCHSERVE_TOKEN_KEY]
+        val model =
+            parameters[TORCHSERVE_MODEL_KEY] ?: throw IllegalArgumentException("Missing model for TorchServe model.")
         return TorchServeExtractor(host, port, token, model, input, this, null, name)
     }
 

@@ -15,37 +15,37 @@ import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.operators.general.Transformer
-import org.vitrivr.engine.core.operators.general.TransformerFactory
 import org.vitrivr.engine.core.source.Source
 import org.vitrivr.engine.core.util.extension.loadServiceForName
-import org.vitrivr.engine.index.util.boundaryFile.MediaSegmentDescriptor
-import org.vitrivr.engine.index.util.boundaryFile.ShotBoundaryProvider
-import org.vitrivr.engine.index.util.boundaryFile.ShotBoundaryProviderFactory
+import org.vitrivr.engine.index.util.boundary.MediaSegmentDescriptor
+import org.vitrivr.engine.index.util.boundary.ShotBoundaryProvider
+import org.vitrivr.engine.index.util.boundary.ShotBoundaryProviderFactory
 import java.time.Duration
 import java.util.*
+import kotlin.text.toLong
 
 /**
  * Segments a content flow into segments of a specified target temporal duration.
  * Discards all non [SourcedContent.Temporal] content.
  *
  * @author Raphael Waltenspuehl
- * @version 1.0.0
+ * @version 1.1.0
  */
-class ShotBoundarySegmenter : TransformerFactory {
+class ShotBoundarySegmenter : OperatorFactory {
+
     /**
-     * Creates a new [Transformer] instance from this [FixedDurationSegmenter].
+     * Creates a new [Instance] instance from this [FixedDurationSegmenter.Instance].
      *
-     * @param name The name of the [Transformer]
-     * @param input The input [Operator].
+     * @param name the name of the [FixedDurationSegmenter.Instance]
+     * @param inputs Map of named input [Operator]s
      * @param context The [Context] to use.
      */
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
-        /** Path to folder of shotBoundary Files **/
-        val sbProvider = context[name, "sbProvider"]
-            ?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
-        val sbParams = context[name, "sbParams"]
-            ?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
+    override fun newOperator(name: String, inputs: Map<String, Operator<out Retrievable>>, context: Context): Operator<out Retrievable> {
+        require(inputs.size == 1)  { "The ${this::class.simpleName} only supports one input operator. If you want to combine multiple inputs, use explicit merge strategies." }
+        val sbProvider = context[name, "sbProvider"] ?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
+        val sbParams = context[name, "sbParams"] ?: throw IllegalArgumentException("ShotBoundaryProvider not specified for $name")
         val tolerance = Duration.ofMillis(
             (context[name, "tolerance"] ?: throw IllegalArgumentException("Property 'duration' must be specified")).toLong()
         )
@@ -55,18 +55,20 @@ class ShotBoundarySegmenter : TransformerFactory {
         val lookAheadTime = Duration.ofMillis(
             (context[name, "lookAheadTime"] ?: throw IllegalArgumentException("Property 'lookAheadTime' must be specified")).toLong()
         )
-        return Instance(input, name, context, sbProvider, sbParams, tolerance, duration, lookAheadTime)
+        return Instance(name, inputs.values.first(), context, sbProvider,sbParams, tolerance,duration,lookAheadTime)
     }
 
     /**
      * The [Transformer] returned by this [FixedDurationSegmenter].
      */
     private class Instance(
+        /** Name of this [Operator]. */
+        override val name: String,
+
         /** The input [Operator]. */
         override val input: Operator<out Retrievable>,
 
-        override val name: String,
-
+        /** The [Context] used by this [Instance]. */
         context: Context,
 
         /** Path to folder of shotBoundary Files **/
@@ -116,16 +118,45 @@ class ShotBoundarySegmenter : TransformerFactory {
             /* Collect upstream flow. */
             this@Instance.input.toFlow(scope).collect { ingested ->
                 if (srcRetrievable == null) {
-                    srcRetrievable = Ingested(UUID.randomUUID(), "SOURCE:VIDEO", emptyList(), emptySet(), emptySet(), emptySet(), true)
+                    srcRetrievable = Ingested(
+                        UUID.randomUUID(),
+                        "SOURCE:VIDEO",
+                        emptyList(),
+                        emptySet(),
+                        emptySet(),
+                        emptySet(),
+                        true
+                    )
                 }
 
                 if (ingested.type == "SOURCE:VIDEO") {
                     /* Send remaining segments in cache. */
-                    sendFromCache(downstream, cache, sbs!!.last().startAbs.toNanos(), sbs!!.last().endAbs.toNanos(), tolerance, srcRetrievable!!)
+                    sendFromCache(
+                        downstream,
+                        cache,
+                        sbs!!.last().startAbs.toNanos(),
+                        sbs!!.last().endAbs.toNanos(),
+                        tolerance,
+                        srcRetrievable!!
+                    )
 
                     /* Send source retrievable. */
-                    downstream.send(srcRetrievable!!.copy(content = ingested.content, descriptors = ingested.descriptors, attributes = ingested.attributes))
-                    srcRetrievable = Ingested(UUID.randomUUID(), "SOURCE:VIDEO", emptyList(), emptySet(), emptySet(), emptySet(), true)
+                    downstream.send(
+                        srcRetrievable!!.copy(
+                            content = ingested.content,
+                            descriptors = ingested.descriptors,
+                            attributes = ingested.attributes
+                        )
+                    )
+                    srcRetrievable = Ingested(
+                        UUID.randomUUID(),
+                        "SOURCE:VIDEO",
+                        emptyList(),
+                        emptySet(),
+                        emptySet(),
+                        emptySet(),
+                        true
+                    )
                     return@collect
                 }
 
@@ -146,7 +177,7 @@ class ShotBoundarySegmenter : TransformerFactory {
                             sbs!![icSbs].startAbs.toNanos(),
                             sbs!![icSbs].endAbs.toNanos(),
                             tolerance,
-                            srcRetrievable!!
+                            srcRetrievable
                         )
                     }
                     lastSource = source
@@ -158,15 +189,15 @@ class ShotBoundarySegmenter : TransformerFactory {
                 cache.add(ingested)
 
                 /* Check if cut-off time has been exceeded. */
-                val cutOffTime = sbs!![icSbs].endAbs.toNanos() + this@Instance.lookAheadNanos
+                val cutOffTime = sbs[icSbs].endAbs.toNanos() + this@Instance.lookAheadNanos
                 if (timestamp.endNs >= cutOffTime) {
                     sendFromCache(
                         downstream,
                         cache,
-                        sbs!![icSbs].startAbs.toNanos(),
-                        sbs!![icSbs].endAbs.toNanos(),
+                        sbs[icSbs].startAbs.toNanos(),
+                        sbs[icSbs].endAbs.toNanos(),
                         tolerance,
-                        srcRetrievable!!
+                        srcRetrievable
                     )
                     icSbs++
                 }
@@ -231,7 +262,17 @@ class ShotBoundarySegmenter : TransformerFactory {
             attributes.add(TimeRangeAttribute(min, max))
 
             /* Send retrievable downstream. */
-            downstream.send(Ingested(retrievableId, emit.first().type, content, descriptors, attributes, relationships, true))
+            downstream.send(
+                Ingested(
+                    retrievableId,
+                    emit.first().type,
+                    content,
+                    descriptors,
+                    attributes,
+                    relationships,
+                    true
+                )
+            )
         }
     }
 }

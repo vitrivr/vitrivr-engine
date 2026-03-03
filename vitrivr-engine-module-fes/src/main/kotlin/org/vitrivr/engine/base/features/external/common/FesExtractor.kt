@@ -8,6 +8,7 @@ import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Comp
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.RETRIES_PARAMETER_DEFAULT
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.RETRIES_PARAMETER_NAME
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser.Companion.TIMEOUT_MS_PARAMETER_DEFAULT
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.features.AbstractBatchedExtractor
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
@@ -23,45 +24,38 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @version 1.1.0
  */
 abstract class FesExtractor<C : ContentElement<*>, D : Descriptor<*>> : AbstractBatchedExtractor<C, D> {
-
-    protected val parameters: Map<String, String>
-
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         field: Schema.Field<C, D>,
         analyser: ExternalFesAnalyser<C, D>,
-        parameters: Map<String, String>
-    ) : super(input, analyser, field, parameters["batchSize"]?.toIntOrNull() ?: 1) {
-        this.parameters = parameters
-    }
+        context: Context
+    ) : super(input, analyser, field, context)
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         name: String,
         analyser: ExternalFesAnalyser<C, D>,
-        parameters: Map<String, String>
-    ) : super(input, analyser, name, parameters["batchSize"]?.toIntOrNull() ?: 1) {
-        this.parameters = parameters
-    }
+        context: Context
+    ) : super(input, analyser, name, context)
 
     protected val host: String
-        get() = this.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
+        get() = this.context[this.name, HOST_PARAMETER_NAME]?: this.field?.parameters[HOST_PARAMETER_NAME]  ?: HOST_PARAMETER_DEFAULT
 
     /** Name of the model that should be used. */
     protected val model: String
-        get() = this.parameters[MODEL_PARAMETER_NAME] ?: throw IllegalStateException("Model parameter not set.")
+        get() = this.context[this.name, MODEL_PARAMETER_NAME]?: this.field?.parameters[MODEL_PARAMETER_NAME] ?: throw IllegalStateException("Model parameter not set.")
 
     /** */
     protected val timeoutMs: Long
-        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull()
+        get() = this.context[this.name, POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull()
             ?: TIMEOUT_MS_PARAMETER_DEFAULT
 
     /** */
     protected val pollingIntervalMs: Long
-        get() = this.parameters[POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull()
+        get() = this.context[this.name, POLLINGINTERVAL_MS_PARAMETER_NAME]?.toLongOrNull()
             ?: POLLINGINTERVAL_MS_PARAMETER_DEFAULT
 
     /** */
     protected val retries: Int
-        get() = parameters[RETRIES_PARAMETER_NAME]?.toIntOrNull() ?: RETRIES_PARAMETER_DEFAULT
+        get() =  this.context[this.name, RETRIES_PARAMETER_NAME]?.toIntOrNull() ?: RETRIES_PARAMETER_DEFAULT
 }

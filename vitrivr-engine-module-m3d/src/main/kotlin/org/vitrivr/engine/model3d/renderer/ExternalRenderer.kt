@@ -5,7 +5,8 @@ import org.vitrivr.engine.core.model.mesh.texturemodel.Model3d
 import org.vitrivr.engine.model3d.lwjglrender.render.RenderOptions
 import org.vitrivr.engine.model3d.lwjglrender.window.WindowOptions
 import java.awt.image.BufferedImage
-import java.io.*
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption

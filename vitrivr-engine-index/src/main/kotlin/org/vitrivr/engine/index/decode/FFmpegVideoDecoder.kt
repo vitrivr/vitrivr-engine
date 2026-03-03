@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runBlocking
-import org.vitrivr.engine.core.context.IndexContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
@@ -25,9 +25,9 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
+import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.operators.ingest.Decoder
-import org.vitrivr.engine.core.operators.ingest.DecoderFactory
-import org.vitrivr.engine.core.operators.ingest.Enumerator
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Metadata
 import org.vitrivr.engine.core.source.Source
@@ -37,6 +37,8 @@ import java.nio.ShortBuffer
 import java.nio.file.Path
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.text.lowercase
+import kotlin.text.toLongOrNull
 
 /**
  * A [Decoder] that can decode [ImageContent] and [AudioContent] from a [Source] of [MediaType.VIDEO].
@@ -45,27 +47,36 @@ import java.util.concurrent.TimeUnit
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.2.0
  */
-class FFmpegVideoDecoder : DecoderFactory {
-
-    override fun newDecoder(name: String, input: Enumerator, context: IndexContext): Decoder {
+class FFmpegVideoDecoder : OperatorFactory {
+    /**
+     * Creates a new [Instance] instance from this [ImageDecoder.Instance].
+     *
+     * @param name the name of the [ImageDecoder.Instance]
+     * @param inputs Map of named input [Operator]s
+     * @param context The [Context] to use.
+     */
+    override fun newOperator(name: String, inputs: Map<String, Operator<out Retrievable>>, context: Context): Operator<out Retrievable> {
+        require(inputs.size == 1)  { "The ${this::class.simpleName} only supports one input operator. If you want to combine multiple inputs, use explicit merge strategies." }
         val video = context[name, "video"]?.let { it.lowercase() == "true" } != false
         val audio = context[name, "audio"]?.let { it.lowercase() == "true" } != false
         val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
         val ffmpegPath = context[name, "ffmpegPath"]?.let { Path.of(it) }
-
-        return Instance(input, context, video, audio, timeWindowMs, ffmpegPath, name)
+        return Instance(name, inputs.values.first(), context, video, audio, timeWindowMs, ffmpegPath)
     }
 
+    /**
+     * The [Instance] returned by this [FFmpegVideoDecoder].
+     */
     private class Instance(
-        override val input: Enumerator,
-        private val context: IndexContext,
+        override val name: String,
+        override val input: Operator<out Retrievable>,
+        private val context: Context,
         private val video: Boolean = true,
         private val audio: Boolean = true,
         private val timeWindowMs: Long = 500L,
         private val ffmpegPath: Path? = null,
-        override val name: String
     ) : Decoder {
 
         /** [KLogger] instance. */
@@ -117,7 +128,8 @@ class FFmpegVideoDecoder : DecoderFactory {
 
                 /* Execute. */
                 try {
-                    var output = FrameOutput.withConsumerAlpha(consumer).disableStream(StreamType.SUBTITLE).disableStream(StreamType.DATA)
+                    var output = FrameOutput.withConsumerAlpha(consumer).disableStream(StreamType.SUBTITLE)
+                        .disableStream(StreamType.DATA)
                     if (!this@Instance.video) {
                         output = output.disableStream(StreamType.VIDEO)
                     }
@@ -149,7 +161,10 @@ class FFmpegVideoDecoder : DecoderFactory {
         /**
          * A [FrameConsumer] that emits [Retrievable]s to the downstream [channel].
          */
-        private inner class InFlowFrameConsumer(private val channel: ProducerScope<Retrievable>, val source: Retrievable) : FrameConsumer {
+        private inner class InFlowFrameConsumer(
+            private val channel: ProducerScope<Retrievable>,
+            val source: Retrievable
+        ) : FrameConsumer {
 
             /** The video [Stream] processed by this [InFlowFrameConsumer]. */
             var videoStream: Stream? = null
@@ -160,7 +175,7 @@ class FFmpegVideoDecoder : DecoderFactory {
                 private set
 
             /** The end of the time window. */
-            var windowEnd  = TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
+            var windowEnd = TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
                 private set
 
             /** Flag indicating, that video is ready to be emitted. */
@@ -170,10 +185,10 @@ class FFmpegVideoDecoder : DecoderFactory {
             var audioReady = false
 
             /** [List] of grabbed [BufferedImage]s.  */
-            val imageBuffer: List<Pair<BufferedImage,Long>> = LinkedList()
+            val imageBuffer: List<Pair<BufferedImage, Long>> = LinkedList()
 
             /** [List] of grabbed [ShortBuffer]s.  */
-            val audioBuffer: List<Pair<ShortBuffer,Long>> = LinkedList()
+            val audioBuffer: List<Pair<ShortBuffer, Long>> = LinkedList()
 
             /**
              * Returns true if both the image and audio buffer are empty.
@@ -190,8 +205,10 @@ class FFmpegVideoDecoder : DecoderFactory {
                 this.audioStream = streams.firstOrNull { it.type == Stream.Type.AUDIO }
 
                 /* Reset counters and flags. */
-                this@InFlowFrameConsumer.videoReady = !(this@InFlowFrameConsumer.videoStream != null && this@Instance.video)
-                this@InFlowFrameConsumer.audioReady = !(this@InFlowFrameConsumer.audioStream != null && this@Instance.audio)
+                this@InFlowFrameConsumer.videoReady =
+                    !(this@InFlowFrameConsumer.videoStream != null && this@Instance.video)
+                this@InFlowFrameConsumer.audioReady =
+                    !(this@InFlowFrameConsumer.audioStream != null && this@Instance.audio)
             }
 
             /**
@@ -214,6 +231,7 @@ class FFmpegVideoDecoder : DecoderFactory {
                             this@InFlowFrameConsumer.videoReady = true
                         }
                     }
+
                     Stream.Type.AUDIO -> {
                         val samples = ShortBuffer.wrap(frame.samples.map { (it shr 16).toShort() }.toShortArray())
                         (this@InFlowFrameConsumer.audioBuffer as LinkedList).add(samples to timestamp)
@@ -221,6 +239,7 @@ class FFmpegVideoDecoder : DecoderFactory {
                             this@InFlowFrameConsumer.audioReady = true
                         }
                     }
+
                     else -> {}
                 }
 
@@ -229,8 +248,10 @@ class FFmpegVideoDecoder : DecoderFactory {
                     emit()
 
                     /* Reset counters and flags. */
-                    this@InFlowFrameConsumer.videoReady = !(this@InFlowFrameConsumer.videoStream != null && this@Instance.video)
-                    this@InFlowFrameConsumer.audioReady = !(this@InFlowFrameConsumer.audioStream != null && this@Instance.audio)
+                    this@InFlowFrameConsumer.videoReady =
+                        !(this@InFlowFrameConsumer.videoStream != null && this@Instance.video)
+                    this@InFlowFrameConsumer.audioReady =
+                        !(this@InFlowFrameConsumer.audioStream != null && this@Instance.audio)
 
                     /* Update window end. */
                     this@InFlowFrameConsumer.windowEnd += TimeUnit.MILLISECONDS.toMicros(this@Instance.timeWindowMs)
@@ -310,7 +331,14 @@ class FFmpegVideoDecoder : DecoderFactory {
                 logger.debug { "Emitting ingested $retrievableId with ${emitImage.size} images and ${emitAudio.size} audio samples." }
 
                 /* Emit ingested. */
-                this.channel.send(Ingested(retrievableId, "SEGMENT", content = content, attributes = attributes, relationships = relationship?.let { setOf(it) } ?: emptySet(), transient = false))
+                this.channel.send(
+                    Ingested(
+                        retrievableId,
+                        "SEGMENT",
+                        content = content,
+                        attributes = attributes,
+                        relationships = relationship?.let { setOf(it) } ?: emptySet(),
+                        transient = false))
             }
         }
     }

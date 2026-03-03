@@ -2,8 +2,7 @@ package org.vitrivr.engine.index.analyzer.mapper
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.onEach
-import org.vitrivr.engine.core.context.IndexContext
-import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
@@ -25,18 +24,7 @@ abstract class DescriptorFieldMapper<D : Descriptor<*>> : Analyser<ContentElemen
         const val AUTHORNAME_PARAMETER_NAME = "authorName"
     }
 
-
-    override fun newExtractor(
-        field: Schema.Field<ContentElement<*>, D>,
-        input: Operator<Retrievable>,
-        context: IndexContext
-    ): Extractor<ContentElement<*>, D> {
-        val authorName = field.parameters[AUTHORNAME_PARAMETER_NAME]
-            ?: throw IllegalArgumentException("'$AUTHORNAME_PARAMETER_NAME' is not defined")
-        return Mapper(input, field, authorName)
-    }
-
-    protected abstract fun cast(descriptor: Descriptor<*>, field: Schema.Field<ContentElement<*>, D>) : D
+    protected abstract fun cast(descriptor: Descriptor<*>, field: Schema.Field<ContentElement<*>, D>): D
 
     inner class Mapper(
         override val input: Operator<out Retrievable>,
@@ -49,7 +37,8 @@ abstract class DescriptorFieldMapper<D : Descriptor<*>> : Analyser<ContentElemen
 
         override fun toFlow(scope: CoroutineScope) = this.input.toFlow(scope).onEach { retrievable ->
 
-            val ids = retrievable.filteredAttribute(DescriptorAuthorAttribute::class.java)?.getDescriptorIds(authorName) ?: return@onEach
+            val ids = retrievable.filteredAttribute(DescriptorAuthorAttribute::class.java)?.getDescriptorIds(authorName)
+                ?: return@onEach
             val descriptors = retrievable.descriptors.filter { it.id in ids }
 
             if (descriptors.isEmpty()) {
@@ -78,35 +67,24 @@ abstract class DescriptorFieldMapper<D : Descriptor<*>> : Analyser<ContentElemen
 
     }
 
-    override fun newExtractor(
-        name: String,
-        input: Operator<Retrievable>,
-        context: IndexContext
-    ): Extractor<ContentElement<*>, D> {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, D>, input: Operator<out Retrievable>, context: Context): Extractor<ContentElement<*>, D> {
+        val authorName = field.parameters[AUTHORNAME_PARAMETER_NAME] ?: throw IllegalArgumentException("'$AUTHORNAME_PARAMETER_NAME' is not defined")
+        return Mapper(input, field, authorName)
+    }
+
+    override fun newExtractor(name: String, input: Operator<out Retrievable>, context: Context): Extractor<ContentElement<*>, D> {
         throw UnsupportedOperationException("DescriptorPersister required backing field")
     }
 
-    override fun newRetrieverForQuery(
-        field: Schema.Field<ContentElement<*>, D>,
-        query: Query,
-        context: QueryContext
-    ): Retriever<ContentElement<*>, D> {
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, D>, query: Query, context: Context): Retriever<ContentElement<*>, D> {
         throw UnsupportedOperationException("DescriptorPersister does not support retrieval")
     }
 
-    override fun newRetrieverForContent(
-        field: Schema.Field<ContentElement<*>, D>,
-        content: Collection<ContentElement<*>>,
-        context: QueryContext
-    ): Retriever<ContentElement<*>, D> {
+    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, D>, content: Map<String, ContentElement<*>>, context: Context): Retriever<ContentElement<*>, D> {
         throw UnsupportedOperationException("DescriptorPersister does not support retrieval")
     }
 
-    override fun newRetrieverForDescriptors(
-        field: Schema.Field<ContentElement<*>, D>,
-        descriptors: Collection<D>,
-        context: QueryContext
-    ): Retriever<ContentElement<*>, D> {
+    override fun newRetrieverForDescriptors(field: Schema.Field<ContentElement<*>, D>, descriptors: Collection<D>, context: Context): Retriever<ContentElement<*>, D> {
         throw UnsupportedOperationException("DescriptorPersister does not support retrieval")
     }
 }

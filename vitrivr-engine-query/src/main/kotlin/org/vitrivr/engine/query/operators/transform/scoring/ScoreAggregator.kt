@@ -27,7 +27,9 @@ class ScoreAggregator(
         }
         val relationships = retrieved.relationships.filterIsInstance<Relationship.ByRef>()
         if (relationships.isNotEmpty()) {
-            val scores = relationships.filter { rel -> rel.predicate in this.relations && rel.objectId == retrieved.id }.map { it.subject.filteredAttribute(ScoreAttribute::class.java)?.score ?: 0.0 }
+            val scores = relationships.filter { rel -> rel.predicate in this.relations && rel.subjectId == retrieved.id }.map {
+                it.subject.filteredAttribute(ScoreAttribute::class.java)?.score ?: 0.0
+            }
             val score = if (scores.isEmpty()) {
                 0.0
             } else {

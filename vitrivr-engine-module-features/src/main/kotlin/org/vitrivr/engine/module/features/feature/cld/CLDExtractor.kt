@@ -22,8 +22,8 @@ import org.vitrivr.engine.core.source.file.FileSource
  */
 class CLDExtractor : AbstractExtractor<ImageContent, FloatVectorDescriptor> {
 
-    constructor(input: Operator<Retrievable>, analyser: CLD, field: Schema.Field<ImageContent, FloatVectorDescriptor>) : super(input, analyser, field)
-    constructor(input: Operator<Retrievable>, analyser: CLD, name: String) : super(input, analyser, name)
+    constructor(input: Operator<out Retrievable>, analyser: CLD, field: Schema.Field<ImageContent, FloatVectorDescriptor>) : super(input, analyser, field)
+    constructor(input: Operator<out Retrievable>, analyser: CLD, name: String) : super(input, analyser, name)
 
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
