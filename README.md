@@ -101,7 +101,9 @@ file.
 ##### Docker Setup
 
 Alternatively, you can use the Docker image to run `vitrivr-engine`: With the help of the docker-compose file, you can
-set up a PostgreSQL database with `pgVector`, an external instance to extract features and the `vitrivr-engine` server.
+set up a PostgreSQL database with `pgVector`, an external instance to extract features and the `vitrivr-engine` server. 
+Note: The video feature extraction using the docker image is currently not supported when running on Apple Silicon 
+(e.g., M1, M2, M3) due to architecture compatibility issues.
 
 Run the following command to start the Docker containers:
 
@@ -553,3 +555,6 @@ A good starting point are the 'good first issue' issues.
 ## Citation
 
 See [Citation](https://github.com/vitrivr/vitrivr-engine/wiki/Home#Citation)
+
+## Acknowledgement
+This work has received funding from the European Union’s Horizon Europe Research and Innovation Programme under grant agreement No 101070250 [XReco](https://xreco.eu/).
