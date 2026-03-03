@@ -6,6 +6,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.operators.general.Exporter
 import org.vitrivr.engine.core.resolver.Resolver
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 
 
@@ -15,12 +16,12 @@ import java.nio.file.Paths
  * @see [Schema]
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 @Serializable
 data class SchemaConfig(
-    /** Name of the [Schema]. */
-    var name: String = "vitrivr",
+    /** The [Path] used as schema root. Relative paths in the configuration should be resolved relative to this root. */
+    val root: Path? = null,
 
     /** The (database) [ConnectionConfig] for this [SchemaConfig]. */
     val connection: ConnectionConfig,

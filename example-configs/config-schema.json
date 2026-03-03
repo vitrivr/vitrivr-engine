@@ -1,14 +1,13 @@
 {
-  "schemas": {
-    "sandbox": {
+  "schema": {
+    "example": {
       "connection": {
         "database": "PgVectorConnectionProvider",
         "parameters": {
-          "host": "localhost",
+          "host": "10.34.64.127",
           "port": "5432",
-          "database": "postgres",
           "username": "postgres",
-          "password": "password"
+          "password": "vitrivr"
         }
       },
       "fields": {
@@ -18,22 +17,25 @@
         "file": {
           "factory": "FileSourceMetadata"
         },
-        "time": {
-          "factory": "TemporalMetadata"
-        },
         "clip": {
           "factory": "CLIP",
           "parameters": {
-            "host": "http://localhost:8888"
+            "host": "http://10.34.64.208:8888/",
+            "limit": "1"
           }
+        },
+        "time": {
+          "factory": "TemporalMetadata"
+        },
+        "video": {
+          "factory": "VideoSourceMetadata"
         }
       },
       "resolvers": {
-        "disk": {
+        "thumbnails": {
           "factory": "DiskResolver",
           "parameters": {
-            "location": "./sandbox/thumbnails",
-            "mimeType": "JPG"
+            "location": "/path/to/thumbnails"
           }
         }
       },
@@ -41,21 +43,20 @@
         "thumbnail": {
           "factory": "ThumbnailExporter",
           "parameters": {
-            "maxSideResolution": "400",
-            "mimeType": "JPG",
-            "resolver": "disk"
+            "resolver": "thumbnails",
+            "maxSideResolution": "500",
+            "mimeType": "JPG"
           }
         }
       },
       "extractionPipelines": {
-        "image": {
+        "img": {
           "path": "./example-configs/image-ingest.json"
         },
-        "video": {
+        "vid": {
           "path": "./example-configs/video-ingest.json"
         }
       }
     }
   }
 }
-

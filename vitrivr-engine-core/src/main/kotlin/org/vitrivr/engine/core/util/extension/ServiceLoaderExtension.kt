@@ -9,8 +9,8 @@ import java.util.*
  * @return The loaded service.
  */
 inline fun <reified T : Any> loadServiceForName(name: String): T? {
-    val clazz = T::class.java
-    val candidates = ServiceLoader.load(clazz)
+
+    val candidates = loadServiceCandidates<T>()
     return if (name.contains('.')) {
         candidates.find { it::class.java.name == name }
     } else {
@@ -18,9 +18,21 @@ inline fun <reified T : Any> loadServiceForName(name: String): T? {
         if (filtered.size == 1) {
             return filtered.first()
         } else if (filtered.size > 1) {
-            throw IllegalArgumentException("The simple class name '$name' is not unique for type $clazz.")
+            throw IllegalArgumentException("The simple class name '$name' is not unique for type ${T::class.java}.")
         } else {
             return null
         }
     }
+}
+
+/**
+ * This utility function loads a service given a class name. The class name can either be simple or fully qualified.
+ *
+ * @param name The name of the class to load as service.
+ * @return The loaded service.
+ */
+inline fun <reified T : Any> loadServiceCandidates(): ServiceLoader<T> {
+    val clazz = T::class.java
+    val candidates = ServiceLoader.load(clazz)
+    return candidates
 }

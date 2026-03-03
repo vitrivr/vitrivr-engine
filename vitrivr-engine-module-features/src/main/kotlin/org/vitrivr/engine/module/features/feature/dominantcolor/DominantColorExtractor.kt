@@ -13,8 +13,8 @@ import org.vitrivr.engine.core.source.file.FileSource
 
 class DominantColorExtractor : AbstractExtractor<ImageContent, LabelDescriptor> {
 
-    constructor(input: Operator<Retrievable>, analyser: DominantColor, field: Schema.Field<ImageContent, LabelDescriptor>): super(input, analyser, field)
-    constructor(input: Operator<Retrievable>, analyser: DominantColor, name: String): super(input, analyser, name)
+    constructor(input: Operator<out Retrievable>, analyser: DominantColor, field: Schema.Field<ImageContent, LabelDescriptor>): super(input, analyser, field)
+    constructor(input: Operator<out Retrievable>, analyser: DominantColor, name: String): super(input, analyser, name)
 
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.

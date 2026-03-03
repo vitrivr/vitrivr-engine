@@ -6,6 +6,7 @@ import org.vitrivr.engine.base.features.external.api.ImageCaptioningApi
 import org.vitrivr.engine.base.features.external.common.ExternalFesAnalyser
 import org.vitrivr.engine.base.features.external.common.FesExtractor
 import org.vitrivr.engine.base.features.external.implementations.caption.ImageCaption.Companion.PROMPT_PARAMETER_NAME
+import org.vitrivr.engine.core.context.Context
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.content.impl.memory.InMemoryTextContent
@@ -17,26 +18,21 @@ import java.util.*
 
 val logger = KotlinLogging.logger {}
 
-/**
- *
- * @author Ralph Gasser
- * @version 1.0
- */
 class ImageCaptionExtractor : FesExtractor<ImageContent, TextDescriptor> {
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         field: Schema.Field<ImageContent, TextDescriptor>,
         analyser: ExternalFesAnalyser<ImageContent, TextDescriptor>,
-        parameters: Map<String, String>
-    ) : super(input, field, analyser, parameters)
+        context: Context
+    ) : super(input, field, analyser, context)
 
     constructor(
-        input: Operator<Retrievable>,
+        input: Operator<out Retrievable>,
         name: String,
         analyser: ExternalFesAnalyser<ImageContent, TextDescriptor>,
-        parameters: Map<String, String>
-    ) : super(input, name, analyser, parameters)
+        context: Context
+    ) : super(input, name, analyser, context)
 
 
     /** The [ImageCaptioningApi] used to perform extraction with. */
@@ -75,13 +71,13 @@ class ImageCaptionExtractor : FesExtractor<ImageContent, TextDescriptor> {
         return results
     }
 
-    override fun extract(retrievables: List<Retrievable>): List<List<TextDescriptor>> {
+    override fun extract(batch: List<Retrievable>): List<List<TextDescriptor>> {
 
-        val content = retrievables.map { it.content }
+        val content = batch.map { it.content }
         val imageContents = content.map { it.filterIsInstance<ImageContent>() }
 
-        val texts : List<List<String?>> = content.map { it.filterIsInstance<TextContent>().map { it.content } }.mapIndexed { index, text -> if (text.isEmpty()) {
-            List(imageContents[index].size) { this.parameters[PROMPT_PARAMETER_NAME] }
+        val texts : List<List<String?>> = content.map { it.filterIsInstance<TextContent>().map { c -> c.text } }.mapIndexed { index, text -> if (text.isEmpty()) {
+                List(imageContents[index].size) { this.context[this.name, PROMPT_PARAMETER_NAME]!! }
             } else {
                 if (text.size != 1) {
                     logger.warn { "Text content has more than one element. Only the first element will be used as an image captioning prompt." }
@@ -94,8 +90,8 @@ class ImageCaptionExtractor : FesExtractor<ImageContent, TextDescriptor> {
 
         var index = 0
 
-        return retrievables.map { retrievable ->
-            retrievables.map { it.content }.mapNotNull {
+        return batch.map { retrievable ->
+            batch.map { it.content }.mapNotNull {
                 if (it !is ImageContent) {
                     null
                 } else {

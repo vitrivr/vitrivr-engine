@@ -5,14 +5,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.model.content.ContentType
 import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.content.factory.ContentFactory
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
+import org.vitrivr.engine.core.operators.OperatorFactory
 import org.vitrivr.engine.core.operators.general.Transformer
-import org.vitrivr.engine.core.operators.general.TransformerFactory
 
 private val logger = KotlinLogging.logger {}
 
@@ -21,34 +20,41 @@ private val logger = KotlinLogging.logger {}
  * A [Transformer] that takes an input template with placeholders and inserts content from fields in their place.
  *
  * @author Laura Rettig
- * @version 1.2.0
+ * @version 1.3.0
  */
-class TemplateTextTransformer : TransformerFactory {
+class TemplateTextTransformer : OperatorFactory {
 
     companion object {
         /** [Regex] used by [TemplateTextTransformer]. */
-        private val TEMPLATE_REGEX: Regex = "\\$\\{([^}]+)\\}".toRegex()
+        private val TEMPLATE_REGEX: Regex = "\\$\\{([^}]+)}".toRegex()
 
         /** Default value for [TemplateTextTransformer]. */
         private const val DEFAULT_VALUE = "No content available."
     }
 
-
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): Transformer {
+    /**
+     * Creates a new [Instance] instance from this [ContentSamplingTransformer].
+     *
+     * @param name the name of the [ContentSamplingTransformer.Instance]
+     * @param inputs Map of named input [Operator]s
+     * @param context The [Context] to use.
+     */
+    override fun newOperator(name: String, inputs: Map<String, Operator<out Retrievable>>, context: Context): Operator<out Retrievable> {
+        require(inputs.size == 1)  { "The ${this::class.simpleName} only supports one input operator. If you want to combine multiple inputs, use explicit merge strategies." }
         val template = context[name, "template"] ?: throw IllegalArgumentException("The template text transformer requires a template.")
-        val contentFields = TEMPLATE_REGEX.findAll(template).map { it.groupValues[1] }.toList()
         val defaultValue = context[name, "defaultValue"] ?: DEFAULT_VALUE
-        return Instance(
-            input = input,
-            contentFactory = (context as IndexContext).contentFactory,
-            template = template,
-            contentFields = contentFields,
-            defaultValue = defaultValue,
-            name = name
-        )
+        val contentFields = TEMPLATE_REGEX.findAll(template).map { it.groupValues[1] }.toList()
+        return Instance(name, inputs.values.first(), context.contentFactory,template, contentFields, defaultValue)
     }
 
-    private class Instance(override val input: Operator<out Retrievable>, val contentFactory: ContentFactory, val template: String, val contentFields: List<String>, val defaultValue: String, override val name: String) : Transformer {
+    private class Instance(
+        override val name: String,
+        override val input: Operator<out Retrievable>,
+        val contentFactory: ContentFactory,
+        val template: String,
+        val contentFields: List<String>,
+        val defaultValue: String,
+    ) : Transformer {
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> = flow {
             input.toFlow(scope).collect { retrievable: Retrievable ->
                 var mergedContent = template
@@ -58,7 +64,7 @@ class TemplateTextTransformer : TransformerFactory {
                     val contentIds = retrievable.content.filterIsInstance<TextContent>().map { it.id }
 
                     val fieldContent = StringBuilder()
-                    contentIds.forEach{ id ->
+                    contentIds.forEach { id ->
                         retrievable.content.find { it.id == id && it.type == ContentType.TEXT }?.content?.let {
                             fieldContent.append(it)
                         }

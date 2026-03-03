@@ -1,37 +1,20 @@
 package org.vitrivr.engine.core.context
 
-import io.javalin.openapi.OpenApiIgnore
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import org.vitrivr.engine.core.model.content.factory.ContentFactory
-import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.resolver.Resolver
 
 /**
- * The [IngestionContextConfig] describes the [IndexContext] to be used during ingestion.
+ * The [IngestionContextConfig] describes the [Context] to be used during ingestion.
  *
  * @author Loris Sauter
  * @version 1.0.0
  */
 @Serializable
 class IngestionContextConfig(
-
-    /** The simple or fully qualified class name of the [ContentFactory] to be used to construct the [IndexContext] */
+    /** The simple or fully qualified class name of the [ContentFactory] to be used to construct the [Context] */
     val contentFactory: String,
 
     /** The name of the [Resolver]s to be used during ingestion */
-    val resolvers: List<String>,
-
-    /** [Map] of local parameters (applied to one operator). */
-    override val local: Map<String, Map<String, String>> = emptyMap(),
-
-    /** [Map] of global parameters. */
-    override val global: Map<String, String> = emptyMap()
-) : Context() {
-
-    @Transient
-    @get:OpenApiIgnore
-    @set:OpenApiIgnore
-    override lateinit var schema: Schema
-
-}
+    val resolvers: List<String>
+)

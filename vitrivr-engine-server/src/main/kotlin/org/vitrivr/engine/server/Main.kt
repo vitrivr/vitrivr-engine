@@ -29,12 +29,13 @@ private val executionServer = ExecutionServer()
  */
 fun main(args: Array<String>) {
     /* Load system configuration. */
-    val config = ServerConfig.read(Paths.get(args.getOrElse(0) { DEFAULT_SCHEMA_PATH })) ?: exitProcess(1)
+    val path = Paths.get(args.getOrElse(0) { DEFAULT_SCHEMA_PATH })
+    val config = ServerConfig.read(path) ?: exitProcess(1)
 
     /* Setup schema manager. */
     val manager = SchemaManager()
     for ((name, schemaConfig) in config.schemas) {
-        manager.load(name, schemaConfig)
+        manager.load(name, schemaConfig, path.parent)
     }
 
     /* Execution server singleton for this instance. */

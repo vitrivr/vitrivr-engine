@@ -28,7 +28,11 @@ class DiskResolver : ResolverFactory {
      */
     override fun newResolver(schema: Schema, parameters: Map<String, String>): Resolver {
         val location = Paths.get(parameters["location"] ?: "./thumbnails/${schema.name}")
-        return Instance(location)
+        return if (location.isAbsolute) {
+            Instance(location)
+        } else {
+            Instance(schema.root.resolve(location))
+        }
     }
 
     /**

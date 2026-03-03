@@ -1,15 +1,18 @@
 package org.vitrivr.engine.query.operators.transform.filter
 
 import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.query.basics.ComparisonOperator
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.general.TransformerFactory
+import org.vitrivr.engine.core.operators.OperatorFactory
 
-class LateFilterFactory() : TransformerFactory {
-    override fun newTransformer(name: String, input: Operator<out Retrievable>, context: Context): LateFilter {
-        require(context is QueryContext)
+class LateFilterFactory() : OperatorFactory {
+    override fun newOperator(
+        name: String,
+        inputs: Map<String, Operator<out Retrievable>>,
+        context: Context
+    ): LateFilter {
+        require(context is Context)
         val field =
             context[name, "field"] ?: throw IllegalArgumentException("expected 'field' to be defined in properties")
         val comparison = context[name, "comparison"]
@@ -24,6 +27,15 @@ class LateFilterFactory() : TransformerFactory {
         } else {
             emptyList()
         }
-        return LateFilter(input, field, keys, ComparisonOperator fromString comparison, value, limit, Skip fromString skip, name)
+        return LateFilter(
+            inputs.values.first(),
+            field,
+            keys,
+            ComparisonOperator fromString comparison,
+            value,
+            limit,
+            Skip fromString skip,
+            name
+        )
     }
 }

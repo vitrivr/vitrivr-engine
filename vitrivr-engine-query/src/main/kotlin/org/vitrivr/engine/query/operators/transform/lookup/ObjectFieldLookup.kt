@@ -47,6 +47,7 @@ class ObjectFieldLookup(override val input: Operator<out Retrievable>,
             emptyMap()
         }
 
+
         /* Emit input. */
         inputRetrieved.forEach { it ->
             val relationships = it.relationships.toMutableSet() /* This is a hack to work around the immutability of Retrievables. */
