@@ -1,0 +1,13 @@
+{
+  "inputs": {
+    "txt": {"type": "TEXT", "data": "Giraffe"}
+  },
+  "operations": {
+    "f":       {"field": "ocr", "inputs":{"txt":"txt"}, "parameters": {"limit": "1"}},
+    "relations":  {"factory": "RelationExpander", "inputs":{"in": "f"}, "parameters": {"outgoing": "partOf"}},
+    "aggregator": {"factory": "ScoreAggregator", "inputs":{"in": "relations"}},
+    "timelookup": {"factory": "FieldLookup",  "inputs": {"in":"aggregator"}, "parameters": {"field": "time", "keys": "start, end"}},
+    "filelookup": {"factory": "ObjectFieldLookup",  "inputs": {"in":"timelookup"}, "parameters": {"field": "file", "predicates": "partOf", "keys": "path"}}
+  },
+  "output": "filelookup"
+}

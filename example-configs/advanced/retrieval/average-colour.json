@@ -1,0 +1,12 @@
+{
+  "inputs": {
+    "vec": {"type": "FLOATVECTOR", "data": ["0.46182963","0.4542705","0.48161617"]}
+  },
+  "operations": {
+    "avgcol":     {"field": "averagecolor", "inputs":{"in":"vec"}, "parameters": {"limit": "10"}},
+    "relations":  {"factory": "RelationExpander", "inputs":{"in": "avgcol"}, "parameters": {"outgoing": "partOf"}},
+    "aggregator": {"factory": "ScoreAggregator", "inputs":{"in": "relations"}},
+    "filelookup": {"factory": "FieldLookup",  "inputs": {"in":"aggregator"}, "parameters": {"field": "file", "keys": "path"}}
+  },
+  "output": "filelookup"
+}
