@@ -1,0 +1,94 @@
+{
+  "schema": "sandbox",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolvers":["thumbnails"]
+  },
+  "operators": {
+    "enumerator": {
+      "factory": "FileSystemEnumerator",
+      "parameters": {
+        "path": "/path/to/videos",
+        "depth": "3",
+        "mediaTypes": "VIDEO"
+      }
+    },
+    "decoder": {
+      "factory": "VideoDecoder",
+      "parameters": {
+        "timeWindowMs": "1000"
+      }
+    },
+    "metadata":{
+      "field": "video"
+    },
+    "source":{
+      "field": "file"
+    },
+    "aggregator": {
+      "factory": "MiddleContentAggregator"
+    },
+    "persister": {
+      "factory": "PersistRetrievableTransformer"
+    },
+    "time": {
+      "field": "time"
+    },
+    "averagecolor": {
+      "field": "averagecolor"
+    },
+    "clip": {
+      "field": "clip"
+    },
+    "dino": {
+      "field": "dino"
+    },
+    "asr": {
+      "field": "asr"
+    },
+    "ocr": {
+      "field": "ocr"
+    },
+    "thumbnail": {
+      "exporter": "thumbnail"
+    },
+    "segmenter": {
+      "factory": "AdaptiveChangeSegmenter",
+      "parameters": {
+        "minDuration": "1000",
+        "maxDuration": "100000",
+        "sampleInterval": "1000",
+        "threshold": "0.05",
+        "signals": "clip",
+        "clipWeight": "1.0"
+      }
+    },
+    "filter": {
+      "factory": "TypeFilterTransformer",
+      "parameters": {
+        "type": "SOURCE:VIDEO"
+      }
+    }
+  },
+  "operations": {
+    "enumerator": {"operator": "enumerator"},
+    "decoder": {"operator": "decoder", "inputs": ["enumerator"]},
+    "segmenter": {"operator": "segmenter", "inputs": ["decoder"]},
+    "middle": {"operator": "aggregator", "inputs": ["segmenter"]},
+    "persist": {"operator": "persister", "inputs": ["middle"]},
+
+    "metadata": {"operator": "metadata", "inputs": ["persist"]},
+    "source": {"operator": "source", "inputs": ["persist"]},
+    "time": {"operator": "time", "inputs": ["persist"]},
+    "clip": {"operator": "clip", "inputs": ["persist"]},
+    "thumbnail": {"operator": "thumbnail", "inputs": ["persist"]}
+  },
+  "output": [
+    "thumbnail",
+    "metadata",
+    "source",
+    "time",
+    "clip"
+  ],
+  "mergeType": "MERGE"
+}
