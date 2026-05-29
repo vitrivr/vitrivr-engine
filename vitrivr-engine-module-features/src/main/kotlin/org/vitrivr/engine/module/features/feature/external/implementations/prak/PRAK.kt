@@ -238,7 +238,8 @@ class PRAK : ExternalAnalyser<ContentElement<*>, TextDescriptor>() {
             context = context,
             hostname = host,
             k = k,
-            matchAttributeName = matchAttribute
+            matchAttributeName = matchAttribute,
+            schema=field.schema.name
         )
     }
 }
