@@ -27,6 +27,7 @@ class PRAKExternalRetriever<C : ContentElement<*>>(
     context: Context,
     private val hostname: String,
     private val k: Int,
+    private val schema: String,
     private val matchAttributeName: String = "uri"
 ) : AbstractRetriever<C, TextDescriptor>(
     field,
@@ -48,6 +49,7 @@ class PRAKExternalRetriever<C : ContentElement<*>>(
         val requestBody = json.encodeToString(
             PrakQueryRequest(
                 k = k,
+                dataset = schema,
                 queries = queryText
             )
         )
@@ -84,7 +86,7 @@ class PRAKExternalRetriever<C : ContentElement<*>>(
                         id = result.id,
                         labels = result.label,
                         time = result.time
-                    )
+                    ).toPropertyAttribute()
                 )
                 val retrieved = Retrieved(
                     id = UUID.randomUUID(),
