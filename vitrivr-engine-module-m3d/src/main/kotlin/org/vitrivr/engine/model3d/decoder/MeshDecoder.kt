@@ -14,6 +14,8 @@ import org.vitrivr.engine.core.operators.ingest.Decoder
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.Source
 import org.vitrivr.engine.model3d.ModelLoader
+import org.vitrivr.engine.model3d.ModelPreviewExporter
+import org.vitrivr.engine.model3d.renderer.ExternalRenderer
 import java.io.IOException
 
 private val logger: KLogger = KotlinLogging.logger {}
@@ -53,8 +55,10 @@ class MeshDecoder : OperatorFactory {
          * @param scope The [CoroutineScope] used for conversion.
          * @return [Flow] of [Retrievable ]
          */
-        override fun toFlow(scope: CoroutineScope): Flow<Retrievable> =
-            this.input.toFlow(scope).mapNotNull { retrievable ->
+        override fun toFlow(scope: CoroutineScope): Flow<Retrievable> {
+            val renderer = ExternalRenderer()
+
+            return this.input.toFlow(scope).mapNotNull { retrievable ->
                 val source = retrievable.filteredAttribute(SourceAttribute::class.java)?.source
                 if (source?.type != MediaType.MESH) {
                     logger.debug { "Skipping retrievable ${retrievable.id} because it is not of type MESH." }
@@ -66,18 +70,46 @@ class MeshDecoder : OperatorFactory {
                 try {
                     val handler = ModelLoader()
                     val model = source.newInputStream().use {
-                        handler.loadModel(source.sourceId.toString(), it) // Pass InputStream directly
+                        handler.loadModel(source.sourceId.toString(), it)
+                    } ?: throw IllegalStateException(
+                        "ModelLoader returned null for source ${source.name} (${source.sourceId})."
+                    )
+
+                    val modelContent = this.context.contentFactory.newMeshContent(model)
+
+                    val previewContent = try {
+                        logger.info {
+                            "Rendering model preview for source ${source.name} (${source.sourceId})"
+                        }
+
+                        val preview = ModelPreviewExporter.renderPreviewJPEG(
+                            model = model,
+                            renderer = renderer
+                        )
+
+                        this.context.contentFactory.newImageContent(preview)
+                    } catch (e: Exception) {
+                        logger.warn(e) {
+                            "Failed to render model preview for source ${source.name} (${source.sourceId}). Continuing without preview ImageContent."
+                        }
+                        null
                     }
-                    val modelContent = this.context.contentFactory.newMeshContent(model!!)
+
                     logger.info { "Model decoded successfully for source ${source.name} (${source.sourceId})" }
-                    retrievable.copy(content = retrievable.content + modelContent)
+
+                    retrievable.copy(
+                        content = retrievable.content + modelContent + listOfNotNull(previewContent)
+                    )
                 } catch (e: IOException) {
                     logger.error(e) { "Failed to decode 3D model from $source due to an IO exception." }
                     throw e
                 } catch (e: Throwable) {
-                    logger.error(e) { "Failed to decode 3D model from source '${source.name}' (${source.sourceId}) due to exception: ${e.message}" }
+                    logger.error(e) {
+                        "Failed to decode 3D model from source '${source.name}' (${source.sourceId}) due to exception: ${e.message}"
+                    }
                     throw e
                 }
             }
+        }
     }
 }
