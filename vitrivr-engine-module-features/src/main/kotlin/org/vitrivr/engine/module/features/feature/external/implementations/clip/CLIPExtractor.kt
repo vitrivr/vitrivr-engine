@@ -38,8 +38,14 @@ class CLIPExtractor : AbstractExtractor<ContentElement<*>, FloatVectorDescriptor
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,
      */
-    override fun matches(retrievable: Retrievable): Boolean = retrievable.content.any { it.type == ContentType.BITMAP_IMAGE }
-
+    override fun matches(retrievable: Retrievable): Boolean {
+        val match = retrievable.content.any { it is ImageContent }
+        logger.debug {
+            "CLIP matches ${retrievable.id}: $match; content=" +
+                    retrievable.content.joinToString { it::class.simpleName ?: "unknown" }
+        }
+        return match
+    }
     /**
      * Internal method to perform extraction on [Retrievable].
      **
