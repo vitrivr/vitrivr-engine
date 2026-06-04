@@ -219,37 +219,85 @@ class ModelPreviewExporter : OperatorFactory {
 
         override fun toFlow(scope: CoroutineScope): Flow<Retrievable> {
             val renderer = ExternalRenderer()
+
             return this.input.toFlow(scope).onEach { retrievable ->
-                val source =
-                    retrievable.filteredAttribute(SourceAttribute::class.java)?.source ?: return@onEach
-                if (source.type == MediaType.MESH) {
-                    val resolvable = this.resolver.resolve(retrievable.id, ".${this.format.fileExtension}")
+                val source = retrievable.filteredAttribute(SourceAttribute::class.java)?.source
+                    ?: return@onEach
 
-                    val model = retrievable.content[0].content as Model3d
-                    if (resolvable != null) {
-                        logger.debug {
-                            "Generating preview for ${retrievable.id} with ${retrievable.type} and resolution $maxResolution. Storing it with ${resolvable::class.simpleName}."
-                        }
+                if (source.type != MediaType.MESH) {
+                    return@onEach
+                }
 
-                        source.newInputStream().use { input ->
-                            when (format) {
-                                MimeType.JPG,
-                                MimeType.JPEG -> {
-                                    val preview: BufferedImage = renderPreviewJPEG(model, renderer, this.distance)
-                                    resolvable.openOutputStream().use { output ->
-                                        ImageIO.write(preview, "jpg", output)
-                                    }
-                                }
+                val resolvable = this.resolver.resolve(
+                    retrievable.id,
+                    ".${this.format.fileExtension}"
+                )
 
-                                MimeType.GIF -> {
-                                    val frames = createFramesForGif(model, renderer, this.views, this.distance)
-                                    val gif = createGif(frames, 50)
-                                    resolvable.openOutputStream().use { output -> output.write(gif!!.toByteArray()) }
-                                }
+                if (resolvable == null) {
+                    logger.warn {
+                        "Could not resolve output location for model preview of ${retrievable.id}."
+                    }
+                    return@onEach
+                }
 
-                                else -> throw IllegalArgumentException("Unsupported mime type $format")
+                val model = retrievable.content
+                    .firstOrNull { it.content is Model3d }
+                    ?.content as? Model3d
+
+                if (model == null) {
+                    logger.warn {
+                        "No Model3d content found for ${retrievable.id}; skipping model preview export."
+                    }
+                    return@onEach
+                }
+
+                logger.debug {
+                    "Generating preview for ${retrievable.id} with ${retrievable.type} " +
+                            "and resolution $maxResolution. Storing it with ${resolvable::class.simpleName}."
+                }
+
+                try {
+                    when (format) {
+                        MimeType.JPG,
+                        MimeType.JPEG -> {
+                            val preview = renderPreviewJPEG(
+                                model = model,
+                                renderer = renderer,
+                                distance = this.distance
+                            )
+
+                            resolvable.openOutputStream().use { output ->
+                                ImageIO.write(preview, "jpg", output)
                             }
                         }
+
+                        MimeType.GIF -> {
+                            val frames = createFramesForGif(
+                                model = model,
+                                renderer = renderer,
+                                views = this.views,
+                                distance = this.distance
+                            )
+
+                            val gif = createGif(frames, 50)
+
+                            if (gif == null) {
+                                logger.warn {
+                                    "Failed to create GIF preview for ${retrievable.id}."
+                                }
+                                return@onEach
+                            }
+
+                            resolvable.openOutputStream().use { output ->
+                                output.write(gif.toByteArray())
+                            }
+                        }
+
+                        else -> throw IllegalArgumentException("Unsupported mime type $format")
+                    }
+                } catch (e: Exception) {
+                    logger.error(e) {
+                        "Failed to generate model preview for ${retrievable.id}."
                     }
                 }
             }
