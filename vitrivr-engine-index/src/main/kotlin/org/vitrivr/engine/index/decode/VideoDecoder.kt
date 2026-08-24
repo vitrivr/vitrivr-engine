@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn
-import org.bytedeco.javacpp.PointerScope
 import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.Frame
 import org.bytedeco.javacv.FrameGrabber
@@ -60,7 +59,9 @@ class VideoDecoder : OperatorFactory {
         val audio = context[name, "audio"]?.let { it.lowercase() == "true" } != false
         val keyFrames = context[name, "keyFrames"]?.let { it.lowercase() == "true" } ?: false
         val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
-        return Instance(name, inputs.values.first(), context, video, audio, keyFrames, timeWindowMs)
+        val videoSampleIntervalMs = context[name, "videoSampleIntervalMs"]?.toLongOrNull() ?: 0L
+        require(videoSampleIntervalMs >= 0L) { "Property 'videoSampleIntervalMs' must not be negative." }
+        return Instance(name, inputs.values.first(), context, video, audio, keyFrames, timeWindowMs, videoSampleIntervalMs)
     }
 
     /**
@@ -73,7 +74,8 @@ class VideoDecoder : OperatorFactory {
         private val video: Boolean = true,
         private val audio: Boolean = true,
         private val keyFrames: Boolean = false,
-        private val timeWindowMs: Long = 500L
+        private val timeWindowMs: Long = 500L,
+        private val videoSampleIntervalMs: Long = 0L
     ) : Decoder {
 
         /** [KLogger] instance. */
@@ -136,6 +138,7 @@ class VideoDecoder : OperatorFactory {
             grabber.sampleMode = FrameGrabber.SampleMode.SHORT
 
             logger.info { "Start decoding source ${source.name} (${source.sourceId}): ${sourceRetrievable.id}" }
+            val imageConverter = Java2DFrameConverter()
             try {
                 grabber.start()
 
@@ -156,6 +159,8 @@ class VideoDecoder : OperatorFactory {
                 /* Flags indicating that video / audio is ready to be emitted. */
                 var videoReady = !(grabber.hasVideo() && this@Instance.video)
                 var audioReady = !(grabber.hasAudio() && this@Instance.audio)
+                val videoSampleIntervalMicros = TimeUnit.MILLISECONDS.toMicros(this@Instance.videoSampleIntervalMs)
+                var nextVideoSampleMicros = videoSampleIntervalMicros / 2L
 
                 do {
                     val frame =
@@ -163,13 +168,26 @@ class VideoDecoder : OperatorFactory {
                             ?: break
                     when (frame.type) {
                         Frame.Type.VIDEO -> {
-                            imageBuffer.add(
-                                (try {
-                                PointerScope().use { scope -> Java2DFrameConverter().convert(frame) to frame.timestamp }
-                            } catch (e: Exception) {
-                                logger.error(e) { "Error converting frame to BufferedImage" }
-                                null
-                            })!!)
+                            if (videoSampleIntervalMicros == 0L || frame.timestamp >= nextVideoSampleMicros) {
+                                try {
+                                    imageConverter.convert(frame)?.let { image ->
+                                        val retainedImage = BufferedImage(
+                                            image.colorModel,
+                                            image.copyData(null),
+                                            image.isAlphaPremultiplied,
+                                            null
+                                        )
+                                        imageBuffer.add(retainedImage to frame.timestamp)
+                                    }
+                                } catch (e: Exception) {
+                                    logger.error(e) { "Error converting frame to BufferedImage" }
+                                }
+                                if (videoSampleIntervalMicros > 0L) {
+                                    do {
+                                        nextVideoSampleMicros += videoSampleIntervalMicros
+                                    } while (nextVideoSampleMicros <= frame.timestamp)
+                                }
+                            }
                             if (frame.timestamp > windowEnd) {
                                 videoReady = true
                             }
@@ -212,6 +230,7 @@ class VideoDecoder : OperatorFactory {
                 error = true
                 logger.error(exception) { "Failed to decode video from source '${source.name}' (${source.sourceId})." }
             } finally {
+                imageConverter.close()
                 grabber.stop()
             }
 
@@ -272,6 +291,7 @@ class VideoDecoder : OperatorFactory {
             val relationship = src?.let {
                 Relationship.ById(retrievableId, "partOf", it.source.sourceId, false)
             }
+            src?.let { attributes.add(it) }
 
             /* Add time range. */
             attributes.add(
