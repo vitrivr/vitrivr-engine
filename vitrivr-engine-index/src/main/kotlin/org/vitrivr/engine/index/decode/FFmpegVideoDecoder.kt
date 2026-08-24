@@ -62,8 +62,12 @@ class FFmpegVideoDecoder : OperatorFactory {
         val video = context[name, "video"]?.let { it.lowercase() == "true" } != false
         val audio = context[name, "audio"]?.let { it.lowercase() == "true" } != false
         val timeWindowMs = context[name, "timeWindowMs"]?.toLongOrNull() ?: 500L
+        val videoSampleIntervalMs = context[name, "videoSampleIntervalMs"]?.toLongOrNull() ?: 0L
+        val videoSampleSize = context[name, "videoSampleSize"]?.toIntOrNull() ?: 0
+        require(videoSampleIntervalMs >= 0L) { "Property 'videoSampleIntervalMs' must not be negative." }
+        require(videoSampleSize >= 0) { "Property 'videoSampleSize' must not be negative." }
         val ffmpegPath = context[name, "ffmpegPath"]?.let { Path.of(it) }
-        return Instance(name, inputs.values.first(), context, video, audio, timeWindowMs, ffmpegPath)
+        return Instance(name, inputs.values.first(), context, video, audio, timeWindowMs, videoSampleIntervalMs, videoSampleSize, ffmpegPath)
     }
 
     /**
@@ -76,6 +80,8 @@ class FFmpegVideoDecoder : OperatorFactory {
         private val video: Boolean = true,
         private val audio: Boolean = true,
         private val timeWindowMs: Long = 500L,
+        private val videoSampleIntervalMs: Long = 0L,
+        private val videoSampleSize: Int = 0,
         private val ffmpegPath: Path? = null,
     ) : Decoder {
 
@@ -136,11 +142,25 @@ class FFmpegVideoDecoder : OperatorFactory {
                     if (!this@Instance.audio) {
                         output = output.disableStream(StreamType.AUDIO)
                     }
+                    val ffmpeg = this@Instance.ffmpeg
+                    val videoFilters = mutableListOf<String>()
+                    if (this@Instance.videoSampleIntervalMs > 0L) {
+                        videoFilters.add("fps=1000/${this@Instance.videoSampleIntervalMs}")
+                    }
+                    if (this@Instance.videoSampleSize > 0) {
+                        val size = this@Instance.videoSampleSize
+                        /* Resize the shorter side and preserve aspect ratio. CLIP can then centre-crop without
+                         * receiving a full-resolution frame from the FFmpeg subprocess. */
+                        videoFilters.add("scale='if(gt(iw,ih),-2,$size)':'if(gt(iw,ih),$size,-2)'")
+                    }
+                    if (videoFilters.isNotEmpty()) {
+                        ffmpeg.setFilter(StreamType.VIDEO, videoFilters.joinToString(","))
+                    }
                     if (source is FileSource) {
-                        this@Instance.ffmpeg.addInput(UrlInput.fromPath(source.path)).addOutput(output).execute()
+                        ffmpeg.addInput(UrlInput.fromPath(source.path)).addOutput(output).execute()
                     } else {
                         source.newInputStream().use {
-                            this@Instance.ffmpeg.addInput(PipeInput.pumpFrom(it)).addOutput(output).execute()
+                            ffmpeg.addInput(PipeInput.pumpFrom(it)).addOutput(output).execute()
                         }
                     }
 
@@ -296,6 +316,7 @@ class FFmpegVideoDecoder : OperatorFactory {
                 val relationship = source?.let {
                     Relationship.ById(retrievableId, "partOf", it.source.sourceId, false)
                 }
+                source?.let { attributes.add(it) }
 
                 /* Add time range. */
                 attributes.add(

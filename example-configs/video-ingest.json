@@ -14,9 +14,11 @@
       }
     },
     "decoder": {
-      "factory": "VideoDecoder",
+      "factory": "FFmpegVideoDecoder",
       "parameters": {
-        "timeWindowMs": "1000"
+        "timeWindowMs": "5000",
+        "videoSampleIntervalMs": "5000",
+        "videoSampleSize": "1024"
       }
     },
     "metadata":{
