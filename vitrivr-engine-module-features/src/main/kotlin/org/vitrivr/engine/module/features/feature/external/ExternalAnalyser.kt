@@ -41,6 +41,17 @@ abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor<*>> : Anal
         /** Default hostname (matches your APIFlask service). */
         const val HOST_PARAMETER_DEFAULT = "http://localhost:8888/"
 
+        /** Shared client so repeated feature requests can reuse connections. */
+        @PublishedApi
+        internal val httpClient: HttpClient by lazy {
+            HttpClient(CIO) {
+                install(HttpRequestRetry) {
+                    retryOnServerErrors(maxRetries = 5)
+                    exponentialDelay()
+                }
+            }
+        }
+
         /**
          * Executes an API request to the given [url] with the specified [requestBody]
          * and deserializes the response into the correct [Descriptor] type.
@@ -55,25 +66,11 @@ abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor<*>> : Anal
         ): U? = runBlocking {
             val body = requestBody.toByteArray(StandardCharsets.UTF_8)
 
-            val client = try {
-                HttpClient(CIO) {
-                    install(HttpRequestRetry) {
-                        retryOnServerErrors(maxRetries = 5)
-                        exponentialDelay()
-                    }
-                    defaultRequest {
-                        headers.forEach { (key, value) -> header(key, value) }
-                        header("Content-Type", contentType)
-                    }
-                }
-            } catch (e: Throwable) {
-                logger.error(e) { "Failed to initialize Ktor HTTP client for $url." }
-                return@runBlocking null
-            }
-
             try {
-                val response = client.request(url) {
+                val response = httpClient.request(url) {
                     method = HttpMethod.Post
+                    headers.forEach { (key, value) -> header(key, value) }
+                    contentType(ContentType.parse(contentType))
                     setBody(body)
                 }
 
@@ -113,8 +110,6 @@ abstract class ExternalAnalyser<T : ContentElement<*>, U : Descriptor<*>> : Anal
             } catch (e: Throwable) {
                 logger.error(e) { "An error occurred during the external API call to $url." }
                 null
-            } finally {
-                client.close()
             }
         }
     }
