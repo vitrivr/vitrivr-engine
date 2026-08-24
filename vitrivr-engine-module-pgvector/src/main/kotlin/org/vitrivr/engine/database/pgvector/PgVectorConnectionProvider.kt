@@ -107,7 +107,7 @@ class PgVectorConnectionProvider: AbstractConnectionProvider() {
         val host = parameters.getOrDefault(PARAMETER_NAME_HOST, PARAMETER_DEFAULT_HOST)
         val port = parameters[PARAMETER_NAME_PORT]?.toInt() ?: PARAMETER_DEFAULT_PORT
         val database = parameters[PARAMETER_NAME_DATABASE] ?: PARAMETER_DEFAULT_DATABASE
-        val url = "jdbc:postgresql://${host}:${port}/${database}"
+        val url = "jdbc:postgresql://${host}:${port}/${database}?currentSchema=${schemaName.lowercase()},public"
 
         /* Prepare properties (optional). */
         val username = parameters[PARAMETER_NAME_USERNAME] ?: "postgres"

@@ -1,0 +1,18 @@
+{
+  "inputs": {
+    "t0": {"type": "TEXT", "data": "Giraffe"},
+    "t1": {"type": "TEXT", "data": "Lion"},
+    "t2": {"type": "TEXT", "data": "Elephant"}
+  },
+  "operations": {
+    "clip":        {"field": "clip", "inputs":{"txt":"t0"}, "parameters": {"limit": "10"}},
+    "clip1":       {"field": "clip", "inputs":{"txt":"t1"}},
+    "clip2":       {"field": "clip", "inputs":{"txt":"t2"}},
+    "temporal-aggregator": {"factory": "TemporalSequenceAggregator", "inputs":{"in0": "clip", "in1": "clip1", "in2": "clip2"}},
+    "relations":  {"factory": "RelationExpander", "inputs":{"in": "temporal-aggregator"}, "parameters": {"outgoing": "partOf"}},
+    "aggregator": {"factory": "ScoreAggregator", "inputs":{"in": "relations"}},
+    "timelookup": {"factory": "FieldLookup",  "inputs": {"in":"aggregator"}, "parameters": {"field": "time", "keys": "start, end"}},
+    "filelookup": {"factory": "ObjectFieldLookup",  "inputs": {"in":"timelookup"}, "parameters": {"field": "file", "predicates": "partOf", "keys": "path"}}
+  },
+  "output": "filelookup"
+}
