@@ -94,14 +94,14 @@ class FixedDurationSegmenter : OperatorFactory {
                         emptySet(),
                         emptySet(),
                         emptySet(),
-                        true
+                        false
                     )
                 }
 
                 /* Final element of a single video. */
                 if (ingested.type == "SOURCE:VIDEO") {
-                    /* Send remaining segments in cache. */
-                    sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos, srcRetrievable!!)
+                    /* Send the final, potentially shorter segment. */
+                    sendFromCache(downstream, cache, Long.MAX_VALUE, srcRetrievable!!)
 
                     /* Send source retrievable. */
                     downstream.send(
@@ -118,8 +118,10 @@ class FixedDurationSegmenter : OperatorFactory {
                         emptySet(),
                         emptySet(),
                         emptySet(),
-                        true
+                        false
                     )
+                    lastSource = null
+                    lastStartTime = 0L
                     return@collect
                 }
 
@@ -128,11 +130,9 @@ class FixedDurationSegmenter : OperatorFactory {
 
                 /* Check if source has changed. */
                 if (lastSource != source) {
-                    while (cache.isNotEmpty()) {
-                        sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos, srcRetrievable)
-                        lastSource = source
-                        lastStartTime = 0L
-                    }
+                    sendFromCache(downstream, cache, Long.MAX_VALUE, srcRetrievable)
+                    lastSource = source
+                    lastStartTime = 0L
                 }
 
                 /* Add item to cache. */
@@ -147,8 +147,8 @@ class FixedDurationSegmenter : OperatorFactory {
             }
 
             /* Drain remaining items in cache. */
-            while (cache.isNotEmpty()) {
-                sendFromCache(downstream, cache, lastStartTime + this@Instance.lengthNanos, srcRetrievable!!)
+            if (srcRetrievable != null) {
+                sendFromCache(downstream, cache, Long.MAX_VALUE, srcRetrievable!!)
             }
         }
 
@@ -172,6 +172,7 @@ class FixedDurationSegmenter : OperatorFactory {
                     false
                 }
             }
+            if (emit.isEmpty()) return
 
             /* Prepare new retrievable ID and collections. */
             val retrievableId = UUID.randomUUID()
@@ -210,7 +211,7 @@ class FixedDurationSegmenter : OperatorFactory {
                     descriptors,
                     attributes,
                     relationships,
-                    true
+                    false
                 )
             )
         }
