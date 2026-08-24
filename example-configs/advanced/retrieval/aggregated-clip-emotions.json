@@ -1,0 +1,18 @@
+{
+  "inputs": {
+    "txt-1": {"type": "TEXT", "data": "cat"},
+    "emotion": { "type": "FLOATVECTOR", "data": [1, 0, 0, 0, 0, 0, 0] }
+  },
+  "operations": {
+    "clip":       {"field": "clip", "inputs":{"txt":"txt-1"}, "parameters": {"limit": "1000"}},
+    "emotions": {"field": "emotionsface","inputs": {"vec": "emotion"},"parameters": {"limit": "1000"}},
+    "relations":  {"factory": "RelationExpander", "inputs":{"in": "clip"}, "parameters": {"outgoing": "partOf"}},
+    "relations-2": {"factory": "RelationExpander","inputs": {"in": "emotions"},"parameters": {"outgoing": "partOf"}},
+    "aggregator": {"factory": "ScoreAggregator", "inputs":{"in": "relations"}},
+    "aggregator-2": {"factory": "ScoreAggregator", "inputs":{"in": "relations-2"}},
+    "fusion": {"factory": "WeightedScoreFusion", "inputs":{"in": "aggregator", "in-2": "aggregator-2"}, "parameters": {"weights": "0.7 , 100", "p": "2", "normalize": "true"}},
+    "timelookup": {"factory": "FieldLookup",  "inputs": {"in":"fusion"}, "parameters": {"field": "time", "keys": "start, end"}},
+    "filelookup": {"factory": "ObjectFieldLookup",  "inputs": {"in":"timelookup"}, "parameters": {"field": "file", "predicates": "partOf", "keys": "path"}}
+  },
+  "output": "filelookup"
+}
