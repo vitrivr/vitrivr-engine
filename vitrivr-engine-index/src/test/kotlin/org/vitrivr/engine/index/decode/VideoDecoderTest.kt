@@ -13,9 +13,11 @@ import org.vitrivr.engine.core.features.averagecolor.AverageColor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.TerminalRetrievable
+import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
 import org.vitrivr.engine.core.resolver.impl.DiskResolver
 import org.vitrivr.engine.index.aggregators.content.MiddleContentAggregator
 import org.vitrivr.engine.index.enumerate.FileSystemEnumerator
+import org.vitrivr.engine.index.segment.FixedDurationSegmenter
 import java.nio.file.Paths
 import kotlin.time.Duration
 
@@ -26,6 +28,33 @@ import kotlin.time.Duration
  * @version 1.1.0
  */
 class VideoDecoderTest {
+    @Test
+    fun testFixedDurationFinalPartialSegment() = runTest(timeout = Duration.INFINITE) {
+        val schema = Schema("test", Paths.get("."), BlackholeConnection("test", BlackholeConnectionProvider()))
+        schema.addResolver("test", DiskResolver().newResolver(schema, mapOf()))
+        val context = ContextFactory.newContext(
+            schema,
+            IngestionContextConfig("CachedContentFactory", listOf("test"))
+        ).copy(
+            local = mapOf(
+                "enumerator" to mapOf("path" to "./src/test/resources/videos", "mediaTypes" to "VIDEO"),
+                "decoder" to mapOf("timeWindowMs" to "1000", "videoSampleIntervalMs" to "1000", "audio" to "false"),
+                "segmenter" to mapOf("duration" to "2000", "lookAheadTime" to "1000")
+            )
+        )
+
+        val enumerator = FileSystemEnumerator().newOperator("enumerator", context)
+        val decoder = VideoDecoder().newOperator("decoder", input = enumerator, context = context)
+        val segmenter = FixedDurationSegmenter().newOperator("segmenter", input = decoder, context = context)
+        val results = segmenter.toFlow(this).takeWhile { it != TerminalRetrievable }.toList()
+
+        Assertions.assertEquals(2, results.count { it.type == "SEGMENT" })
+        Assertions.assertTrue(results.filter { it.type == "SEGMENT" }.all {
+            !it.transient && it.filteredAttribute(TimeRangeAttribute::class.java) != null
+        })
+        Assertions.assertTrue(results.filter { it.type == "SOURCE:VIDEO" }.all { !it.transient })
+    }
+
     @Test
     fun test() = runTest(timeout = Duration.INFINITE) {
         /* Prepare schema. */
@@ -41,7 +70,8 @@ class VideoDecoderTest {
                     "mediaTypes" to "VIDEO"
                 ),
                 "decoder" to mapOf(
-                    "timeWindowMs" to "1000"
+                    "timeWindowMs" to "1000",
+                    "videoSampleIntervalMs" to "1000"
                 )
             )
         )
