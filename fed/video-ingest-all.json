@@ -1,0 +1,106 @@
+{
+  "schema": "blub",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolvers":["thumbnails"]
+  },
+  "operators": {
+    "enumerator": {
+      "factory": "FileSystemEnumerator",
+      "parameters": {
+        "path": "/Users/rahelarnold/Documents/vitrivr-engine/fed/media",
+        "depth": "3",
+        "mediaTypes": "VIDEO"
+      }
+    },
+    "decoder": {
+      "factory": "FFmpegVideoDecoder",
+      "parameters": {
+        "timeWindowMs": "5000",
+        "videoSampleIntervalMs": "5000",
+        "videoSampleSize": "1024"
+      }
+    },
+    "metadata":{
+      "field": "video"
+    },
+    "source":{
+      "field": "file"
+    },
+    "aggregator": {
+      "factory": "MiddleContentAggregator"
+    },
+    "persister": {
+      "factory": "PersistRetrievableTransformer"
+    },
+    "time": {
+      "field": "time"
+    },
+    "averagecolor": {
+      "field": "averagecolor"
+    },
+    "clip": {
+      "field": "clip"
+    },
+    "adaface": {
+      "field": "adaface"
+    },
+    "yoloadafaceforward": {
+      "field": "yoloadafaceforward"
+    },
+    "yoloadafacetwopass": {
+      "field": "yoloadafacetwopass"
+    },
+    "dino": {
+      "field": "dino"
+    },
+    "asr": {
+      "field": "asr"
+    },
+    "ocr": {
+      "field": "ocr"
+    },
+    "thumbnail": {
+      "exporter": "thumbnail"
+    },
+    "segmenter": {
+      "factory": "FixedDurationSegmenter",
+      "parameters": {
+        "duration": "5000",
+        "lookAheadTime": "1000"
+      }
+    },
+    "filter": {
+      "factory": "TypeFilterTransformer",
+      "parameters": {
+        "type": "SOURCE:VIDEO"
+      }
+    }
+  },
+  "operations": {
+    "enumerator": {"operator": "enumerator"},
+    "decoder": {"operator": "decoder", "inputs": ["enumerator"]},
+    "segmenter": {"operator": "segmenter", "inputs": ["decoder"]},
+    "middle": {"operator": "aggregator", "inputs": ["segmenter"]},
+    "persist": {"operator": "persister", "inputs": ["middle"]},
+    "metadata": {"operator": "metadata", "inputs": ["persist"]},
+    "source": {"operator": "source", "inputs": ["persist"]},
+    "time": {"operator": "time", "inputs": ["persist"]},
+    "clip": {"operator": "clip", "inputs": ["persist"]},
+    "adaface": {"operator": "adaface", "inputs": ["persist"]},
+    "yoloadafaceforward": {"operator": "yoloadafaceforward", "inputs": ["persist"]},
+    "yoloadafacetwopass": {"operator": "yoloadafacetwopass", "inputs": ["persist"]},
+    "thumbnail": {"operator": "thumbnail", "inputs": ["persist"]}
+  },
+  "output": [
+    "thumbnail",
+    "metadata",
+    "source",
+    "time",
+    "clip",
+    "adaface",
+    "yoloadafaceforward",
+    "yoloadafacetwopass"
+  ],
+  "mergeType": "MERGE"
+}

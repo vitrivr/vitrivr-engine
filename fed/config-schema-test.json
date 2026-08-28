@@ -1,0 +1,76 @@
+{
+  "schemas": {
+    "blub": {
+      "connection": {
+        "database": "PgVectorConnectionProvider",
+        "parameters": {
+          "host": "localhost",
+          "port": "5432",
+          "username": "rahelarnold",
+          "password": "password"
+        }
+      },
+      "fields": {
+        "averagecolor": {
+          "factory": "AverageColor"
+        },
+        "file": {
+          "factory": "FileSourceMetadata"
+        },
+        "clip": {
+          "factory": "CLIP",
+          "parameters": {
+            "host": "http://localhost:8888"
+          }
+        },
+        "adaface": {
+          "factory": "AdaFace",
+          "parameters": {
+            "host": "http://localhost:8888"
+          }
+        },
+        "yoloadafaceforward": {
+          "factory": "YoloAdaFaceForward",
+          "parameters": {
+            "host": "http://localhost:8888"
+          }
+        },
+        "yoloadafacetwopass": {
+          "factory": "YoloAdaFaceTwoPass",
+          "parameters": {
+            "host": "http://localhost:8888"
+          }
+        },
+        "time": {
+          "factory": "TemporalMetadata"
+        },
+        "video": {
+          "factory": "VideoSourceMetadata"
+        }
+      },
+      "resolvers": {
+        "thumbnails": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "../fed/media/thumbnails/"
+          }
+        }
+      },
+      "exporters": {
+        "thumbnail": {
+          "factory": "ThumbnailExporter",
+          "parameters": {
+            "resolver": "thumbnails",
+            "maxSideResolution": "500",
+            "mimeType": "JPG"
+          }
+        }
+      },
+      "extractionPipelines": {
+        "vid": {
+          "path": "/Users/rahelarnold/Documents/vitrivr-engine/fed/video-ingest-all.json"
+        }
+      }
+    }
+  }
+}
