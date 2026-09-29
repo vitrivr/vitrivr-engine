@@ -2,6 +2,7 @@ org.vitrivr.engine.index.exporters.ThumbnailExporter
 org.vitrivr.engine.index.exporters.WaveExporter
 org.vitrivr.engine.index.exporters.VideoPreviewExporter
 org.vitrivr.engine.index.exporters.VideoSegmentExporter
+org.vitrivr.engine.index.exporters.HlsVideoExporter
 org.vitrivr.engine.index.enumerate.FileSystemEnumerator
 org.vitrivr.engine.index.enumerate.ListEnumerator
 org.vitrivr.engine.index.decode.VideoDecoder
