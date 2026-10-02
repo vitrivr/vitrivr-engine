@@ -1,5 +1,6 @@
 package org.vitrivr.engine.database.pgvector
 
+import org.vitrivr.engine.core.model.descriptor.struct.FaceIdentityDescriptor
 import org.jetbrains.exposed.sql.Database
 import org.vitrivr.engine.core.database.AbstractConnectionProvider
 import org.vitrivr.engine.core.database.Connection
@@ -87,6 +88,7 @@ class PgVectorConnectionProvider: AbstractConnectionProvider() {
 
         /* Struct descriptor. */
         this.register(LabelDescriptor::class, StructDescriptorProvider)
+        this.register(FaceIdentityDescriptor::class, StructDescriptorProvider)
         this.register(FileSourceMetadataDescriptor::class, StructDescriptorProvider)
         this.register(VideoSourceMetadataDescriptor::class, StructDescriptorProvider)
         this.register(TemporalMetadataDescriptor::class, StructDescriptorProvider)

@@ -30,8 +30,9 @@ data class QueryResultRetrievable(
         mutableMapOf(),
         retrieved.filteredAttributes(PropertyAttribute::class.java).firstOrNull()?.properties ?: emptyMap(),
         retrieved.descriptors.flatMap { descriptor ->
-            descriptor.values().map {
-                descriptor.field?.fieldName + "." + it.key to  toValue(it.value!!)
+            descriptor.values().mapNotNull { (attribute, value) ->
+                /* Optional attributes (such as a body-only identity's face vector) may be absent. */
+                value?.let { descriptor.field?.fieldName + "." + attribute to toValue(it) }
             }
         }.toMap()
     )
