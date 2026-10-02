@@ -5,7 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.vitrivr.engine.core.model.content.element.ImageContent
-import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.FaceIdentityDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAuthorAttribute
@@ -14,9 +14,9 @@ import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.SourceId
 import org.vitrivr.engine.core.operators.Operator
 
-class YoloAdaFaceTwoPassExtractor : AbstractExtractor<ImageContent, LabelDescriptor> {
+class YoloAdaFaceTwoPassExtractor : AbstractExtractor<ImageContent, FaceIdentityDescriptor> {
     private val host: String
-    constructor(input: Operator<out Retrievable>, analyser: YoloAdaFaceTwoPass, field: Schema.Field<ImageContent, LabelDescriptor>, host: String) : super(input, analyser, field) { this.host = host }
+    constructor(input: Operator<out Retrievable>, analyser: YoloAdaFaceTwoPass, field: Schema.Field<ImageContent, FaceIdentityDescriptor>, host: String) : super(input, analyser, field) { this.host = host }
     constructor(input: Operator<out Retrievable>, analyser: YoloAdaFaceTwoPass, name: String, host: String) : super(input, analyser, name) { this.host = host }
 
     private data class BufferedRetrievable(
@@ -95,7 +95,7 @@ class YoloAdaFaceTwoPassExtractor : AbstractExtractor<ImageContent, LabelDescrip
         states.keys.toList().forEach { finish(it) }
     }
 
-    override fun extract(retrievable: Retrievable): List<LabelDescriptor> = emptyList()
+    override fun extract(retrievable: Retrievable): List<FaceIdentityDescriptor> = emptyList()
 
     private companion object {
         const val VIDEO_END_TYPE = "SOURCE:VIDEO"

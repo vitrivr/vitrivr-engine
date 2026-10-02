@@ -2,22 +2,22 @@ package org.vitrivr.engine.module.features.feature.external.implementations.iden
 
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.model.content.element.ImageContent
-import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.FaceIdentityDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
 import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.operators.Operator
 
-class YoloAdaFaceForwardExtractor : AbstractExtractor<ImageContent, LabelDescriptor> {
+class YoloAdaFaceForwardExtractor : AbstractExtractor<ImageContent, FaceIdentityDescriptor> {
     private val host: String
-    constructor(input: Operator<out Retrievable>, analyser: YoloAdaFaceForward, field: Schema.Field<ImageContent, LabelDescriptor>, host: String) : super(input, analyser, field) { this.host = host }
+    constructor(input: Operator<out Retrievable>, analyser: YoloAdaFaceForward, field: Schema.Field<ImageContent, FaceIdentityDescriptor>, host: String) : super(input, analyser, field) { this.host = host }
     constructor(input: Operator<out Retrievable>, analyser: YoloAdaFaceForward, name: String, host: String) : super(input, analyser, name) { this.host = host }
 
     override fun matches(retrievable: Retrievable) =
         retrievable.type == VIDEO_END_TYPE || super.matches(retrievable)
 
-    override fun extract(retrievable: Retrievable): List<LabelDescriptor> {
+    override fun extract(retrievable: Retrievable): List<FaceIdentityDescriptor> {
         val source = retrievable.filteredAttribute(SourceAttribute::class.java)?.source
         val streamId = (source?.sourceId ?: retrievable.id).toString()
 
