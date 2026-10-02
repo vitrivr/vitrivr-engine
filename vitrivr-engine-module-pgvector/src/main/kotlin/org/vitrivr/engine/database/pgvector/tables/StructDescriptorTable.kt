@@ -16,6 +16,13 @@ import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.database.pgvector.exposed.functions.plainToTsQuery
 import org.vitrivr.engine.database.pgvector.exposed.ops.tsMatches
 import java.util.*
+import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
+import org.vitrivr.engine.core.model.query.basics.Distance
+import org.vitrivr.engine.database.pgvector.exposed.ops.cosine
+import org.vitrivr.engine.database.pgvector.exposed.ops.euclidean
+import org.vitrivr.engine.database.pgvector.exposed.ops.inner
+import org.vitrivr.engine.database.pgvector.exposed.ops.manhattan
+import org.vitrivr.engine.database.pgvector.toSql
 import kotlin.reflect.full.primaryConstructor
 
 /**
@@ -116,9 +123,33 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
      * @throws UnsupportedOperationException If the query is not supported.
      */
     override fun parse(query: org.vitrivr.engine.core.model.query.Query): Query = when(query) {
+        is ProximityQuery<*> -> this.parse(query)
         is SimpleFulltextQuery -> this.parse(query)
         is SimpleBooleanQuery<*> -> this.parse(query)
         else -> throw UnsupportedOperationException("Unsupported query type: ${query::class.simpleName}")
+    }
+
+    /** Compare a named float vector attribute, excluding rows without an embedding. */
+    @Suppress("UNCHECKED_CAST")
+    private fun parse(query: ProximityQuery<*>): Query {
+        val attribute = prototype.layout().find { it.name == query.attributeName }
+            ?: throw IllegalArgumentException("Unknown vector attribute: ${query.attributeName}")
+        val type = attribute.type as? Type.FloatVector
+            ?: throw IllegalArgumentException("Proximity queries require a float vector attribute.")
+        val value = query.value.value as? FloatArray
+            ?: throw IllegalArgumentException("Proximity queries require a float vector value.")
+        require(value.size == type.dimensions) { "Query vector dimensions do not match the attribute." }
+        require(query.k in 1..Int.MAX_VALUE.toLong()) { "Invalid number of neighbours: ${query.k}" }
+        val column = valueColumns.first { it.name == attribute.name } as Column<FloatArray>
+        val expression = when (query.distance) {
+            Distance.EUCLIDEAN -> column euclidean value
+            Distance.MANHATTAN -> column manhattan value
+            Distance.COSINE -> column cosine value
+            Distance.IP -> column inner value
+            else -> throw IllegalArgumentException("Unsupported distance: ${query.distance}")
+        }
+        return select(columns + expression).where { column.isNotNull() }
+            .orderBy(expression, query.order.toSql()).limit(query.k.toInt())
     }
 
     /**

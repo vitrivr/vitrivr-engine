@@ -11,3 +11,6 @@ org.vitrivr.engine.module.features.feature.external.implementations.ocr.OpticalC
 org.vitrivr.engine.module.features.feature.external.implementations.emotions.EmotionsOCR
 org.vitrivr.engine.module.features.feature.external.implementations.emotions.EmotionsSound
 org.vitrivr.engine.module.features.feature.external.implementations.asr.AutomaticSpeechRecognition
+org.vitrivr.engine.module.features.feature.external.implementations.identity.AdaFace
+org.vitrivr.engine.module.features.feature.external.implementations.identity.YoloAdaFaceForward
+org.vitrivr.engine.module.features.feature.external.implementations.identity.YoloAdaFaceTwoPass

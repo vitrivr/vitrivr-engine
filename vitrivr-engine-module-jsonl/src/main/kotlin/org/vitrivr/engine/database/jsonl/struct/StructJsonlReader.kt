@@ -24,7 +24,7 @@ class StructJsonlReader(
         val map = list.list.associateBy { it.attribute.name }
         val constructor = this.field.analyser.descriptorClass.primaryConstructor
             ?: throw IllegalStateException("Provided type ${this.field.analyser.descriptorClass} does not have a primary constructor.")
-        val valueMap = mutableMapOf<AttributeName, Value<*>>()
+        val valueMap = mutableMapOf<AttributeName, Value<*>?>()
 
         val retrievableId = (map[RETRIEVABLE_ID_COLUMN_NAME]?.value!!.toValue() as Value.UUIDValue).value
         val descriptorId = (map[DESCRIPTOR_ID_COLUMN_NAME]?.value!!.toValue() as Value.UUIDValue).value
@@ -36,7 +36,8 @@ class StructJsonlReader(
         )
 
         prototype.layout().forEach { attribute ->
-            val value = map[attribute.name]!!.value?.toValue()!!
+            val value = map[attribute.name]?.value?.toValue()
+            require(value != null || attribute.nullable) { "Missing required attribute: ${attribute.name}" }
             valueMap[attribute.name] = value
         }
 

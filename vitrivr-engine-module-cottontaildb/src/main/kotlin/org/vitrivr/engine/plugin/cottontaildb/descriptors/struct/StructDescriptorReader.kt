@@ -3,6 +3,8 @@ package org.vitrivr.engine.plugin.cottontaildb.descriptors.struct
 import org.vitrivr.cottontail.client.language.basics.expression.Column
 import org.vitrivr.cottontail.client.language.basics.expression.Literal
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
+import org.vitrivr.cottontail.client.language.basics.predicate.IsNull
+import org.vitrivr.cottontail.client.language.basics.predicate.Not
 import org.vitrivr.cottontail.core.tuple.Tuple
 import org.vitrivr.cottontail.core.types.Types
 import org.vitrivr.engine.core.model.descriptor.AttributeName
@@ -17,6 +19,10 @@ import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.plugin.cottontaildb.*
 import org.vitrivr.engine.plugin.cottontaildb.descriptors.AbstractDescriptorReader
 import kotlin.reflect.full.primaryConstructor
+import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
+import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
+import org.vitrivr.cottontail.client.language.basics.Direction
+import org.vitrivr.cottontail.client.language.basics.Distances
 
 /**
  * An [AbstractDescriptorReader] for [LabelDescriptor]s.
@@ -42,9 +48,38 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor<*>>, connec
      * @return [Sequence] of [StructDescriptor]s that match the query.
      */
     override fun query(query: Query): Sequence<StructDescriptor<*>> = when (query) {
+        is ProximityQuery<*> -> proximityResults(query).map { it.first }
         is SimpleFulltextQuery -> this.queryFulltext(query)
         is SimpleBooleanQuery<*> -> this.queryBoolean(query)
         else -> throw UnsupportedOperationException("The provided query type ${query::class.simpleName} is not supported by this reader.")
+    }
+
+    private fun proximityResults(query: ProximityQuery<*>): Sequence<Pair<StructDescriptor<*>, Double?>> {
+        val type = fieldMap.find { it.first == query.attributeName }?.second as? Types.FloatVector
+            ?: throw IllegalArgumentException("Proximity queries require a named float vector attribute.")
+        val vector = query.value as? Value.FloatVector
+        require(vector != null && vector.value.size == type.logicalSize) { "Query vector dimensions do not match the attribute." }
+        require(query.k > 0) { "Number of neighbours must be positive." }
+        val cottontailQuery = org.vitrivr.cottontail.client.language.dql.Query(entityName)
+            .select("*")
+            .where(Not(IsNull(Column(query.attributeName!!))))
+            .distance(query.attributeName!!, query.value.toCottontailValue(),
+                Distances.valueOf(query.distance.toString()), DISTANCE_COLUMN_NAME)
+            .order(DISTANCE_COLUMN_NAME, Direction.valueOf(query.order.name)).limit(query.k)
+        return connection.client.query(cottontailQuery).asSequence().map { tuple ->
+            tupleToDescriptor(tuple) to tuple.asDouble(DISTANCE_COLUMN_NAME)
+        }
+    }
+
+    override fun queryAndJoin(query: Query): Sequence<Retrieved> {
+        if (query !is ProximityQuery<*>) return super.queryAndJoin(query)
+        val descriptors = proximityResults(query).toList()
+        val retrievables = fetchRetrievable(descriptors.mapNotNull { it.first.retrievableId }.toSet())
+        return descriptors.asSequence().mapNotNull { (descriptor, distance) ->
+            val retrievable = retrievables[descriptor.retrievableId] ?: return@mapNotNull null
+            retrievable.copy(descriptors = retrievable.descriptors + descriptor,
+                attributes = retrievable.attributes + listOfNotNull(distance?.let { DistanceAttribute.Local(it, descriptor.id) }))
+        }
     }
 
     /**
@@ -55,7 +90,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor<*>>, connec
      */
     override fun tupleToDescriptor(tuple: Tuple): StructDescriptor<*> {
         val constructor = this.field.analyser.descriptorClass.primaryConstructor ?: throw IllegalStateException("Provided type ${this.field.analyser.descriptorClass} does not have a primary constructor.")
-        val valueMap = mutableMapOf<AttributeName, Value<*>>()
+        val valueMap = mutableMapOf<AttributeName, Value<*>?>()
         val parameters: MutableList<Any?> = mutableListOf(
             tuple.asUuidValue(DESCRIPTOR_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${DESCRIPTOR_ID_COLUMN_NAME}'."),
             tuple.asUuidValue(RETRIEVABLE_ID_COLUMN_NAME)?.value ?: throw IllegalArgumentException("The provided tuple is missing the required field '${RETRIEVABLE_ID_COLUMN_NAME}'."),
@@ -81,7 +116,7 @@ class StructDescriptorReader(field: Schema.Field<*, StructDescriptor<*>>, connec
                 is Types.IntVector -> tuple.asIntVector(name)?.let { Value.IntVector(it) }
                 is Types.LongVector -> tuple.asLongVector(name)?.let { Value.LongVector(it) }
                 else -> throw IllegalArgumentException("Type $type is not supported by StructDescriptorReader.")
-            } as Value<*>
+            }
         }
 
         parameters.add(field) //add field information, as this is for all StructDescriptors the last constructor argument.

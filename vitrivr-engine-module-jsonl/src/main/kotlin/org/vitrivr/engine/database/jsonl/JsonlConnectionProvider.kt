@@ -1,5 +1,6 @@
 package org.vitrivr.engine.database.jsonl
 
+import org.vitrivr.engine.core.model.descriptor.struct.FaceIdentityDescriptor
 import org.vitrivr.engine.core.database.AbstractConnectionProvider
 import org.vitrivr.engine.core.database.Connection
 import org.vitrivr.engine.core.model.descriptor.scalar.*
@@ -47,6 +48,7 @@ class JsonlConnectionProvider : AbstractConnectionProvider() {
 
         /* Struct descriptor. */
         this.register(LabelDescriptor::class, StructJsonlProvider)
+        this.register(FaceIdentityDescriptor::class, StructJsonlProvider)
         this.register(FileSourceMetadataDescriptor::class, StructJsonlProvider)
         this.register(VideoSourceMetadataDescriptor::class, StructJsonlProvider)
         this.register(TemporalMetadataDescriptor::class, StructJsonlProvider)
