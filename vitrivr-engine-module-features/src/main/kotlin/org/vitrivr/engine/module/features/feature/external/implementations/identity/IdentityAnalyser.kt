@@ -30,7 +30,13 @@ abstract class IdentityAnalyser : ExternalAnalyser<ImageContent, FaceIdentityDes
     override fun newRetrieverForQuery(
         field: Schema.Field<ImageContent, FaceIdentityDescriptor>, query: Query, context: Context
     ) = when (query) {
-        is BooleanQuery -> StructBooleanRetriever(field, query, context)
+        is BooleanQuery -> {
+            val normalized = if (query is SimpleBooleanQuery<*> && query.attributeName == FaceIdentityDescriptor.LABEL_FIELD_NAME && query.value is Value.String) {
+                SimpleBooleanQuery(Value.String(FaceIdentityDescriptor.normalizeLabel(query.value.value as String)),
+                    query.comparison, query.attributeName, query.limit)
+            } else query
+            StructBooleanRetriever(field, normalized, context)
+        }
         is ProximityQuery<*> -> {
             val vector = query.value as? Value.FloatVector
             require(vector != null && vector.value.size == FaceIdentityDescriptor.DIMENSIONS && vector.value.all { it.isFinite() }) {
