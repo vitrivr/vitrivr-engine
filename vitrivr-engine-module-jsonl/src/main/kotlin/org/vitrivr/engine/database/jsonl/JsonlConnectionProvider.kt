@@ -1,5 +1,6 @@
 package org.vitrivr.engine.database.jsonl
 
+import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.RecordingMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.FaceIdentityDescriptor
 import org.vitrivr.engine.core.database.AbstractConnectionProvider
 import org.vitrivr.engine.core.database.Connection
@@ -50,6 +51,7 @@ class JsonlConnectionProvider : AbstractConnectionProvider() {
         this.register(LabelDescriptor::class, StructJsonlProvider)
         this.register(FaceIdentityDescriptor::class, StructJsonlProvider)
         this.register(FileSourceMetadataDescriptor::class, StructJsonlProvider)
+        this.register(RecordingMetadataDescriptor::class, StructJsonlProvider)
         this.register(VideoSourceMetadataDescriptor::class, StructJsonlProvider)
         this.register(TemporalMetadataDescriptor::class, StructJsonlProvider)
         this.register(ShotBoundaryDescriptor::class, StructJsonlProvider)

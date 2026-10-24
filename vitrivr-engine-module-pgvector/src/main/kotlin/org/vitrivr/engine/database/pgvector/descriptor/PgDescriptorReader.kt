@@ -1,5 +1,11 @@
 package org.vitrivr.engine.database.pgvector.descriptor
 
+import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
+import org.jetbrains.exposed.sql.andWhere
+import org.jetbrains.exposed.sql.compoundAnd
+import org.jetbrains.exposed.sql.doubleLiteral
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.plus
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.innerJoin
 import org.jetbrains.exposed.sql.selectAll
@@ -9,6 +15,8 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.filter.MetadataFilteredQuery
+import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.RecordingMetadataDescriptor
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
@@ -37,6 +45,38 @@ class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, 
     private val tableName: String
         get() = this.table.nameInDatabaseCase()
 
+    /** Adds metadata restrictions to the same SELECT that ranks and limits descriptors. */
+    private fun parse(query: org.vitrivr.engine.core.model.query.Query): Query {
+        if (query !is MetadataFilteredQuery) return table.parse(query)
+        require(query.query !is MetadataFilteredQuery) { "Nested metadata filters are not supported." }
+        val metadataField = field.schema[query.filter.field]
+            ?: throw IllegalArgumentException("Metadata field '${query.filter.field}' not defined in schema.")
+        require(metadataField.analyser.descriptorClass == RecordingMetadataDescriptor::class) {
+            "Early recording filters require a RecordingMetadata field."
+        }
+        val metadata = metadataField.toTable()
+        val constraints = query.filter.values.map { (name, values) ->
+            @Suppress("UNCHECKED_CAST")
+            val column = metadata.columns.single { it.name == name } as Column<String>
+            SqlExpressionBuilder.run { column inList values }
+        }
+        val eligible = metadata.select(metadata.retrievableId).where { constraints.compoundAnd() }
+        val parsed = table.parse(query.query)
+        val filtered = if (parsed.orderByExpressions.any { it.first is DistanceOps }) {
+            /* A bare distance ORDER BY can choose HNSW/IVFFlat and filter after its
+             * approximate scan. +0 forces exact ranking of eligible rows. Vector
+             * parsers produce a SELECT/WHERE/ORDER BY/LIMIT query without grouping. */
+            Query(parsed.set, parsed.where).apply {
+                orderBy(*parsed.orderByExpressions.map { (expression, direction) ->
+                    if (expression is DistanceOps) (expression + doubleLiteral(0.0)) to direction
+                    else expression to direction
+                }.toTypedArray())
+                parsed.limit?.let { limit(it) }
+            }
+        } else parsed
+        return filtered.andWhere { table.retrievableId inSubQuery eligible }
+    }
+
     /**
      * Executes the provided [Query] and returns a [Sequence] of [Retrieved]s that match it.
      *
@@ -45,7 +85,7 @@ class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, 
      */
     override fun query(query: org.vitrivr.engine.core.model.query.Query): Sequence<D> = transaction(this.connection.database) {
         try {
-            this@PgDescriptorReader.table.parse(query).map { this@PgDescriptorReader.table.rowToDescriptor(it) }.asSequence()
+            this@PgDescriptorReader.parse(query).map { this@PgDescriptorReader.table.rowToDescriptor(it) }.asSequence()
         } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to execute query on '$tableName' due to error." }
             throw e
@@ -184,7 +224,7 @@ class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, 
      * @return [Sequence] of [Retrieved].
      */
     override fun queryAndJoin(query: org.vitrivr.engine.core.model.query.Query) = transaction(this.connection.database) {
-        val sqlQuery = this@PgDescriptorReader.table.parse(query)
+        val sqlQuery = this@PgDescriptorReader.parse(query)
         sqlQuery.adjustColumnSet {
             innerJoin(RetrievableTable, { this@PgDescriptorReader.table.retrievableId }, { RetrievableTable.id })
         }

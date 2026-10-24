@@ -24,7 +24,12 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
  * @author Rahel Arnold
  * @version 1.0.1
  */
-abstract class AbstractRetriever<C : ContentElement<*>, D : Descriptor<*>>(override val field: Schema.Field<C, D>, val query: Query, val context: Context) : Retriever<C, D> {
+abstract class AbstractRetriever<C : ContentElement<*>, D : Descriptor<*>>(override val field: Schema.Field<C, D>, query: Query, val context: Context) : Retriever<C, D> {
+
+    /** Apply operation-local recording constraints before database ranking and limits. */
+    val query: Query = org.vitrivr.engine.core.model.query.filter.MetadataFilter.fromParameters(
+        context.global + context.local[field.fieldName].orEmpty()
+    )?.let { org.vitrivr.engine.core.model.query.filter.MetadataFilteredQuery(query, it) } ?: query
 
     /** The [DescriptorReader] instance used by this [AbstractRetriever]. */
     protected val reader: DescriptorReader<D> by lazy { this.field.getReader() }

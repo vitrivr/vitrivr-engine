@@ -186,6 +186,9 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
             ComparisonOperator.GEQ -> GreaterEqOp(descriptor, QueryParameter(value, descriptor.columnType))
             ComparisonOperator.LIKE -> LikeEscapeOp(descriptor, QueryParameter(value, descriptor.columnType), true, null)
         }
+    }.apply {
+        require(query.limit > 0) { "Boolean query limit must be positive." }
+        if (query.limit <= Int.MAX_VALUE) limit(query.limit.toInt())
     }
 
     /**

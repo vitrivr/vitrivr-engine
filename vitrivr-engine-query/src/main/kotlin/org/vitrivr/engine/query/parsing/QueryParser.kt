@@ -72,12 +72,16 @@ class QueryParser(val schema: Schema) {
                     k to inputData.toDescriptor()
                 }.toMap()
 
+                /* Analysers address parameters by field name; isolate each operation's values. */
+                val retrievalContext = context.copy(local = context.local +
+                    (field.fieldName to operationDescription.parameters))
+
                 contentInputs.takeIf { it.isNotEmpty() }?.let {
-                    operators[operationName] = field.getRetrieverForContent(it, context)
+                    operators[operationName] = field.getRetrieverForContent(it, retrievalContext)
                 }
 
                 descriptorInputs.takeIf { it.isNotEmpty() }?.let {
-                    operators[operationName] = field.getRetrieverForDescriptors(it.values, context)
+                    operators[operationName] = field.getRetrieverForDescriptors(it.values, retrievalContext)
                 }
                 return@forEach
 

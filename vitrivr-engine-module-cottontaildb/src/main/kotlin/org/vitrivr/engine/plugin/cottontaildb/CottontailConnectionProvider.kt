@@ -1,5 +1,6 @@
 package org.vitrivr.engine.plugin.cottontaildb
 
+import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.RecordingMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.FaceIdentityDescriptor
 import org.vitrivr.engine.core.database.AbstractConnectionProvider
 import org.vitrivr.engine.core.database.Connection
@@ -72,6 +73,7 @@ class CottontailConnectionProvider: AbstractConnectionProvider() {
         this.register(LabelDescriptor::class, StructDescriptorProvider)
         this.register(FaceIdentityDescriptor::class, StructDescriptorProvider)
         this.register(FileSourceMetadataDescriptor::class, StructDescriptorProvider)
+        this.register(RecordingMetadataDescriptor::class, StructDescriptorProvider)
         this.register(VideoSourceMetadataDescriptor::class, StructDescriptorProvider)
         this.register(TemporalMetadataDescriptor::class, StructDescriptorProvider)
         this.register(ShotBoundaryDescriptor::class, StructDescriptorProvider)
