@@ -9,3 +9,4 @@ org.vitrivr.engine.query.operators.transform.scoring.ScoreExaggeratorFactory
 org.vitrivr.engine.query.operators.transform.benchmark.TimeBenchmarkFactory
 org.vitrivr.engine.query.aggregate.TemporalSequenceAggregatorFactory
 org.vitrivr.engine.query.aggregate.WeightedScoreFusionFactory
+org.vitrivr.engine.query.aggregate.AndFactory
