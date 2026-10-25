@@ -2,6 +2,7 @@ package org.vitrivr.engine.server.api.rest
 
 import io.javalin.apibuilder.ApiBuilder.*
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
+import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.server.api.rest.handlers.*
 import org.vitrivr.engine.server.config.ApiConfig
@@ -40,6 +41,7 @@ fun configureApiRoutes(config: ApiConfig, manager: SchemaManager, executor: Exec
 
                 if (config.retrieval) {
                     post("query") { ctx -> executeQuery(ctx, schema, executor) }
+                    configureFederationRoutes(schema)
                 }
 
                 if (config.export) {
@@ -50,5 +52,13 @@ fun configureApiRoutes(config: ApiConfig, manager: SchemaManager, executor: Exec
                 }
             }
         }
+    }
+}
+
+/** Registered only when retrieval endpoints are enabled. */
+fun configureFederationRoutes(schema: Schema) {
+    path("federation") {
+        post("lookup") { ctx -> federationLookup(ctx, schema) }
+        post("features") { ctx -> federationFeatures(ctx, schema) }
     }
 }

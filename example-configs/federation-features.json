@@ -1,0 +1,8 @@
+{
+  "retrievableIds": [
+    "00000000-0000-0000-0000-000000000000"
+  ],
+  "fields": ["asr", "ocr", "yoloadafacetwopass"],
+  "person": "Werner",
+  "minConfidence": 0.5
+}
