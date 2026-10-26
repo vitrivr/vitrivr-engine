@@ -1,10 +1,6 @@
 package org.vitrivr.engine.database.pgvector.descriptor
 
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.andWhere
-import org.jetbrains.exposed.sql.compoundAnd
-import org.jetbrains.exposed.sql.countDistinct
 import org.jetbrains.exposed.sql.doubleLiteral
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.plus
 import org.jetbrains.exposed.sql.Query
@@ -17,9 +13,6 @@ import org.vitrivr.engine.core.model.descriptor.DescriptorId
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.filter.MetadataFilteredQuery
-import org.vitrivr.engine.core.model.query.filter.PersonFilter
-import org.vitrivr.engine.core.model.descriptor.struct.FaceIdentityDescriptor
-import org.vitrivr.engine.core.model.descriptor.struct.metadata.source.RecordingMetadataDescriptor
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
@@ -37,6 +30,7 @@ import java.util.*
  * An abstract implementation of a [DescriptorReader] for Cottontail DB.
  *
  * @author Ralph Gasser
+ * @author Rahel Arnold
  * @version 1.1.0
  */
 class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, D>, override val connection: PgVectorConnection) : DescriptorReader<D> {
@@ -48,7 +42,7 @@ class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, 
     private val tableName: String
         get() = this.table.nameInDatabaseCase()
 
-    /** Adds metadata restrictions to the same SELECT that ranks and limits descriptors. */
+    /** Adds Boolean eligibility restrictions to the same SELECT that ranks and limits descriptors. */
     private fun parse(query: org.vitrivr.engine.core.model.query.Query): Query {
         if (query !is MetadataFilteredQuery) return table.parse(query)
         require(query.query !is MetadataFilteredQuery) { "Nested metadata filters are not supported." }
@@ -65,43 +59,9 @@ class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, 
                 parsed.limit?.let { limit(it) }
             }
         } else parsed
-        if (query.filter.values.isNotEmpty()) {
-            val metadataField = field.schema[query.filter.field]
-                ?: throw IllegalArgumentException("Metadata field '${query.filter.field}' not defined in schema.")
-            require(metadataField.analyser.descriptorClass == RecordingMetadataDescriptor::class) {
-                "Early recording filters require a RecordingMetadata field."
-            }
-            val metadata = metadataField.toTable()
-            val constraints = query.filter.values.map { (name, values) ->
-                @Suppress("UNCHECKED_CAST")
-                val column = metadata.columns.single { it.name == name } as Column<String>
-                SqlExpressionBuilder.run { column inList values }
-            }
-            val eligible = metadata.select(metadata.retrievableId).where { constraints.compoundAnd() }
-            filtered.andWhere { table.retrievableId inSubQuery eligible }
-        }
-        query.filter.persons?.let { persons ->
-            val identityField = field.schema[persons.field]
-                ?: throw IllegalArgumentException("Identity field '${persons.field}' not defined in schema.")
-            require(identityField.analyser.descriptorClass == FaceIdentityDescriptor::class) {
-                "Early person filters require a FaceIdentityDescriptor field."
-            }
-            val identities = identityField.toTable()
-            @Suppress("UNCHECKED_CAST")
-            val label = identities.columns.single { it.name == FaceIdentityDescriptor.LABEL_FIELD_NAME } as Column<String>
-            val eligible = identities.select(identities.retrievableId).where { label inList persons.normalizedNames }
-            persons.minConfidence?.let { minimum ->
-                @Suppress("UNCHECKED_CAST")
-                val confidence = identities.columns.single { it.name == FaceIdentityDescriptor.CONFIDENCE_FIELD_NAME } as Column<Float>
-                eligible.andWhere { confidence greaterEq minimum.toFloat() }
-            }
-            if (persons.mode == PersonFilter.Mode.ALL) {
-                // Count labels, not detections: duplicate observations of one person cannot satisfy another.
-                eligible.groupBy(identities.retrievableId)
-                    .having { label.countDistinct() eq persons.normalizedNames.size.toLong() }
-            }
-            filtered.andWhere { table.retrievableId inSubQuery eligible }
-        }
+        val expression = query.filter.asExpression()
+        expression.validate()
+        filtered.andWhere { EarlyFilterSql(field.schema, table.retrievableId).compile(expression) }
         return filtered
     }
 

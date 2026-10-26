@@ -17,6 +17,7 @@ import java.util.concurrent.Executors
  * An execution environment for data ingest and retrieval.
  *
  * @author Ralph Gasser
+ * @author Rahel Arnold
  * @version 1.0.0
  */
 class ExecutionServer {
@@ -121,17 +122,11 @@ class ExecutionServer {
      * @param query The [Operator] to execute.
      * @return The resulting [List] of [Retrieved]
      */
-    fun query(query: Operator<out Retrievable>): List<Retrievable> {
-        val jobId = UUID.randomUUID()
-        val scope = CoroutineScope(this@ExecutionServer.dispatcher) + CoroutineName("query-job-$jobId")
-        val results = LinkedList<Retrievable>()
-        runBlocking {
-            val job = scope.launch {
-                query.toFlow(scope).toList(results)
-            }
-            job.join()
+    fun query(query: Operator<out Retrievable>): List<Retrievable> = runBlocking {
+        withContext(this@ExecutionServer.dispatcher + CoroutineName("query-job-${UUID.randomUUID()}")) {
+            // Structured execution propagates filter/database errors instead of returning partial/empty success.
+            query.toFlow(this).toList()
         }
-        return results
     }
 
     /**

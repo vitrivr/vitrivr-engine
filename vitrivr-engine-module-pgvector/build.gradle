@@ -6,6 +6,7 @@ dependencies {
     /** Vitrivr engine Core is required. */
     api project(':vitrivr-engine-core')
     testImplementation(testFixtures(project(':vitrivr-engine-core')))
+    testImplementation project(':vitrivr-engine-query')
 
     /** Exposed */
     implementation group: 'org.jetbrains.exposed', name: 'exposed-core', version: version_exposed

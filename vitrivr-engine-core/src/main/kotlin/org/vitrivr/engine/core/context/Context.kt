@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.context
 
 import org.vitrivr.engine.core.model.content.factory.ContentFactory
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.filter.EarlyFilter
 import org.vitrivr.engine.core.resolver.Resolver
 
 /**
@@ -22,7 +23,10 @@ data class Context(
     val local: Map<String, Map<String, String>> = emptyMap(),
 
     /** Properties applicable to all operators */
-    val global: Map<String, String> = emptyMap()
+    val global: Map<String, String> = emptyMap(),
+
+    /** Structured early eligibility conditions, scoped by retrieval field. */
+    val filters: Map<String, EarlyFilter> = emptyMap()
 ) {
     /** Provides the [property] for the [operator], in case it is defined.
      * Defining a property [local]ly overrides a [global] one.

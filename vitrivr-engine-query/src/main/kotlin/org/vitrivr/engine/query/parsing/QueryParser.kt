@@ -15,6 +15,7 @@ import org.vitrivr.engine.query.model.api.InformationNeedDescription
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
+ * @author Rahel Arnold
  * @version 1.0.0
  */
 class QueryParser(val schema: Schema) {
@@ -73,8 +74,10 @@ class QueryParser(val schema: Schema) {
                 }.toMap()
 
                 /* Analysers address parameters by field name; isolate each operation's values. */
-                val retrievalContext = context.copy(local = context.local +
-                    (field.fieldName to operationDescription.parameters))
+                val retrievalContext = context.copy(
+                    local = context.local + (field.fieldName to operationDescription.parameters),
+                    filters = operationDescription.filter?.let { mapOf(field.fieldName to it) } ?: emptyMap()
+                )
 
                 contentInputs.takeIf { it.isNotEmpty() }?.let {
                     operators[operationName] = field.getRetrieverForContent(it, retrievalContext)
@@ -97,7 +100,8 @@ class QueryParser(val schema: Schema) {
             }.toMap()
 
 
-            operators[operationName] = factory.newOperator(operationName, inputs, context)
+            val factoryContext = context.copy(filters = operationDescription.filter?.let { mapOf(operationName to it) } ?: emptyMap())
+            operators[operationName] = factory.newOperator(operationName, inputs, factoryContext)
         }
 
         /* Return the output operator. */

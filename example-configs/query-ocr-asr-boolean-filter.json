@@ -1,0 +1,58 @@
+{
+  "inputs": {},
+  "operations": {
+    "matches": {
+      "factory": "FilteredRetrieval",
+      "inputs": {},
+      "parameters": {
+        "limit": "1000"
+      },
+      "filter": {
+        "type": "any",
+        "conditions": [
+          {
+            "type": "text",
+            "field": "ocr",
+            "text": "EXIT"
+          },
+          {
+            "type": "text",
+            "field": "asr",
+            "text": "coffee"
+          }
+        ]
+      }
+    },
+    "relations": {
+      "factory": "RelationExpander",
+      "inputs": {
+        "in": "matches"
+      },
+      "parameters": {
+        "outgoing": "partOf"
+      }
+    },
+    "timelookup": {
+      "factory": "FieldLookup",
+      "inputs": {
+        "in": "relations"
+      },
+      "parameters": {
+        "field": "time",
+        "keys": "start, end"
+      }
+    },
+    "filelookup": {
+      "factory": "ObjectFieldLookup",
+      "inputs": {
+        "in": "timelookup"
+      },
+      "parameters": {
+        "field": "file",
+        "predicates": "partOf",
+        "keys": "path"
+      }
+    }
+  },
+  "output": "filelookup"
+}

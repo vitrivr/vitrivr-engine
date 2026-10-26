@@ -7,6 +7,9 @@ import org.vitrivr.engine.core.database.retrievable.RetrievableReader
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
+import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.filter.EarlyFilter
+import org.vitrivr.engine.database.pgvector.descriptor.EarlyFilterSql
 import org.vitrivr.engine.database.pgvector.LOGGER
 import org.vitrivr.engine.database.pgvector.PgVectorConnection
 import org.vitrivr.engine.database.pgvector.tables.RelationshipTable
@@ -20,9 +23,22 @@ import java.util.*
  * A [RetrievableReader] implementation for PostgreSQL with pgVector.
  *
  * @author Ralph Gasser
+ * @author Rahel Arnold
  * @version 1.1.0
  */
 class PgRetrievableReader(override val connection: PgVectorConnection): RetrievableReader {
+    override fun queryFiltered(schema: Schema, filter: EarlyFilter, limit: Int, retrievableType: String?): Sequence<Retrieved> {
+        require(schema.connection == connection) { "Filter schema must use this connection." }
+        require(limit > 0) { "Filtered retrieval limit must be positive." }
+        require(retrievableType == null || retrievableType.isNotBlank()) { "retrievableType must not be blank." }
+        filter.validate()
+        return transaction(connection.database) {
+            val query = RetrievableTable.selectAll().where { EarlyFilterSql(schema, RetrievableTable.id).compile(filter) }
+            retrievableType?.let { type -> query.andWhere { RetrievableTable.type eq type } }
+            query.orderBy(RetrievableTable.id).limit(limit).map { it.toRetrieved() }.asSequence()
+        }
+    }
+
     /**
      * Returns the [Retrieved]s that matches the provided [RetrievableId]
      */

@@ -1,0 +1,92 @@
+{
+  "inputs": {
+    "text": {
+      "type": "TEXT",
+      "data": "people in a living room"
+    }
+  },
+  "operations": {
+    "scene": {
+      "field": "clip",
+      "inputs": {
+        "text": "text"
+      },
+      "parameters": {
+        "limit": "1000"
+      },
+      "filter": {
+        "type": "all",
+        "conditions": [
+          {
+            "type": "recording",
+            "values": {
+              "day": [
+                "day1"
+              ]
+            }
+          },
+          {
+            "type": "persons",
+            "names": [
+              "Werner",
+              "Luca"
+            ],
+            "field": "yoloadafacetwopass",
+            "mode": "all"
+          },
+          {
+            "type": "text",
+            "field": "ocr",
+            "text": "EXIT"
+          },
+          {
+            "type": "any",
+            "conditions": [
+              {
+                "type": "text",
+                "field": "asr",
+                "text": "coffee"
+              },
+              {
+                "type": "text",
+                "field": "asr",
+                "text": "tea"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "relations": {
+      "factory": "RelationExpander",
+      "inputs": {
+        "in": "scene"
+      },
+      "parameters": {
+        "outgoing": "partOf"
+      }
+    },
+    "timelookup": {
+      "factory": "FieldLookup",
+      "inputs": {
+        "in": "relations"
+      },
+      "parameters": {
+        "field": "time",
+        "keys": "start, end"
+      }
+    },
+    "filelookup": {
+      "factory": "ObjectFieldLookup",
+      "inputs": {
+        "in": "timelookup"
+      },
+      "parameters": {
+        "field": "file",
+        "predicates": "partOf",
+        "keys": "path"
+      }
+    }
+  },
+  "output": "filelookup"
+}

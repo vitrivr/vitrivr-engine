@@ -1,6 +1,8 @@
 package org.vitrivr.engine.core.database.retrievable
 
 import org.vitrivr.engine.core.database.Reader
+import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.filter.EarlyFilter
 import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.RetrievableId
@@ -12,9 +14,14 @@ import java.util.*
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
+ * @author Rahel Arnold
  * @version 1.1.0
  */
 interface RetrievableReader : Reader<Retrieved> {
+    /** Enumerates eligible IDs directly, without anchoring to a separately limited feature search. */
+    fun queryFiltered(schema: Schema, filter: EarlyFilter, limit: Int, retrievableType: String? = null): Sequence<Retrieved> =
+        throw UnsupportedOperationException("This database does not support Boolean early-filter retrieval.")
+
     /**
      * Returns the [Retrievable] that corresponds to the provided [RetrievableId].
      *

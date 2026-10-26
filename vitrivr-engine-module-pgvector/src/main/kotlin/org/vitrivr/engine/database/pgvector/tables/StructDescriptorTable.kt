@@ -29,6 +29,7 @@ import kotlin.reflect.full.primaryConstructor
  * An [AbstractDescriptorTable] for [StructDescriptor]s.
  *
  * @author Ralph Gasser
+ * @author Rahel Arnold
  * @version 1.0.1
  */
 class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ): AbstractDescriptorTable<D>(field) {
@@ -164,6 +165,9 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
         val value = query.value.value
         val descriptor = this@StructDescriptorTable.valueColumns.find { it.name == query.attributeName } as Column<String>
         descriptor tsMatches plainToTsQuery(stringParam(value))
+    }.apply {
+        require(query.limit > 0) { "Full-text query limit must be positive." }
+        if (query.limit <= Int.MAX_VALUE) limit(query.limit.toInt())
     }
 
     /**

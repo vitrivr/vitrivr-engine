@@ -1,5 +1,7 @@
 package org.vitrivr.engine.core.model.query.filter
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.model.descriptor.struct.FaceIdentityDescriptor
 
 /** Recognized identities required on the same retrievable, independent of recording provenance. */
@@ -9,7 +11,11 @@ data class PersonFilter(
     val mode: Mode = Mode.ALL,
     val minConfidence: Double? = null
 ) {
-    enum class Mode { ALL, ANY }
+    @Serializable
+    enum class Mode {
+        @SerialName("all") ALL,
+        @SerialName("any") ANY
+    }
 
     val normalizedNames = names.map { FaceIdentityDescriptor.normalizeLabel(it.trim()) }.distinct()
 

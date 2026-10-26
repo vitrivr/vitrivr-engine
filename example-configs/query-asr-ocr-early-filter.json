@@ -1,0 +1,51 @@
+{
+  "inputs": {
+    "text": {
+      "type": "TEXT",
+      "data": "coffee"
+    }
+  },
+  "operations": {
+    "speech": {
+      "field": "asr",
+      "inputs": {
+        "text": "text"
+      },
+      "parameters": {
+        "limit": "1000",
+        "filter.ocr": "EXIT"
+      }
+    },
+    "relations": {
+      "factory": "RelationExpander",
+      "inputs": {
+        "in": "speech"
+      },
+      "parameters": {
+        "outgoing": "partOf"
+      }
+    },
+    "timelookup": {
+      "factory": "FieldLookup",
+      "inputs": {
+        "in": "relations"
+      },
+      "parameters": {
+        "field": "time",
+        "keys": "start, end"
+      }
+    },
+    "filelookup": {
+      "factory": "ObjectFieldLookup",
+      "inputs": {
+        "in": "timelookup"
+      },
+      "parameters": {
+        "field": "file",
+        "predicates": "partOf",
+        "keys": "path"
+      }
+    }
+  },
+  "output": "filelookup"
+}

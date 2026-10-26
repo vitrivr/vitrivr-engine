@@ -17,6 +17,7 @@ import org.vitrivr.engine.database.pgvector.exposed.ops.tsMatches
  * Table definition for the [TextDescriptor] entity.
  *
  * @author Ralph Gasser
+ * @author Rahel Arnold
  * @version 1.0.1
  */
 internal class TextDescriptorTable(field: Schema.Field<*, TextDescriptor>): AbstractScalarDescriptorTable<TextDescriptor, Value.Text, String>(field) {
@@ -60,6 +61,9 @@ internal class TextDescriptorTable(field: Schema.Field<*, TextDescriptor>): Abst
      */
     private fun parse(query: SimpleFulltextQuery): Query = this.selectAll().where {
         descriptor tsMatches plainToTsQuery(stringParam(query.value.value))
+    }.apply {
+        require(query.limit > 0) { "Full-text query limit must be positive." }
+        if (query.limit <= Int.MAX_VALUE) limit(query.limit.toInt())
     }
 
     /**
@@ -79,5 +83,9 @@ internal class TextDescriptorTable(field: Schema.Field<*, TextDescriptor>): Abst
             ComparisonOperator.GEQ -> descriptor greaterEq value
             ComparisonOperator.LIKE -> descriptor like value
         }
+    }.apply {
+        require(query.limit > 0) { "Text query limit must be positive." }
+        if (query.limit <= Int.MAX_VALUE) limit(query.limit.toInt())
     }
+
 }

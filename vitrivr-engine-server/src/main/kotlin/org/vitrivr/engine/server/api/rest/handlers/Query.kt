@@ -28,7 +28,8 @@ private val logger: KLogger = KotlinLogging.logger {}
     requestBody = OpenApiRequestBody([OpenApiContent(InformationNeedDescription::class)]),
     responses = [
         OpenApiResponse("200", [OpenApiContent(QueryResult::class)]),
-        OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)])
+        OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+        OpenApiResponse("501", [OpenApiContent(ErrorStatus::class)])
     ]
 )
 fun executeQuery(ctx: Context, schema: Schema, executor: ExecutionServer) {
@@ -40,12 +41,15 @@ fun executeQuery(ctx: Context, schema: Schema, executor: ExecutionServer) {
             throw ErrorStatusException(400, "Invalid request: ${e.message}")
         }
 
-        /* Obtain query parser. */
-        val operator = QueryParser(schema).parse(informationNeed)
-
-        /* Execute query. */
-        val results = executor.query(operator)
-        ctx.json(QueryResult(results))
+        try {
+            val operator = QueryParser(schema).parse(informationNeed)
+            val results = executor.query(operator)
+            ctx.json(QueryResult(results))
+        } catch (e: IllegalArgumentException) {
+            throw ErrorStatusException(400, e.message ?: "Invalid query.")
+        } catch (e: UnsupportedOperationException) {
+            throw ErrorStatusException(501, e.message ?: "Query operation is not supported by this backend.")
+        }
     }
     logger.info { "Executing ${ctx.req().pathInfo} took $duration." }
 }
