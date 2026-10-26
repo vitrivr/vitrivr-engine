@@ -26,7 +26,7 @@ import org.vitrivr.engine.core.operators.retrieve.Retriever
  */
 abstract class AbstractRetriever<C : ContentElement<*>, D : Descriptor<*>>(override val field: Schema.Field<C, D>, query: Query, val context: Context) : Retriever<C, D> {
 
-    /** Apply operation-local recording constraints before database ranking and limits. */
+    /** Apply operation-local recording and identity constraints before database ranking and limits. */
     val query: Query = org.vitrivr.engine.core.model.query.filter.MetadataFilter.fromParameters(
         context.global + context.local[field.fieldName].orEmpty()
     )?.let { org.vitrivr.engine.core.model.query.filter.MetadataFilteredQuery(query, it) } ?: query

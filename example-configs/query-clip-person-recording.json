@@ -1,0 +1,84 @@
+{
+  "inputs": {
+    "sceneText": {
+      "type": "TEXT",
+      "data": "preparing food"
+    },
+    "personName": {
+      "type": "TEXT",
+      "data": "Werner"
+    }
+  },
+  "operations": {
+    "scene": {
+      "field": "clip",
+      "inputs": {
+        "text": "sceneText"
+      },
+      "parameters": {
+        "limit": "100",
+        "filter.field": "recording",
+        "filter.day": "day1",
+        "filter.source": "Werner",
+        "filter.source_type": "person"
+      }
+    },
+    "person": {
+      "field": "yoloadafacetwopass",
+      "inputs": {
+        "label": "personName"
+      },
+      "parameters": {
+        "limit": "1000",
+        "filter.field": "recording",
+        "filter.day": "day1",
+        "filter.source": "Werner",
+        "filter.source_type": "person"
+      }
+    },
+    "both": {
+      "factory": "And",
+      "inputs": {
+        "scene": "scene",
+        "person": "person"
+      }
+    },
+    "relations": {
+      "factory": "RelationExpander",
+      "inputs": {
+        "in": "both"
+      },
+      "parameters": {
+        "outgoing": "partOf"
+      }
+    },
+    "aggregator": {
+      "factory": "ScoreAggregator",
+      "inputs": {
+        "in": "relations"
+      }
+    },
+    "timelookup": {
+      "factory": "FieldLookup",
+      "inputs": {
+        "in": "aggregator"
+      },
+      "parameters": {
+        "field": "time",
+        "keys": "start, end"
+      }
+    },
+    "filelookup": {
+      "factory": "ObjectFieldLookup",
+      "inputs": {
+        "in": "timelookup"
+      },
+      "parameters": {
+        "field": "file",
+        "predicates": "partOf",
+        "keys": "path"
+      }
+    }
+  },
+  "output": "filelookup"
+}
