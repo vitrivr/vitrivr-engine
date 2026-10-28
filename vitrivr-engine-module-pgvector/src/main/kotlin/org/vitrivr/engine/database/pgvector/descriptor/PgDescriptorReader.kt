@@ -1,5 +1,6 @@
 package org.vitrivr.engine.database.pgvector.descriptor
 
+import org.jetbrains.exposed.sql.compoundOr
 import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.doubleLiteral
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.plus
@@ -77,6 +78,25 @@ class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, 
         } catch (e: Throwable) {
             LOGGER.error(e) { "Failed to execute query on '$tableName' due to error." }
             throw e
+        }
+    }
+
+    override fun lookupTemporalPoints(
+        points: List<org.vitrivr.engine.core.database.descriptor.TemporalLookupPoint>, fileField: String, recordingField: String?
+    ): List<List<RetrievableId>> = PgTemporalLookup(field, connection).lookup(points, fileField, recordingField)
+
+    /** Combine file/metadata lookup predicates into one SELECT rather than one transaction per video. */
+    override fun queryAny(queries: Collection<org.vitrivr.engine.core.model.query.Query>): Sequence<D> {
+        if (queries.isEmpty()) return emptySequence()
+        queries.forEach { query ->
+            val base = (query as? MetadataFilteredQuery)?.query ?: query
+            require(base is org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery<*> && base.limit == Long.MAX_VALUE) {
+                "queryAny requires unlimited SimpleBooleanQuery predicates, optionally metadata-filtered."
+            }
+        }
+        return transaction(connection.database) {
+            val predicates = queries.map { requireNotNull(parse(it).where) }
+            table.selectAll().where { predicates.compoundOr() }.map { table.rowToDescriptor(it) }.asSequence()
         }
     }
 

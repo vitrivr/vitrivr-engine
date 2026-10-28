@@ -1,48 +1,17 @@
 package org.vitrivr.engine.module.features.feature.external.implementations.prak
 
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.request.request
-import kotlinx.serialization.json.Json
 import org.vitrivr.engine.core.context.Context
-import org.vitrivr.engine.core.features.dense.DenseRetriever
-import org.vitrivr.engine.core.math.correspondence.BoundedCorrespondence
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.content.element.IdContent
-import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.content.element.TextContent
-import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
-import org.vitrivr.engine.core.model.metamodel.Analyser
+import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery
-import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
-import org.vitrivr.engine.core.operators.ingest.Extractor
-import org.vitrivr.engine.core.operators.retrieve.Retriever
 import org.vitrivr.engine.module.features.feature.external.ExternalAnalyser
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
-import java.util.*
-import io.ktor.http.contentType
-import io.ktor.http.isSuccess
-import kotlinx.coroutines.runBlocking
-
-import io.ktor.client.request.accept
-
-import io.ktor.client.request.request
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
-import io.ktor.http.cio.parseHttpBody
-import io.ktor.http.isSuccess
-import kotlinx.coroutines.runBlocking
-import org.vitrivr.engine.core.features.fulltext.FulltextRetriever
-import org.vitrivr.engine.core.model.descriptor.scalar.TextDescriptor
+import java.util.UUID
 
 /**
  * Implementation of the [PRAK] [ExternalAnalyser], which derives the PRAK feature from an [ImageContent] or [TextContent] as [FloatVectorDescriptor].
@@ -60,9 +29,6 @@ class PRAK : ExternalAnalyser<ContentElement<*>, TextDescriptor>() {
          * @param hostname The hostname of the external feature descriptor service.
          * @return A list of PRAK feature descriptors.
          */
-        private val json = Json {
-            encodeDefaults = true
-        }
 
         fun analyse(content: ContentElement<*>, hostname: String): TextDescriptor {
             val query = when (content) {
@@ -228,18 +194,15 @@ class PRAK : ExternalAnalyser<ContentElement<*>, TextDescriptor>() {
         descriptors: Collection<TextDescriptor>,
         context: Context
     ): PRAKExternalRetriever<ContentElement<*>> {
-        val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
-        val k = context.getProperty(field.fieldName, "limit")?.toIntOrNull() ?: 100
-        val matchAttribute = context.getProperty(field.fieldName, "matchAttribute") ?: "uri"
+        val k = context.getProperty(field.fieldName, "limit")?.toIntOrNull() ?: 1000
+
 
         return PRAKExternalRetriever(
             field = field,
             queryDescriptor = descriptors.first(),
             context = context,
-            hostname = host,
-            k = k,
-            matchAttributeName = matchAttribute,
-            schema=field.schema.name
+            hostname = field.parameters["host"] ?: "http://acheron.ms.mff.cuni.cz:42032",
+            k = k
         )
     }
 }

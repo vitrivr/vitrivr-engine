@@ -73,6 +73,26 @@ interface DescriptorReader<D : Descriptor<*>> : Reader<D> {
     fun query(query: Query): Sequence<D>
 
     /**
+     * Optional database-side point mapping for temporal metadata. One ID list per input point,
+     * in input order, with half-open intervals and exact timepoint matches. Null means unsupported.
+     */
+    fun lookupTemporalPoints(points: List<TemporalLookupPoint>, fileField: String, recordingField: String?): List<List<RetrievableId>>? = null
+
+    /**
+     * Returns the union of unlimited Boolean queries, without ordering or duplicate descriptors.
+     * Backends may combine these predicates into one read; the default preserves compatibility.
+     */
+    fun queryAny(queries: Collection<Query>): Sequence<D> {
+        queries.forEach { query ->
+            val base = (query as? org.vitrivr.engine.core.model.query.filter.MetadataFilteredQuery)?.query ?: query
+            require(base is org.vitrivr.engine.core.model.query.bool.SimpleBooleanQuery<*> && base.limit == Long.MAX_VALUE) {
+                "queryAny requires unlimited SimpleBooleanQuery predicates, optionally metadata-filtered."
+            }
+        }
+        return queries.asSequence().flatMap { query(it) }.distinctBy { it.id }
+    }
+
+    /**
      * Returns a [Sequence] of all [Retrieved]s that match the given [Query].
      *
      * Implicitly, this methods executes a [query] and then JOINS the result with the [Retrieved]s.

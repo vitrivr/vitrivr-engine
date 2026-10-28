@@ -8,8 +8,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class PrakQueryRequest(
     val k: Int = 100,
-    val dataset: String = "V3C",
-    val model: String = "clip-vit-so400m",
+    val dataset: String = "CASTLE",
+    val model: String = "siglip2",
 
     @SerialName("max_labels")
     val maxLabels: Int = 10,
