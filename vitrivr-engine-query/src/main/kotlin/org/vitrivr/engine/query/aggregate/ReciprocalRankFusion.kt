@@ -69,7 +69,8 @@ class ReciprocalRankFusion(
             val properties = entries.flatMap { it.third.filteredAttributes(PropertyAttribute::class.java) }
                 .flatMap { it.properties.entries }.filterNot { it.key in stateProperties || it.key.startsWith("fusion.") }
                 .associate { it.key to it.value } + mapOf(
-                    "fusion.feedbackEligible" to (feedbackInput != null && feedbackInput in aliases).toString(),
+                    "fusion.feedbackEligible" to (feedbackInput != null).toString(),
+                    "fusion.feedbackMode" to when { feedbackInput == null -> "unavailable"; feedbackInput in aliases -> "candidate"; else -> "nearest" },
                     "fusion.evidence" to buildJsonObject {
                         entries.forEach { (alias, rank, result) -> put(alias, buildJsonObject {
                             put("rank", rank)

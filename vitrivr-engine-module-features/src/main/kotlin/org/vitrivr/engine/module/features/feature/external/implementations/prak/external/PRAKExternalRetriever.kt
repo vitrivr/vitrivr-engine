@@ -35,35 +35,74 @@ class PRAKExternalRetriever<C : ContentElement<*>>(
         val dataset = parameter("dataset", "CASTLE")
         val model = parameter("model", "siglip2")
         val feedback = context[field.fieldName, "feedback"]?.let { PrakProtocol.json.decodeFromString<PrakFeedback>(it) }
-        val body: String
-        val endpoint: String
-        if (feedback == null) {
-            endpoint = "textQuery"
-            body = PrakProtocol.json.encodeToString(PrakQueryRequest(k = k, dataset = dataset, model = model, queries = queryDescriptor.value.value))
-        } else {
-            endpoint = "bayes"
-            val localIds = feedback.selectedRetrievableIds.map { UUID.fromString(it) }.toSet()
-            val candidateMatches = if (localIds.isEmpty()) emptyList() else mapper.mapResults(feedback.candidates)
-            val mapped = candidateMatches.filter { (_, ids) -> ids.any { it in localIds } }.map { it.first.id }
-            val mappedIds = candidateMatches.flatMap { it.second }.toSet()
-            require(localIds.all { it in mappedIds }) {
-                "Selected segments must map to a frame in the previous PraK candidates."
-            }
-            body = PrakProtocol.json.encodeToString(PrakProtocol.bayes(feedback, feedback.selectedImages + mapped, dataset, model))
-        }
         val client = HttpClient(CIO) { expectSuccess = true; followRedirects = false }
-        try {
-            val requestStart = System.nanoTime()
+        suspend fun post(endpoint: String, body: String): String {
             val response = client.post("${hostname.trimEnd('/')}/$endpoint/") {
                 contentType(ContentType.Application.Json)
                 accept(ContentType.Application.Json)
                 setBody(body)
             }
             check(response.status.isSuccess()) { "PraK returned ${response.status}." }
-            val results = PrakProtocol.results(response.bodyAsText())
+            return response.bodyAsText()
+        }
+        try {
+            if (feedback != null && feedback.localCandidates.isNotEmpty()) {
+                val maxDistance = parameter("feedbackMaxDistanceMs", "5000").toDoubleOrNull()
+                require(maxDistance != null && maxDistance.isFinite() && maxDistance >= 0)
+                val resolver = PrakFeedbackResolver(field.schema, parameter("fileField", "file"), parameter("timeField", "time"), parameter("recordingField", "recording"))
+                val state = PrakLocalReranker(resolver::resolvePool).rerank(feedback, dataset, model, maxDistance, ::post)
+                val order = PrakLocalReranker.order(state)
+                val stored = readPrakIdBatches(order.map(UUID::fromString)) { field.schema.connection.getRetrievableReader().getAll(it).toList() }.associateBy { it.id }
+                require(stored.size == order.size) { "Local candidates no longer exist; start a new search." }
+                order.forEachIndexed { rank, id ->
+                    val mapped = id in state.localMappings
+                    val props = mapOf("prak.ranking" to if (mapped) "bayes" else "unmapped",
+                        "fusion.feedbackEligible" to mapped.toString(), "fusion.feedbackMode" to if (mapped) "candidate" else "unavailable") +
+                        (state.unmappedLocalIds[id]?.let { mapOf("prak.mappingError" to it) } ?: emptyMap()) +
+                        (state.localMappings[id]?.let { mapOf("prak.id" to it.joinToString(",")) } ?: emptyMap()) +
+                        if (rank == 0) mapOf("prak.localFeedback" to PrakProtocol.json.encodeToString(state)) else emptyMap()
+                    val segment = stored.getValue(UUID.fromString(id))
+                    emit(segment.copy(attributes = segment.attributes.filterNot { it is ScoreAttribute || it is PropertyAttribute }.toSet() +
+                        ScoreAttribute.Similarity(1.0 - rank.toDouble() / order.size) + PropertyAttribute(props)))
+                }
+                return@flow
+            }
+            val body: String
+            val endpoint: String
+            var expectedCandidates = feedback?.candidates
+            if (feedback == null) {
+                endpoint = "textQuery"
+                body = PrakProtocol.json.encodeToString(PrakQueryRequest(k = k, dataset = dataset, model = model, queries = queryDescriptor.value.value))
+            } else {
+                endpoint = "bayes"
+                val localIds = feedback.selectedRetrievableIds.map { UUID.fromString(it) }.toSet()
+                val candidateMatches = if (localIds.isEmpty()) emptyList() else mapper.mapResults(feedback.candidates)
+                val mapped = candidateMatches.filter { (_, ids) -> ids.any { it in localIds } }.map { it.first.id }
+                val mappedIds = candidateMatches.flatMap { it.second }.toSet()
+                val missing = localIds - mappedIds
+                var expanded = feedback
+                var addedPositives = emptyList<List<String>>()
+                if (missing.isNotEmpty()) {
+                    val maxDistance = parameter("feedbackMaxDistanceMs", "5000").toDoubleOrNull()
+                    require(maxDistance != null && maxDistance.isFinite() && maxDistance >= 0) { "feedbackMaxDistanceMs must be finite and nonnegative." }
+                    val points = PrakFeedbackResolver(field.schema, parameter("fileField", "file"), parameter("timeField", "time"), parameter("recordingField", "recording")).resolve(missing)
+                    val nearest = points.chunked(1000).flatMap { chunk ->
+                        PrakProtocol.json.decodeFromString<PrakNearestResponse>(post("nearestFrames", PrakProtocol.json.encodeToString(
+                            PrakNearestRequest(chunk.map { PrakNearestPoint(it.video, it.timeMs) }, maxDistance, dataset, model)))).frames
+                    }
+                    val expansion = PrakFeedbackResolver.expand(feedback, points, nearest, maxDistance)
+                    expanded = expansion.first
+                    addedPositives = expansion.second
+                    logger.info { "PraK feedback mapped ${missing.size} local-only segments and added ${expanded.candidates.size - feedback.candidates.size} candidate frames." }
+                }
+                expectedCandidates = expanded.candidates
+                body = PrakProtocol.json.encodeToString(PrakProtocol.bayes(expanded, feedback.selectedImages + mapped + addedPositives, dataset, model))
+            }
+            val requestStart = System.nanoTime()
+            val results = PrakProtocol.results(post(endpoint, body))
             logger.info { "PraK $endpoint returned ${results.size} frames in ${(System.nanoTime() - requestStart) / 1_000_000} ms." }
             if (feedback != null) {
-                require(results.map { it.id }.toSet() == feedback.candidates.map { it.id }.toSet() && results.size == feedback.candidates.size) {
+                require(results.map { it.id }.toSet() == expectedCandidates!!.map { it.id }.toSet() && results.size == expectedCandidates.size) {
                     "PraK Bayes returned an empty or incomplete candidate list; retain the previous ranking."
                 }
             }

@@ -28,7 +28,7 @@ data class RankFusionCandidate(
         fun from(result: Retrievable) = RankFusionCandidate(result.id.toString(),
             result.filteredAttribute(ScoreAttribute::class.java)?.score,
             result.filteredAttributes(PropertyAttribute::class.java).flatMap { it.properties.entries }
-                .filterNot { it.key == "fusion.state" || it.key == "prak.candidates" }.associate { it.key to it.value },
+                .filterNot { it.key in setOf("fusion.state", "prak.candidates", "prak.localState", "prak.localFeedback") }.associate { it.key to it.value },
             result.descriptors.filter { it.field != null }.groupBy { it.field!!.fieldName }
                 .mapValues { (_, values) -> values.map { it.id.toString() } })
     }

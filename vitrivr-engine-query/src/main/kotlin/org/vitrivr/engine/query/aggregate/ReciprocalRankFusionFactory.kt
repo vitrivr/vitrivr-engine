@@ -27,7 +27,7 @@ class ReciprocalRankFusionFactory : OperatorFactory {
     }
 
     /** Reload original evidence by ID; do not execute the original OCR/ASR search again. */
-    private fun restore(candidates: List<RankFusionCandidate>, context: Context): List<Retrievable> {
+    internal fun restore(candidates: List<RankFusionCandidate>, context: Context): List<Retrievable> {
         if (candidates.isEmpty()) return emptyList()
         require(candidates.map { it.id }.distinct().size == candidates.size) { "Duplicate replay candidate IDs." }
         val ids = candidates.map { UUID.fromString(it.id) }

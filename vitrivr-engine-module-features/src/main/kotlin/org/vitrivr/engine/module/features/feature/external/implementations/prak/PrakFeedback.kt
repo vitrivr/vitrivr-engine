@@ -7,10 +7,14 @@ import kotlinx.serialization.json.*
 /** Stateless feedback: retain the entire frame list, including frames collapsed onto one local segment. */
 @Serializable
 data class PrakFeedback(
-    val candidates: List<PrakApiResult>,
+    val candidates: List<PrakApiResult> = emptyList(),
     @SerialName("selected_images") val selectedImages: List<List<String>> = emptyList(),
     val selectedRetrievableIds: List<String> = emptyList(),
-    @SerialName("max_rank") val maxRank: Int? = null
+    @SerialName("max_rank") val maxRank: Int? = null,
+    val localCandidates: List<String> = emptyList(),
+    val localMappings: Map<String, List<String>> = emptyMap(),
+    val unmappedLocalIds: Map<String, String> = emptyMap(),
+    val localPoolMapped: Boolean = false
 )
 
 @Serializable
