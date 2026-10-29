@@ -1,0 +1,38 @@
+{
+  "inputs": {
+    "visualText": {"type": "TEXT", "data": "people cooking in a kitchen"},
+    "writtenText": {"type": "TEXT", "data": "EXIT"},
+    "spokenText": {"type": "TEXT", "data": "potatoes"}
+  },
+  "operations": {
+    "visual": {
+      "field": "prak",
+      "inputs": {"text": "visualText"},
+      "parameters": {"limit": "1000"}
+    },
+    "written": {
+      "field": "ocr",
+      "inputs": {"text": "writtenText"},
+      "parameters": {"limit": "1000"}
+    },
+    "spoken": {
+      "field": "asr",
+      "inputs": {"text": "spokenText"},
+      "parameters": {"limit": "1000"}
+    },
+    "fusion": {
+      "factory": "ReciprocalRankFusion",
+      "inputs": {"visual": "visual", "ocr": "written", "asr": "spoken"},
+      "parameters": {
+        "rankConstant": "60",
+        "weight.visual": "1",
+        "weight.ocr": "1",
+        "weight.asr": "1",
+        "feedbackInput": "visual",
+        "stateProperties": "prak.candidates",
+        "limit": "1000"
+      }
+    }
+  },
+  "output": "fusion"
+}

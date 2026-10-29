@@ -12,3 +12,4 @@ org.vitrivr.engine.query.aggregate.WeightedScoreFusionFactory
 org.vitrivr.engine.query.aggregate.AndFactory
 org.vitrivr.engine.query.operators.transform.deduplicate.VisualDeduplicatorFactory
 org.vitrivr.engine.query.operators.retrieve.FilteredRetrievalFactory
+org.vitrivr.engine.query.aggregate.ReciprocalRankFusionFactory
