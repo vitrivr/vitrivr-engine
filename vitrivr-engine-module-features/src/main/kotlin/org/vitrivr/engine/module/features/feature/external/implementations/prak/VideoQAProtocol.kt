@@ -35,8 +35,8 @@ data class VideoQARequest(
 ) {
     fun validate() {
         require(question.isNotBlank()) { "question must not be blank." }
-        require(media.type == "frames") { "Only frames media is currently supported." }
-        require(media.maxFramesPerVideo in 1..128) { "max_frames_per_video must be between 1 and 128." }
+        require(media.type in setOf("frames", "transcript")) { "Media type must be frames or transcript." }
+        if (media.type == "frames") require(media.maxFramesPerVideo in 1..128) { "max_frames_per_video must be between 1 and 128." }
         require(videoId.isNotEmpty() || cameraFilter.isNotEmpty() || timeStart != null || timeEnd != null || additionalFilters.isNotEmpty()) {
             "At least one scope field must be provided."
         }
@@ -68,10 +68,14 @@ class VideoQAClient(private val endpoint: String) {
     fun answer(request: VideoQARequest): String {
         request.validate()
         val effective = if (request.videoId.isNotEmpty()) request.copy(cameraFilter = emptyList()) else request
+        val payload = json.encodeToJsonElement(effective).jsonObject.let { encoded ->
+            if (effective.media.type == "transcript") JsonObject(encoded + ("media" to buildJsonObject { put("type", "transcript") }))
+            else encoded
+        }
         val response = client.send(HttpRequest.newBuilder(URI.create(endpoint))
             .timeout(Duration.ofMinutes(3))
             .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(json.encodeToString(effective))).build(), HttpResponse.BodyHandlers.ofString())
+            .POST(HttpRequest.BodyPublishers.ofString(json.encodeToString(payload))).build(), HttpResponse.BodyHandlers.ofString())
         check(response.statusCode() in 200..299) { "QA service returned HTTP ${response.statusCode()}." }
         // The QA service wraps its answer in an object; retain string response compatibility.
         return if (response.headers().firstValue("Content-Type").orElse("").contains("application/json", ignoreCase = true)) {
