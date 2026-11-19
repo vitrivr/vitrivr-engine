@@ -22,3 +22,4 @@ org.vitrivr.engine.index.aggregators.descriptor.VectorDescriptorAggregator
 org.vitrivr.engine.index.segment.FixedDurationSegmenter
 org.vitrivr.engine.index.segment.ShotBoundarySegmenter
 org.vitrivr.engine.index.segment.DescriptorDistanceSegmenter
+org.vitrivr.engine.index.decode.MasterShotBoundaryDecoder

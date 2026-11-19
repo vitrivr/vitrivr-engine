@@ -45,7 +45,8 @@ class FileSourceMetadataExtractor : AbstractExtractor<ContentElement<*>, FileSou
      * @return True on match, false otherwise,
      */
     override fun matches(retrievable: Retrievable): Boolean =
-        retrievable.filteredAttribute(SourceAttribute::class.java)?.source is FileSource
+        (field?.parameters?.get("retrievableType")?.let { it == retrievable.type } ?: true) &&
+            retrievable.filteredAttribute(SourceAttribute::class.java)?.source is FileSource
 
     /**
      * Internal method to perform extraction on [Retrievable].

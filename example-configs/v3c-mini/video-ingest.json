@@ -1,0 +1,118 @@
+{
+  "schema": "v3cmini",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolvers": ["thumbnails"]
+  },
+  "operators": {
+    "videos": {
+      "factory": "FileSystemEnumerator",
+      "parameters": {
+        "path": "/home/ubuntu/v3c_mini/v3c",
+        "depth": "1",
+        "mediaTypes": "VIDEO"
+      }
+    },
+    "decode": {
+      "factory": "MasterShotBoundaryDecoder",
+      "parameters": {
+        "sbProvider": "FileSystemShotBoundaryProvider",
+        "boundaryFilesPath": "/home/ubuntu/v3c_mini/msb_v3c",
+        "boundaryFileExtension": ".tsv",
+        "toNanoScale": "1e9",
+        "videoSampleSize": "512"
+      }
+    },
+    "persist": {
+      "factory": "PersistRetrievableTransformer"
+    },
+    "thumbnail": {
+      "exporter": "thumbnail"
+    },
+    "file": {
+      "field": "file"
+    },
+    "time": {
+      "field": "time"
+    },
+    "clip": {
+      "field": "clip"
+    },
+    "siglip2": {
+      "field": "siglip2"
+    },
+    "vlmcaption": {
+      "field": "vlmcaption"
+    },
+    "ocr": {
+      "field": "ocr"
+    },
+    "asr": {
+      "field": "asr"
+    }
+  },
+  "operations": {
+    "videos": {
+      "operator": "videos"
+    },
+    "decode": {
+      "operator": "decode",
+      "inputs": [
+        "videos"
+      ]
+    },
+    "persist": {
+      "operator": "persist",
+      "inputs": [
+        "decode"
+      ]
+    },
+    "thumbnail": {
+      "operator": "thumbnail",
+      "inputs": ["persist"]
+    },
+    "file": {
+      "operator": "file",
+      "inputs": ["thumbnail"]
+    },
+    "time": {
+      "operator": "time",
+      "inputs": [
+        "file"
+      ]
+    },
+    "clip": {
+      "operator": "clip",
+      "inputs": [
+        "time"
+      ]
+    },
+    "siglip2": {
+      "operator": "siglip2",
+      "inputs": [
+        "clip"
+      ]
+    },
+    "vlmcaption": {
+      "operator": "vlmcaption",
+      "inputs": [
+        "siglip2"
+      ]
+    },
+    "ocr": {
+      "operator": "ocr",
+      "inputs": [
+        "vlmcaption"
+      ]
+    },
+    "asr": {
+      "operator": "asr",
+      "inputs": [
+        "ocr"
+      ]
+    }
+  },
+  "output": [
+    "asr"
+  ]
+}
