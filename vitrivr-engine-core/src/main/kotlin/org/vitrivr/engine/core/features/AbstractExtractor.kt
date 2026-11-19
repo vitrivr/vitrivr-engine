@@ -2,6 +2,7 @@ package org.vitrivr.engine.core.features
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -57,37 +58,37 @@ abstract class AbstractExtractor<C : ContentElement<*>, D : Descriptor<*>>(
      * @return [Flow] of [Retrievable]
      */
     override fun toFlow(scope: CoroutineScope): Flow<Retrievable> =
-        this.input.toFlow(scope).map { retrievable ->
-            if (this.matches(retrievable)) {
-                /* Perform extraction. */
-                val descriptors = try {
-                    logger.trace {"Extraction on field ${field?.fieldName} for retrievable: $retrievable" }
-                    extract(retrievable)
-                } catch (e: Throwable) {
-                    logger.error(e) { "Error during extraction of $retrievable" }
-                    emptyList()
-                }
+        input.toFlow(scope).map { retrievable -> persistDescriptors(retrievable, extractDescriptors(retrievable)) }
 
-                if (descriptors.isNotEmpty()) {
-                    /* Append descriptor. */
-                    logger.trace { "Extracted descriptors for retrievable ($retrievable): $descriptors" }
-                    val authorAttribute = DescriptorAuthorAttribute()
-                    for (d in descriptors) {
-                        authorAttribute.add(d, this.name)
-                    }
-
-                    /* Persist descriptors. */
-                    this@AbstractExtractor.writer?.addAll(descriptors)
-
-                    /* Append descriptors to retrievable and emit. */
-                    retrievable.copy(descriptors = retrievable.descriptors + descriptors, attributes = retrievable.attributes + authorAttribute)
-                } else {
-                    retrievable
-                }
-            } else {
-                retrievable
-            }
+    /** Extracts descriptors without writing them so callers can parallelize inference. */
+    protected fun extractDescriptors(retrievable: Retrievable): List<D> {
+        if (!matches(retrievable)) return emptyList()
+        return try {
+            logger.trace { "Extraction on field ${field?.fieldName} for retrievable: $retrievable" }
+            extract(retrievable)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            logger.error(e) { "Error during extraction of $retrievable" }
+            emptyList()
         }
+    }
+
+    /** Persists descriptors and attaches them to the retrievable. */
+    protected fun persistDescriptors(retrievable: Retrievable, descriptors: List<D>): Retrievable {
+        if (descriptors.isEmpty()) return retrievable
+        logger.trace { "Extracted descriptors for retrievable ($retrievable): $descriptors" }
+        writer?.addAll(descriptors)
+        return appendDescriptors(retrievable, descriptors)
+    }
+
+    /** Adds extracted descriptors and their author to a retrievable. */
+    protected fun appendDescriptors(retrievable: Retrievable, descriptors: List<D>): Retrievable {
+        if (descriptors.isEmpty()) return retrievable
+        val author = DescriptorAuthorAttribute()
+        descriptors.forEach { author.add(it, name) }
+        return retrievable.copy(descriptors = retrievable.descriptors + descriptors, attributes = retrievable.attributes + author)
+    }
 
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.

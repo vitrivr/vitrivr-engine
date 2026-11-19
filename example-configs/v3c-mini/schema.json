@@ -22,12 +22,14 @@
         "clip": {
           "factory": "CLIP",
           "parameters": {
+            "batchSize": "8",
             "host": "http://127.0.0.1:8888"
           }
         },
         "siglip2": {
           "factory": "SigLip2",
           "parameters": {
+            "batchSize": "8",
             "host": "http://127.0.0.1:8888",
             "dimension": "768"
           }

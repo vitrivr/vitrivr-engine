@@ -92,7 +92,8 @@ class SigLip2 : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
         context: Context
     ): SigLip2Extractor {
         val host: String = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
-        return SigLip2Extractor(input, this, field, host)
+        val batchSize = Analyser.merge(field, context)["batchSize"]?.toInt() ?: 1
+        return SigLip2Extractor(input, this, field, field.fieldName, host, batchSize)
     }
 
     /**
@@ -111,7 +112,8 @@ class SigLip2 : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
         context: Context
     ): SigLip2Extractor {
         val host: String = context.getProperty(name, HOST_PARAMETER_NAME) ?: HOST_PARAMETER_DEFAULT
-        return SigLip2Extractor(input, this, name, host)
+        val batchSize = context.getProperty(name, "batchSize")?.toInt() ?: 1
+        return SigLip2Extractor(input, this, null, name, host, batchSize)
     }
 
     /**

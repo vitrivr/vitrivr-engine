@@ -86,7 +86,8 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
         context: Context
     ): CLIPExtractor {
         val host: String = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
-        return CLIPExtractor(input, this, field, host)
+        val batchSize = Analyser.merge(field, context)["batchSize"]?.toInt() ?: 1
+        return CLIPExtractor(input, this, field, field.fieldName, host, batchSize)
     }
 
     /**
@@ -105,7 +106,8 @@ class CLIP : ExternalAnalyser<ContentElement<*>, FloatVectorDescriptor>() {
         context: Context
     ): CLIPExtractor {
         val host: String = context.getProperty(name,HOST_PARAMETER_NAME) ?: HOST_PARAMETER_DEFAULT
-        return CLIPExtractor(input, this, name, host)
+        val batchSize = context.getProperty(name, "batchSize")?.toInt() ?: 1
+        return CLIPExtractor(input, this, null, name, host, batchSize)
     }
 
     /**

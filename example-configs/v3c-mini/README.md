@@ -23,3 +23,5 @@ The supplied `00001.tsv` defines 114 master shots. A fresh ingest creates those 
 The VLM field in this pipeline uses the representative frame. You can add complete-shot captions as a separate field using the [video-caption setup](../vlm/README.md#caption-complete-video-shots).
 
 The pipeline exports each midpoint frame as a JPEG thumbnail named `<shot UUID>.jpg` under `example-configs/v3c-mini/thumbnails/`. The maximum side is 500 pixels. Set the `thumbnails` resolver location in the schema to use a different output directory.
+
+CLIP and SigLIP 2 image ingestion use batches of eight. Rebuild the engine and restart the Python descriptor server with its batch routes before indexing. Set `batchSize` to `1` to use single-image requests or tune it between 2 and 32 for your feature GPU. If a batch fails, the extractor falls back to the single-image endpoint for those shots. Text and image queries still use the single-item endpoints.
