@@ -13,6 +13,7 @@ import org.vitrivr.engine.core.model.relationship.Relationship
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.SourceAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.time.ShotAudioRangeAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.time.TimeRangeAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.OperatorFactory
@@ -41,6 +42,7 @@ class MasterShotBoundaryDecoder : OperatorFactory {
             "Unknown shot boundary provider: $providerName."
         }.newShotBoundaryProvider(name, context)
         val sampleSize = context[name, "videoSampleSize"]?.toInt() ?: 512
+        val decodeShotAudio = context[name, "decodeShotAudio"]?.toBooleanStrict() ?: true
         require(sampleSize > 0) { "videoSampleSize must be positive." }
 
         return object : Decoder {
@@ -67,7 +69,7 @@ class MasterShotBoundaryDecoder : OperatorFactory {
                         require(fps.isFinite() && fps > 0) { "Invalid video frame rate for ${source.name}." }
                         emit(sourceItem)
                         FFmpegFrameGrabber(source.path.toFile()).use { audio ->
-                            val hasAudio = video.audioChannels > 0
+                            val hasAudio = decodeShotAudio && video.audioChannels > 0
                             if (hasAudio) {
                                 audio.audioChannels = 1
                                 audio.sampleRate = AUDIO_SAMPLE_RATE
@@ -77,7 +79,7 @@ class MasterShotBoundaryDecoder : OperatorFactory {
                             Java2DFrameConverter().use { converter ->
                                 var frameIndex = -1
                                 val audioCursor = if (hasAudio) ShotAudioCursor(audio) else null
-                                for (shot in shots) {
+                                for ((index, shot) in shots.withIndex()) {
                                     val target = shot.start + (shot.end - shot.start) / 2
                                     while (frameIndex < target - 1) {
                                         // Decode intervening frames for codec references without converting their pixels.
@@ -101,10 +103,15 @@ class MasterShotBoundaryDecoder : OperatorFactory {
                                     audioCursor?.read(start, audioEnd)?.let { samples ->
                                         content.add(context.contentFactory.newAudioContent(1, AUDIO_SAMPLE_RATE, samples))
                                     }
+                                    val nextStart = shots.getOrNull(index + 1)?.startAbs?.toNanos()
+                                    val audioEndExclusive = if (nextStart == null) audioEnd else minOf(audioEnd, nextStart)
                                     val id = UUID.randomUUID()
                                     emit(Ingested(
                                         id, "SEGMENT", content,
-                                        attributes = setOf(SourceAttribute(source), TimeRangeAttribute(start, end)),
+                                        attributes = setOf(
+                                            SourceAttribute(source), TimeRangeAttribute(start, end),
+                                            ShotAudioRangeAttribute(start, audioEndExclusive)
+                                        ),
                                         relationships = setOf(Relationship.ById(id, "partOf", sourceItem.id, false)),
                                         transient = false
                                     ))

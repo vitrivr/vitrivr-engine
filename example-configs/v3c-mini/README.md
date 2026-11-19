@@ -1,6 +1,6 @@
 # V3C Mini master-shot ingestion
 
-This schema indexes CLIP, SigLIP 2, VLM keyframe captions, OCR, and ASR. It also stores the source file and the original TSV start and end timestamps in nanoseconds. `MasterShotBoundaryDecoder` matches each video basename to its TSV, takes the midpoint frame of each inclusive frame range, and decodes the corresponding audio to 16 kHz mono for ASR.
+This schema indexes CLIP, SigLIP 2, VLM keyframe captions, OCR, and ASR. It also stores the source file and the original TSV start and end timestamps in nanoseconds. `MasterShotBoundaryDecoder` matches each video basename to its TSV, takes the midpoint frame of each inclusive frame range.
 
 The pipeline reads `/home/ubuntu/v3c_mini/v3c` and `/home/ubuntu/v3c_mini/msb_v3c`. The included schema uses PostgreSQL with pgvector on port 5432, the Python descriptor service on port 8888, and `vitrivr-vlm` on port 8000. Adjust the connection and field settings in [schema.json](schema.json) if your services use different addresses or credentials.
 
@@ -27,3 +27,5 @@ The pipeline exports each midpoint frame as a JPEG thumbnail named `<shot UUID>.
 CLIP and SigLIP 2 image ingestion use batches of eight. Rebuild the engine and restart the Python descriptor server with its batch routes before indexing. Set `batchSize` to `1` to use single-image requests or tune it between 2 and 32 for your feature GPU. If a batch fails, the extractor falls back to the single-image endpoint for those shots. Text and image queries still use the single-item endpoints.
 
 OCR uses up to eight concurrent requests to the existing Tesseract endpoint. Set `concurrentRequests` on the OCR field to tune it for the descriptor server's CPU or set it to `1` for sequential requests.
+
+ASR sends each source video once to the descriptor server’s `/extract/asr/video` endpoint. The server uses faster-whisper small with automatic language detection and voice activity detection. The engine indexes words in the original master shot containing their timestamp midpoint and skips shots without transcribed words. Rebuild and restart the descriptor server before running this configuration.

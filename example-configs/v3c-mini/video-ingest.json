@@ -20,7 +20,8 @@
         "boundaryFilesPath": "/home/ubuntu/v3c_mini/msb_v3c",
         "boundaryFileExtension": ".tsv",
         "toNanoScale": "1e9",
-        "videoSampleSize": "512"
+        "videoSampleSize": "512",
+        "decodeShotAudio": "false"
       }
     },
     "persist": {

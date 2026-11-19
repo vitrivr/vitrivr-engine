@@ -70,7 +70,8 @@ class AutomaticSpeechRecognition : ExternalAnalyser<ContentElement<*>, TextDescr
         context: Context
     ): Extractor<ContentElement<*>, TextDescriptor> {
         val host: String = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
-        return AutomaticSpeechRecognitionExtractor(input, this, field, host)
+        val continuous = field.parameters["continuousVideo"]?.toBooleanStrict() ?: false
+        return AutomaticSpeechRecognitionExtractor(input, this, field, host, continuous)
     }
 
     /** Creates a new [Extractor] for ASR. */
@@ -80,7 +81,8 @@ class AutomaticSpeechRecognition : ExternalAnalyser<ContentElement<*>, TextDescr
         context: Context
     ): Extractor<ContentElement<*>, TextDescriptor> {
         val host: String = context.getProperty(name, HOST_PARAMETER_NAME) ?: HOST_PARAMETER_DEFAULT
-        return AutomaticSpeechRecognitionExtractor(input, this, name, host)
+        val continuous = context.getProperty(name, "continuousVideo")?.toBooleanStrict() ?: false
+        return AutomaticSpeechRecognitionExtractor(input, this, name, host, continuous)
     }
 
     /** Creates a retriever for ASR results using full-text search. */

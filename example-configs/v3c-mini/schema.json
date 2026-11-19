@@ -82,6 +82,7 @@
         "asr": {
           "factory": "AutomaticSpeechRecognition",
           "parameters": {
+            "continuousVideo": "true",
             "host": "http://127.0.0.1:8888"
           },
           "indexes": [
