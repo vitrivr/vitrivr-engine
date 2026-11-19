@@ -3,8 +3,9 @@ package org.vitrivr.engine.module.features.feature.external.implementations.vlm
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.runInterruptible
@@ -38,22 +39,27 @@ internal class VlmCaptionExtractor(
     private val logger = KotlinLogging.logger("Extractor#$name")
     private val writer by lazy { field?.getWriter() }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     override fun toFlow(scope: CoroutineScope) = if (describe == null) {
         input.toFlow(scope)
     } else flow {
-        var terminated = false
-        input.toFlow(scope)
-            .takeWhile { shot ->
-                terminated = shot == TerminalRetrievable
-                !terminated
-            }
-            .flatMapMerge(concurrency) { shot ->
-                flow { emit(runInterruptible(Dispatchers.IO) { extract(shot, describe) }) }
-            }
-            .collect { emit(it) }
-        // The sink stops collecting at this marker. Drain all pending writes first.
-        if (terminated) emit(TerminalRetrievable)
+        coroutineScope {
+            val pending = ArrayDeque<Deferred<Retrievable>>(concurrency)
+            var terminated = false
+            input.toFlow(scope)
+                .takeWhile { shot ->
+                    terminated = shot == TerminalRetrievable
+                    !terminated
+                }
+                .collect { shot ->
+                    pending.addLast(async {
+                        runInterruptible(Dispatchers.IO) { extract(shot, describe) }
+                    })
+                    // Preserve source order for downstream video-level ASR.
+                    if (pending.size == concurrency) emit(pending.removeFirst().await())
+                }
+            while (pending.isNotEmpty()) emit(pending.removeFirst().await())
+            if (terminated) emit(TerminalRetrievable)
+        }
     }
 
     private fun extract(shot: Retrievable, describe: (Retrievable) -> VlmDescription?): Retrievable {

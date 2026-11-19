@@ -43,7 +43,7 @@
             "promptVersion": "1",
             "maxOutputTokens": "128",
             "requestTimeoutMs": "60000",
-            "maxConcurrentRequests": "1",
+            "maxConcurrentRequests": "4",
             "disableThinking": "true",
             "limit": "100"
           },
