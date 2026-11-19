@@ -23,5 +23,8 @@ data class SimpleFulltextQuery(
     val attributeName: String? = null,
 
     /** The number of results that should be returned by this [SimpleBooleanQuery]. */
-    val limit: Long = Long.MAX_VALUE
+    val limit: Long = Long.MAX_VALUE,
+
+    /** Request relevance ranking and scores from the backing text index. */
+    val ranked: Boolean = false
 ) : Query

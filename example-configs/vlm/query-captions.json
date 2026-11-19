@@ -1,0 +1,18 @@
+{
+  "inputs": {
+    "text": {"type": "TEXT", "data": "red bicycle"}
+  },
+  "operations": {
+    "captions": {
+      "field": "vlmcaption",
+      "inputs": {"text": "text"},
+      "parameters": {"limit": "100"}
+    },
+    "timestamps": {
+      "factory": "FieldLookup",
+      "inputs": {"in": "captions"},
+      "parameters": {"field": "time"}
+    }
+  },
+  "output": "timestamps"
+}

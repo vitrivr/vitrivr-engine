@@ -1,0 +1,21 @@
+{
+  "schema": "example",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolvers": ["masterClips"]
+  },
+  "operators": {
+    "shots": {
+      "factory": "StoredShots",
+      "parameters": {"shotType": "SEGMENT"}
+    },
+    "vlmvideocaption": {
+      "field": "vlmvideocaption"
+    }
+  },
+  "operations": {
+    "shots": {"operator": "shots"},
+    "caption": {"operator": "vlmvideocaption", "inputs": ["shots"]}
+  },
+  "output": ["caption"]
+}

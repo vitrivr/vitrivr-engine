@@ -1,0 +1,62 @@
+{
+  "schema": {
+    "example": {
+      "connection": {
+        "database": "PgVectorConnectionProvider",
+        "parameters": {
+          "host": "postgres.example.org",
+          "port": "5432",
+          "username": "postgres",
+          "password": "replace-me"
+        }
+      },
+      "fields": {
+        "time": {
+          "factory": "TemporalMetadata"
+        },
+        "vlmvideocaption": {
+          "factory": "VlmVideoCaption",
+          "parameters": {
+            "enabled": "true",
+            "baseUrl": "http://vlm.example.org:8000/v1",
+            "model": "vitrivr-vlm",
+            "promptVersion": "1",
+            "maxOutputTokens": "128",
+            "requestTimeoutMs": "120000",
+            "maxConcurrentRequests": "1",
+            "disableThinking": "true",
+            "limit": "100",
+            "videoResolver": "masterClips",
+            "maxVideoBytes": "16777216",
+            "shotType": "SEGMENT"
+          },
+          "indexes": [
+            {
+              "attributes": [
+                "caption"
+              ],
+              "type": "FULLTEXT",
+              "parameters": {
+                "language": "english",
+                "gin": "true"
+              }
+            }
+          ]
+        }
+      },
+      "resolvers": {
+        "masterClips": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "/path/to/master-shot-clips"
+          }
+        }
+      },
+      "extractionPipelines": {
+        "vlm-video-captions": {
+          "path": "./example-configs/vlm/index-video-captions.json"
+        }
+      }
+    }
+  }
+}

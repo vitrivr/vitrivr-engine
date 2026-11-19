@@ -16,3 +16,5 @@ org.vitrivr.engine.module.features.feature.external.implementations.identity.Ada
 org.vitrivr.engine.module.features.feature.external.implementations.identity.YoloAdaFaceForward
 org.vitrivr.engine.module.features.feature.external.implementations.identity.YoloAdaFaceTwoPass
 org.vitrivr.engine.module.features.feature.external.implementations.prak.VideoQA
+org.vitrivr.engine.module.features.feature.external.implementations.vlm.VlmCaption
+org.vitrivr.engine.module.features.feature.external.implementations.vlm.VlmVideoCaption

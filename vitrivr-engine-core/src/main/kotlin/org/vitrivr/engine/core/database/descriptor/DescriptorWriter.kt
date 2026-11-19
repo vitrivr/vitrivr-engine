@@ -14,4 +14,7 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 interface DescriptorWriter<D : Descriptor<*>> : Writer<D> {
     /** The [Schema.Field] this [DescriptorWriter] belongs to. */
     val field: Schema.Field<*,D>
+
+    /** Atomically inserts a descriptor or replaces its values by ID. */
+    fun upsert(item: D): Boolean = throw UnsupportedOperationException("This database does not support descriptor upserts.")
 }

@@ -1,0 +1,57 @@
+{
+  "schema": {
+    "example": {
+      "connection": {
+        "database": "PgVectorConnectionProvider",
+        "parameters": {
+          "host": "postgres.example.org",
+          "port": "5432",
+          "username": "postgres",
+          "password": "replace-me"
+        }
+      },
+      "fields": {
+        "time": {
+          "factory": "TemporalMetadata"
+        },
+        "vlmcaption": {
+          "factory": "VlmCaption",
+          "parameters": {
+            "enabled": "true",
+            "baseUrl": "http://vlm.example.org:8000/v1",
+            "model": "vitrivr-vlm",
+            "promptVersion": "1",
+            "maxOutputTokens": "128",
+            "requestTimeoutMs": "60000",
+            "maxConcurrentRequests": "2",
+            "disableThinking": "true",
+            "limit": "100"
+          },
+          "indexes": [
+            {
+              "attributes": ["caption"],
+              "type": "FULLTEXT",
+              "parameters": {
+                "language": "english",
+                "gin": "true"
+              }
+            }
+          ]
+        }
+      },
+      "resolvers": {
+        "masterKeyframes": {
+          "factory": "DiskResolver",
+          "parameters": {
+            "location": "/path/to/master-shot-keyframes"
+          }
+        }
+      },
+      "extractionPipelines": {
+        "vlm-captions": {
+          "path": "./example-configs/vlm/index-captions.json"
+        }
+      }
+    }
+  }
+}

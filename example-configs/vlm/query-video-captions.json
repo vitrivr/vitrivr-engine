@@ -1,0 +1,18 @@
+{
+  "inputs": {
+    "text": {"type": "TEXT", "data": "green"}
+  },
+  "operations": {
+    "captions": {
+      "field": "vlmvideocaption",
+      "inputs": {"text": "text"},
+      "parameters": {"limit": "100"}
+    },
+    "timestamps": {
+      "factory": "FieldLookup",
+      "inputs": {"in": "captions"},
+      "parameters": {"field": "time"}
+    }
+  },
+  "output": "timestamps"
+}

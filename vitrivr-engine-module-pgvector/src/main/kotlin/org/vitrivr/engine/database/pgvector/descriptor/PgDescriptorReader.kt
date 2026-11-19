@@ -18,10 +18,12 @@ import org.vitrivr.engine.core.model.retrievable.RetrievableId
 import org.vitrivr.engine.core.model.retrievable.Retrieved
 import org.vitrivr.engine.core.model.retrievable.attributes.DistanceAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.RetrievableAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.database.pgvector.LOGGER
 import org.vitrivr.engine.database.pgvector.PgVectorConnection
 import org.vitrivr.engine.database.pgvector.exposed.ops.DistanceOps
 import org.vitrivr.engine.database.pgvector.tables.AbstractDescriptorTable
+import org.vitrivr.engine.database.pgvector.tables.FulltextRank
 import org.vitrivr.engine.database.pgvector.tables.RetrievableTable
 import org.vitrivr.engine.database.pgvector.tables.RetrievableTable.toRetrieved
 import org.vitrivr.engine.database.pgvector.toTable
@@ -254,6 +256,10 @@ class PgDescriptorReader<D : Descriptor<*>>(override val field: Schema.Field<*, 
                 } catch (e: Throwable) {
                     /* No operation */
                 }
+            }
+            val rank = rows.first().fieldIndex.keys.filterIsInstance<FulltextRank>().firstOrNull()
+            if (rank != null) {
+                attributes.add(ScoreAttribute.Unbound(rows.maxOf { it[rank].toDouble() }))
             }
             rows.first().toRetrieved(descriptors, attributes)
         }.asSequence()

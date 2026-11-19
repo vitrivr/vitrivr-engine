@@ -5,6 +5,7 @@ import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.statements.BatchInsertStatement
 import org.jetbrains.exposed.sql.statements.InsertStatement
 import org.jetbrains.exposed.sql.statements.UpdateStatement
+import org.vitrivr.engine.core.config.schema.IndexType
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.struct.StructDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -15,6 +16,7 @@ import org.vitrivr.engine.core.model.types.Type
 import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.database.pgvector.exposed.functions.plainToTsQuery
 import org.vitrivr.engine.database.pgvector.exposed.ops.tsMatches
+import org.vitrivr.engine.database.pgvector.exposed.types.TsVectorColumnType
 import java.util.*
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.query.basics.Distance
@@ -160,14 +162,25 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
      * @return The [Query] that can be executed against the database.
      */
     @Suppress("UNCHECKED_CAST")
-    private fun parse(query: SimpleFulltextQuery): Query = this.selectAll().where {
-        require(query.attributeName != null) { "Attribute name of boolean query must not be null!" }
-        val value = query.value.value
-        val descriptor = this@StructDescriptorTable.valueColumns.find { it.name == query.attributeName } as Column<String>
-        descriptor tsMatches plainToTsQuery(stringParam(value))
-    }.apply {
+    private fun parse(query: SimpleFulltextQuery): Query {
         require(query.limit > 0) { "Full-text query limit must be positive." }
-        if (query.limit <= Int.MAX_VALUE) limit(query.limit.toInt())
+        val attribute = requireNotNull(query.attributeName) { "Full-text query requires an attribute name." }
+        val text = stringParam(query.value.value)
+        val matches = if (query.ranked) {
+            val index = field.indexes.firstOrNull { it.type == IndexType.FULLTEXT && it.attributes.firstOrNull() == attribute }
+                ?: error("Ranked full-text search requires a FULLTEXT index for '$attribute'.")
+            val document = columns.single {
+                it.columnType is TsVectorColumnType && it.name.equals("${attribute}_ft_index", ignoreCase = true)
+            } as Column<String>
+            val terms = plainToTsQuery(text, stringLiteral(index.parameters["language"]?.lowercase() ?: "english"))
+            val rank = FulltextRank(document, terms)
+            select(listOf(id, retrievableId) + valueColumns + rank).where { document tsMatches terms }
+                .orderBy(rank to SortOrder.DESC, id to SortOrder.ASC)
+        } else {
+            val descriptor = valueColumns.first { it.name == attribute } as Column<String>
+            selectAll().where { descriptor tsMatches plainToTsQuery(text) }
+        }
+        return matches.apply { if (query.limit <= Int.MAX_VALUE) limit(query.limit.toInt()) }
     }
 
     /**
@@ -234,3 +247,6 @@ class StructDescriptorTable<D: StructDescriptor<*>>(field: Schema.Field<*, D> ):
         }
     }
 }
+/** PostgreSQL lexical relevance for a matching document. */
+internal class FulltextRank(document: Expression<String>, terms: Expression<String>) :
+    CustomFunction<Float>("ts_rank", FloatColumnType(), document, terms)

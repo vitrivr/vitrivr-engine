@@ -1,0 +1,25 @@
+{
+  "schema": "example",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolvers": ["masterKeyframes"]
+  },
+  "operators": {
+    "keyframes": {
+      "factory": "StoredShotKeyframes",
+      "parameters": {
+        "resolver": "masterKeyframes",
+        "shotType": "SEGMENT",
+        "suffix": "png"
+      }
+    },
+    "vlmcaption": {
+      "field": "vlmcaption"
+    }
+  },
+  "operations": {
+    "keyframes": {"operator": "keyframes"},
+    "caption": {"operator": "vlmcaption", "inputs": ["keyframes"]}
+  },
+  "output": ["caption"]
+}

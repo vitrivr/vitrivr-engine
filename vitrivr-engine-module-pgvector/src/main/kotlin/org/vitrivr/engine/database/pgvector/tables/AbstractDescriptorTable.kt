@@ -77,9 +77,15 @@ abstract class AbstractDescriptorTable<D : Descriptor<*>>(protected val field: S
                 IndexType.FULLTEXT -> {
                     val column = columns.firstOrNull() ?: error("Cannot create fulltext index without column.")
                     val language =  index.parameters["language"]?.lowercase() ?: "english"
-                    this.registerColumn("${column.nameInDatabaseCase()}_ft_index", TsVectorColumnType())
+                    require(language.matches(Regex("[a-z_][a-z0-9_]*(\\.[a-z_][a-z0-9_]*)?"))) {
+                        "Invalid PostgreSQL text search configuration: $language"
+                    }
+                    val document = this.registerColumn("${column.nameInDatabaseCase()}_ft_index", TsVectorColumnType())
                         .databaseGenerated()
                         .withDefinition("GENERATED ALWAYS AS (to_tsvector('${language}', ${column.nameInDatabaseCase()})) STORED")
+                    if (index.parameters["gin"] == "true") {
+                        index(indexType = "GIN", columns = arrayOf(document))
+                    }
                 }
                 IndexType.NNS -> {
                     val type = index.parameters[INDEX_TYPE_PARAMETER_NAME]?.lowercase() ?: "hnsw"
@@ -101,8 +107,15 @@ abstract class AbstractDescriptorTable<D : Descriptor<*>>(protected val field: S
     }
 
     /**
-     * Inserts a descriptor into the table. This method is used to insert a descriptor into the table.
+     * Inserts a descriptor or replaces its values, preserving its original retrievable.
      */
+    fun upsert(descriptor: D) = this.upsert(this.id, onUpdateExclude = listOf(this.retrievableId)) {
+        it[this.id] = descriptor.id
+        it[this.retrievableId] = descriptor.retrievableId ?: error("Cannot insert entity without retrievableId.")
+        it.setValue(descriptor)
+    }
+
+    /** Updates a descriptor by its ID. */
     fun update(descriptor: D) = this.update({ this@AbstractDescriptorTable.id eq descriptor.id }) {
         it[this.retrievableId] = descriptor.retrievableId ?: error("Cannot insert entity without retrievableId.")
         it.setValue(descriptor)

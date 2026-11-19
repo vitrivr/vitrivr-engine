@@ -41,6 +41,10 @@ open class PgDescriptorWriter<D : Descriptor<*>>(final override val field: Schem
         }
     }
 
+    override fun upsert(item: D): Boolean = transaction(connection.database) {
+        table.upsert(item).insertedCount > 0
+    }
+
     /**
      * Adds (writes) a batch of [Descriptor] of type [D] using this [PgDescriptorWriter].
      *

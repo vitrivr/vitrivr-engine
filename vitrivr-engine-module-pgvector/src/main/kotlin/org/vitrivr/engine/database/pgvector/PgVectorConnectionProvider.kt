@@ -10,6 +10,7 @@ import org.vitrivr.engine.core.database.descriptor.DescriptorProvider
 import org.vitrivr.engine.core.model.descriptor.scalar.*
 import org.vitrivr.engine.core.model.descriptor.struct.AnyMapStructDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
+import org.vitrivr.engine.core.model.descriptor.struct.VlmDescriptionDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.MediaDimensionsDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.Rectangle2DMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.struct.metadata.ShotBoundaryDescriptor
@@ -98,6 +99,7 @@ class PgVectorConnectionProvider: AbstractConnectionProvider() {
         this.register(Rectangle2DMetadataDescriptor::class, StructDescriptorProvider)
         this.register(MediaDimensionsDescriptor::class, StructDescriptorProvider)
         this.register(AnyMapStructDescriptor::class, StructDescriptorProvider)
+        this.register(VlmDescriptionDescriptor::class, StructDescriptorProvider)
     }
 
     /**
