@@ -63,6 +63,7 @@
         "ocr": {
           "factory": "OpticalCharacterRecognition",
           "parameters": {
+            "concurrentRequests": "8",
             "host": "http://127.0.0.1:8888"
           },
           "indexes": [

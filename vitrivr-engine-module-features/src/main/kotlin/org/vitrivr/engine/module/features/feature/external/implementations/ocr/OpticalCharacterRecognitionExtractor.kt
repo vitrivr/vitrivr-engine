@@ -1,5 +1,14 @@
 package org.vitrivr.engine.module.features.feature.external.implementations.ocr
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Semaphore
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.model.content.ContentType
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -18,16 +27,44 @@ import org.vitrivr.engine.core.operators.Operator
  * @author Rahel Arnold
  * @version 1.0.0
  */
-class OpticalCharacterRecognitionExtractor : AbstractExtractor<ContentElement<*>, TextDescriptor> {
+class OpticalCharacterRecognitionExtractor(
+    input: Operator<out Retrievable>,
+    analyser: OpticalCharacterRecognition,
+    field: Schema.Field<ContentElement<*>, TextDescriptor>?,
+    name: String,
+    private val host: String,
+    private val concurrentRequests: Int
+) : AbstractExtractor<ContentElement<*>, TextDescriptor>(input, analyser, field, name) {
+    constructor(
+        input: Operator<out Retrievable>, analyser: OpticalCharacterRecognition,
+        field: Schema.Field<ContentElement<*>, TextDescriptor>, host: String
+    ) : this(input, analyser, field, field.fieldName, host, 1)
 
-    private val host: String
+    constructor(
+        input: Operator<out Retrievable>, analyser: OpticalCharacterRecognition, name: String, host: String
+    ) : this(input, analyser, null, name, host, 1)
 
-    constructor(input: Operator<out Retrievable>, analyser: OpticalCharacterRecognition, field: Schema.Field<ContentElement<*>, TextDescriptor>, host: String) : super(input, analyser, field) {
-        this.host = host
+    init {
+        require(concurrentRequests in 1..32) { "concurrentRequests must be between 1 and 32." }
     }
-    constructor(input: Operator<out Retrievable>, analyser: OpticalCharacterRecognition, name: String, host: String) : super(input, analyser, name) {
-        this.host = host
+
+    override fun toFlow(scope: CoroutineScope): Flow<Retrievable> {
+        if (concurrentRequests == 1) return super.toFlow(scope)
+        return flow {
+            coroutineScope {
+                val pending = Semaphore(concurrentRequests)
+                input.toFlow(scope).map { item ->
+                    pending.acquire()
+                    async(Dispatchers.IO) { item to extractDescriptors(item) }
+                }.buffer(concurrentRequests - 1).collect { request ->
+                    val (item, descriptors) = request.await()
+                    pending.release()
+                    emit(persistDescriptors(item, descriptors))
+                }
+            }
+        }
     }
+
     /**
      * Determines if this extractor can process the given [Retrievable].
      */
@@ -41,7 +78,6 @@ class OpticalCharacterRecognitionExtractor : AbstractExtractor<ContentElement<*>
         retrievable.content
             .filterIsInstance<ImageContent>()
             .map { imageContent ->
-                // The OCR.analyse function should send the image (base64) to /extract-text
                 OpticalCharacterRecognition.analyse(imageContent, this.host)
                     .copy(retrievableId = retrievable.id, field = this@OpticalCharacterRecognitionExtractor.field)
             }

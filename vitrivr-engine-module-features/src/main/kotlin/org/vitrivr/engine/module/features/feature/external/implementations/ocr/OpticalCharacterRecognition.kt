@@ -73,7 +73,8 @@ class OpticalCharacterRecognition : ExternalAnalyser<ContentElement<*>, TextDesc
         context: Context
     ): OpticalCharacterRecognitionExtractor {
         val host: String = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
-        return OpticalCharacterRecognitionExtractor(input, this, field, host)
+        val concurrentRequests = Analyser.merge(field, context)["concurrentRequests"]?.toInt() ?: 1
+        return OpticalCharacterRecognitionExtractor(input, this, field, field.fieldName, host, concurrentRequests)
     }
 
     /**
@@ -85,7 +86,8 @@ class OpticalCharacterRecognition : ExternalAnalyser<ContentElement<*>, TextDesc
         context: Context
     ): OpticalCharacterRecognitionExtractor {
         val host: String = context.getProperty(name, HOST_PARAMETER_NAME) ?: HOST_PARAMETER_DEFAULT
-        return OpticalCharacterRecognitionExtractor(input, this, name, host)
+        val concurrentRequests = context.getProperty(name, "concurrentRequests")?.toInt() ?: 1
+        return OpticalCharacterRecognitionExtractor(input, this, null, name, host, concurrentRequests)
     }
 
 

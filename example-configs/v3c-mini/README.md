@@ -25,3 +25,5 @@ The VLM field in this pipeline uses the representative frame. You can add comple
 The pipeline exports each midpoint frame as a JPEG thumbnail named `<shot UUID>.jpg` under `example-configs/v3c-mini/thumbnails/`. The maximum side is 500 pixels. Set the `thumbnails` resolver location in the schema to use a different output directory.
 
 CLIP and SigLIP 2 image ingestion use batches of eight. Rebuild the engine and restart the Python descriptor server with its batch routes before indexing. Set `batchSize` to `1` to use single-image requests or tune it between 2 and 32 for your feature GPU. If a batch fails, the extractor falls back to the single-image endpoint for those shots. Text and image queries still use the single-item endpoints.
+
+OCR uses up to eight concurrent requests to the existing Tesseract endpoint. Set `concurrentRequests` on the OCR field to tune it for the descriptor server's CPU or set it to `1` for sequential requests.
